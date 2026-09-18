@@ -1,0 +1,9 @@
+{
+  "name": "CEAC",
+  "short_name": "CEAC",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2F3EF",
+  "theme_color": "#F2F3EF",
+  "icons": []
+}
