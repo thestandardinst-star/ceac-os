@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Sheet } from "../components/bits";
 
 const FILTERS = [["all","All"],["projects","Projects"],["tasks","Tasks"],["leave","Leave"],["activities","Ministry/unit activities"]];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -20,6 +21,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   const [filter,setFilter]=useState("all");
   const [cursor,setCursor]=useState(new Date());
   const [events,setEvents]=useState([]);
+  const [selectedActivity,setSelectedActivity]=useState(null);
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(true);
 
@@ -59,6 +61,19 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
           type:"activities",
           date:dateKey(d),
           title:`${event.cancelled?"Cancelled · ":""}${event.title}${needNote?` · Your unit: ${needNote}`:""}${event.location?` · ${event.location}`:""}`,
+          activity: {
+            id: event.id,
+            title: event.title,
+            kind: event.kind,
+            scope: event.scope,
+            starts_at: event.starts_at,
+            ends_at: event.ends_at,
+            all_day: event.all_day,
+            location: event.location,
+            notes: event.notes,
+            cancelled: event.cancelled,
+            unit_note: needNote || null,
+          },
         });
         d=addDays(d,1);
       }
@@ -88,9 +103,21 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
     {loading?<div className="spin">Loading calendar...</div>:<div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
       {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted ? 0.55 : 1}}>
         <div className="small" style={{fontWeight:700}}>{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.profileId?openPerson(e.profileId,"sessions"):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
+        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.profileId?openPerson(e.profileId,"sessions"):e.activity?setSelectedActivity(e.activity):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
       </div>})}
     </div>}
     {filter==="activities"&&visible.length===0&&<div className="card small" style={{marginTop:12}}>No ministry or unit activity is recorded for this period.</div>}
+    {selectedActivity&&<Sheet onClose={()=>setSelectedActivity(null)}>
+      <div className="eyebrow">{selectedActivity.kind.replaceAll("_"," ")} · {selectedActivity.scope==="church"?"Church-wide":"Unit activity"}</div>
+      <div className="h2" style={{marginTop:5}}>{selectedActivity.title}</div>
+      {selectedActivity.cancelled&&<div className="flag flag-brick"><h4>Cancelled</h4>This event remains on the calendar because teams may already have planned around it.</div>}
+      <div className="card" style={{marginTop:14}}>
+        <div className="row-m">{selectedActivity.all_day?"All day":new Date(selectedActivity.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}{selectedActivity.ends_at&&!selectedActivity.all_day?` → ${new Date(selectedActivity.ends_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}`:""}</div>
+        {selectedActivity.location&&<div className="row-note">Location: {selectedActivity.location}</div>}
+        {selectedActivity.unit_note&&<div className="row-note"><b>Your unit:</b> {selectedActivity.unit_note}</div>}
+        {selectedActivity.notes&&<div className="row-note">{selectedActivity.notes}</div>}
+      </div>
+      <button className="btn btn-ghost" style={{marginTop:12}} onClick={()=>setSelectedActivity(null)}>Close</button>
+    </Sheet>}
   </div>;
 }
