@@ -3,10 +3,21 @@ import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
 import { parseTask } from "../lib/parseTask";
 
+const WORK_KINDS = [
+  ["task", "Task"],
+  ["routine", "Routine"],
+  ["case", "Case"],
+  ["request", "Request"],
+  ["decision", "Decision"],
+  ["meeting_outcome", "Meeting outcome"],
+  ["deliverable", "Deliverable"],
+];
+
 export default function Assign({ me, back }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [kind, setKind] = useState("task");
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -52,7 +63,6 @@ export default function Assign({ me, back }) {
   async function create() {
     setBusy(true); setErr(null);
     try {
-      const kind = "task";
       const { data: ref, error: refError } = await supabase
         .rpc("next_work_ref", { p_unit_id: me.unit_id, p_sub_team_id: subTeam || null });
       if (refError) throw refError;
@@ -67,10 +77,12 @@ export default function Assign({ me, back }) {
       if (error) throw error;
       const clean = steps.map((s) => s.trim()).filter(Boolean);
       if (kind === "task" && clean.length) {
-        await supabase.from("checklist_items").insert(clean.map((label, i) => ({ work_item_id: wi.id, label, position: i + 1 })));
+        const { error: checklistError } = await supabase.from("checklist_items")
+          .insert(clean.map((label, i) => ({ work_item_id: wi.id, label, position: i + 1 })));
+        if (checklistError) throw checklistError;
       }
       setDone(wi.ref);
-      setTitle(""); setPurpose(""); setInstructions(""); setDue(""); setSteps([""]); setVoiceHint(null);
+      setKind("task"); setTitle(""); setPurpose(""); setInstructions(""); setDue(""); setSteps([""]); setVoiceHint(null);
     } catch (e) { setErr(e.message || "Something went wrong. Nothing was sent."); }
     finally { setBusy(false); }
   }
@@ -101,15 +113,20 @@ export default function Assign({ me, back }) {
       <div className="split" style={{ marginTop: 10 }}>
         <div className="main-col">
           <div className="sec"><span>What needs doing</span></div>
+          <select className="field" value={kind} onChange={(e) => setKind(e.target.value)}>
+            {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
           <textarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
-          <div className="sec"><span>What finished looks like</span></div>
-          <p className="small" style={{ marginBottom: 4 }}>They tick these off as they work. That is the only place anything gets entered.</p>
-          {steps.map((s, i) => (
-            <input key={i} className="field" placeholder={"Step " + (i + 1)} value={s}
-              onChange={(e) => setSteps((x) => x.map((v, j) => (j === i ? e.target.value : v)))}
-              onBlur={() => { if (s.trim() && i === steps.length - 1) setSteps((x) => [...x, ""]); }} />))}
+          {kind === "task" && (<>
+            <div className="sec"><span>What finished looks like</span></div>
+            <p className="small" style={{ marginBottom: 4 }}>They tick these off as they work. That is the only place anything gets entered.</p>
+            {steps.map((s, i) => (
+              <input key={i} className="field" placeholder={"Step " + (i + 1)} value={s}
+                onChange={(e) => setSteps((x) => x.map((v, j) => (j === i ? e.target.value : v)))}
+                onBlur={() => { if (s.trim() && i === steps.length - 1) setSteps((x) => [...x, ""]); }} />))}
+          </>)}
         </div>
         <div className="side-col">
           <div className="sec"><span>Who is doing it</span></div>
