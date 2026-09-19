@@ -484,7 +484,7 @@ export default function ManagerReports({ me, openItem }) {
         <EvidenceMetric value={displayCounts.completed || 0} label="completed in period" onClick={() => viewingFrozen ? openFrozenSection("completed", "Completed work") : openLive("completed", "Completed work", evidence.completed, "work")} />
         <EvidenceMetric value={displayCounts.submissions || 0} label="submissions" onClick={() => viewingFrozen ? openFrozenSection("submissions", "Submissions") : openLive("submissions", "Submissions", evidence.periodSubmissions, "submission")} />
         <EvidenceMetric value={displayCounts.overdue || 0} label="overdue from this period" onClick={() => viewingFrozen ? openFrozenSection("overdue", "Overdue work") : openLive("overdue", "Overdue work", evidence.overdue, "work")} />
-        <EvidenceMetric value={displayCounts.attendance_days || 0} label="recorded attendance days" onClick={() => viewingFrozen ? openFrozenSection("attendance_days", "Attendance days") : openLive("attendance_days", "Attendance days", evidence.attendanceDays, "session")} />
+        <EvidenceMetric value={displayCounts.attendance_days || 0} label={mode === "project" ? "project work-session days" : "recorded attendance days"} onClick={() => viewingFrozen ? openFrozenSection("attendance_days", "Attendance days") : openLive("attendance_days", "Attendance days", evidence.attendanceDays, "session")} />
       </div>
 
       {drill && <div style={{ marginTop: 12 }}>
