@@ -22,6 +22,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   const [cursor,setCursor]=useState(new Date());
   const [events,setEvents]=useState([]);
   const [selectedActivity,setSelectedActivity]=useState(null);
+  const [selectedLeave,setSelectedLeave]=useState(null);
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(true);
 
@@ -48,7 +49,13 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
     (work.data||[]).forEach(w=>out.push({id:`task-${w.id}`,type:"tasks",date:accraDateKey(w.due_at),title:`${w.ref} · ${w.title}`,itemId:w.id}));
     (leave.data||[]).filter(l=>memberIds.has(l.profile_id)).forEach(l=>{
       let d=parseDateOnly(l.start_date), end=parseDateOnly(l.end_date);
-      while(d<=end){ out.push({id:`leave-${l.id}-${dateKey(d)}`,type:"leave",date:dateKey(d),title:`${l.profiles?.full_name||"Team member"} · ${l.kind} leave`,profileId:l.profile_id}); d=addDays(d,1); }
+      while(d<=end){ out.push({
+        id:`leave-${l.id}-${dateKey(d)}`,
+        type:"leave",
+        date:dateKey(d),
+        title:`${l.profiles?.full_name||"Team member"} · ${l.kind} leave`,
+        leave:{ id:l.id, profile_id:l.profile_id, full_name:l.profiles?.full_name||"Team member", kind:l.kind, start_date:l.start_date, end_date:l.end_date, status:l.status }
+      }); d=addDays(d,1); }
     });
     const needByEvent = new Map((ministryNeeds.data||[]).map((row)=>[row.event_id,row.note]));
     (ministry.data||[]).filter((event)=>event.scope==="church"||event.unit_id===me.unit_id||needByEvent.has(event.id)).forEach((event)=>{
@@ -103,10 +110,21 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
     {loading?<div className="spin">Loading calendar...</div>:<div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
       {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted ? 0.55 : 1}}>
         <div className="small" style={{fontWeight:700}}>{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.profileId?openPerson(e.profileId,"sessions"):e.activity?setSelectedActivity(e.activity):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
+        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
       </div>})}
     </div>}
     {filter==="activities"&&visible.length===0&&<div className="card small" style={{marginTop:12}}>No ministry or unit activity is recorded for this period.</div>}
+    {selectedLeave&&<Sheet onClose={()=>setSelectedLeave(null)}>
+      <div className="eyebrow">Approved leave</div>
+      <div className="h2" style={{marginTop:5}}>{selectedLeave.full_name}</div>
+      <div className="card" style={{marginTop:14}}>
+        <div className="row-t">{selectedLeave.kind} leave</div>
+        <div className="row-m">{selectedLeave.start_date} → {selectedLeave.end_date}</div>
+        <div className="row-note">Status: approved</div>
+      </div>
+      <button className="btn btn-ghost" style={{marginTop:12}} onClick={()=>{ const personId=selectedLeave.profile_id; setSelectedLeave(null); openPerson(personId,"current"); }}>Open team member</button>
+      <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>setSelectedLeave(null)}>Close</button>
+    </Sheet>}
     {selectedActivity&&<Sheet onClose={()=>setSelectedActivity(null)}>
       <div className="eyebrow">{selectedActivity.kind.replaceAll("_"," ")} · {selectedActivity.scope==="church"?"Church-wide":"Unit activity"}</div>
       <div className="h2" style={{marginTop:5}}>{selectedActivity.title}</div>
