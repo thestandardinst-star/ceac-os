@@ -139,7 +139,7 @@ export default function ManagerReports({ me, openItem }) {
       supabase.from("projects").select("id,name,starts_on,ends_on,status").order("starts_on", { ascending: false, nullsFirst: false }),
       supabase.from("report_periods").select("id,kind,label,starts_on,ends_on,status").order("starts_on", { ascending: false }),
       supabase.from("work_items").select("id,ref,title,kind,status,due_at,completed_at,project_id,assignee_id,origin,projects(name),profiles!work_items_assignee_id_fkey(full_name)").eq("unit_id", me.unit_id).neq("visibility", "private"),
-      supabase.from("unit_memberships").select("profile_id").eq("unit_id", me.unit_id).eq("active", true),
+      supabase.from("unit_memberships").select("profile_id").eq("unit_id", me.unit_id),
       supabase.from("objectives").select("id,project_id,unit_id,ref,name,status").eq("unit_id", me.unit_id),
     ]);
     const first = [projectResult.error, periodResult.error, workResult.error, memberResult.error, objectiveResult.error].find(Boolean);
