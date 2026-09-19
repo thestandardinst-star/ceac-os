@@ -138,26 +138,55 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     if (missingObjective || noDeliverable || !challenges.trim() || !doDifferently.trim()) return;
     setBusy(true); setError(null);
     try {
-      const versionResult = await supabase.rpc("next_close_version", {
-        p_project_id: project.id,
-        p_scope: sheet.scope,
-        p_unit_id: sheet.scope === "unit" ? me.unit_id : null,
-      });
-      if (versionResult.error) throw new Error(`Close version: ${versionResult.error.message}`);
-      const version = Number(versionResult.data);
-      const { data: close, error: closeError } = await supabase.from("project_closes").insert({
-        org_id: me.org_id,
-        project_id: project.id,
-        scope: sheet.scope,
-        unit_id: sheet.scope === "unit" ? me.unit_id : null,
-        version,
-        status: "draft",
-        deliverables_note: deliverablesNote.trim() || null,
-        challenges: challenges.trim(),
-        do_differently: doDifferently.trim(),
-        author_id: me.id,
-      }).select("id").single();
-      if (closeError) throw closeError;
+      const draftResult = await supabase.from("project_closes")
+        .select("id,version")
+        .eq("project_id", project.id)
+        .eq("scope", sheet.scope)
+        .eq("status", "draft")
+        .eq("author_id", me.id)
+        .order("version", { ascending: false })
+        .limit(1);
+      if (draftResult.error) throw new Error(`Existing draft: ${draftResult.error.message}`);
+      let close = draftResult.data?.[0] || null;
+
+      if (close) {
+        const { error: updateError } = await supabase.from("project_closes").update({
+          deliverables_note: deliverablesNote.trim() || null,
+          challenges: challenges.trim(),
+          do_differently: doDifferently.trim(),
+        }).eq("id", close.id);
+        if (updateError) throw updateError;
+
+        const clearResults = await Promise.all([
+          supabase.from("project_close_objectives").delete().eq("close_id", close.id),
+          supabase.from("project_close_deliverables").delete().eq("close_id", close.id),
+          supabase.from("project_close_costs").delete().eq("close_id", close.id),
+        ]);
+        const clearError = clearResults.map((result) => result.error).find(Boolean);
+        if (clearError) throw new Error(`Existing draft could not be refreshed: ${clearError.message}`);
+      } else {
+        const versionResult = await supabase.rpc("next_close_version", {
+          p_project_id: project.id,
+          p_scope: sheet.scope,
+          p_unit_id: sheet.scope === "unit" ? me.unit_id : null,
+        });
+        if (versionResult.error) throw new Error(`Close version: ${versionResult.error.message}`);
+        const version = Number(versionResult.data);
+        const createResult = await supabase.from("project_closes").insert({
+          org_id: me.org_id,
+          project_id: project.id,
+          scope: sheet.scope,
+          unit_id: sheet.scope === "unit" ? me.unit_id : null,
+          version,
+          status: "draft",
+          deliverables_note: deliverablesNote.trim() || null,
+          challenges: challenges.trim(),
+          do_differently: doDifferently.trim(),
+          author_id: me.id,
+        }).select("id,version").single();
+        if (createResult.error) throw createResult.error;
+        close = createResult.data;
+      }
 
       const objectivePayload = currentObjectives.map((objective) => ({
         close_id: close.id,
