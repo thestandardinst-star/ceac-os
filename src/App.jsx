@@ -84,7 +84,7 @@ export default function App() {
     if (tab === "home") {
       if (me.is_exec) return <ExecutiveHome me={me} />;
       if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openSettings={() => go("settings")} openUnits={() => go("units")} />;
-      if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} goAssign={() => startAssignment()} />;
+      if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
     if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
