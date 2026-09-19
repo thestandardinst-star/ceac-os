@@ -21,7 +21,7 @@ import PersonDetail from "./screens/PersonDetail";
 import StaffTeam from "./screens/StaffTeam";
 import OfficeSettings from "./screens/OfficeSettings";
 import Goals from "./screens/Goals";
-import ManagerProjects from "./screens/ManagerProjects";
+import ManagerProjects from "./screens/ManagerProjects";\nimport ManagerCalendar from "./screens/ManagerCalendar";\nimport ManagerFinance from "./screens/ManagerFinance";
 import { Tabs, SideNav } from "./components/bits";
 
 export default function App() {
@@ -72,7 +72,7 @@ export default function App() {
     }
     if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
-    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;
+    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;\n    if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} />;\n    if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
     if (tab === "finance") return <Finance me={me} />;
