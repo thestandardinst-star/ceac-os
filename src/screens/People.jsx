@@ -195,11 +195,42 @@ export default function People({ me, openItem }) {
     filter === "quiet" ? p.quiet :
     filter === "no_unit" ? !p.unit_id : true);
 
+  // Seniority within a unit: the head first, then team leads, then staff.
+  // Within the same rank, longest serving first — a fact, not a judgement.
+  function rank(p) {
+    if (p.is_exec) return 0;
+    if (p.is_admin) return 1;
+    if (p.role === "manager") return 2;
+    if (p.role === "sub_team_lead") return 3;
+    return 4;
+  }
+  function rankLabel(p) {
+    if (p.is_exec) return "Group Pastor";
+    if (p.is_admin) return "Administration & HR";
+    if (p.role === "manager") return "Unit head";
+    if (p.role === "sub_team_lead") return "Team lead";
+    return "Staff";
+  }
+  const byUnit = {};
+  shown.forEach((p) => {
+    const k = p.unit_name || "No unit yet";
+    (byUnit[k] = byUnit[k] || []).push(p);
+  });
+  const groups = Object.keys(byUnit)
+    .sort((a, b) => (a === "No unit yet" ? 1 : b === "No unit yet" ? -1 : a.localeCompare(b)))
+    .map((name) => ({
+      name,
+      people: byUnit[name].sort((a, b) =>
+        rank(a) - rank(b)
+        || String(a.started_on || "9999").localeCompare(String(b.started_on || "9999"))
+        || a.full_name.localeCompare(b.full_name)),
+    }));
+
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
         <h1 className="h1">People</h1>
-        <p className="screen-note">Everything on record about each person, built from work that already happened. Press any number to see the rows behind it.</p>
+        <p className="screen-note">By department, and within each one the head first, then team leads, then staff — longest serving first. Press any number to see the rows behind it.</p>
       </div>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
         {FILTERS.map(([k, label]) => (
@@ -209,20 +240,27 @@ export default function People({ me, openItem }) {
             color: filter === k ? "#fff" : "var(--ink-soft)", fontWeight: filter === k ? 600 : 400,
           }}>{label}</button>))}
       </div>
-      <div className="sec"><span>{shown.length} {shown.length === 1 ? "person" : "people"}</span></div>
-      {shown.map((p) => (
+      <div className="sec"><span>{shown.length} {shown.length === 1 ? "person" : "people"}</span><span>{groups.length} {groups.length === 1 ? "unit" : "units"}</span></div>
+      {groups.map((g) => (
+        <div key={g.name}>
+          <div className="sec" style={{ marginBottom: 6 }}>
+            <span style={{ color: "var(--ink)" }}>{g.name}</span>
+            <span>{g.people.length}</span>
+          </div>
+          {g.people.map((p) => (
         <button key={p.id} className="row" onClick={() => { setPerson(p); setDrill(null); }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
             <div className="row-t">{p.full_name}</div>
             {p.onLeaveNow && <span className="pill p-amber">On leave</span>}
             {!p.active && <span className="pill p-grey">Inactive</span>}
           </div>
-          <div className="row-m">{p.job_title || "No job title"} · {p.unit_name || "no unit"}</div>
+          <div className="row-m">{rankLabel(p)}{p.job_title ? " · " + p.job_title : ""}</div>
           <div className="row-m" style={{ marginTop: 4 }}>
             {p.done.length} finished · {p.openWork.length} open
             {p.quiet && <span style={{ color: "var(--amber)" }}> · nothing submitted in 14 days</span>}
           </div>
-        </button>))}
+          </button>))}
+        </div>))}
       {shown.length === 0 && <div className="empty"><h3>Nobody matches</h3><p>Try a different filter.</p></div>}
     </div>);
 }
