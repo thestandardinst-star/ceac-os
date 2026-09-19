@@ -21,6 +21,7 @@ import PersonDetail from "./screens/PersonDetail";
 import StaffTeam from "./screens/StaffTeam";
 import OfficeSettings from "./screens/OfficeSettings";
 import Goals from "./screens/Goals";
+import ManagerProjects from "./screens/ManagerProjects";
 import { Tabs, SideNav } from "./components/bits";
 
 export default function App() {
@@ -29,8 +30,9 @@ export default function App() {
   const [tab, setTab] = useState("home");
   const [itemId, setItemId] = useState(null);
   const [goalId, setGoalId] = useState(null);
-  const [assigning, setAssigning] = useState(false);
+  const [assigning, setAssigning] = useState(null);
   const [person, setPerson] = useState(null);
+  const [projectId, setProjectId] = useState(null);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function App() {
     setReady(true);
   }
 
-  function go(t) { setItemId(null); setGoalId(null); setAssigning(false); setPerson(null); setTab(t); }
+  function go(t) { setItemId(null); setGoalId(null); setAssigning(null); setPerson(null); setProjectId(null); setTab(t); }
 
   if (!ready) return <div className="spin">Loading...</div>;
   if (!me) return <SignIn />;
@@ -54,17 +56,23 @@ export default function App() {
   const isAdmin = me.is_admin || me.is_exec;
   const isUnitManager = !isAdmin && me.role === "manager";
   const isManager = isAdmin || isUnitManager;
-  const overlay = itemId || assigning || goalId || person;
+  const overlay = itemId || assigning || goalId || person || projectId;
+
+  function startAssignment(context = {}) {
+    if (context.projectId) setProjectId(context.projectId);
+    setAssigning(context);
+  }
 
   function pageForTab() {
     if (tab === "home") {
       if (me.is_exec) return <ExecutiveHome me={me} />;
       if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openSettings={() => go("settings")} openUnits={() => go("units")} />;
-      if (isManager) return <ManagerHome me={me} openItem={setItemId} goAssign={() => setAssigning(true)} />;
+      if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} goAssign={() => startAssignment()} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
     if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
+    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
     if (tab === "finance") return <Finance me={me} />;
@@ -79,9 +87,10 @@ export default function App() {
     <div className="app">
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} />
       {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
+        : assigning ? <Assign me={me} initialProjectId={assigning.projectId} initialObjectiveId={assigning.objectiveId} initialPhaseId={assigning.phaseId} back={() => setAssigning(null)} />
+        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} back={() => setProjectId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
-        : assigning ? <Assign me={me} back={() => setAssigning(false)} />
-        : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} back={() => setPerson(null)} />
+        : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} openProject={setProjectId} back={() => setPerson(null)} />
         : pageForTab()}
       {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} />}
     </div>);

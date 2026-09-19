@@ -27,7 +27,7 @@ function WorkRow({ item, openItem }) {
   </button>;
 }
 
-export default function PersonDetail({ me, profileId, focus, openItem, back }) {
+export default function PersonDetail({ me, profileId, focus, openItem, openProject, back }) {
   const [person, setPerson] = useState(null);
   const [items, setItems] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -97,7 +97,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, back }) {
       if (objectiveIds.length) {
         const [objectiveResult, taskResult] = await Promise.all([
           supabase.from("objectives")
-            .select("id, ref, name, statement, status, target_value, target_unit, achieved_value, projects(name)")
+            .select("id, project_id, ref, name, statement, status, target_value, target_unit, achieved_value, projects(name)")
             .eq("unit_id", me.unit_id).in("id", objectiveIds).order("ref"),
           supabase.from("work_items")
             .select("id, ref, title, status, due_at, objective_id, kind")
@@ -181,6 +181,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, back }) {
         <div style={{ marginTop: 8 }}><Pill tone={objective.status === "at_risk" ? "brick" : "green"}>{formatObjectiveStatus(objective.status)}</Pill></div>
         <button className="row-note" style={{ textDecoration: "underline" }} onClick={() => setOpenObjective(openObjective === objective.id ? null : objective.id)}>{done} of {tasks.length} tasks completed</button>
         {objective.target_value !== null && objective.achieved_value !== null && <div className="row-note">Target: {objective.target_value} {objective.target_unit || ""} · Result: {objective.achieved_value} {objective.target_unit || ""}</div>}
+        {objective.project_id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openProject(objective.project_id)}>Open project</button>}
         {openObjective === objective.id && <div style={{ marginTop: 10 }}>{tasks.map((task) => <WorkRow key={task.id} item={task} openItem={openItem} />)}{tasks.length === 0 && <div className="small">No tasks are attached.</div>}</div>}
       </div>;
     })}

@@ -11,7 +11,8 @@ export function statusPill(status) {
   return <Pill tone="grey">Not started</Pill>;
 }
 function tabItems(isManager = false) {
-  return [["home","Home"],["work",isManager ? "My work" : "Work"],["team","Team"],["record","Record"],["me","Me"]];
+  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
 }
 export function SideNav({ tab, setTab, me, isAdmin, isManager }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");

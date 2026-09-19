@@ -35,7 +35,7 @@ function ActionRow({ item, openItem }) {
   );
 }
 
-export default function ManagerHome({ me, openItem, goAssign }) {
+export default function ManagerHome({ me, openItem, openProject, goAssign }) {
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -290,13 +290,14 @@ export default function ManagerHome({ me, openItem, goAssign }) {
       <div className="sec"><span>Projects needing attention</span><span>{projects.length}</span></div>
       {projects.length ? projects.map((project) => (
         <div key={project.id} className="row">
-          <div className="row-t">{project.name}</div>
+          <button className="row-t" style={{ textDecoration: "underline", textAlign: "left" }} onClick={() => openProject(project.id)}>{project.name}</button>
           <div className="row-m">{project.atRisk.length > 0
             ? `${project.atRisk.length} objective${project.atRisk.length === 1 ? "" : "s"} at risk`
             : `closes ${new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}`}</div>
           {project.atRisk.map((objective) => <div key={objective.id} className="row-note">At risk: {objective.name}</div>)}
           {project.atRisk.length > 0 && project.closesThisWeek && <div className="row-note">Closes {new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}</div>}
           {project.taskCount > 0 && <button className="row-note" style={{ textDecoration: "underline" }} onClick={() => setDrill({ title: `${project.name} tasks`, rows: project.tasks })}>{project.completedTasks} of {project.taskCount} tasks completed</button>}
+          <div><button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openProject(project.id)}>Open project</button></div>
         </div>
       )) : <div className="card small">No active project has an at-risk objective or closes this week.</div>}
 

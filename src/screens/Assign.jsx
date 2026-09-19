@@ -13,10 +13,12 @@ const WORK_KINDS = [
   ["deliverable", "Deliverable"],
 ];
 
-export default function Assign({ me, back }) {
+export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "" }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [objectives, setObjectives] = useState([]);
+  const [phases, setPhases] = useState([]);
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -24,7 +26,9 @@ export default function Assign({ me, back }) {
   const [kind, setKind] = useState("task");
   const [assignee, setAssignee] = useState("");
   const [subTeam, setSubTeam] = useState("");
-  const [project, setProject] = useState("");
+  const [project, setProject] = useState(initialProjectId);
+  const [objective, setObjective] = useState(initialObjectiveId);
+  const [phase, setPhase] = useState(initialPhaseId);
   const [due, setDue] = useState("");
   const [steps, setSteps] = useState([""]);
   const [busy, setBusy] = useState(false);
@@ -33,6 +37,12 @@ export default function Assign({ me, back }) {
   const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
+  useEffect(() => {
+    setProject(initialProjectId);
+    setObjective(initialObjectiveId);
+    setPhase(initialPhaseId);
+  }, [initialProjectId, initialObjectiveId, initialPhaseId]);
+  useEffect(() => { loadProjectContext(); }, [project]);
 
   async function load() {
     if (!me.unit_id) return;
@@ -45,9 +55,23 @@ export default function Assign({ me, back }) {
       .select("id,name,code").eq("unit_id", me.unit_id).eq("active", true).order("position");
     if (teamError) { setErr(teamError.message); return; }
     setSubTeams(st || []);
-    const { data: p, error: projectError } = await supabase.from("projects").select("id,name").eq("status", "active").order("name");
+    const { data: p, error: projectError } = await supabase.from("projects").select("id,name").in("status", ["planned", "active"]).order("name");
     if (projectError) { setErr(projectError.message); return; }
     setProjects(p || []);
+  }
+
+  async function loadProjectContext() {
+    if (!project) { setObjectives([]); setPhases([]); setObjective(""); setPhase(""); return; }
+    const [objectiveResult, phaseResult] = await Promise.all([
+      supabase.from("objectives").select("id, ref, name, unit_id").eq("project_id", project).order("ref"),
+      supabase.from("project_phases").select("id, name, position").eq("project_id", project).order("position"),
+    ]);
+    if (objectiveResult.error) { setErr(`Project objectives: ${objectiveResult.error.message}`); return; }
+    if (phaseResult.error) { setErr(`Project phases: ${phaseResult.error.message}`); return; }
+    setObjectives(objectiveResult.data || []);
+    setPhases(phaseResult.data || []);
+    if (objective && !(objectiveResult.data || []).some((row) => row.id === objective)) setObjective("");
+    if (phase && !(phaseResult.data || []).some((row) => row.id === phase)) setPhase("");
   }
 
   function handleVoice(text) {
@@ -75,6 +99,8 @@ export default function Assign({ me, back }) {
       const { data: wi, error } = await supabase.from("work_items").insert({
         org_id: me.org_id, ref, kind, unit_id: me.unit_id,
         sub_team_id: subTeam || null, project_id: project || null,
+        objective_id: project && objective ? objective : null,
+        phase_id: project && phase ? phase : null,
         assignee_id: assignee, assigned_by: me.id,
         title, purpose: purpose || null, instructions: instructions || null,
         expected_outcome: expectedOutcome || null,
@@ -147,10 +173,18 @@ export default function Assign({ me, back }) {
             <option value="">Which part of the team (optional)</option>
             {subTeams.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-          <select className="field" value={project} onChange={(e) => setProject(e.target.value)}>
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
             <option value="">Part of a project (optional)</option>
             {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          {project && phases.length > 0 && <select className="field" value={phase} onChange={(e) => setPhase(e.target.value)}>
+            <option value="">Project phase (optional)</option>
+            {phases.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>}
           <div className="sec"><span>When</span></div>
           <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
           <button className="btn" style={{ marginTop: 20 }} onClick={create} disabled={busy || !title.trim() || !assignee}>
