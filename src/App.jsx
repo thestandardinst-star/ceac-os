@@ -23,6 +23,7 @@ import OfficeSettings from "./screens/OfficeSettings";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
+import ManagerFinance from "./screens/ManagerFinance";
 import { Tabs, SideNav } from "./components/bits";
 
 export default function App() {
@@ -75,6 +76,7 @@ export default function App() {
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
     if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;
     if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} />;
+    if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
     if (tab === "finance") return <Finance me={me} />;
