@@ -32,6 +32,9 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   const isLead = project.lead_unit_id === me.unit_id;
   const ownObjectives = objectives.filter((row) => row.unit_id === me.unit_id);
   const deliveredWork = work.filter((row) => ["completed", "self_certified"].includes(row.status));
+  const deliverablesFor = (scope) => scope === "unit"
+    ? deliveredWork.filter((row) => row.unit_id === me.unit_id)
+    : deliveredWork;
   const unitClose = closes.find((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted");
   const overallClose = closes.find((row) => row.scope === "overall" && row.status === "submitted");
   const overallCloseCurrentCycle = Boolean(overallClose) && (
@@ -98,7 +101,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
       };
     });
     setObjectiveRows(prefilled);
-    setSelectedDeliverables(deliveredWork.map((item) => item.id));
+    setSelectedDeliverables(deliverablesFor(scope).map((item) => item.id));
     setDeliverablesNote("");
     setChallenges("");
     setDoDifferently("");
@@ -125,6 +128,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     () => sheet?.scope === "overall" ? objectives : ownObjectives,
     [sheet?.scope, objectives, ownObjectives]
   );
+  const currentDeliverables = sheet ? deliverablesFor(sheet.scope) : [];
   const currentCosts = sheet?.scope === "overall" ? overallCosts : costs;
   const completeCosts = currentCosts.filter((row) => row.planned !== null && row.actual !== null);
   const incompleteCosts = currentCosts.filter((row) => row.planned === null || row.actual === null);
@@ -200,7 +204,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
       }
 
       const deliverablePayload = selectedDeliverables.map((id, index) => {
-        const item = deliveredWork.find((row) => row.id === id);
+        const item = currentDeliverables.find((row) => row.id === id);
         const submission = latestSubmission(item || {});
         return {
           close_id: close.id,
@@ -338,11 +342,11 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
       <p className="screen-note">This is the manager submission: what was produced, whether objectives were met, cost, challenges, and what should change next time.</p>
 
       <div className="sec"><span>1 · Deliverables</span></div>
-      {deliveredWork.map((item) => <button className={"ck " + (selectedDeliverables.includes(item.id) ? "done" : "")} key={item.id} onClick={() => toggleDeliverable(item.id)}>
+      {currentDeliverables.map((item) => <button className={"ck " + (selectedDeliverables.includes(item.id) ? "done" : "")} key={item.id} onClick={() => toggleDeliverable(item.id)}>
         <span className={"box " + (selectedDeliverables.includes(item.id) ? "on" : "")} />
         <span className="ck-l">{item.ref} · {item.title}</span>
       </button>)}
-      {deliveredWork.length === 0 && <div className="card small">No completed work is available to attach as a deliverable.</div>}
+      {currentDeliverables.length === 0 && <div className="card small">No completed work is available to attach as a deliverable.</div>}
       <textarea className="field" rows={2} placeholder="Other deliverables produced (optional if selected above)" value={deliverablesNote} onChange={(event) => setDeliverablesNote(event.target.value)} />
 
       <div className="sec"><span>2 · Objectives</span></div>
