@@ -153,7 +153,7 @@ export default function ManagerReports({ me, openItem }) {
     const workIds = (workResult.data || []).map((row) => row.id);
     const [sessionResult, submissionResult] = await Promise.all([
       memberIds.length
-        ? supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,end_reason,profiles!work_sessions_profile_id_fkey(full_name)").in("profile_id", memberIds)
+        ? supabase.from("work_sessions").select("id,profile_id,work_item_id,started_at,ended_at,end_reason,profiles!work_sessions_profile_id_fkey(full_name)").in("profile_id", memberIds)
         : Promise.resolve({ data: [], error: null }),
       workIds.length
         ? supabase.from("submissions").select("id,work_item_id,profile_id,submitted_at,note,profiles!submissions_profile_id_fkey(full_name)").in("work_item_id", workIds)
@@ -202,7 +202,7 @@ export default function ManagerReports({ me, openItem }) {
     const overdue = due.filter((row) => !COMPLETE.has(row.status) && row.status !== "waiting_on" && row.due_at && new Date(row.due_at) < new Date());
     const workIds = new Set(relevantWork.map((row) => row.id));
     const periodSubmissions = submissions.filter((row) => workIds.has(row.work_item_id) && within(localDate(row.submitted_at), range.start, range.end));
-    const periodSessions = sessions.filter((row) => within(localDate(row.started_at), range.start, range.end));
+    const periodSessions = sessions.filter((row) => within(localDate(row.started_at), range.start, range.end) && (mode !== "project" || (row.work_item_id && workIds.has(row.work_item_id))));
     const attendanceDays = distinctAttendanceDays(periodSessions);
     const activeProjects = projects.filter((project) => relevantWork.some((row) => row.project_id === project.id));
     const relevantObjectives = objectives.filter((objective) => mode !== "project" || objective.project_id === projectId);
