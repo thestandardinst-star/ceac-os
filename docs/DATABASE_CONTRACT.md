@@ -128,3 +128,69 @@ migration made. CEAC must first answer: what counts as a request, who
 submits, who approves, whether approval has stages, whether an approved
 amount becomes committed cost, and how Finance turns an approved request
 into actual spend. Keep showing the unavailable state.
+
+---
+
+## Finance requests (migrations 022, 023)
+
+CEAC's rules: department heads only may ask. Up to GHS 1,000
+Administration decides; 1,001–10,000 Finance; above 10,000 Finance **then**
+the Group Pastor, both required. Approved money counts against the budget
+immediately. Finance turns an approved request into spend.
+
+`finance_request_path(amount_minor, currency, org_id) → text[]`
+Returns the authorities needed in order, e.g. `{finance,exec}`.
+Thresholds are per currency in `finance_approval_rules`, because the
+limits are cedi figures and conversion is forbidden. **A currency with no
+row escalates to the Group Pastor** — over-approving is recoverable.
+
+`decide_finance_request(p_request_id, p_decision, p_note) → text`
+Returns `approved`, `declined`, or `awaiting finance`/`awaiting exec`.
+Rejects a caller who is not the authority required at that stage, and
+rejects a second decision from the same person on one request.
+
+`fulfil_finance_request(p_request_id, p_spent_on, p_source_note) → uuid`
+Finance or Administration only. Creates the spend line from the request —
+same amount, currency and unit — and links the two. No retyping.
+
+`unit_budget_position(p_unit_id, p_year) → (currency, budget_minor,
+spent_minor, committed_minor, remaining_minor)`
+Per currency, never summed. `committed_minor` is approved-but-unpaid.
+**Show remaining, not budget minus spent** — otherwise a head commits
+money that is already promised.
+
+Raising a request: insert into `finance_requests`. RLS restricts it to a
+head of that unit. A requester may cancel their own only while state is
+`submitted`.
+
+The floor is `no_request_below_minor`, currently **0 — every purchase
+needs a request**, as instructed. Recommend raising it (~GHS 200): if a
+head must raise a request for batteries they will stop using the system
+for the large purchases too.
+
+## Ministry calendar (migration 024)
+
+Ownership settled: Administration and the head of Programs maintain it,
+the Group Pastor oversees. `units.owns_calendar` marks the owning unit —
+a flag, not the name 'Programs', so it survives a rename. Currently set
+on PRG.
+
+`ministry_events(id, org_id, title, kind, scope, unit_id, starts_at,
+ends_at, all_day, location, notes, cancelled)`
+kind: service | special_service | convention | training | meeting |
+outreach | other. scope: church | unit.
+
+`ministry_event_units(event_id, unit_id, note)` — which departments the
+event needs, and what for. **This is the part Media and Facility
+actually use**: surface it on their calendar, not just the event title.
+
+Everyone reads. Only Administration, the calendar unit's head, and the
+Group Pastor write.
+
+`cancel_ministry_event(p_event_id, p_reason) → uuid`
+Cancelling is not deleting — departments planned around it and must see
+that it is off. Cancelled events stay visible.
+
+**Manager Calendar may now connect the ministry source.** Remove the
+"not connected" state and show ministry events alongside project dates,
+task deadlines and leave, flagging events that need that manager's unit.
