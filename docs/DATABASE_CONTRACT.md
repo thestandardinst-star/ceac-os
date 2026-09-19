@@ -59,6 +59,26 @@ Objective verdicts are never inferred from task completion.
 Refuses unless a submitted **overall** close exists. Only the lead unit.
 A project is not closed by setting its status.
 
+### Who filed, and who did not (migration 021)
+
+CEAC's decision on the previously unresolved gate: **the lead unit may
+close at any time — no department blocks the project — but the overall
+close permanently records which participating departments had filed and
+which had not.**
+
+Before closing, show the lead where the gaps are:
+`project_close_readiness(p_project_id uuid) → (unit_id, unit_name, filed, submitted_at)`
+
+`submit_project_close` now snapshots participation into
+`project_close_participation(close_id, unit_id, unit_close_id, filed)`
+for an overall close. It is a snapshot, not a live query: a department
+filing three weeks later does not retroactively make the overall close
+look as though they filed on time. The table has a read policy only —
+it is written solely by the function, so the snapshot cannot be edited.
+
+**Display the non-filers on the closed project.** Not as a complaint —
+as the record. Suggested wording: "Facility did not file a return."
+
 Submitted closes are immutable — the update policy matches drafts only.
 Corrections are a new `version`, not an edit.
 
