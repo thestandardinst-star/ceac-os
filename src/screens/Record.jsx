@@ -11,7 +11,9 @@ export default function Record({ me }) {
     const { data: sessions } = await supabase.from("work_sessions")
       .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString());
     const { data: blocked } = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
-    const done = (items || []).filter((i) => i.status === "completed");
+    const done = (items || []).filter((i) => ["completed", "self_certified"].includes(i.status));
+    const dueDone = done.filter((i) => i.due_at && i.completed_at);
+    const reviewedDone = done.filter((i) => i.first_time_approved !== null);
     const minutes = (sessions || []).reduce((sum, x) => {
       const end = x.ended_at ? new Date(x.ended_at).getTime() : Date.now();
       return sum + Math.max(0, (end - new Date(x.started_at).getTime()) / 60000);
@@ -20,8 +22,10 @@ export default function Record({ me }) {
       completed: done.length,
       assigned: done.filter((i) => i.origin === "assigned").length,
       self: done.filter((i) => i.origin === "self_created").length,
-      onTime: done.filter((i) => i.due_at && i.completed_at && new Date(i.completed_at) <= new Date(i.due_at)).length,
-      firstTime: done.filter((i) => i.first_time_approved).length,
+      onTime: dueDone.filter((i) => new Date(i.completed_at) <= new Date(i.due_at)).length,
+      dueCompleted: dueDone.length,
+      firstTime: reviewedDone.filter((i) => i.first_time_approved === true).length,
+      reviewedCompleted: reviewedDone.length,
       blocked: blocked ? blocked.length : 0,
       days: new Set((sessions || []).map((x) => new Date(x.started_at).toDateString())).size,
       hours: Math.floor(minutes / 60), mins: Math.round(minutes % 60),
@@ -49,8 +53,8 @@ export default function Record({ me }) {
             <Row l="Finished" v={s.completed} />
             <Row l="  given to you" v={s.assigned} />
             <Row l="  you added yourself" v={s.self} />
-            <Row l="On time" v={s.onTime + " of " + s.completed} />
-            <Row l="Approved first time" v={s.firstTime + " of " + s.completed} />
+            <Row l="On time where a due date exists" v={s.onTime + " of " + s.dueCompleted} />
+            <Row l="Approved first time where reviewed" v={s.firstTime + " of " + s.reviewedCompleted} />
             <Row l="Times you were stuck on someone" v={s.blocked} />
           </div>
         </div>
