@@ -41,14 +41,20 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
       ...u, head: headByUnit[u.id] || null, pending: pendByUnit[u.id] || null,
       done7: doneByUnit[u.id] || 0, alerts: alertsByUnit[u.id] || 0,
     })));
+    // Altitude rule (spec section 2): she is never queued a staff task.
+    // Unit-level alerts belong to that unit's manager. She sees only what
+    // is addressed to her, or what belongs to no single unit.
     const { data: al } = await supabase.from("alerts")
-      .select("id, kind, subject_id, subject_type, message, first_seen_at")
-      .is("acknowledged_at", null).order("first_seen_at", { ascending: false }).limit(30);
+      .select("id, kind, subject_id, subject_type, message, first_seen_at, for_unit_id, for_profile_id")
+      .is("acknowledged_at", null)
+      .or("for_profile_id.eq." + me.id + ",and(for_unit_id.is.null,for_profile_id.is.null)")
+      .order("first_seen_at", { ascending: false }).limit(30);
     setAlerts(al || []);
     const { data: bl } = await supabase.from("blockers")
-      .select("id, party_text, since, state, work_items(id, title, unit_id), profiles(full_name), units(name)")
+      .select("id, party_text, since, state, party_unit_id, work_items(id, title, unit_id), profiles(full_name), units(name)")
       .neq("state", "resolved").limit(20);
-    setBlockers(bl || []);
+    setBlockers((bl || []).filter((b) =>
+      b.work_items && b.party_unit_id && b.work_items.unit_id !== b.party_unit_id));
     const { data: lq } = await supabase.from("leave_requests")
       .select("id, kind, start_date, end_date, days, status, profiles(full_name)")
       .in("status", ["pending", "escalated"]).order("requested_at", { ascending: false }).limit(20);
@@ -91,7 +97,7 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
         <h1 className="h1" style={{ marginTop: 6 }}>
           {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         </h1>
-        <p className="screen-note">The whole church at a glance. Every unit, everything open, every job stuck.</p>
+        <p className="screen-note">The whole church at a glance. Individual tasks stay with the unit head who assigned them — open a unit to see its work.</p>
       </div>
 
       {!office && (
@@ -123,8 +129,8 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
           </div>))}
       </>)}
 
-      <div className="sec"><span>Things to look at</span><span>{alerts.length}</span></div>
-      {alerts.length === 0 && <div className="card small">Nothing across the church needs you right now.</div>}
+      <div className="sec"><span>Needs you</span><span>{alerts.length}</span></div>
+      {alerts.length === 0 && <div className="card small">Nothing needs you right now. Task-level alerts go to each unit head, not here.</div>}
       {alerts.map((a) => (
         <button key={a.id} className="row" onClick={() => a.subject_type === "work_item" && a.subject_id && openItem(a.subject_id)}>
           <div className="row-t">{a.message}</div>
@@ -132,7 +138,7 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
         </button>))}
 
       {blockers.length > 0 && (<>
-        <div className="sec"><span>Stuck across the church</span><span>{blockers.length}</span></div>
+        <div className="sec"><span>Stuck between units</span><span>{blockers.length}</span></div>
         {blockers.map((b) => (
           <button key={b.id} className="row" onClick={() => b.work_items && openItem(b.work_items.id)}>
             <div className="row-t">{b.work_items ? b.work_items.title : "—"}</div>
