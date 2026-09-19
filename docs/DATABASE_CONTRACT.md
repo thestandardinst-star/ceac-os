@@ -231,3 +231,88 @@ the closed project should show the reopen action rather than hiding it.
 Still unreversed elsewhere, not in scope here: an approved submission has
 no reopen path (§14 lists "Manager reopens with a reason; recorded in the
 activity log"). Flagging rather than building it unasked.
+
+---
+
+## Manager reports (migrations 026, 027)
+
+Three verified defects in 010, now fixed. The old UNIQUE on
+`(period_id, scope, unit_id, profile_id, project_id)` could not prevent
+duplicates — `profile_id` and `project_id` are NULL on a unit report, and
+NULLs are distinct in a Postgres unique constraint. `rpt_write` was
+`FOR ALL`, so a manager could edit their own submitted report. There was
+no evidence snapshot, no version, no challenges field, no RPCs.
+
+`reports` gained: `version`, `challenges`, `correction_reason`,
+`supersedes_report_id`, `evidence jsonb`. Scope now includes `project`.
+
+Two indexes replace the old constraint: `reports_identity_idx` (coalesced,
+including version — allows v2, forbids two v1s) and
+`reports_one_draft_idx` (at most one draft per identity, so concurrent
+saves cannot fork).
+
+Policies: insert and draft-only update. **No delete policy.** Submitted
+and confirmed reports cannot be changed by any client.
+
+### Load the open period
+```js
+const { data: period } = await supabase.from("report_periods")
+  .select("id, label, kind, starts_on, ends_on")
+  .eq("status", "open").order("starts_on", { ascending: false })
+  .limit(1).maybeSingle();
+// none → Administration has not opened one. Say so; do not create one.
+```
+
+### Save a draft (creates or updates — safe to call repeatedly)
+```js
+const { data: reportId } = await supabase.rpc("save_report_draft", {
+  p_period_id: period.id, p_scope: "unit",       // or "project"
+  p_unit_id: me.unit_id, p_project_id: null,
+  p_narrative: narrative, p_challenges: challenges });
+```
+Refuses a closed period, a unit you do not lead, or a project outside
+`app_visible_projects()`.
+
+### Submit — freezes the figures
+```js
+await supabase.rpc("submit_report", {
+  p_report_id: reportId,
+  p_evidence: { completed: 12, submissions: 18, overdue: 3,
+                sessions: 41, by_project: [...], status_mix: {...} } });
+```
+Whatever you pass as `p_evidence` is **what the report will say forever**.
+Pass exactly the figures on screen at submission. Do not re-query later —
+the whole point is that a late submission or an edited work item cannot
+silently change a submitted report.
+
+Write `report_evidence_refs(report_id, section, object_type, object_id,
+label)` while still a draft, for drill-down from the frozen report to the
+real rows. Sections are yours; suggested: `completed`, `submissions`,
+`overdue`, `sessions`.
+
+### History and corrections
+```js
+// every version, newest first
+supabase.from("reports").select("*")
+  .eq("period_id", pid).eq("unit_id", uid).order("version", { ascending: false });
+
+// a correction is a NEW draft version; the submitted one is untouched
+const { data: newId } = await supabase.rpc("correct_report",
+  { p_report_id: submittedId, p_reason: "Undercounted Sunday setup" });
+```
+
+### Confirmation
+`confirm_report(p_report_id)` — Administration or Group Pastor only, and
+**never the person who submitted it**. Both checks are in the database.
+
+### Not built
+No AI interpretation function exists and none was created. When one is
+added it must read `reports.evidence` of **submitted** rows only, state
+what moved, fell or is stuck, never predict, never invent a figure, and
+never run in the render path. The frozen snapshot is what makes that
+possible.
+
+No PDF service. Browser print stays the output; `evidence` plus
+`report_evidence_refs` make a branded PDF reproducible later.
+
+No reporting period was seeded. Administration opens periods.
