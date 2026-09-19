@@ -17,12 +17,12 @@ export default function ManagerFinance({me,openProject}){
    supabase.from("budgets").select("id,unit_id,project_id,year,amount_minor,currency,note").eq("unit_id",me.unit_id).eq("year",year),
    supabase.from("spend_lines").select("id,unit_id,project_id,spent_on,description,amount_minor,currency,reverses_id").eq("unit_id",me.unit_id),
    supabase.from("internal_transfers").select("id,from_unit_id,to_unit_id,amount_minor,currency,sent_on,purpose,state,response_note").or(`from_unit_id.eq.${me.unit_id},to_unit_id.eq.${me.unit_id}`),
-   supabase.from("projects").select("id,name"),
+   supabase.from("projects").select("id,name,lead_unit_id,project_units(unit_id)"),
    supabase.rpc("unit_budget_position",{p_unit_id:me.unit_id,p_year:year}),
    supabase.from("finance_requests").select("id,project_id,title,justification,amount_minor,currency,needed_by,state,created_at,decided_at,fulfilled_spend_id").eq("unit_id",me.unit_id).order("created_at",{ascending:false})
   ]);
   const e=[b.error,s.error,t.error,p.error,pos.error,req.error].find(Boolean); if(e){setError(e.message);setLoading(false);return;}
-  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects(p.data||[]);setPositions(pos.data||[]);setRequests(req.data||[]);setLoading(false);
+  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setRequests(req.data||[]);setLoading(false);
  }
  const unitBudget=useMemo(()=>totals(budgets.filter(x=>!x.project_id)),[budgets]);
  const budgetCurrencies=new Set(Object.keys(unitBudget));
