@@ -3,8 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
 
-// Flip only after Claude's self-certification migration is deployed.
-const MANAGER_SELF_CERTIFICATION_READY = false;
+const MANAGER_SELF_CERTIFICATION_READY = true;
 
 export default function Item({ id, me, session, isManager = false, back }) {
   const [item, setItem] = useState(null);
@@ -59,7 +58,6 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const done = checks.filter((c) => ticks[c.id]).length;
   const allDone = checks.length > 0 && done === checks.length;
   const gated = !session;
-  // This stays blocked until the database can record and authorize self_certified.
   const managerOwnWork = isManager && item && item.assignee_id === me.id;
   const managerSubmissionBlocked = managerOwnWork && !MANAGER_SELF_CERTIFICATION_READY;
 
@@ -186,7 +184,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {!(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={gated || managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
-          {isManager ? "Submit work" : "Send for review"}</button>
+          {managerOwnWork ? "Finish this work" : "Send for review"}</button>
         {gated && <div className="hint">Start work to send this in</div>}
         {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
@@ -200,12 +198,14 @@ export default function Item({ id, me, session, isManager = false, back }) {
 
       {sheet === "submit" && (
         <Sheet onClose={() => setSheet(null)}>
-          <div className="h2">Send for review</div>
-          <p className="screen-note">Your manager will be told.</p>
+          <div className="h2">{managerOwnWork ? "Finish this work" : "Send for review"}</div>
+          <p className="screen-note">{managerOwnWork
+            ? "This records your submission as self-certified. It will not enter your review queue."
+            : "Your manager will be told."}</p>
           <textarea className="field" rows={3} placeholder="Anything they should know (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <input className="field" placeholder="Paste a link to the file (optional)" value={link} onChange={(e) => setLink(e.target.value)} />
           <p className="small" style={{ marginTop: 8 }}>Large files — video especially — should be a link rather than an upload.</p>
-          <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Sending..." : "Send"}</button>
+          <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Saving..." : managerOwnWork ? "Finish work" : "Send"}</button>
         </Sheet>)}
 
       {sheet === "waiting" && (
