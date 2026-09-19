@@ -326,7 +326,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
         {unitClose ? "Prepare revised unit return" : "Prepare unit return"}
       </button>}
       {project.status === "closed" && <div className="hint">This submitted return is preserved with the closed project.</div>}
-      {closes.filter((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted").length > 0 && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openCloseHistory(closes.find((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted"))}>View latest unit return</button>}
+      {closes.filter((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted").length > 0 && <div style={{ marginTop: 10 }}>{closes.filter((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted").map((close) => <button key={close.id} className="btn btn-ghost btn-sm" style={{ marginRight: 6, marginBottom: 6 }} onClick={() => openCloseHistory(close)}>Version {close.version}</button>)}</div>}
     </div>
 
     {isLead && <div className="card" style={{ marginTop: 10 }}>
