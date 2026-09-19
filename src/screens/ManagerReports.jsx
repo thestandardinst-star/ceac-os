@@ -167,18 +167,21 @@ export default function ManagerReports({ me, openItem }) {
   }
 
   const baseRange = useMemo(() => mode === "week" ? weekRange() : mode === "month" ? monthRange() : null, [mode]);
-  const projectPeriods = useMemo(() => periods.filter((period) => period.kind === "project"), [periods]);
+  const kindPeriods = useMemo(() => periods.filter((period) => period.kind === mode), [periods, mode]);
 
   const matchingPeriod = useMemo(() => {
-    if (mode === "project") return periods.find((period) => period.id === selectedPeriodId) || null;
-    if (!baseRange) return null;
+    if (selectedPeriodId) return periods.find((period) => period.id === selectedPeriodId && period.kind === mode) || null;
+    if (mode === "project" || !baseRange) return null;
     return periods.find((period) => period.kind === mode && period.starts_on === baseRange.start && period.ends_on === baseRange.end && period.status === "open")
       || periods.find((period) => period.kind === mode && period.starts_on === baseRange.start && period.ends_on === baseRange.end)
       || null;
   }, [mode, selectedPeriodId, periods, baseRange]);
 
   const range = useMemo(() => {
-    if (mode !== "project") return baseRange;
+    if (mode !== "project") {
+      if (matchingPeriod) return { start: matchingPeriod.starts_on, end: matchingPeriod.ends_on, label: matchingPeriod.label };
+      return baseRange;
+    }
     const project = projects.find((row) => row.id === projectId);
     if (!project) return null;
     if (matchingPeriod) return { start: matchingPeriod.starts_on, end: matchingPeriod.ends_on, label: `${project.name} · ${matchingPeriod.label}` };
@@ -451,14 +454,19 @@ export default function ManagerReports({ me, openItem }) {
       {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>{label}</button>)}
     </div>
 
+    {mode !== "project" && kindPeriods.length > 0 && <select className="field" value={matchingPeriod?.id || ""} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+      <option value="">Current {mode === "week" ? "week" : "month"} preview</option>
+      {kindPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
+    </select>}
+
     {mode === "project" && <>
-      <select className="field" value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+      <select className="field" value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>
         <option value="">Choose a project</option>
         {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
       </select>
       {projectId && <select className="field" value={selectedPeriodId} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
         <option value="">Choose a reporting period</option>
-        {projectPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
+        {kindPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
       </select>}
     </>}
 
@@ -548,7 +556,7 @@ export default function ManagerReports({ me, openItem }) {
           <button className="btn btn-ghost" disabled={busy} onClick={handleSave}>{busy ? "Saving..." : "Save draft"}</button>
           <button className="btn" disabled={busy} onClick={submitReport}>{busy ? "Submitting..." : "Submit report"}</button>
         </>}
-        {viewingFrozen && frozenReport?.status === "submitted" && frozenReport.id === latestSubmitted?.id && matchingPeriod?.status === "open" && <button className="btn btn-ghost" onClick={() => { setCorrectionReason(""); setSheet("correct"); }}>Correct this report</button>}
+        {viewingFrozen && !draft && frozenReport?.status === "submitted" && frozenReport.id === latestSubmitted?.id && matchingPeriod?.status === "open" && <button className="btn btn-ghost" onClick={() => { setCorrectionReason(""); setSheet("correct"); }}>Correct this report</button>}
         {viewingFrozen && draft && <button className="btn btn-ghost" onClick={() => { setSelectedReportId(null); setNarrative(draft.narrative || ""); setChallenges(draft.challenges || ""); }}>Return to draft</button>}
       </div>
 
