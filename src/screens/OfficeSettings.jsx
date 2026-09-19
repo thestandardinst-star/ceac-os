@@ -9,6 +9,8 @@ export default function OfficeSettings({ me }) {
   const [lng, setLng] = useState("");
   const [radius, setRadius] = useState(100);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [locErr, setLocErr] = useState(null);
   const [saved, setSaved] = useState(null);
   const [ann, setAnn] = useState(15);
   const [sick, setSick] = useState(12);
@@ -22,6 +24,26 @@ export default function OfficeSettings({ me }) {
     const { data: s } = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
     if (s) { setAnn(s.annual_days); setSick(s.sick_days); setCarry(s.max_carryover); setMLimit(s.manager_approval_limit); }
   }
+  function pickHere() {
+    setLocErr(null);
+    if (!("geolocation" in navigator)) {
+      setLocErr("This device cannot report its location. Open the app on a phone inside the building.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(String(pos.coords.latitude));
+        setLng(String(pos.coords.longitude));
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setLocErr("Could not read your location. Allow location access for this site, then press the button again.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+  }
+
   async function saveOffice() {
     setSaving(true); setSaved(null);
     try {
@@ -64,16 +86,21 @@ export default function OfficeSettings({ me }) {
         <div className="main-col">
           <div className="sec"><span>Office location</span></div>
           <p className="small" style={{ lineHeight: 1.5, marginBottom: 6 }}>
-            Open the church in Google Maps, press and hold the exact spot, and copy the coordinates it shows. Paste them here.
+            Stand inside the church building and press the button below. That is all — the app records where you are standing and treats it as the office.
           </p>
           <input className="field" placeholder="Name of this location" value={name} onChange={(e) => setName(e.target.value)} />
-          <div style={{ display: "flex", gap: 8 }}>
-            <input className="field" placeholder="Latitude" value={lat} onChange={(e) => setLat(e.target.value)} />
-            <input className="field" placeholder="Longitude" value={lng} onChange={(e) => setLng(e.target.value)} />
-          </div>
-          <input className="field" type="number" placeholder="Radius in metres (default 100)"
+          <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={pickHere} disabled={locating}>
+            {locating ? "Finding you..." : lat && lng ? "Use where I am standing now instead" : "Use where I am standing now"}
+          </button>
+          {locErr && <div className="flag flag-brick">{locErr}</div>}
+          {lat && lng && (
+            <div className="flag flag-green">
+              <h4>Location captured</h4>
+              Check the map below looks like the church, then save.
+            </div>)}
+          <input className="field" type="number" placeholder="How far from this point still counts as the office, in metres"
             value={radius} onChange={(e) => setRadius(parseInt(e.target.value, 10) || 100)} />
-          <p className="small" style={{ marginTop: 6 }}>Anyone whose Start work happens inside this radius counts as at the office.</p>
+          <p className="small" style={{ marginTop: 6 }}>Anyone who taps Start work within this distance of the point counts as at the office. 100 metres suits most compounds.</p>
           {mapSrc && <iframe title="Office location" src={mapSrc} style={{ width: "100%", height: 260, border: 0, borderRadius: 8, marginTop: 12 }} />}
           <button className="btn" style={{ marginTop: 14 }} onClick={saveOffice} disabled={saving || !lat || !lng}>
             {saving ? "Saving..." : office ? "Update office location" : "Save office location"}

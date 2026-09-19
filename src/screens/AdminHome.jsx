@@ -3,7 +3,7 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet } from "../components/bits";
 
-export default function AdminHome({ me, openItem, openSettings }) {
+export default function AdminHome({ me, openItem, openSettings, openUnits }) {
   const [units, setUnits] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -176,7 +176,10 @@ export default function AdminHome({ me, openItem, openSettings }) {
               <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
                 onClick={() => { setInviting(u); setMsg(null); }}>Add a head</button>
             </>)}
-          <div className="row-m" style={{ marginTop: 4 }}>{u.done7} finished this week</div>
+          <div className="row-m" style={{ marginTop: 4 }}>
+            {u.done7} finished this week
+            <button className="btn btn-ghost btn-sm" style={{ marginLeft: 8 }} onClick={openUnits}>Open unit</button>
+          </div>
         </div>))}
       </div>
       </div>

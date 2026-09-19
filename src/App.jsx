@@ -9,6 +9,7 @@ import Record from "./screens/Record";
 import MeScreen from "./screens/Me";
 import ManagerHome from "./screens/ManagerHome";
 import AdminHome from "./screens/AdminHome";
+import Units from "./screens/Units";
 import ExecutiveHome from "./screens/ExecutiveHome";
 import Assign from "./screens/Assign";
 import Team from "./screens/Team";
@@ -51,13 +52,14 @@ export default function App() {
   function pageForTab() {
     if (tab === "home") {
       if (me.is_exec) return <ExecutiveHome me={me} />;
-      if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openSettings={() => go("settings")} />;
+      if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openSettings={() => go("settings")} openUnits={() => go("units")} />;
       if (isManager) return <ManagerHome me={me} openItem={setItemId} goAssign={() => setAssigning(true)} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
     if (tab === "team") return isManager ? <Team me={me} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} openItem={setItemId} />;
     if (tab === "record") return <Record me={me} />;
+    if (tab === "units" && isAdmin) return <Units me={me} openItem={setItemId} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} />;
   }
