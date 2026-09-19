@@ -35,7 +35,7 @@ function ActionRow({ item, openItem }) {
   );
 }
 
-export default function ManagerHome({ me, openItem, openProject, goAssign }) {
+export default function ManagerHome({ me, openItem, openProject, openPerson, goAssign }) {
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -312,10 +312,10 @@ export default function ManagerHome({ me, openItem, openProject, goAssign }) {
       </div>
       {drill?.people && <div style={{ marginTop: 8 }}>
         <div className="sec" style={{ marginTop: 12 }}><span>{drill.title}</span><span>{drillRows.length}</span></div>
-        {drillRows.length ? drillRows.map((person) => <div key={person.id} className="row">
+        {drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
           <div className="row-t">{person.name}</div>
           <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
-        </div>) : <div className="card small">Nobody in this group.</div>}
+        </button>) : <div className="card small">Nobody in this group.</div>}
       </div>}
 
       <div className="sec"><span>Your own work</span><span>{mine.length}</span></div>
