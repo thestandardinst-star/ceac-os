@@ -16,6 +16,7 @@ function latestSubmission(item) {
 export default function ManagerProjectClose({ me, project, objectives, work, costs, onRefresh }) {
   const [closes, setCloses] = useState([]);
   const [readiness, setReadiness] = useState([]);
+  const [lastReopenedAt, setLastReopenedAt] = useState(null);
   const [sheet, setSheet] = useState(null);
   const [deliverablesNote, setDeliverablesNote] = useState("");
   const [selectedDeliverables, setSelectedDeliverables] = useState([]);
@@ -33,17 +34,31 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   const deliveredWork = work.filter((row) => ["completed", "self_certified"].includes(row.status));
   const unitClose = closes.find((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted");
   const overallClose = closes.find((row) => row.scope === "overall" && row.status === "submitted");
+  const overallCloseCurrentCycle = Boolean(overallClose) && (
+    !lastReopenedAt || new Date(overallClose.submitted_at).getTime() > new Date(lastReopenedAt).getTime()
+  );
 
   useEffect(() => { load(); }, [project.id, me.unit_id]);
 
   async function load() {
     setError(null);
-    const closeResult = await supabase.from("project_closes")
-      .select("id,scope,unit_id,version,status,deliverables_note,challenges,do_differently,submitted_at")
-      .eq("project_id", project.id)
-      .order("version", { ascending: false });
+    const [closeResult, reopenResult] = await Promise.all([
+      supabase.from("project_closes")
+        .select("id,scope,unit_id,version,status,deliverables_note,challenges,do_differently,submitted_at")
+        .eq("project_id", project.id)
+        .order("version", { ascending: false }),
+      supabase.from("activity_events")
+        .select("at")
+        .eq("object_type", "project")
+        .eq("object_id", project.id)
+        .eq("verb", "reopened")
+        .order("at", { ascending: false })
+        .limit(1),
+    ]);
     if (closeResult.error) { setError(closeResult.error.message); return; }
+    if (reopenResult.error) { setError(reopenResult.error.message); return; }
     setCloses(closeResult.data || []);
+    setLastReopenedAt(reopenResult.data?.[0]?.at || null);
     if (isLead) {
       const readyResult = await supabase.rpc("project_close_readiness", { p_project_id: project.id });
       if (readyResult.error) { setError(readyResult.error.message); return; }
@@ -196,6 +211,11 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   }
 
   async function closeProject() {
+    if (!overallCloseCurrentCycle) {
+      setLifecycle(null);
+      setError("Submit a new overall close for this reopened project before closing it again.");
+      return;
+    }
     setBusy(true); setError(null);
     try {
       const { error: closeError } = await supabase.rpc("close_project", { p_project_id: project.id });
@@ -251,8 +271,13 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
           {row.filed ? `${row.unit_name} filed` : `${row.unit_name} did not file a return`}
         </div>)}
       </div>}
-      {project.status !== "closed" && !overallClose && <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("overall")}>Prepare overall close</button>}
-      {project.status !== "closed" && overallClose && <>
+      {project.status !== "closed" && !overallCloseCurrentCycle && <>
+        <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("overall")}>
+          {overallClose && lastReopenedAt ? "Prepare new overall close" : "Prepare overall close"}
+        </button>
+        {overallClose && lastReopenedAt && <div className="hint">This project was reopened after version {overallClose.version}. Submit a new overall close before closing it again.</div>}
+      </>}
+      {project.status !== "closed" && overallCloseCurrentCycle && <>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
           <button className="btn btn-ghost btn-sm" onClick={() => openClose("overall")}>Prepare revised close</button>
           <button className="btn btn-sm" onClick={() => setLifecycle("close")}>Close project</button>
