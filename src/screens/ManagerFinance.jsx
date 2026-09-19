@@ -4,11 +4,11 @@ import { supabase } from "../lib/supabase";
 const money=(minor,cur)=>`${cur} ${(Number(minor||0)/100).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 function totals(rows){const out={}; rows.forEach(r=>{if(!r.currency)return; out[r.currency]=(out[r.currency]||0)+Number(r.amount_minor||0);}); return out;}
 function spendTotals(rows){const out={}; rows.forEach(r=>{if(!r.currency)return; out[r.currency]=(out[r.currency]||0)+(r.reverses_id?-Number(r.amount_minor||0):Number(r.amount_minor||0));}); return out;}
-function MoneyLines({title,values,empty}){const keys=Object.keys(values).sort(); return <div className="metric"><span>{title}</span>{keys.length?keys.map(k=><b key={k} style={{fontSize:15}}>{money(values[k],k)}</b>):<b style={{fontSize:14}}>{empty}</b>}</div>;}
+function MoneyLines({title,values,empty,onOpen}){const keys=Object.keys(values).sort(); return <div className="metric"><span>{title}</span>{keys.length?keys.map(k=><button key={k} onClick={()=>onOpen?.(k)} style={{display:"block",width:"100%",textAlign:"left"}}><b style={{fontSize:15,textDecoration:"underline"}}>{money(values[k],k)}</b></button>):<b style={{fontSize:14}}>{empty}</b>}</div>;}
 
 export default function ManagerFinance({me,openProject}){
  const [budgets,setBudgets]=useState([]),[spend,setSpend]=useState([]),[transfers,setTransfers]=useState([]),[projects,setProjects]=useState([]),[positions,setPositions]=useState([]),[requests,setRequests]=useState([]);
- const [error,setError]=useState(null),[loading,setLoading]=useState(true);
+ const [error,setError]=useState(null),[loading,setLoading]=useState(true),[drill,setDrill]=useState(null);
  const year=new Date().getFullYear();
  useEffect(()=>{load();},[me.id,me.unit_id]);
  async function load(){
@@ -38,8 +38,15 @@ export default function ManagerFinance({me,openProject}){
   <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Read-only view of your unit's recorded budget, spending, project costs and transfers. Different currencies are kept separate and never converted.</p></div>
   {error&&<div className="flag flag-brick"><h4>Could not load finance</h4>{error}</div>}
   <div className="sec"><span>Unit position</span><span>{year}</span></div>
-  <div className="metric-grid"><MoneyLines title="Planned" values={planned} empty="No unit budget recorded"/><MoneyLines title="Recorded spend" values={recorded} empty="No unit spend recorded"/><MoneyLines title="Approved, not yet spent" values={committed} empty="No approved requests waiting to be spent"/><MoneyLines title="Remaining" values={remaining} empty="No comparable budget recorded"/></div>
+  <div className="metric-grid"><MoneyLines title="Planned" values={planned} empty="No unit budget recorded" onOpen={(currency)=>setDrill({kind:"planned",currency,title:`Planned · ${currency}`})}/><MoneyLines title="Recorded spend" values={recorded} empty="No unit spend recorded" onOpen={(currency)=>setDrill({kind:"spend",currency,title:`Recorded spend · ${currency}`})}/><MoneyLines title="Approved, not yet spent" values={committed} empty="No approved requests waiting to be spent" onOpen={(currency)=>setDrill({kind:"committed",currency,title:`Approved, not yet spent · ${currency}`})}/><MoneyLines title="Remaining" values={remaining} empty="No comparable budget recorded" onOpen={(currency)=>setDrill({kind:"remaining",currency,title:`Remaining · ${currency}`})}/></div>
   {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="small">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
+  {drill&&<div style={{marginTop:10}}>
+   <div className="sec"><span>{drill.title}</span></div>
+   {(drill.kind==="planned"||drill.kind==="remaining")&&budgets.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"b-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} budget</div><div className="row-m">{x.project_id?"Project budget":"Unit budget"} · {year}</div>{x.note&&<div className="row-note">{x.note}</div>}</div>)}
+   {(drill.kind==="spend"||drill.kind==="remaining")&&spend.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"s-"+x.id}><div className="row-t">{x.description} · {money(x.reverses_id?-Number(x.amount_minor):x.amount_minor,x.currency)}</div><div className="row-m">{x.spent_on}{x.project_id?" · project spend":""}{x.reverses_id?" · correction":""}</div></div>)}
+   {(drill.kind==="committed"||drill.kind==="remaining")&&requests.filter(x=>x.currency===drill.currency&&x.state==="approved").map(x=><div className="row" key={"r-"+x.id}><div className="row-t">{x.title} · {money(x.amount_minor,x.currency)}</div><div className="row-m">Approved, not yet spent{x.needed_by?` · needed by ${x.needed_by}`:""}</div></div>)}
+   {drill.kind==="remaining"&&<div className="card small">Remaining is the recorded budget minus recorded spend and approved requests that have not yet been spent.</div>}
+  </div>}
   <div className="sec"><span>Projects</span><span>{projects.length}</span></div>
   {projects.map(p=>{const pb=totals(budgets.filter(x=>x.project_id===p.id));const ps=spendTotals(spend.filter(x=>x.project_id===p.id));const pc=totals(requests.filter(x=>x.project_id===p.id&&x.state==="approved"));const keys=[...new Set([...Object.keys(pb),...Object.keys(pc),...Object.keys(ps)])].sort();return <button key={p.id} className="row" onClick={()=>openProject(p.id)} style={{width:"100%",textAlign:"left"}}>
    <div className="row-t">{p.name}</div>
