@@ -231,3 +231,148 @@ the closed project should show the reopen action rather than hiding it.
 Still unreversed elsewhere, not in scope here: an approved submission has
 no reopen path (§14 lists "Manager reopens with a reason; recorded in the
 activity log"). Flagging rather than building it unasked.
+
+---
+
+## Manager reports (migrations 026, 027)
+
+Three verified defects in 010, now fixed. The old UNIQUE on
+`(period_id, scope, unit_id, profile_id, project_id)` could not prevent
+duplicates — `profile_id` and `project_id` are NULL on a unit report, and
+NULLs are distinct in a Postgres unique constraint. `rpt_write` was
+`FOR ALL`, so a manager could edit their own submitted report. There was
+no evidence snapshot, no version, no challenges field, no RPCs.
+
+`reports` gained: `version`, `challenges`, `correction_reason`,
+`supersedes_report_id`, `evidence jsonb`. Scope now includes `project`.
+
+Two indexes replace the old constraint: `reports_identity_idx` (coalesced,
+including version — allows v2, forbids two v1s) and
+`reports_one_draft_idx` (at most one draft per identity, so concurrent
+saves cannot fork).
+
+Policies: insert and draft-only update. **No delete policy.** Submitted
+and confirmed reports cannot be changed by any client.
+
+### Load the open period
+```js
+const { data: period } = await supabase.from("report_periods")
+  .select("id, label, kind, starts_on, ends_on")
+  .eq("status", "open").order("starts_on", { ascending: false })
+  .limit(1).maybeSingle();
+// none → Administration has not opened one. Say so; do not create one.
+```
+
+### Save a draft (creates or updates — safe to call repeatedly)
+```js
+const { data: reportId } = await supabase.rpc("save_report_draft", {
+  p_period_id: period.id, p_scope: "unit",       // or "project"
+  p_unit_id: me.unit_id, p_project_id: null,
+  p_narrative: narrative, p_challenges: challenges });
+```
+Refuses a closed period, a unit you do not lead, or a project outside
+`app_visible_projects()`.
+
+### Submit — freezes the figures
+```js
+await supabase.rpc("submit_report", {
+  p_report_id: reportId,
+  p_evidence: { completed: 12, submissions: 18, overdue: 3,
+                sessions: 41, by_project: [...], status_mix: {...} } });
+```
+Whatever you pass as `p_evidence` is **what the report will say forever**.
+Pass exactly the figures on screen at submission. Do not re-query later —
+the whole point is that a late submission or an edited work item cannot
+silently change a submitted report.
+
+Write `report_evidence_refs(report_id, section, object_type, object_id,
+label)` while still a draft, for drill-down from the frozen report to the
+real rows. Sections are yours; suggested: `completed`, `submissions`,
+`overdue`, `sessions`.
+
+### History and corrections
+```js
+// every version, newest first
+supabase.from("reports").select("*")
+  .eq("period_id", pid).eq("unit_id", uid).order("version", { ascending: false });
+
+// a correction is a NEW draft version; the submitted one is untouched
+const { data: newId } = await supabase.rpc("correct_report",
+  { p_report_id: submittedId, p_reason: "Undercounted Sunday setup" });
+```
+
+### Confirmation
+`confirm_report(p_report_id)` — Administration or Group Pastor only, and
+**never the person who submitted it**. Both checks are in the database.
+
+### Not built
+No AI interpretation function exists and none was created. When one is
+added it must read `reports.evidence` of **submitted** rows only, state
+what moved, fell or is stuck, never predict, never invent a figure, and
+never run in the render path. The frozen snapshot is what makes that
+possible.
+
+No PDF service. Browser print stays the output; `evidence` plus
+`report_evidence_refs` make a branded PDF reproducible later.
+
+No reporting period was seeded. Administration opens periods.
+
+## Report hardening (migrations 028, 029)
+
+Four issues Codex raised, all verified live before changing anything, all
+fixed. Plus one it did not look for.
+
+**Manager could not read their own project report.** `rpt_read` had no
+`project` clause. Fixed.
+
+**anon held EXECUTE on the report RPCs.** `revoke all from public` does
+not remove Supabase's role-specific grants — `proacl` showed `anon=X`.
+Swept across all eighteen definer functions this project has added.
+
+**Evidence must now trace to rows.** `submit_report` validates
+`evidence -> 'counts'`: for every section with a non-zero integer, the
+number of `report_evidence_refs` rows with that `section` must equal it,
+or submission is refused. So `completed: 999` with nothing attached is
+rejected.
+
+**Contract:** write your refs while the report is still a draft, then
+submit with
+`{ counts: { completed: 12, submissions: 18, overdue: 3, sessions: 41 },
+   ...anything else you want frozen }`.
+Keys outside `counts` are frozen without validation — put narrative
+figures and chart series there.
+
+**First-draft save is now collision-safe.** It retries: whoever loses the
+race re-reads and updates the draft the winner created, up to three times.
+
+**Also found, not reported:** fifteen functions from the original
+migrations still granted EXECUTE to anon, including `app_run_daily` and
+the check jobs, which write alerts. Revoked and granted to `service_role`
+instead. The read-only helpers are deliberately left — they are called
+inside RLS policies, and removing anon's execute turns a clean empty
+result into a permission error. They return nothing without a session.
+
+**Migration files are still not in the repository.** See
+`supabase/migrations/README.md` — it needs `npx supabase db pull` run on a
+machine with network access to Supabase. Claude's sandbox has none.
+
+## Three CEAC decisions, settled (migration 030)
+
+**A manager's report needs no sign-off. Submitted is final.**
+`confirm_report()` is dropped rather than left callable — a capability
+nobody agreed to is how an unwanted workflow appears later by accident.
+Corrections still work: `correct_report()` makes a new version.
+`confirmed_by` / `confirmed_at` remain as empty columns; dropping columns
+is destructive for no gain. **Codex: do not build a confirm action.**
+
+**Administration opens reporting periods.** Built: the Reporting screen
+in the Admin panel. Rebecca opens a week, month, project or year, sees
+who has filed by name, and can close or reopen a period. Until she opens
+one, `save_report_draft` refuses — that is correct, not a bug. Show
+managers "no reporting period is open" rather than an error.
+
+**Person-scope reports are not being built.** The employee record in
+People already answers what one person did, and no separate workflow was
+ever defined. `reports.profile_id` and the `person` scope stay in the
+schema, unused and documented as such. Office scope is covered by the
+Admin Reporting screen. **Codex: unit and project scope only.**
