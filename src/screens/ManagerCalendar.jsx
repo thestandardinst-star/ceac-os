@@ -31,7 +31,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
       supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)"),
       supabase.from("work_items").select("id,ref,title,due_at,status,project_id").eq("unit_id",me.unit_id).not("due_at","is",null).neq("visibility","private"),
       supabase.from("unit_memberships").select("profile_id").eq("unit_id",me.unit_id),
-      supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").in("status",["approved","escalated"]),
+      supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").eq("status","approved"),
       supabase.from("ministry_events").select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled"),
       supabase.from("ministry_event_units").select("event_id,unit_id,note").eq("unit_id",me.unit_id)
     ]);
