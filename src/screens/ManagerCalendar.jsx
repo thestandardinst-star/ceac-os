@@ -64,7 +64,7 @@ export default function ManagerCalendar({ me, openItem, openProject }) {
     </div>
     <div className="sec"><button onClick={()=>move(-1)}>←</button><span>{heading}</span><button onClick={()=>move(1)}>→</button></div>
     {loading?<div className="spin">Loading calendar...</div>:<div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
-      {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted?.55:1}}>
+      {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted ? 0.55 : 1}}>
         <div className="small" style={{fontWeight:700}}>{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
         {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
       </div>})}
