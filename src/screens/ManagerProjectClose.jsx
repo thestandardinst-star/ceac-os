@@ -23,6 +23,8 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   const [challenges, setChallenges] = useState("");
   const [doDifferently, setDoDifferently] = useState("");
   const [overallCosts, setOverallCosts] = useState([]);
+  const [lifecycle, setLifecycle] = useState(null);
+  const [reopenReason, setReopenReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -121,8 +123,13 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     if (missingObjective || noDeliverable || !challenges.trim() || !doDifferently.trim()) return;
     setBusy(true); setError(null);
     try {
-      const matching = closes.filter((row) => row.scope === sheet.scope && (sheet.scope === "overall" || row.unit_id === me.unit_id));
-      const version = Math.max(0, ...matching.map((row) => Number(row.version) || 0)) + 1;
+      const versionResult = await supabase.rpc("next_close_version", {
+        p_project_id: project.id,
+        p_scope: sheet.scope,
+        p_unit_id: sheet.scope === "unit" ? me.unit_id : null,
+      });
+      if (versionResult.error) throw new Error(`Close version: ${versionResult.error.message}`);
+      const version = Number(versionResult.data);
       const { data: close, error: closeError } = await supabase.from("project_closes").insert({
         org_id: me.org_id,
         project_id: project.id,
@@ -188,27 +195,89 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     }
   }
 
+  async function closeProject() {
+    setBusy(true); setError(null);
+    try {
+      const { error: closeError } = await supabase.rpc("close_project", { p_project_id: project.id });
+      if (closeError) throw closeError;
+      setLifecycle(null);
+      await load();
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      setError(err.message || "The project could not be closed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reopenProject() {
+    if (!reopenReason.trim()) return;
+    setBusy(true); setError(null);
+    try {
+      const { error: reopenError } = await supabase.rpc("reopen_project", {
+        p_project_id: project.id,
+        p_reason: reopenReason.trim(),
+      });
+      if (reopenError) throw reopenError;
+      setLifecycle(null);
+      setReopenReason("");
+      await load();
+      if (onRefresh) await onRefresh();
+    } catch (err) {
+      setError(err.message || "The project could not be reopened.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return <>
     <div className="sec"><span>Project close</span></div>
     {error && <div className="flag flag-brick"><h4>Could not complete project close</h4>{error}</div>}
 
     <div className="card">
       <div className="row-t">Your unit return</div>
-      <div className="row-m">{unitClose ? `Submitted · version ${unitClose.version}` : "Not submitted"}</div>
-      {!unitClose && <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("unit")}>Prepare unit return</button>}
+      <div className="row-m">{unitClose ? `Latest submitted · version ${unitClose.version}` : "Not submitted"}</div>
+      {project.status !== "closed" && <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("unit")}>
+        {unitClose ? "Prepare revised unit return" : "Prepare unit return"}
+      </button>}
+      {project.status === "closed" && <div className="hint">This submitted return is preserved with the closed project.</div>}
     </div>
 
     {isLead && <div className="card" style={{ marginTop: 10 }}>
       <div className="row-t">Overall project close</div>
-      <div className="row-m">{overallClose ? `Submitted · version ${overallClose.version}` : "Not submitted"}</div>
+      <div className="row-m">{overallClose ? `Latest submitted · version ${overallClose.version}` : "Not submitted"}</div>
       {readiness.length > 0 && <div style={{ marginTop: 8 }}>
         {readiness.map((row) => <div className="row-note" key={row.unit_id}>
           {row.filed ? `${row.unit_name} filed` : `${row.unit_name} did not file a return`}
         </div>)}
       </div>}
-      {!overallClose && <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("overall")}>Prepare overall close</button>}
-      {overallClose && project.status !== "closed" && <div className="hint">The overall close is submitted. Project status is not being changed here until the architecture's reopen path exists.</div>}
+      {project.status !== "closed" && !overallClose && <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => openClose("overall")}>Prepare overall close</button>}
+      {project.status !== "closed" && overallClose && <>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => openClose("overall")}>Prepare revised close</button>
+          <button className="btn btn-sm" onClick={() => setLifecycle("close")}>Close project</button>
+        </div>
+        <div className="hint">Closing keeps the submitted close report. The lead unit can reopen the project later with a reason; the close history is not deleted.</div>
+      </>}
+      {project.status === "closed" && <>
+        <div className="hint">Closed. Every submitted close version is preserved.</div>
+        <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => setLifecycle("reopen")}>Reopen project</button>
+      </>}
     </div>}
+
+    {lifecycle === "close" && <Sheet onClose={() => !busy && setLifecycle(null)}>
+      <div className="h2">Close this project?</div>
+      <p className="screen-note">The submitted overall close becomes the formal record for this project. Nothing is deleted. The lead unit can reopen the project later with a reason, and any later close is saved as a new version.</p>
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={closeProject}>{busy ? "Closing..." : "Close project"}</button>
+      <button className="btn btn-ghost" style={{ marginTop: 8 }} disabled={busy} onClick={() => setLifecycle(null)}>Keep project open</button>
+    </Sheet>}
+
+    {lifecycle === "reopen" && <Sheet onClose={() => !busy && setLifecycle(null)}>
+      <div className="h2">Reopen this project</div>
+      <p className="screen-note">The project returns to active. Previous close reports stay unchanged and visible. A later close will be saved as a new version.</p>
+      <textarea className="field" rows={3} placeholder="Why is this project being reopened?" value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} />
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !reopenReason.trim()} onClick={reopenProject}>{busy ? "Reopening..." : "Reopen project"}</button>
+    </Sheet>}
 
     {sheet && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="h2">{sheet.scope === "overall" ? "Overall project close" : "Your unit return"}</div>
