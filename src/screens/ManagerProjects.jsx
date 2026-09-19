@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { Pill, Sheet, statusPill } from "../components/bits";
+import ManagerProjectClose from "./ManagerProjectClose";
 
 const OBJECTIVE_STATUSES = [
   ["on_track", "On track"],
@@ -279,8 +280,14 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       <div className="sec"><span>Discussion</span></div>
       <div className="card small">Project discussion is pending a project-scoped message model. Nothing entered here is stored locally.</div>
 
-      <div className="sec"><span>Project close</span></div>
-      <div className="card small">Formal close is not available yet. Closing will require deliverables, an outcome and note for every objective, cost by currency, challenges, and what to do differently next time. This screen does not change the project status to bypass that report.</div>
+      <ManagerProjectClose
+        me={me}
+        project={detail}
+        objectives={detail.objectives}
+        work={detail.work}
+        costs={detail.costs}
+        onRefresh={async () => { await loadDetail(detail.id); await loadList(); }}
+      />
 
       {sheet?.type === "objective" && <ObjectiveSheet value={sheet.value} busy={busy} onClose={() => setSheet(null)} onSave={saveObjective} />}
       {sheet?.type === "objective-saved" && <Sheet onClose={() => setSheet(null)}><div className="h2">Objective saved</div><p className="screen-note">The next step is to assign work through the existing work flow.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => goAssign({ projectId: sheet.projectId, objectiveId: sheet.objectiveId })}>Add work under this objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
