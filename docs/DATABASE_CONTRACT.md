@@ -194,3 +194,40 @@ that it is off. Cancelled events stay visible.
 **Manager Calendar may now connect the ministry source.** Remove the
 "not connected" state and show ministry events alongside project dates,
 task deadlines and leave, flagging events that need that manager's unit.
+
+## Project close — authority fix and reversibility (migration 025)
+
+Two defects in 020, found by Codex during PR #4 review. Both were mine.
+
+**Tautology in `pc_insert`.** The unqualified names inside the EXISTS
+resolved to the inner table, so the participation check compiled to
+`pu.project_id = pu.project_id` — always true. A manager could file a unit
+close for a project their unit had nothing to do with. Columns are now
+qualified as `project_closes.project_id` / `project_closes.unit_id`.
+
+**`submit_project_close` never checked participation.** It verified the
+caller manages the unit but not that the unit is part of the project. It
+does now and raises "That unit is not part of this project."
+
+**Reversibility.** Architecture v4 §14: nothing is irreversible, and the
+way back is stated on the screen that does the thing. Closed project is
+listed explicitly — reopened by the manager, the close report versioned
+not overwritten. `close_project()` had no way back.
+
+`reopen_project(p_project_id uuid, p_reason text) → uuid`
+Lead unit or Administration. Requires a reason, which is written to
+`activity_events`. Sets the project back to `active`. **Every submitted
+close is kept** — nothing is deleted.
+
+`next_close_version(p_project_id, p_scope, p_unit_id) → int`
+Use this when creating a close row after a reopen, so a later close
+becomes version 2 rather than colliding with version 1.
+
+**Codex: the close button can now be exposed.** §14 also requires the way
+back to be stated on the screen that does the thing — so the close
+confirmation should say the project can be reopened by the lead unit, and
+the closed project should show the reopen action rather than hiding it.
+
+Still unreversed elsewhere, not in scope here: an approved submission has
+no reopen path (§14 lists "Manager reopens with a reason; recorded in the
+activity log"). Flagging rather than building it unasked.
