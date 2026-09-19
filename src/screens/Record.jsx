@@ -6,12 +6,12 @@ export default function Record({ me }) {
   async function load() {
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
     const { data: items } = await supabase.from("work_items")
-      .select("id, status, origin, due_at, completed_at, first_time_approved")
+      .select("id, kind, status, origin, due_at, completed_at, first_time_approved")
       .eq("assignee_id", me.id).eq("visibility", "unit");
     const { data: sessions } = await supabase.from("work_sessions")
       .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString());
     const { data: blocked } = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
-    const done = (items || []).filter((i) => ["completed", "self_certified"].includes(i.status));
+    const done = (items || []).filter((i) => ["task", "deliverable"].includes(i.kind) && ["completed", "self_certified"].includes(i.status));
     const dueDone = done.filter((i) => i.due_at && i.completed_at);
     const reviewedDone = done.filter((i) => i.first_time_approved !== null);
     const minutes = (sessions || []).reduce((sum, x) => {
