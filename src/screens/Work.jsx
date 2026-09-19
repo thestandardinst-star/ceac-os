@@ -52,7 +52,9 @@ export default function Work({ me, isManager = false, openItem }) {
       });
       if (refError) throw refError;
       const dueIso = new Date(due).toISOString();
-      const { data: item, error: itemError } = await supabase.from("work_items").insert({
+      const itemId = crypto.randomUUID();
+      const { error: itemError } = await supabase.from("work_items").insert({
+        id: itemId,
         org_id: me.org_id,
         ref,
         kind: "task",
@@ -65,14 +67,14 @@ export default function Work({ me, isManager = false, openItem }) {
         due_at: dueIso,
         origin: "self_created",
         status: "not_started",
-      }).select("id,ref").single();
+      });
       if (itemError) throw itemError;
       const { error: checklistError } = await supabase.from("checklist_items").insert(
-        clean.map((label, index) => ({ work_item_id: item.id, label, position: index + 1 }))
+        clean.map((label, index) => ({ work_item_id: itemId, label, position: index + 1 }))
       );
-      if (checklistError) throw new Error(`Task ${item.ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
+      if (checklistError) throw new Error(`Task ${ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
       setSheet(null); setProjectId(""); setTitle(""); setDue(""); setSteps([""]);
-      setNotice(`${item.ref} added to your work. Your manager can see it without approving it first.`);
+      setNotice(`${ref} added to your work. Your manager can see it without approving it first.`);
       await load();
     } catch (error) {
       setLoadError(error.message || "The work could not be added.");
