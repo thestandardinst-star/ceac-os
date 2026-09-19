@@ -55,15 +55,15 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       .select("id,name,code").eq("unit_id", me.unit_id).eq("active", true).order("position");
     if (teamError) { setErr(teamError.message); return; }
     setSubTeams(st || []);
-    const { data: p, error: projectError } = await supabase.from("projects").select("id,name").in("status", ["planned", "active"]).order("name");
+    const { data: p, error: projectError } = await supabase.from("projects").select("id,name,lead_unit_id,project_units(unit_id)").in("status", ["planned", "active"]).order("name");
     if (projectError) { setErr(projectError.message); return; }
-    setProjects(p || []);
+    setProjects((p || []).filter((row) => row.lead_unit_id === me.unit_id || (row.project_units || []).some((unit) => unit.unit_id === me.unit_id)));
   }
 
   async function loadProjectContext() {
     if (!project) { setObjectives([]); setPhases([]); setObjective(""); setPhase(""); return; }
     const [objectiveResult, phaseResult] = await Promise.all([
-      supabase.from("objectives").select("id, ref, name, unit_id").eq("project_id", project).order("ref"),
+      supabase.from("objectives").select("id, ref, name, unit_id").eq("project_id", project).eq("unit_id", me.unit_id).order("ref"),
       supabase.from("project_phases").select("id, name, position").eq("project_id", project).order("position"),
     ]);
     if (objectiveResult.error) { setErr(`Project objectives: ${objectiveResult.error.message}`); return; }
