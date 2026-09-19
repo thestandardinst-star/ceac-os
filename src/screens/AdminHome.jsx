@@ -10,6 +10,10 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
   const [leaveQueue, setLeaveQueue] = useState([]);
   const [mine, setMine] = useState([]);
   const [office, setOffice] = useState(null);
+  const [today, setToday] = useState({ working: 0, leave: 0, notStarted: 0, headcount: 0 });
+  const [delivery, setDelivery] = useState({ active: 0, closedThisMonth: 0, onTrack: 0, objectives: 0 });
+  const [reporting, setReporting] = useState(null);
+  const [watch, setWatch] = useState([]);
   const [inviting, setInviting] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -65,6 +69,80 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
     setMine(my || []);
     const { data: o } = await supabase.from("office_locations").select("id").eq("is_primary", true).limit(1).maybeSingle();
     setOffice(o);
+
+    // --- The office today ---
+    const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const [{ data: staff }, { data: sess }, { data: away }] = await Promise.all([
+      supabase.from("profiles").select("id, full_name").eq("active", true),
+      supabase.from("work_sessions").select("profile_id, ended_at").gte("started_at", dayStart.toISOString()),
+      supabase.from("leave_requests").select("profile_id").eq("status", "approved")
+        .lte("start_date", todayStr).gte("end_date", todayStr),
+    ]);
+    const awayIds = new Set((away || []).map((l) => l.profile_id));
+    const startedIds = new Set((sess || []).map((s) => s.profile_id));
+    setToday({
+      working: (sess || []).filter((s) => !s.ended_at).length,
+      leave: awayIds.size,
+      notStarted: (staff || []).filter((p) => !startedIds.has(p.id) && !awayIds.has(p.id)).length,
+      headcount: (staff || []).length,
+    });
+
+    // --- Delivery ---
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+    const [{ data: projs }, { data: objs }] = await Promise.all([
+      supabase.from("projects").select("id, name, status, lead_unit_id, ends_on, updated_at"),
+      supabase.from("objectives").select("id, name, status, unit_id, project_id"),
+    ]);
+    setDelivery({
+      active: (projs || []).filter((p) => p.status === "active").length,
+      closedThisMonth: (projs || []).filter((p) => p.status === "closed" && p.updated_at && new Date(p.updated_at) >= monthStart).length,
+      onTrack: (objs || []).filter((o2) => o2.status === "on_track" || o2.status === "met").length,
+      objectives: (objs || []).length,
+    });
+
+    // --- Reporting: name the units that are missing, never just a count ---
+    const { data: period } = await supabase.from("report_periods")
+      .select("id, label").eq("status", "open").order("starts_on", { ascending: false }).limit(1).maybeSingle();
+    if (period) {
+      const { data: submitted } = await supabase.from("reports")
+        .select("unit_id").eq("period_id", period.id).in("status", ["submitted", "confirmed"]);
+      const inIds = new Set((submitted || []).map((r) => r.unit_id));
+      const missing = (us || []).filter((u) => !inIds.has(u.id));
+      setReporting({ label: period.label, total: (us || []).length, submitted: inIds.size, missing });
+    } else {
+      setReporting(null);
+    }
+
+    // --- Watch: fixed rules, no black box. Each row says why it appeared. ---
+    const rules = [];
+    const eightDaysAgo = Date.now() - 8 * 864e5;
+    const { data: subs } = await supabase.from("submissions").select("profile_id, submitted_at");
+    const lastSub = {};
+    (subs || []).forEach((s) => {
+      const tms = new Date(s.submitted_at).getTime();
+      if (!lastSub[s.profile_id] || tms > lastSub[s.profile_id]) lastSub[s.profile_id] = tms;
+    });
+    const memberOf = {};
+    (await supabase.from("unit_memberships").select("profile_id, unit_id")).data
+      ?.forEach((m) => { (memberOf[m.unit_id] = memberOf[m.unit_id] || []).push(m.profile_id); });
+    (us || []).forEach((u) => {
+      const ids = memberOf[u.id] || [];
+      if (!ids.length) return;
+      const latest = Math.max(...ids.map((i) => lastSub[i] || 0));
+      if (latest < eightDaysAgo) {
+        rules.push({ k: "u" + u.id, who: u.name,
+          why: latest === 0 ? "nothing ever submitted" : "no submissions in " + Math.floor((Date.now() - latest) / 864e5) + " days" });
+      }
+    });
+    (staff || []).forEach((p) => {
+      const days = new Set((sess || []).filter((s) => s.profile_id === p.id).map((s) => new Date(s.started_at).toDateString())).size;
+      if (days >= 3 && !lastSub[p.id]) rules.push({ k: "p" + p.id, who: p.full_name, why: "present " + days + " days, nothing submitted" });
+    });
+    (objs || []).filter((o2) => o2.status === "at_risk").forEach((o2) => {
+      rules.push({ k: "o" + o2.id, who: o2.name, why: "objective at risk" });
+    });
+    setWatch(rules.slice(0, 12));
   }
 
   async function sendInvite() {
@@ -136,6 +214,40 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
           <div className="row-t">{a.message}</div>
           <div className="row-m">Since {new Date(a.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
         </button>))}
+
+      {reporting && (<>
+        <div className="sec"><span>Reporting</span><span>{reporting.label}</span></div>
+        <div className="row">
+          <div className="row-t">{reporting.submitted} of {reporting.total} units submitted</div>
+          {reporting.missing.length > 0
+            ? <div className="row-m">Missing: {reporting.missing.map((u) => u.name).join(", ")}</div>
+            : <div className="row-m">Everyone is in.</div>}
+        </div>
+      </>)}
+
+      <div className="sec"><span>The office today</span></div>
+      <div className="metric-grid">
+        <div className="metric"><b>{today.working}</b><span>working</span></div>
+        <div className="metric"><b>{today.leave}</b><span>on leave</span></div>
+        <div className="metric"><b>{today.notStarted}</b><span>not started</span></div>
+        <div className="metric"><b>{today.headcount}</b><span>on the books</span></div>
+      </div>
+
+      <div className="sec"><span>Delivery</span></div>
+      <div className="row">
+        <div className="row-t">{delivery.active} project{delivery.active === 1 ? "" : "s"} active · {delivery.closedThisMonth} closed this month</div>
+        <div className="row-m">{delivery.onTrack} of {delivery.objectives} objectives on track</div>
+      </div>
+
+      {watch.length > 0 && (<>
+        <div className="sec"><span>Watch</span><span>{watch.length}</span></div>
+        <p className="small" style={{ marginBottom: 6 }}>Fixed rules, not a judgement. Each line says why it appeared.</p>
+        {watch.map((w) => (
+          <div key={w.k} className="row">
+            <div className="row-t">{w.who}</div>
+            <div className="row-m">{w.why}</div>
+          </div>))}
+      </>)}
 
       {blockers.length > 0 && (<>
         <div className="sec"><span>Stuck between units</span><span>{blockers.length}</span></div>
