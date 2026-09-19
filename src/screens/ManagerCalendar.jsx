@@ -10,7 +10,7 @@ const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return
 const startOfWeek = (d) => { const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; };
 const labelDate = (s) => parseDateOnly(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 
-export default function ManagerCalendar({ me, openItem, openProject }) {
+export default function ManagerCalendar({ me, openItem, openProject, openPerson }) {
   const [view,setView]=useState("month");
   const [filter,setFilter]=useState("all");
   const [cursor,setCursor]=useState(new Date());
@@ -23,7 +23,7 @@ export default function ManagerCalendar({ me, openItem, openProject }) {
   async function load(){
     setLoading(true); setError(null);
     const [projects, work, members, leave] = await Promise.all([
-      supabase.from("projects").select("id,name,starts_on,ends_on,status,project_units!inner(unit_id)").eq("project_units.unit_id",me.unit_id),
+      supabase.from("projects").select("id,name,starts_on,ends_on,status"),
       supabase.from("work_items").select("id,ref,title,due_at,status,project_id").eq("unit_id",me.unit_id).not("due_at","is",null).neq("visibility","private"),
       supabase.from("unit_memberships").select("profile_id").eq("unit_id",me.unit_id).eq("active",true),
       supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").in("status",["approved","escalated"])
@@ -36,10 +36,10 @@ export default function ManagerCalendar({ me, openItem, openProject }) {
       if(p.starts_on) out.push({id:`project-start-${p.id}`,type:"projects",date:p.starts_on,title:`${p.name} starts`,projectId:p.id});
       if(p.ends_on) out.push({id:`project-end-${p.id}`,type:"projects",date:p.ends_on,title:`${p.name} ends`,projectId:p.id});
     });
-    (work.data||[]).forEach(w=>out.push({id:`task-${w.id}`,type:"tasks",date:String(w.due_at).slice(0,10),title:`${w.ref} · ${w.title}`,itemId:w.id}));
+    (work.data||[]).forEach(w=>out.push({id:`task-${w.id}`,type:"tasks",date:dateKey(new Date(w.due_at)),title:`${w.ref} · ${w.title}`,itemId:w.id}));
     (leave.data||[]).filter(l=>memberIds.has(l.profile_id)).forEach(l=>{
       let d=parseDateOnly(l.start_date), end=parseDateOnly(l.end_date);
-      while(d<=end){ out.push({id:`leave-${l.id}-${dateKey(d)}`,type:"leave",date:dateKey(d),title:`${l.profiles?.full_name||"Team member"} · ${l.kind} leave`}); d=addDays(d,1); }
+      while(d<=end){ out.push({id:`leave-${l.id}-${dateKey(d)}`,type:"leave",date:dateKey(d),title:`${l.profiles?.full_name||"Team member"} · ${l.kind} leave`,profileId:l.profile_id}); d=addDays(d,1); }
     });
     setEvents(out); setLoading(false);
   }
@@ -66,7 +66,7 @@ export default function ManagerCalendar({ me, openItem, openProject }) {
     {loading?<div className="spin">Loading calendar...</div>:<div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
       {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted ? 0.55 : 1}}>
         <div className="small" style={{fontWeight:700}}>{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
+        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.profileId?openPerson(e.profileId,"sessions"):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
       </div>})}
     </div>}
     {filter==="activities"&&<div className="card small" style={{marginTop:12}}>Ministry and unit activity entries are not yet connected to a defined calendar source. No events are being invented here.</div>}
