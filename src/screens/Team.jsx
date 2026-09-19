@@ -59,7 +59,7 @@ export default function Team({ me, openPerson }) {
           .select("id, name, code, position, lead_id, profiles!sub_teams_lead_fk(full_name)")
           .eq("unit_id", me.unit_id).eq("active", true).order("position"),
         supabase.from("work_items")
-          .select("id, ref, title, assignee_id, status, due_at, completed_at")
+          .select("id, ref, title, kind, assignee_id, status, due_at, completed_at")
           .eq("unit_id", me.unit_id).neq("visibility", "private"),
         supabase.from("work_sessions").select("id, profile_id, started_at")
           .gte("started_at", start.toISOString()),
@@ -90,7 +90,7 @@ export default function Team({ me, openPerson }) {
           presence: leaveIds.has(membership.profile_id) ? "On leave" : personSessions.some((session) => dayKey(new Date(session.started_at)) === today) ? "Present" : "Not started",
           presenceDays,
           submitted,
-          completed: personWork.filter((item) => ["completed", "self_certified"].includes(item.status) && item.completed_at && new Date(item.completed_at) >= start).length,
+          completed: personWork.filter((item) => ["task", "deliverable"].includes(item.kind) && ["completed", "self_certified"].includes(item.status) && item.completed_at && new Date(item.completed_at) >= start).length,
           overdue: current.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on").length,
           awaiting: current.filter((item) => item.status === "in_review").length,
           current,
