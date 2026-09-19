@@ -17,6 +17,7 @@ import Finance from "./screens/Finance";
 import ExecutiveHome from "./screens/ExecutiveHome";
 import Assign from "./screens/Assign";
 import Team from "./screens/Team";
+import PersonDetail from "./screens/PersonDetail";
 import StaffTeam from "./screens/StaffTeam";
 import OfficeSettings from "./screens/OfficeSettings";
 import Goals from "./screens/Goals";
@@ -29,6 +30,7 @@ export default function App() {
   const [itemId, setItemId] = useState(null);
   const [goalId, setGoalId] = useState(null);
   const [assigning, setAssigning] = useState(false);
+  const [person, setPerson] = useState(null);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function App() {
     setReady(true);
   }
 
-  function go(t) { setItemId(null); setGoalId(null); setAssigning(false); setTab(t); }
+  function go(t) { setItemId(null); setGoalId(null); setAssigning(false); setPerson(null); setTab(t); }
 
   if (!ready) return <div className="spin">Loading...</div>;
   if (!me) return <SignIn />;
@@ -52,7 +54,7 @@ export default function App() {
   const isAdmin = me.is_admin || me.is_exec;
   const isUnitManager = !isAdmin && me.role === "manager";
   const isManager = isAdmin || isUnitManager;
-  const overlay = itemId || assigning || goalId;
+  const overlay = itemId || assigning || goalId || person;
 
   function pageForTab() {
     if (tab === "home") {
@@ -61,7 +63,7 @@ export default function App() {
       if (isManager) return <ManagerHome me={me} openItem={setItemId} goAssign={() => setAssigning(true)} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
-    if (tab === "team") return isManager ? <Team me={me} /> : <StaffTeam me={me} />;
+    if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
@@ -79,6 +81,7 @@ export default function App() {
       {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : assigning ? <Assign me={me} back={() => setAssigning(false)} />
+        : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} back={() => setPerson(null)} />
         : pageForTab()}
       {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} />}
     </div>);
