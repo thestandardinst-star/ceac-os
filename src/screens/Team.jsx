@@ -35,6 +35,9 @@ export default function Team({ me, openPerson }) {
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [editName, setEditName] = useState("");
+  const [moveWorkTo, setMoveWorkTo] = useState("");
+  const [removeWorkCount, setRemoveWorkCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
@@ -123,6 +126,54 @@ export default function Team({ me, openPerson }) {
     finally { setBusy(false); }
   }
 
+  async function renameSubTeam(team) {
+    if (!editName.trim()) return;
+    setBusy(true); setMsg(null);
+    try {
+      const { error: updateError } = await supabase.from("sub_teams")
+        .update({ name: editName.trim() }).eq("id", team.id).eq("unit_id", me.unit_id);
+      if (updateError) throw updateError;
+      setSheet(null); setEditName(""); await load();
+    } catch (err) { setMsg(err.message || "That part could not be renamed."); }
+    finally { setBusy(false); }
+  }
+
+  async function moveSubTeam(team, direction) {
+    const index = subTeams.findIndex((row) => row.id === team.id);
+    const other = subTeams[index + direction];
+    if (!other) return;
+    setError(null);
+    const first = await supabase.from("sub_teams").update({ position: other.position }).eq("id", team.id).eq("unit_id", me.unit_id);
+    if (first.error) { setError(first.error.message); return; }
+    const second = await supabase.from("sub_teams").update({ position: team.position }).eq("id", other.id).eq("unit_id", me.unit_id);
+    if (second.error) { setError(second.error.message); return; }
+    await load();
+  }
+
+  async function openRemoveSubTeam(team) {
+    setMsg(null); setMoveWorkTo("");
+    const result = await supabase.from("work_items").select("id", { count: "exact", head: true }).eq("sub_team_id", team.id);
+    if (result.error) { setError(result.error.message); return; }
+    setRemoveWorkCount(result.count || 0);
+    setSheet({ type: "remove-subteam", team });
+  }
+
+  async function removeSubTeam(team) {
+    setBusy(true); setMsg(null);
+    try {
+      if (removeWorkCount > 0) {
+        const { error: workError } = await supabase.from("work_items")
+          .update({ sub_team_id: moveWorkTo || null })
+          .eq("sub_team_id", team.id);
+        if (workError) throw new Error(`Work could not be moved: ${workError.message}`);
+      }
+      const { error: deleteError } = await supabase.from("sub_teams").delete().eq("id", team.id).eq("unit_id", me.unit_id);
+      if (deleteError) throw deleteError;
+      setSheet(null); setMoveWorkTo(""); setRemoveWorkCount(0); await load();
+    } catch (err) { setMsg(err.message || "That part could not be removed."); }
+    finally { setBusy(false); }
+  }
+
   async function toggleMember(profileId, subTeamId) {
     setError(null);
     const has = (members[profileId] || []).includes(subTeamId);
@@ -207,7 +258,16 @@ export default function Team({ me, openPerson }) {
         </div>
         <div className="side-col">
           <div className="sec"><span>Parts of the team</span><span>{subTeams.length}</span></div>
-          {subTeams.map((team) => <div key={team.id} className="row"><div className="row-t">{team.name}</div><div className="row-m">{team.code} · {Object.values(members).filter((value) => value.includes(team.id)).length} people{team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}</div></div>)}
+          {subTeams.map((team, index) => <div key={team.id} className="row">
+            <div className="row-t">{team.name}</div>
+            <div className="row-m">{team.code} · {Object.values(members).filter((value) => value.includes(team.id)).length} people{team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setEditName(team.name); setMsg(null); setSheet({ type: "rename-subteam", team }); }}>Rename</button>
+              <button className="btn btn-ghost btn-sm" disabled={index === 0} onClick={() => moveSubTeam(team, -1)}>Move up</button>
+              <button className="btn btn-ghost btn-sm" disabled={index === subTeams.length - 1} onClick={() => moveSubTeam(team, 1)}>Move down</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => openRemoveSubTeam(team)}>Remove</button>
+            </div>
+          </div>)}
           {subTeams.length === 0 && <div className="card small">No parts have been set up. Empty parts are allowed.</div>}
           <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => { setSheet("subteam"); setMsg(null); }}>Add a part</button>
         </div>
@@ -220,6 +280,24 @@ export default function Team({ me, openPerson }) {
         <input className="field" placeholder="Short code, e.g. GFX" value={code} onChange={(event) => setCode(event.target.value)} maxLength={4} />
         {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
         <button className="btn" style={{ marginTop: 14 }} onClick={addSubTeam} disabled={busy || !name.trim()}>{busy ? "Saving..." : "Add it"}</button>
+      </Sheet>}
+      {sheet?.type === "rename-subteam" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">Rename this part</div>
+        <p className="screen-note">Existing work references stay unchanged. New work will use the same short code unless you set up a different part.</p>
+        <input className="field" value={editName} onChange={(event) => setEditName(event.target.value)} />
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} disabled={busy || !editName.trim()} onClick={() => renameSubTeam(sheet.team)}>{busy ? "Saving..." : "Rename"}</button>
+      </Sheet>}
+      {sheet?.type === "remove-subteam" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">Remove {sheet.team.name}?</div>
+        <p className="screen-note">{removeWorkCount > 0 ? `${removeWorkCount} work item${removeWorkCount === 1 ? "" : "s"} currently sit in this part. Choose where that work should go before removing it.` : "No work is currently attached to this part."}</p>
+        {removeWorkCount > 0 && <select className="field" value={moveWorkTo} onChange={(event) => setMoveWorkTo(event.target.value)}>
+          <option value="">General unit work — no part</option>
+          {subTeams.filter((team) => team.id !== sheet.team.id).map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+        </select>}
+        <div className="hint">Removing the part does not delete its work. Existing work references are kept.</div>
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => removeSubTeam(sheet.team)}>{busy ? "Moving work..." : "Move work and remove part"}</button>
       </Sheet>}
       {sheet === "invite" && <Sheet onClose={() => { setSheet(null); setMsg(null); }}>
         <div className="h2">Add someone to the team</div>
