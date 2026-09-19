@@ -440,7 +440,11 @@ export default function ManagerReports({ me, openItem }) {
 
   if (loading) return <div className="body"><div className="spin">Preparing reports...</div></div>;
 
-  return <div className="body">
+  return <div className="body report-print">
+    <div className="print-only report-print-brand">
+      <b>CEAC</b>
+      <span>{me.unit_name} · Manager report</span>
+    </div>
     <div style={{ paddingTop: 26 }}>
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1" style={{ marginTop: 6 }}>Reports</h1>
