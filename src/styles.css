@@ -100,3 +100,15 @@ input,textarea,select{font:inherit;color:inherit}
   .btn.wide-auto{width:auto;display:inline-block;padding:12px 22px}
   .sheet{border-radius:12px;max-width:460px;bottom:auto;top:8vh;left:50%;transform:translateX(-50%)}
 }
+
+.print-only{display:none}
+@media print{
+  body{background:#fff}
+  .side,.tabs,.mobile-unit-switch,.sheet-bg,.sheet{display:none !important}
+  .app{max-width:none !important;display:block !important}
+  .body{max-width:none !important;padding:0 !important}
+  .print-only{display:flex !important}
+  .report-print-brand{justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding:0 0 12px;margin:0 0 18px}
+  .report-print-brand b{font-size:18px}
+  .report-print-brand span{font-size:12px;color:var(--ink-soft)}
+}
