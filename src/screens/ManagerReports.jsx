@@ -197,7 +197,7 @@ export default function ManagerReports({ me, openItem }) {
     if (!range) return null;
     const projectFilter = mode === "project" ? (row) => row.project_id === projectId : () => true;
     const relevantWork = work.filter(projectFilter);
-    const completed = relevantWork.filter((row) => COMPLETE.has(row.status) && within(localDate(row.completed_at), range.start, range.end));
+    const completed = relevantWork.filter((row) => ["task", "deliverable"].includes(row.kind) && COMPLETE.has(row.status) && within(localDate(row.completed_at), range.start, range.end));
     const due = relevantWork.filter((row) => within(localDate(row.due_at), range.start, range.end));
     const overdue = due.filter((row) => !COMPLETE.has(row.status) && row.status !== "waiting_on" && row.due_at && new Date(row.due_at) < new Date());
     const workIds = new Set(relevantWork.map((row) => row.id));
