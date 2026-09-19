@@ -52,12 +52,13 @@ export default function Assign({ me, back }) {
   async function create() {
     setBusy(true); setErr(null);
     try {
-      const st = subTeams.find((s) => s.id === subTeam);
-      const { count } = await supabase.from("work_items").select("id", { count: "exact", head: true }).eq("org_id", me.org_id);
-      const ref = "MED-" + (st ? st.code + "-" : "") + String((count || 0) + 1).padStart(3, "0");
+      const kind = "task";
+      const { data: ref, error: refError } = await supabase
+        .rpc("next_work_ref", { p_unit_id: me.unit_id, p_sub_team_id: subTeam || null });
+      if (refError) throw refError;
       const dueIso = due ? new Date(due).toISOString() : null;
       const { data: wi, error } = await supabase.from("work_items").insert({
-        org_id: me.org_id, ref, kind: "task", unit_id: me.unit_id,
+        org_id: me.org_id, ref, kind, unit_id: me.unit_id,
         sub_team_id: subTeam || null, project_id: project || null,
         assignee_id: assignee, assigned_by: me.id,
         title, purpose: purpose || null, instructions: instructions || null,
@@ -65,7 +66,7 @@ export default function Assign({ me, back }) {
         .select("id, ref").single();
       if (error) throw error;
       const clean = steps.map((s) => s.trim()).filter(Boolean);
-      if (clean.length) {
+      if (kind === "task" && clean.length) {
         await supabase.from("checklist_items").insert(clean.map((label, i) => ({ work_item_id: wi.id, label, position: i + 1 })));
       }
       setDone(wi.ref);
