@@ -11,7 +11,7 @@ export function statusPill(status) {
   return <Pill tone="grey">Not started</Pill>;
 }
 function tabItems(isManager = false) {
-  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["me","Me"]];
+  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["me","Me"]];
   return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
 }
 export function SideNav({ tab, setTab, me, isAdmin, isManager }) {
