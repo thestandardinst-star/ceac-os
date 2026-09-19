@@ -316,3 +316,42 @@ No PDF service. Browser print stays the output; `evidence` plus
 `report_evidence_refs` make a branded PDF reproducible later.
 
 No reporting period was seeded. Administration opens periods.
+
+## Report hardening (migrations 028, 029)
+
+Four issues Codex raised, all verified live before changing anything, all
+fixed. Plus one it did not look for.
+
+**Manager could not read their own project report.** `rpt_read` had no
+`project` clause. Fixed.
+
+**anon held EXECUTE on the report RPCs.** `revoke all from public` does
+not remove Supabase's role-specific grants — `proacl` showed `anon=X`.
+Swept across all eighteen definer functions this project has added.
+
+**Evidence must now trace to rows.** `submit_report` validates
+`evidence -> 'counts'`: for every section with a non-zero integer, the
+number of `report_evidence_refs` rows with that `section` must equal it,
+or submission is refused. So `completed: 999` with nothing attached is
+rejected.
+
+**Contract:** write your refs while the report is still a draft, then
+submit with
+`{ counts: { completed: 12, submissions: 18, overdue: 3, sessions: 41 },
+   ...anything else you want frozen }`.
+Keys outside `counts` are frozen without validation — put narrative
+figures and chart series there.
+
+**First-draft save is now collision-safe.** It retries: whoever loses the
+race re-reads and updates the draft the winner created, up to three times.
+
+**Also found, not reported:** fifteen functions from the original
+migrations still granted EXECUTE to anon, including `app_run_daily` and
+the check jobs, which write alerts. Revoked and granted to `service_role`
+instead. The read-only helpers are deliberately left — they are called
+inside RLS policies, and removing anon's execute turns a clean empty
+result into a permission error. They return nothing without a session.
+
+**Migration files are still not in the repository.** See
+`supabase/migrations/README.md` — it needs `npx supabase db pull` run on a
+machine with network access to Supabase. Claude's sandbox has none.
