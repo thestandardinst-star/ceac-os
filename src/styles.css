@@ -77,6 +77,8 @@ input,textarea,select{font:inherit;color:inherit}
 .metric span{display:block;font-size:12px;color:var(--ink-faint);margin-top:3px}
 .module-list{display:flex;flex-wrap:wrap;gap:7px}
 .module-list span{font-size:12px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line-soft);border-radius:20px;padding:5px 11px}
+.mobile-unit-switch{padding:10px 18px 0}
+.mobile-unit-switch select{width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px}
 .side{display:none}
 @media (min-width:820px){
   .app{max-width:1200px !important;flex-direction:row !important;align-items:stretch !important}
@@ -87,6 +89,7 @@ input,textarea,select{font:inherit;color:inherit}
   .side nav button.on{color:var(--ink);font-weight:600;background:var(--paper)}
   .side nav button.on:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green)}
   .side .who{margin-top:22px;padding:14px 20px 0;font-size:12px;color:var(--ink-faint);border-top:1px solid var(--line-soft)}
+  .mobile-unit-switch{display:none !important}
   .tabs{display:none !important}
   .body{padding:0 34px 60px;max-width:960px;flex:1}
   .h1{font-size:30px}
