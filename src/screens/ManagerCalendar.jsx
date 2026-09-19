@@ -28,7 +28,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   async function load(){
     setLoading(true); setError(null);
     const [projects, work, members, leave, ministry, ministryNeeds] = await Promise.all([
-      supabase.from("projects").select("id,name,starts_on,ends_on,status"),
+      supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)"),
       supabase.from("work_items").select("id,ref,title,due_at,status,project_id").eq("unit_id",me.unit_id).not("due_at","is",null).neq("visibility","private"),
       supabase.from("unit_memberships").select("profile_id").eq("unit_id",me.unit_id),
       supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").in("status",["approved","escalated"]),
@@ -39,7 +39,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
     if(firstError){ setError(firstError.message); setLoading(false); return; }
     const memberIds=new Set((members.data||[]).map(x=>x.profile_id));
     const out=[];
-    (projects.data||[]).forEach(p=>{
+    (projects.data||[]).filter((p)=>p.lead_unit_id===me.unit_id||(p.project_units||[]).some((row)=>row.unit_id===me.unit_id)).forEach(p=>{
       if(p.starts_on) out.push({id:`project-start-${p.id}`,type:"projects",date:p.starts_on,title:`${p.name} starts`,projectId:p.id});
       if(p.ends_on) out.push({id:`project-end-${p.id}`,type:"projects",date:p.ends_on,title:`${p.name} ends`,projectId:p.id});
     });
