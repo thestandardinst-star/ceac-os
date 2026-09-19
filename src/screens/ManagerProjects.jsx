@@ -112,7 +112,8 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       const work = requireResult(workResult, "Project work");
       const budgets = requireResult(budgetResult, "Project budgets");
       const spend = requireResult(spendResult, "Project spend");
-      setProjects(visibleProjects.map((project) => {
+      const currentUnitProjects = visibleProjects.filter((project) => project.lead_unit_id === me.unit_id || projectUnits.some((row) => row.project_id === project.id && row.unit_id === me.unit_id));
+      setProjects(currentUnitProjects.map((project) => {
         const tasks = work.filter((item) => item.project_id === project.id && item.kind === "task");
         return {
           ...project,
@@ -150,6 +151,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           .eq("project_id", projectId).eq("unit_id", me.unit_id),
       ]);
       const participants = requireResult(participantResult, "Participating units");
+      if (projectResult.data.lead_unit_id !== me.unit_id && !participants.some((row) => row.unit_id === me.unit_id)) throw new Error("This project is not part of your current unit.");
       const phases = requireResult(phaseResult, "Project phases");
       const objectives = requireResult(objectiveResult, "Objectives");
       const work = requireResult(workResult, "Project work");
