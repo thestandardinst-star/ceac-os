@@ -47,6 +47,8 @@ export default function ManagerHome({ me, openItem, openProject, goAssign }) {
   const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
   const [comment, setComment] = useState("");
+  const [returnItems, setReturnItems] = useState([]);
+  const [selectedReturnItems, setSelectedReturnItems] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -161,10 +163,42 @@ export default function ManagerHome({ me, openItem, openProject, goAssign }) {
     }
   }
 
+  async function openReturn(submission) {
+    setError(null);
+    setReturnItems([]);
+    setSelectedReturnItems([]);
+    const result = await supabase.from("checklist_items")
+      .select("id,label,position")
+      .eq("work_item_id", submission.work_items.id)
+      .order("position");
+    if (result.error) {
+      setError(`Checklist: ${result.error.message}`);
+      return;
+    }
+    setReturnItems(result.data || []);
+    setSheet({ type: "work", item: submission, decision: "returned" });
+  }
+
+  function toggleReturnItem(id) {
+    setSelectedReturnItems((current) => current.includes(id)
+      ? current.filter((itemId) => itemId !== id)
+      : [...current, id]);
+  }
+
   async function decideWork(submission, decision) {
     setBusy(true); setError(null);
     try {
       if (decision === "returned" && !comment.trim()) throw new Error("Add a comment explaining what needs changing.");
+      if (decision === "returned") {
+        const { error: returnError } = await supabase.rpc("return_work_for_correction", {
+          p_submission_id: submission.id,
+          p_comment: comment.trim(),
+          p_checklist_item_ids: selectedReturnItems.length ? selectedReturnItems : null,
+        });
+        if (returnError) throw returnError;
+        setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); await load();
+        return;
+      }
       const { error: reviewError } = await supabase.from("reviews").insert({
         org_id: me.org_id, submission_id: submission.id, reviewer_id: me.id,
         decision, comment: comment.trim() || null, seen_at: new Date().toISOString(),
@@ -238,7 +272,7 @@ export default function ManagerHome({ me, openItem, openProject, goAssign }) {
           {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
           <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
             <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "work", item: submission, decision: "returned" })}>Return</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => openReturn(submission)}>Return</button>
             <button className="btn btn-sm" onClick={() => setSheet({ type: "work", item: submission, decision: "completed" })}>Approve</button>
           </div>
         </div>
@@ -312,9 +346,21 @@ export default function ManagerHome({ me, openItem, openProject, goAssign }) {
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="card small">No tasks in this group.</div>}
       </div>}
 
-      {sheet?.type === "work" && <Sheet onClose={() => { setSheet(null); setComment(""); }}>
+      {sheet?.type === "work" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
         <div className="h2">{sheet.decision === "completed" ? "Approve this work" : "Return this work"}</div>
-        <p className="screen-note">{sheet.decision === "completed" ? "The approval is added to the submission history." : "Explain exactly what needs changing. The staff member will see the comment and can resubmit."}</p>
+        <p className="screen-note">{sheet.decision === "completed" ? "The approval is added to the submission history." : "Explain exactly what needs changing. Select any checklist points that must be done again."}</p>
+        {sheet.decision === "returned" && returnItems.length > 0 && <>
+          <div className="sec" style={{ marginTop: 14 }}><span>Checklist points to redo</span></div>
+          <div className="card" style={{ padding: "2px 15px" }}>
+            {returnItems.map((item) => (
+              <button key={item.id} className={"ck " + (selectedReturnItems.includes(item.id) ? "done" : "")} onClick={() => toggleReturnItem(item.id)}>
+                <span className={"box " + (selectedReturnItems.includes(item.id) ? "on" : "")} />
+                <span className="ck-l">{item.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="hint">Leave these unselected if the correction is not tied to a checklist point.</div>
+        </>}
         <textarea className="field" rows={3} placeholder={sheet.decision === "completed" ? "Note (optional)" : "What needs changing"} value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || (sheet.decision === "returned" && !comment.trim())} onClick={() => decideWork(sheet.item, sheet.decision)}>{busy ? "Saving..." : sheet.decision === "completed" ? "Approve" : "Return"}</button>
       </Sheet>}
