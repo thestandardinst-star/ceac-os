@@ -54,6 +54,19 @@ export default function App() {
 
   function go(t) { setItemId(null); setGoalId(null); setAssigning(null); setPerson(null); setProjectId(null); setTab(t); }
 
+  function switchUnit(unitId) {
+    const membership = me?.memberships?.find((entry) => entry.unit_id === unitId);
+    if (!membership || membership.unit_id === me.unit_id) return;
+    localStorage.setItem(`ceac-unit:${me.id}`, membership.unit_id);
+    setMe((current) => ({
+      ...current,
+      unit_id: membership.unit_id,
+      unit_name: membership.unit_name,
+      role: membership.role,
+    }));
+    go("home");
+  }
+
   if (!ready) return <div className="spin">Loading...</div>;
   if (!me) return <SignIn />;
 
@@ -93,7 +106,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} onUnitChange={switchUnit} />
       {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
         : assigning ? <Assign me={me} initialProjectId={assigning.projectId} initialObjectiveId={assigning.objectiveId} initialPhaseId={assigning.phaseId} back={() => setAssigning(null)} />
         : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} back={() => setProjectId(null)} />
