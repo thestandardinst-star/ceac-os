@@ -12,6 +12,7 @@ import AdminHome from "./screens/AdminHome";
 import Units from "./screens/Units";
 import People from "./screens/People";
 import Attendance from "./screens/Attendance";
+import Cost from "./screens/Cost";
 import ExecutiveHome from "./screens/ExecutiveHome";
 import Assign from "./screens/Assign";
 import Team from "./screens/Team";
@@ -61,6 +62,7 @@ export default function App() {
     if (tab === "team") return isManager ? <Team me={me} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} openItem={setItemId} />;
     if (tab === "record") return <Record me={me} />;
+    if (tab === "cost") return <Cost me={me} />;
     if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
     if (tab === "people" && isAdmin) return <People me={me} openItem={setItemId} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={setItemId} />;
