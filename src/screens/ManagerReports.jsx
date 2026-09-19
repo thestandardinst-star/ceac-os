@@ -28,6 +28,16 @@ function countBy(rows, key) {
   return out;
 }
 
+function distinctAttendanceDays(rows) {
+  const seen = new Set();
+  const kept = [];
+  rows.forEach((row) => {
+    const key = `${row.profile_id}:${localDate(row.started_at)}`;
+    if (!seen.has(key)) { seen.add(key); kept.push(row); }
+  });
+  return kept;
+}
+
 function EvidenceMetric({ value, label, onClick }) {
   return <button className="metric" onClick={onClick}><b>{value}</b><span>{label}</span><span className="small" style={{ marginTop: 3 }}>Why?</span></button>;
 }
@@ -84,7 +94,7 @@ function Trend({ points, onOpen }) {
         return <circle key={point.date} cx={x} cy={y} r="4" fill="currentColor" onClick={() => onOpen(point)} style={{ cursor: "pointer" }} />;
       })}
     </svg>
-    <div className="small">Each point opens the completed work behind that day.</div>
+    <div className="small">Each point opens the work behind that day.</div>
   </div>;
 }
 
@@ -92,27 +102,34 @@ function ActivityHeat({ days, onOpen }) {
   const max = Math.max(1, ...days.map((day) => day.value));
   return <div className="card">
     <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(28px,1fr))", gap: 5 }}>
-      {days.map((day) => <button key={day.date} title={`${day.date}: ${day.value} recorded attendance day${day.value === 1 ? "" : "s"}`} onClick={() => onOpen(day)} style={{ minHeight: 34, borderRadius: 5, opacity: 0.25 + 0.75 * (day.value / max), background: "var(--ink)", color: "var(--paper)", fontSize: 10 }}>{parseDateOnly(day.date).getDate()}</button>)}
+      {days.map((day) => <button key={day.date} title={`${day.date}: ${day.value} team attendance day${day.value === 1 ? "" : "s"}`} onClick={() => onOpen(day)} style={{ minHeight: 34, borderRadius: 5, opacity: 0.25 + 0.75 * (day.value / max), background: "var(--ink)", color: "var(--paper)", fontSize: 10 }}>{parseDateOnly(day.date).getDate()}</button>)}
     </div>
     <div className="small" style={{ marginTop: 8 }}>Darker days have more team members with a recorded work session. Tap a day for the underlying sessions.</div>
   </div>;
 }
 
-export default function ManagerReports({ me, openItem, openProject }) {
+export default function ManagerReports({ me, openItem }) {
   const [mode, setMode] = useState("week");
   const [projectId, setProjectId] = useState("");
+  const [selectedPeriodId, setSelectedPeriodId] = useState("");
   const [projects, setProjects] = useState([]);
   const [periods, setPeriods] = useState([]);
   const [work, setWork] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [objectives, setObjectives] = useState([]);
-  const [members, setMembers] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [reportRefs, setReportRefs] = useState([]);
   const [narrative, setNarrative] = useState("");
   const [challenges, setChallenges] = useState("");
+  const [correctionReason, setCorrectionReason] = useState("");
+  const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => { loadBase(); }, [me.id, me.unit_id]);
 
@@ -122,7 +139,7 @@ export default function ManagerReports({ me, openItem, openProject }) {
       supabase.from("projects").select("id,name,starts_on,ends_on,status").order("starts_on", { ascending: false, nullsFirst: false }),
       supabase.from("report_periods").select("id,kind,label,starts_on,ends_on,status").order("starts_on", { ascending: false }),
       supabase.from("work_items").select("id,ref,title,kind,status,due_at,completed_at,project_id,assignee_id,origin,projects(name),profiles!work_items_assignee_id_fkey(full_name)").eq("unit_id", me.unit_id).neq("visibility", "private"),
-      supabase.from("unit_memberships").select("profile_id,profiles!unit_memberships_profile_id_fkey(full_name)").eq("unit_id", me.unit_id).eq("active", true),
+      supabase.from("unit_memberships").select("profile_id").eq("unit_id", me.unit_id).eq("active", true),
       supabase.from("objectives").select("id,project_id,unit_id,ref,name,status").eq("unit_id", me.unit_id),
     ]);
     const first = [projectResult.error, periodResult.error, workResult.error, memberResult.error, objectiveResult.error].find(Boolean);
@@ -130,7 +147,6 @@ export default function ManagerReports({ me, openItem, openProject }) {
     setProjects(projectResult.data || []);
     setPeriods(periodResult.data || []);
     setWork(workResult.data || []);
-    setMembers(memberResult.data || []);
     setObjectives(objectiveResult.data || []);
 
     const memberIds = (memberResult.data || []).map((row) => row.profile_id);
@@ -150,18 +166,29 @@ export default function ManagerReports({ me, openItem, openProject }) {
     setLoading(false);
   }
 
+  const baseRange = useMemo(() => mode === "week" ? weekRange() : mode === "month" ? monthRange() : null, [mode]);
+  const projectPeriods = useMemo(() => periods.filter((period) => period.kind === "project"), [periods]);
+
+  const matchingPeriod = useMemo(() => {
+    if (mode === "project") return periods.find((period) => period.id === selectedPeriodId) || null;
+    if (!baseRange) return null;
+    return periods.find((period) => period.kind === mode && period.starts_on === baseRange.start && period.ends_on === baseRange.end && period.status === "open")
+      || periods.find((period) => period.kind === mode && period.starts_on === baseRange.start && period.ends_on === baseRange.end)
+      || null;
+  }, [mode, selectedPeriodId, periods, baseRange]);
+
   const range = useMemo(() => {
-    if (mode === "week") return weekRange();
-    if (mode === "month") return monthRange();
+    if (mode !== "project") return baseRange;
     const project = projects.find((row) => row.id === projectId);
     if (!project) return null;
+    if (matchingPeriod) return { start: matchingPeriod.starts_on, end: matchingPeriod.ends_on, label: `${project.name} · ${matchingPeriod.label}` };
     const dates = work.filter((row) => row.project_id === project.id).flatMap((row) => [row.due_at ? localDate(row.due_at) : null, row.completed_at ? localDate(row.completed_at) : null]).filter(Boolean).sort();
     return {
       start: project.starts_on || dates[0] || dateKey(new Date()),
       end: project.ends_on || dates[dates.length - 1] || dateKey(new Date()),
       label: project.name,
     };
-  }, [mode, projectId, projects, work]);
+  }, [mode, baseRange, matchingPeriod, projectId, projects, work]);
 
   const evidence = useMemo(() => {
     if (!range) return null;
@@ -170,17 +197,14 @@ export default function ManagerReports({ me, openItem, openProject }) {
     const completed = relevantWork.filter((row) => COMPLETE.has(row.status) && within(localDate(row.completed_at), range.start, range.end));
     const due = relevantWork.filter((row) => within(localDate(row.due_at), range.start, range.end));
     const overdue = due.filter((row) => !COMPLETE.has(row.status) && row.status !== "waiting_on" && row.due_at && new Date(row.due_at) < new Date());
-    const periodSubmissions = submissions.filter((row) => projectFilter(relevantWork.find((item) => item.id === row.work_item_id) || {}) && within(localDate(row.submitted_at), range.start, range.end));
+    const workIds = new Set(relevantWork.map((row) => row.id));
+    const periodSubmissions = submissions.filter((row) => workIds.has(row.work_item_id) && within(localDate(row.submitted_at), range.start, range.end));
     const periodSessions = sessions.filter((row) => within(localDate(row.started_at), range.start, range.end));
+    const attendanceDays = distinctAttendanceDays(periodSessions);
     const activeProjects = projects.filter((project) => relevantWork.some((row) => row.project_id === project.id));
     const relevantObjectives = objectives.filter((objective) => mode !== "project" || objective.project_id === projectId);
-    return { relevantWork, completed, due, overdue, periodSubmissions, periodSessions, activeProjects, relevantObjectives };
+    return { relevantWork, completed, due, overdue, periodSubmissions, periodSessions, attendanceDays, activeProjects, relevantObjectives };
   }, [range, mode, projectId, work, submissions, sessions, projects, objectives]);
-
-  const matchingPeriod = useMemo(() => {
-    if (!range) return null;
-    return periods.find((period) => period.kind === mode && period.starts_on === range.start && period.ends_on === range.end && period.status === "open") || null;
-  }, [periods, mode, range]);
 
   const daily = useMemo(() => {
     if (!range || !evidence) return [];
@@ -189,21 +213,20 @@ export default function ManagerReports({ me, openItem, openProject }) {
     while (day <= end && rows.length < 62) {
       const key = dateKey(day);
       const items = evidence.completed.filter((row) => localDate(row.completed_at) === key);
-      rows.push({ date: key, label: key, value: items.length, rows: items });
+      rows.push({ date: key, label: key, value: items.length, rows: items, section: `completed_day:${key}` });
       day = addDays(day, 1);
     }
     return rows;
   }, [range, evidence]);
 
-  const attendanceDays = useMemo(() => {
+  const attendanceHeat = useMemo(() => {
     if (!range || !evidence) return [];
     const rows = [];
     let day = parseDateOnly(range.start), end = parseDateOnly(range.end);
     while (day <= end && rows.length < 62) {
       const key = dateKey(day);
-      const daySessions = evidence.periodSessions.filter((row) => localDate(row.started_at) === key);
-      const people = new Set(daySessions.map((row) => row.profile_id));
-      rows.push({ date: key, label: key, value: people.size, rows: daySessions });
+      const dayRows = distinctAttendanceDays(evidence.periodSessions.filter((row) => localDate(row.started_at) === key));
+      rows.push({ date: key, label: key, value: dayRows.length, rows: dayRows, section: `attendance_day:${key}` });
       day = addDays(day, 1);
     }
     return rows;
@@ -213,20 +236,204 @@ export default function ManagerReports({ me, openItem, openProject }) {
     if (!evidence) return [];
     const labels = { completed: "Completed", self_certified: "Self-certified", in_review: "In review", returned: "Returned", waiting_on: "Waiting on", in_progress: "In progress", not_started: "Not started" };
     const groups = countBy(evidence.relevantWork, "status");
-    return Object.entries(groups).map(([status, value]) => ({ label: labels[status] || status, value, rows: evidence.relevantWork.filter((row) => row.status === status) })).sort((a, b) => b.value - a.value);
+    return Object.entries(groups).map(([status, value]) => ({
+      label: labels[status] || status, value, rows: evidence.relevantWork.filter((row) => row.status === status), section: `status:${status}`,
+    })).sort((a, b) => b.value - a.value);
   }, [evidence]);
 
   const projectRows = useMemo(() => {
     if (!evidence) return [];
     return evidence.activeProjects.map((project) => {
-      const rows = evidence.relevantWork.filter((row) => row.project_id === project.id);
-      return { label: project.name, value: rows.filter((row) => COMPLETE.has(row.status)).length, rows, projectId: project.id };
-    }).sort((a, b) => b.value - a.value);
+      const rows = evidence.completed.filter((row) => row.project_id === project.id);
+      return { label: project.name, value: rows.length, rows, projectId: project.id, section: `project:${project.id}` };
+    }).filter((row) => row.value > 0).sort((a, b) => b.value - a.value);
   }, [evidence]);
 
-  function printReport() {
-    window.print();
+  const scope = mode === "project" ? "project" : "unit";
+
+  useEffect(() => {
+    setSelectedReportId(null);
+    setReportRefs([]);
+    setHistory([]);
+    setNotice(null);
+    if (matchingPeriod && (scope === "unit" || projectId)) loadHistory();
+  }, [matchingPeriod?.id, scope, projectId]);
+
+  async function loadHistory(preferDraft = true) {
+    if (!matchingPeriod) return;
+    let query = supabase.from("reports")
+      .select("id,period_id,scope,unit_id,project_id,narrative,challenges,status,version,correction_reason,supersedes_report_id,evidence,submitted_at,submitted_by")
+      .eq("period_id", matchingPeriod.id)
+      .eq("scope", scope)
+      .eq("unit_id", me.unit_id)
+      .order("version", { ascending: false });
+    query = scope === "project" ? query.eq("project_id", projectId) : query.is("project_id", null);
+    const result = await query;
+    if (result.error) { setError(result.error.message); return; }
+    const rows = result.data || [];
+    setHistory(rows);
+    const draft = rows.find((row) => row.status === "draft");
+    const latestSubmitted = rows.find((row) => row.status === "submitted");
+    if (preferDraft && draft) {
+      setSelectedReportId(null);
+      setNarrative(draft.narrative || "");
+      setChallenges(draft.challenges || "");
+      setReportRefs([]);
+    } else if (latestSubmitted) {
+      setSelectedReportId(latestSubmitted.id);
+      setNarrative(latestSubmitted.narrative || "");
+      setChallenges(latestSubmitted.challenges || "");
+    } else {
+      setSelectedReportId(null);
+      setNarrative("");
+      setChallenges("");
+      setReportRefs([]);
+    }
   }
+
+  useEffect(() => {
+    if (!selectedReportId) { setReportRefs([]); return; }
+    loadRefs(selectedReportId);
+  }, [selectedReportId]);
+
+  async function loadRefs(reportId) {
+    const result = await supabase.from("report_evidence_refs")
+      .select("id,report_id,section,object_type,object_id,label")
+      .eq("report_id", reportId);
+    if (result.error) { setError(result.error.message); return; }
+    setReportRefs(result.data || []);
+  }
+
+  const draft = history.find((row) => row.status === "draft") || null;
+  const latestSubmitted = history.find((row) => row.status === "submitted") || null;
+  const frozenReport = selectedReportId ? history.find((row) => row.id === selectedReportId) || null : (!draft ? latestSubmitted : null);
+  const frozen = frozenReport?.evidence || null;
+  const viewingFrozen = Boolean(frozenReport && frozen);
+
+  const liveCounts = evidence ? {
+    completed: evidence.completed.length,
+    submissions: evidence.periodSubmissions.length,
+    overdue: evidence.overdue.length,
+    attendance_days: evidence.attendanceDays.length,
+  } : { completed: 0, submissions: 0, overdue: 0, attendance_days: 0 };
+
+  const displayCounts = viewingFrozen ? (frozen.counts || liveCounts) : liveCounts;
+  const displayDaily = viewingFrozen ? (frozen.daily || []) : daily;
+  const displayProjects = viewingFrozen ? (frozen.by_project || []) : projectRows;
+  const displayStatus = viewingFrozen ? (frozen.status_mix || []) : statusRows;
+  const displayAttendance = viewingFrozen ? (frozen.attendance || []) : attendanceHeat;
+  const displayObjectives = viewingFrozen ? (frozen.objectives || []) : (evidence?.relevantObjectives || []);
+
+  function rowsForSection(section) {
+    return reportRefs.filter((row) => row.section === section);
+  }
+
+  function openFrozenSection(section, title) {
+    setDrill({ title, rows: rowsForSection(section), kind: "ref" });
+  }
+
+  function openLive(section, title, rows, kind) {
+    setDrill({ title, rows, kind, section });
+  }
+
+  async function saveDraft(showNotice = true) {
+    if (!matchingPeriod || matchingPeriod.status !== "open") throw new Error("Administration must open this reporting period before you can save a report.");
+    const result = await supabase.rpc("save_report_draft", {
+      p_period_id: matchingPeriod.id,
+      p_scope: scope,
+      p_unit_id: me.unit_id,
+      p_project_id: scope === "project" ? projectId : null,
+      p_narrative: narrative.trim() || null,
+      p_challenges: challenges.trim() || null,
+    });
+    if (result.error) throw result.error;
+    if (showNotice) setNotice("Draft saved.");
+    await loadHistory(true);
+    return result.data;
+  }
+
+  function buildRefs(reportId) {
+    if (!evidence) return [];
+    const refs = [];
+    const add = (section, objectType, rows, labelFor) => rows.forEach((row) => refs.push({
+      report_id: reportId,
+      section,
+      object_type: objectType,
+      object_id: row.id,
+      label: labelFor(row),
+    }));
+    add("completed", "work_item", evidence.completed, (row) => `${row.ref} · ${row.title}`);
+    add("submissions", "submission", evidence.periodSubmissions, (row) => `${row.profiles?.full_name || "Team member"} · ${new Date(row.submitted_at).toLocaleString("en-GB")}`);
+    add("overdue", "work_item", evidence.overdue, (row) => `${row.ref} · ${row.title}`);
+    add("attendance_days", "work_session", evidence.attendanceDays, (row) => `${row.profiles?.full_name || "Team member"} · ${localDate(row.started_at)}`);
+    daily.forEach((day) => add(day.section, "work_item", day.rows, (row) => `${row.ref} · ${row.title}`));
+    projectRows.forEach((row) => add(row.section, "work_item", row.rows, (item) => `${item.ref} · ${item.title}`));
+    statusRows.forEach((row) => add(row.section, "work_item", row.rows, (item) => `${item.ref} · ${item.title}`));
+    attendanceHeat.forEach((day) => add(day.section, "work_session", day.rows, (row) => `${row.profiles?.full_name || "Team member"} · ${localDate(row.started_at)}`));
+    return refs;
+  }
+
+  function buildSnapshot() {
+    return {
+      counts: liveCounts,
+      range: { start: range.start, end: range.end, label: range.label },
+      scope,
+      project_id: scope === "project" ? projectId : null,
+      daily: daily.map(({ date, label, value, section }) => ({ date, label, value, section })),
+      by_project: projectRows.map(({ label, value, projectId: id, section }) => ({ label, value, projectId: id, section })),
+      status_mix: statusRows.map(({ label, value, section }) => ({ label, value, section })),
+      attendance: attendanceHeat.map(({ date, label, value, section }) => ({ date, label, value, section })),
+      objectives: (evidence?.relevantObjectives || []).map((row) => ({ id: row.id, ref: row.ref, name: row.name, status: row.status })),
+    };
+  }
+
+  async function handleSave() {
+    setBusy(true); setError(null); setNotice(null);
+    try { await saveDraft(true); }
+    catch (err) { setError(err.message || "The report draft could not be saved."); }
+    finally { setBusy(false); }
+  }
+
+  async function submitReport() {
+    if (!evidence) return;
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      const reportId = await saveDraft(false);
+      const clear = await supabase.from("report_evidence_refs").delete().eq("report_id", reportId);
+      if (clear.error) throw clear.error;
+      const refs = buildRefs(reportId);
+      if (refs.length) {
+        const insert = await supabase.from("report_evidence_refs").insert(refs);
+        if (insert.error) throw insert.error;
+      }
+      const submitted = await supabase.rpc("submit_report", { p_report_id: reportId, p_evidence: buildSnapshot() });
+      if (submitted.error) throw submitted.error;
+      setNotice("Report submitted. This version is now fixed; later corrections create a new version.");
+      await loadHistory(false);
+    } catch (err) {
+      setError(err.message || "The report could not be submitted.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function startCorrection() {
+    if (!frozenReport || !correctionReason.trim()) return;
+    setBusy(true); setError(null);
+    try {
+      const result = await supabase.rpc("correct_report", { p_report_id: frozenReport.id, p_reason: correctionReason.trim() });
+      if (result.error) throw result.error;
+      setSheet(null); setCorrectionReason(""); setSelectedReportId(null);
+      setNotice("A new draft version has been opened. The submitted version remains unchanged.");
+      await loadHistory(true);
+    } catch (err) {
+      setError(err.message || "A correction draft could not be opened.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function printReport() { window.print(); }
 
   if (loading) return <div className="body"><div className="spin">Preparing reports...</div></div>;
 
@@ -234,30 +441,42 @@ export default function ManagerReports({ me, openItem, openProject }) {
     <div style={{ paddingTop: 26 }}>
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1" style={{ marginTop: 6 }}>Reports</h1>
-      <p className="screen-note">A factual unit report built from work, submissions, projects and attendance already recorded in CEAC OS. Nothing here invents progress.</p>
+      <p className="screen-note">Built from work, submissions, projects and attendance already recorded in CEAC OS. Submitted versions keep the figures they were filed with.</p>
     </div>
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not prepare reports</h4>{error}</div>}
+    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete reporting</h4>{error}</div>}
+    {notice && <div className="flag flag-green" style={{ marginTop: 14 }}>{notice}</div>}
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
-      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setDrill(null); }}>{label}</button>)}
+      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>{label}</button>)}
     </div>
 
-    {mode === "project" && <select className="field" value={projectId} onChange={(event) => { setProjectId(event.target.value); setDrill(null); }}>
-      <option value="">Choose a project</option>
-      {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-    </select>}
+    {mode === "project" && <>
+      <select className="field" value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+        <option value="">Choose a project</option>
+        {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+      </select>
+      {projectId && <select className="field" value={selectedPeriodId} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+        <option value="">Choose a reporting period</option>
+        {projectPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
+      </select>}
+    </>}
 
     {!range && <div className="card small" style={{ marginTop: 14 }}>Choose a project to prepare its report.</div>}
 
     {range && evidence && <>
-      <div className="sec"><span>{range.label}</span><span>{range.start} → {range.end}</span></div>
+      <div className="sec"><span>{viewingFrozen ? (frozen.range?.label || range.label) : range.label}</span><span>{viewingFrozen ? `${frozen.range?.start || range.start} → ${frozen.range?.end || range.end}` : `${range.start} → ${range.end}`}</span></div>
+
+      {viewingFrozen && <div className="flag flag-green">
+        <h4>Submitted report · version {frozenReport.version}</h4>
+        These are the figures saved when this version was submitted{frozenReport.submitted_at ? ` on ${new Date(frozenReport.submitted_at).toLocaleString("en-GB")}` : ""}. Later activity does not rewrite them.
+      </div>}
 
       <div className="metric-grid">
-        <EvidenceMetric value={evidence.completed.length} label="completed in period" onClick={() => setDrill({ title: "Completed work", rows: evidence.completed, kind: "work" })} />
-        <EvidenceMetric value={evidence.periodSubmissions.length} label="submissions" onClick={() => setDrill({ title: "Submissions", rows: evidence.periodSubmissions, kind: "submission" })} />
-        <EvidenceMetric value={evidence.overdue.length} label="overdue from this period" onClick={() => setDrill({ title: "Overdue work", rows: evidence.overdue, kind: "work" })} />
-        <EvidenceMetric value={new Set(evidence.periodSessions.map((row) => `${row.profile_id}:${localDate(row.started_at)}`)).size} label="recorded attendance days" onClick={() => setDrill({ title: "Attendance sessions", rows: evidence.periodSessions, kind: "session" })} />
+        <EvidenceMetric value={displayCounts.completed || 0} label="completed in period" onClick={() => viewingFrozen ? openFrozenSection("completed", "Completed work") : openLive("completed", "Completed work", evidence.completed, "work")} />
+        <EvidenceMetric value={displayCounts.submissions || 0} label="submissions" onClick={() => viewingFrozen ? openFrozenSection("submissions", "Submissions") : openLive("submissions", "Submissions", evidence.periodSubmissions, "submission")} />
+        <EvidenceMetric value={displayCounts.overdue || 0} label="overdue from this period" onClick={() => viewingFrozen ? openFrozenSection("overdue", "Overdue work") : openLive("overdue", "Overdue work", evidence.overdue, "work")} />
+        <EvidenceMetric value={displayCounts.attendance_days || 0} label="recorded attendance days" onClick={() => viewingFrozen ? openFrozenSection("attendance_days", "Attendance days") : openLive("attendance_days", "Attendance days", evidence.attendanceDays, "session")} />
       </div>
 
       {drill && <div style={{ marginTop: 12 }}>
@@ -266,44 +485,81 @@ export default function ManagerReports({ me, openItem, openProject }) {
           ? <button className="row" key={row.id} onClick={() => openItem(row.id)}><div className="row-t">{row.title}</div><div className="row-m">{row.ref} · {row.profiles?.full_name || "Unassigned"}</div></button>
           : drill.kind === "submission"
             ? <button className="row" key={row.id} onClick={() => openItem(row.work_item_id)}><div className="row-t">{row.profiles?.full_name || "Team member"} submitted work</div><div className="row-m">{new Date(row.submitted_at).toLocaleString("en-GB")}</div>{row.note && <div className="row-note">{row.note}</div>}</button>
-            : <div className="row" key={row.id}><div className="row-t">{row.profiles?.full_name || "Team member"}</div><div className="row-m">{new Date(row.started_at).toLocaleString("en-GB")} {row.ended_at ? `→ ${new Date(row.ended_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}` : "· still open"}</div></div>)}
-        {drill.rows.length === 0 && <div className="card small">No underlying rows.</div>}
+            : drill.kind === "session"
+              ? <div className="row" key={row.id}><div className="row-t">{row.profiles?.full_name || "Team member"}</div><div className="row-m">{new Date(row.started_at).toLocaleString("en-GB")}</div></div>
+              : <button className="row" key={row.id} onClick={() => {
+                  if (row.object_type === "work_item") openItem(row.object_id);
+                  if (row.object_type === "submission") {
+                    const submission = submissions.find((item) => item.id === row.object_id);
+                    if (submission) openItem(submission.work_item_id);
+                  }
+                }}><div className="row-t">{row.label || "Recorded evidence"}</div><div className="row-m">{row.object_type.replaceAll("_", " ")}</div></button>)}
+        {drill.rows.length === 0 && <div className="card small">No supporting rows are attached to this figure.</div>}
       </div>}
 
       <div className="sec"><span>Completed work trend</span></div>
-      <Trend points={daily} onOpen={(point) => setDrill({ title: `Completed on ${point.date}`, rows: point.rows, kind: "work" })} />
+      <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
 
       <div className="sec"><span>Completed by project</span></div>
-      {projectRows.length ? <Bars rows={projectRows} onOpen={(row) => row.projectId ? openProject(row.projectId) : setDrill({ title: row.label, rows: row.rows, kind: "work" })} /> : <div className="card small">No project work is recorded in this view.</div>}
+      {displayProjects.length ? <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} /> : <div className="card small">No completed project work is recorded in this view.</div>}
 
       <div className="sec"><span>Work composition</span></div>
-      <Donut rows={statusRows} onOpen={(row) => setDrill({ title: row.label, rows: row.rows, kind: "work" })} />
+      <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
 
       <div className="sec"><span>Attendance activity</span></div>
-      <ActivityHeat days={attendanceDays} onOpen={(day) => setDrill({ title: `Attendance · ${day.date}`, rows: day.rows, kind: "session" })} />
+      <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
 
-      <div className="sec"><span>Objectives</span><span>{evidence.relevantObjectives.length}</span></div>
-      {evidence.relevantObjectives.map((objective) => <div className="row" key={objective.id}>
+      <div className="sec"><span>Objectives</span><span>{displayObjectives.length}</span></div>
+      {displayObjectives.map((objective) => <div className="row" key={objective.id}>
         <div className="row-t">{objective.ref} · {objective.name}</div>
-        <div style={{ marginTop: 6 }}><Pill tone={objective.status === "at_risk" || objective.status === "not_met" ? "brick" : objective.status === "partly_met" ? "amber" : "green"}>{objective.status.replaceAll("_", " ")}</Pill></div>
-        <div className="row-note">{evidence.relevantWork.filter((row) => row.project_id === objective.project_id && COMPLETE.has(row.status)).length} completed project work item(s) visible. This does not determine whether the objective was met.</div>
+        <div style={{ marginTop: 6 }}><Pill tone={objective.status === "at_risk" || objective.status === "not_met" ? "brick" : objective.status === "partly_met" ? "amber" : "green"}>{String(objective.status).replaceAll("_", " ")}</Pill></div>
+        <div className="row-note">Work completion is shown separately; it does not determine whether this objective was met.</div>
       </div>)}
-      {evidence.relevantObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
+      {displayObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
 
       <div className="sec"><span>Manager narrative</span></div>
-      <textarea className="field" rows={4} placeholder="What matters in this period? Add context supported by the work above." value={narrative} onChange={(event) => setNarrative(event.target.value)} />
-      <textarea className="field" rows={3} placeholder="Challenges or corrections to explain (optional)" value={challenges} onChange={(event) => setChallenges(event.target.value)} />
+      <textarea className="field" rows={4} disabled={viewingFrozen} placeholder="What matters in this period? Add context supported by the work above." value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
+      <textarea className="field" rows={3} disabled={viewingFrozen} placeholder="Challenges or context to explain (optional)" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} />
 
       <div className="sec"><span>Report record</span></div>
-      {matchingPeriod
-        ? <div className="flag flag-amber"><h4>Draft persistence needs one database integrity fix</h4>This reporting period is open, but the current reports uniqueness rule treats empty person/project fields as distinct. Creating a report from the client could therefore create duplicate unit reports under concurrent saves. The evidence preview is safe; submission is intentionally withheld until the database makes one unit report per period collision-safe.</div>
-        : <div className="card small">Administration has not opened a matching {mode} reporting period for these dates. You can review and print the factual preview, but it cannot yet be submitted as a report record.</div>}
+      {!matchingPeriod && <div className="flag flag-amber"><h4>No matching reporting period is open</h4>Administration must open this {mode === "project" ? "project" : mode} period before you can save or submit. The factual preview above remains available.</div>}
+      {matchingPeriod && <div className="card">
+        <div className="row-t">{matchingPeriod.label}</div>
+        <div className="row-m">{matchingPeriod.starts_on} → {matchingPeriod.ends_on} · {matchingPeriod.status}</div>
+        {matchingPeriod.status === "closed" && <div className="hint">This period is closed. Existing versions remain visible, but a new draft cannot be filed until Administration reopens it.</div>}
+      </div>}
+
+      {history.length > 0 && <>
+        <div className="sec"><span>Version history</span><span>{history.length}</span></div>
+        {history.map((row) => <button className="row" key={row.id} onClick={() => {
+          if (row.status === "draft") { setSelectedReportId(null); setNarrative(row.narrative || ""); setChallenges(row.challenges || ""); }
+          else setSelectedReportId(row.id);
+          setDrill(null);
+        }} style={{ width: "100%", textAlign: "left" }}>
+          <div className="row-t">Version {row.version} · {row.status === "draft" ? "Draft" : "Submitted"}</div>
+          <div className="row-m">{row.submitted_at ? new Date(row.submitted_at).toLocaleString("en-GB") : "Not submitted yet"}</div>
+          {row.correction_reason && <div className="row-note">Correction: {row.correction_reason}</div>}
+        </button>)}
+      </>}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
         <button className="btn btn-ghost" onClick={printReport}>Print / save PDF</button>
-        <button className="btn" disabled title="Report submission is waiting for collision-safe report persistence.">Submit report</button>
+        {!viewingFrozen && matchingPeriod?.status === "open" && <>
+          <button className="btn btn-ghost" disabled={busy} onClick={handleSave}>{busy ? "Saving..." : "Save draft"}</button>
+          <button className="btn" disabled={busy} onClick={submitReport}>{busy ? "Submitting..." : "Submit report"}</button>
+        </>}
+        {viewingFrozen && frozenReport?.status === "submitted" && frozenReport.id === latestSubmitted?.id && matchingPeriod?.status === "open" && <button className="btn btn-ghost" onClick={() => { setCorrectionReason(""); setSheet("correct"); }}>Correct this report</button>}
+        {viewingFrozen && draft && <button className="btn btn-ghost" onClick={() => { setSelectedReportId(null); setNarrative(draft.narrative || ""); setChallenges(draft.challenges || ""); }}>Return to draft</button>}
       </div>
-      <div className="hint">The print view uses the evidence currently shown. AI interpretation is not connected because no report AI function exists yet.</div>
+
+      <div className="hint">Submitted reports use frozen figures and evidence links. AI interpretation is not connected because no report AI function exists.</div>
     </>}
+
+    {sheet === "correct" && <Sheet onClose={() => !busy && setSheet(null)}>
+      <div className="h2">Open a correction</div>
+      <p className="screen-note">The submitted version will stay unchanged. A new draft version will be created with your reason recorded.</p>
+      <textarea className="field" rows={3} placeholder="Why is a correction needed?" value={correctionReason} onChange={(event) => setCorrectionReason(event.target.value)} />
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !correctionReason.trim()} onClick={startCorrection}>{busy ? "Opening..." : "Create correction draft"}</button>
+    </Sheet>}
   </div>;
 }
