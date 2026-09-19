@@ -107,6 +107,13 @@ export default function App() {
   return (
     <div className="app">
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} onUnitChange={switchUnit} />
+      {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
+        <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
+          {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
+            {membership.unit_name || "Unit"} · {membership.role === "manager" ? "Manager" : "Staff"}
+          </option>)}
+        </select>
+      </div>}
       {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
         : assigning ? <Assign me={me} initialProjectId={assigning.projectId} initialObjectiveId={assigning.objectiveId} initialPhaseId={assigning.phaseId} back={() => setAssigning(null)} />
         : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} back={() => setProjectId(null)} />
