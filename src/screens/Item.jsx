@@ -3,7 +3,10 @@ import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
 
-export default function Item({ id, me, session, back }) {
+// Flip only after Claude's self-certification migration is deployed.
+const MANAGER_SELF_CERTIFICATION_READY = false;
+
+export default function Item({ id, me, session, isManager = false, back }) {
   const [item, setItem] = useState(null);
   const [checks, setChecks] = useState([]);
   const [ticks, setTicks] = useState({});
@@ -16,81 +19,126 @@ export default function Item({ id, me, session, back }) {
   const [party, setParty] = useState("");
   const [partyUnit, setPartyUnit] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [id]);
 
   async function load() {
-    const { data: w } = await supabase.from("work_items")
+    setErr(null);
+    const { data: w, error: workError } = await supabase.from("work_items")
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
+    if (workError) { setErr(workError.message); return; }
     setItem(w);
-    const { data: c } = await supabase.from("checklist_items")
+    const { data: c, error: checklistError } = await supabase.from("checklist_items")
       .select("id,label,position").eq("work_item_id", id).order("position");
+    if (checklistError) { setErr(checklistError.message); return; }
     setChecks(c || []);
     if (c && c.length) {
-      const { data: t } = await supabase.from("checklist_ticks")
+      const { data: t, error: tickError } = await supabase.from("checklist_ticks")
         .select("checklist_item_id, undone_at").in("checklist_item_id", c.map((x) => x.id));
+      if (tickError) { setErr(tickError.message); return; }
       const map = {};
       (t || []).forEach((x) => { if (!x.undone_at) map[x.checklist_item_id] = true; });
       setTicks(map);
     }
-    const { data: b } = await supabase.from("blockers").select("*, units(name)")
+    const { data: b, error: blockerError } = await supabase.from("blockers").select("*, units(name)")
       .eq("work_item_id", id).neq("state", "resolved").maybeSingle();
+    if (blockerError) { setErr(blockerError.message); return; }
     setBlocker(b);
-    const { data: subs } = await supabase.from("submissions")
+    const { data: subs, error: submissionError } = await supabase.from("submissions")
       .select("id, submitted_at, reviews(decision, comment)")
       .eq("work_item_id", id).order("submitted_at", { ascending: false }).limit(1);
+    if (submissionError) { setErr(submissionError.message); return; }
     const last = subs && subs[0];
     setReview(last && last.reviews && last.reviews[0] ? last.reviews[0] : null);
-    const { data: u } = await supabase.from("units").select("id,name").order("name");
+    const { data: u, error: unitError } = await supabase.from("units").select("id,name").order("name");
+    if (unitError) { setErr(unitError.message); return; }
     setUnits(u || []);
   }
 
   const done = checks.filter((c) => ticks[c.id]).length;
   const allDone = checks.length > 0 && done === checks.length;
   const gated = !session;
+  // This stays blocked until the database can record and authorize self_certified.
+  const managerOwnWork = isManager && item && item.assignee_id === me.id;
+  const managerSubmissionBlocked = managerOwnWork && !MANAGER_SELF_CERTIFICATION_READY;
 
   async function toggle(cid) {
     if (gated) return;
+    setErr(null);
     if (ticks[cid]) {
-      await supabase.from("checklist_ticks").update({ undone_at: new Date().toISOString() })
+      const { error } = await supabase.from("checklist_ticks").update({ undone_at: new Date().toISOString() })
         .eq("checklist_item_id", cid).eq("profile_id", me.id).is("undone_at", null);
+      if (error) { setErr(error.message); return; }
       setTicks((t) => ({ ...t, [cid]: false }));
     } else {
-      await supabase.from("checklist_ticks")
+      const { error } = await supabase.from("checklist_ticks")
         .insert({ checklist_item_id: cid, profile_id: me.id, session_id: session ? session.id : null });
+      if (error) { setErr(error.message); return; }
       setTicks((t) => ({ ...t, [cid]: true }));
       if (item.status === "not_started") {
-        await supabase.from("work_items").update({ status: "in_progress", last_movement_at: new Date().toISOString() }).eq("id", id);
+        const { error: statusError } = await supabase.from("work_items").update({ status: "in_progress", last_movement_at: new Date().toISOString() }).eq("id", id);
+        if (statusError) { setErr(statusError.message); return; }
         setItem((i) => ({ ...i, status: "in_progress" }));
       }
     }
   }
 
   async function submit() {
+    if (managerSubmissionBlocked) {
+      setErr("Manager self-certification needs the pending database migration. Nothing was submitted.");
+      return;
+    }
     setBusy(true);
+    setErr(null);
     try {
-      const { data: s } = await supabase.from("submissions").insert({
+      if (managerOwnWork) {
+        const { error: selfCertificationError } = await supabase.rpc("self_certify_work", {
+          p_work_item_id: id,
+          p_session_id: session ? session.id : null,
+          p_note: note.trim() || null,
+          p_link: link.trim() || null,
+        });
+        if (selfCertificationError) throw selfCertificationError;
+        setSheet(null); setNote(""); setLink(""); await load();
+        return;
+      }
+      const { data: s, error: submissionError } = await supabase.from("submissions").insert({
         org_id: me.org_id, work_item_id: id, profile_id: me.id,
         session_id: session ? session.id : null, note, outside_session: !session,
       }).select("id").single();
-      if (link.trim() && s) await supabase.from("submission_files").insert({ submission_id: s.id, kind: "link", url: link.trim() });
-      await supabase.from("work_items").update({ status: "in_review", last_movement_at: new Date().toISOString() }).eq("id", id);
+      if (submissionError) throw submissionError;
+      if (link.trim() && s) {
+        const { error: fileError } = await supabase.from("submission_files").insert({ submission_id: s.id, kind: "link", url: link.trim() });
+        if (fileError) throw fileError;
+      }
+      const { error: statusError } = await supabase.from("work_items")
+        .update({ status: "in_review", last_movement_at: new Date().toISOString() }).eq("id", id);
+      if (statusError) throw statusError;
       setSheet(null); setNote(""); setLink(""); await load();
-    } finally { setBusy(false); }
+    } catch (e) { setErr(e.message || "The work could not be submitted."); }
+    finally { setBusy(false); }
   }
 
   async function markWaiting() {
     setBusy(true);
+    setErr(null);
     try {
-      await supabase.from("blockers").insert({
+      const { error: blockerError } = await supabase.from("blockers").insert({
         org_id: me.org_id, work_item_id: id, claimed_by: me.id,
         party_unit_id: partyUnit, party_text: party, note });
-      await supabase.from("work_items").update({ status: "waiting_on", last_movement_at: new Date().toISOString() }).eq("id", id);
+      if (blockerError) throw blockerError;
+      const { error: statusError } = await supabase.from("work_items")
+        .update({ status: "waiting_on", last_movement_at: new Date().toISOString() }).eq("id", id);
+      if (statusError) throw statusError;
       setSheet(null); setParty(""); setNote(""); setPartyUnit(null); await load();
-    } finally { setBusy(false); }
+    } catch (e) { setErr(e.message || "The blocker could not be saved."); }
+    finally { setBusy(false); }
   }
 
-  if (!item) return <div className="spin">Loading...</div>;
+  if (!item) return err
+    ? <div className="body"><button className="back" onClick={back}>← Back</button><div className="flag flag-brick"><h4>Could not load this work</h4>{err}</div></div>
+    : <div className="spin">Loading...</div>;
 
   return (
     <div className="body">
@@ -99,6 +147,8 @@ export default function Item({ id, me, session, back }) {
       <h1 className="h2" style={{ marginTop: 6, fontSize: 22 }}>{item.title}</h1>
       <div className="screen-note">{dueLabel(item.due_at)}</div>
       <div style={{ marginTop: 10 }}>{statusPill(item.status)}</div>
+
+      {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
       {review && review.decision === "returned" && (
         <div className="flag flag-brick"><h4>Sent back by your manager</h4>{review.comment}</div>)}
@@ -120,6 +170,9 @@ export default function Item({ id, me, session, back }) {
       {item.instructions && (<><div className="sec"><span>What to do</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.instructions}</div></>)}
 
+      {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
+        <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
+
       {checks.length > 0 && (<>
         <div className="sec"><span>Completion checklist</span><span>{done} of {checks.length}</span></div>
         <div className="card" style={{ padding: "2px 15px" }}>
@@ -130,10 +183,12 @@ export default function Item({ id, me, session, back }) {
             </button>))}
         </div></>)}
 
-      {item.status !== "in_review" && item.status !== "completed" && (<>
+      {!(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
-          disabled={gated || (checks.length > 0 && !allDone)}>Send for review</button>
+          disabled={gated || managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
+          {isManager ? "Submit work" : "Send for review"}</button>
         {gated && <div className="hint">Start work to send this in</div>}
+        {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
         {!blocker && (
           <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setSheet("waiting")} disabled={gated}>

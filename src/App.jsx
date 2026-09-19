@@ -50,7 +50,8 @@ export default function App() {
   if (!me) return <SignIn />;
 
   const isAdmin = me.is_admin || me.is_exec;
-  const isManager = isAdmin || me.role === "manager";
+  const isUnitManager = !isAdmin && me.role === "manager";
+  const isManager = isAdmin || isUnitManager;
   const overlay = itemId || assigning || goalId;
 
   function pageForTab() {
@@ -61,7 +62,7 @@ export default function App() {
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
     if (tab === "team") return isManager ? <Team me={me} /> : <StaffTeam me={me} />;
-    if (tab === "work") return <Work me={me} openItem={setItemId} />;
+    if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
     if (tab === "finance") return <Finance me={me} />;
@@ -74,11 +75,11 @@ export default function App() {
 
   return (
     <div className="app">
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} />
-      {itemId ? <Item id={itemId} me={me} session={session} back={() => setItemId(null)} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} />
+      {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : assigning ? <Assign me={me} back={() => setAssigning(false)} />
         : pageForTab()}
-      {!overlay && <Tabs tab={tab} setTab={go} />}
+      {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} />}
     </div>);
 }

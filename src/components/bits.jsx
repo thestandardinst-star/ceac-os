@@ -7,14 +7,15 @@ export function statusPill(status) {
   if (status === "waiting_on") return <Pill tone="amber">Waiting on</Pill>;
   if (status === "returned") return <Pill tone="brick">Sent back</Pill>;
   if (status === "completed") return <Pill tone="green">Completed</Pill>;
+  if (status === "self_certified") return <Pill tone="green">Self-certified</Pill>;
   return <Pill tone="grey">Not started</Pill>;
 }
-function tabItems() {
-  return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
+function tabItems(isManager = false) {
+  return [["home","Home"],["work",isManager ? "My work" : "Work"],["team","Team"],["record","Record"],["me","Me"]];
 }
-export function SideNav({ tab, setTab, me, isAdmin }) {
+export function SideNav({ tab, setTab, me, isAdmin, isManager }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
-  const items = tabItems();
+  const items = tabItems(isManager);
   if (isAdmin) { items.splice(1, 0, ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"]); items.push(["settings","Settings"]); }
   return (
     <aside className="side">
@@ -26,10 +27,10 @@ export function SideNav({ tab, setTab, me, isAdmin }) {
       <div className="who">{me.full_name}</div>
     </aside>);
 }
-export function Tabs({ tab, setTab }) {
+export function Tabs({ tab, setTab, isManager }) {
   return (
     <nav className="tabs">
-      {tabItems().map(([k, label]) => (
+      {tabItems(isManager).map(([k, label]) => (
         <button key={k} className={"tab " + (tab === k ? "on" : "")} onClick={() => setTab(k)}>
           <i /> {label}
         </button>))}
