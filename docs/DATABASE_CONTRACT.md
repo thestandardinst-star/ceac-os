@@ -355,3 +355,24 @@ result into a permission error. They return nothing without a session.
 **Migration files are still not in the repository.** See
 `supabase/migrations/README.md` — it needs `npx supabase db pull` run on a
 machine with network access to Supabase. Claude's sandbox has none.
+
+## Three CEAC decisions, settled (migration 030)
+
+**A manager's report needs no sign-off. Submitted is final.**
+`confirm_report()` is dropped rather than left callable — a capability
+nobody agreed to is how an unwanted workflow appears later by accident.
+Corrections still work: `correct_report()` makes a new version.
+`confirmed_by` / `confirmed_at` remain as empty columns; dropping columns
+is destructive for no gain. **Codex: do not build a confirm action.**
+
+**Administration opens reporting periods.** Built: the Reporting screen
+in the Admin panel. Rebecca opens a week, month, project or year, sees
+who has filed by name, and can close or reopen a period. Until she opens
+one, `save_report_draft` refuses — that is correct, not a bug. Show
+managers "no reporting period is open" rather than an error.
+
+**Person-scope reports are not being built.** The employee record in
+People already answers what one person did, and no separate workflow was
+ever defined. `reports.profile_id` and the `person` scope stay in the
+schema, unused and documented as such. Office scope is covered by the
+Admin Reporting screen. **Codex: unit and project scope only.**
