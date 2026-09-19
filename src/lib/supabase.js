@@ -11,11 +11,24 @@ export async function loadMe() {
     .select("id, full_name, email, job_title, is_admin, is_exec, org_id, joined_at, birthday, contract_type")
     .eq("id", auth.user.id).single();
   if (!p) return null;
-  const { data: m } = await supabase.from("unit_memberships")
+  const { data: memberships } = await supabase.from("unit_memberships")
     .select("role, unit_id, units(name)")
-    .eq("profile_id", auth.user.id).limit(1).maybeSingle();
-  return { ...p, unit_id: m ? m.unit_id : null,
-    unit_name: m && m.units ? m.units.name : null, role: m ? m.role : null };
+    .eq("profile_id", auth.user.id);
+  const options = (memberships || []).map((m) => ({
+    unit_id: m.unit_id,
+    unit_name: m.units ? m.units.name : null,
+    role: m.role,
+  }));
+  const savedUnitId = localStorage.getItem(`ceac-unit:${auth.user.id}`);
+  const selected = options.find((m) => m.unit_id === savedUnitId)
+    || options.find((m) => m.role === "manager")
+    || options[0]
+    || null;
+  return { ...p,
+    unit_id: selected ? selected.unit_id : null,
+    unit_name: selected ? selected.unit_name : null,
+    role: selected ? selected.role : null,
+    memberships: options };
 }
 export async function inviteByEmail({ orgId, invitedBy, email, fullName, unitId, role }) {
   const clean = { org_id: orgId, email: email.trim(), full_name: fullName.trim(),
