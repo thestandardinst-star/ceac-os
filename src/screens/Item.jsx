@@ -45,7 +45,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
     if (blockerError) { setErr(blockerError.message); return; }
     setBlocker(b);
     const { data: subs, error: submissionError } = await supabase.from("submissions")
-      .select("id, submitted_at, reviews(decision, comment)")
+      .select("id, submitted_at, reviews(id, decision, comment, review_checklist_items(checklist_item_id))")
       .eq("work_item_id", id).order("submitted_at", { ascending: false }).limit(1);
     if (submissionError) { setErr(submissionError.message); return; }
     const last = subs && subs[0];
@@ -149,7 +149,17 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
       {review && review.decision === "returned" && (
-        <div className="flag flag-brick"><h4>Sent back by your manager</h4>{review.comment}</div>)}
+        <div className="flag flag-brick">
+          <h4>Sent back by your manager</h4>
+          {review.comment}
+          {review.review_checklist_items?.length > 0 && <div style={{ marginTop: 8 }}>
+            <div className="small" style={{ fontWeight: 700 }}>Checklist points to redo</div>
+            {review.review_checklist_items.map((row) => {
+              const item = checks.find((check) => check.id === row.checklist_item_id);
+              return item ? <div className="small" key={row.checklist_item_id}>• {item.label}</div> : null;
+            })}
+          </div>}
+        </div>)}
 
       {blocker && (
         <div className="flag flag-amber">
