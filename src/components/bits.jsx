@@ -1,3 +1,4 @@
+import { useState } from "react";
 export function Pill({ tone, children }) {
   return <span className={"pill p-" + tone}>{children}</span>;
 }
@@ -38,13 +39,33 @@ export function SideNav({ tab, setTab, me, isAdmin, isManager, onUnitChange }) {
     </aside>);
 }
 export function Tabs({ tab, setTab, isManager }) {
-  return (
+  const [moreOpen, setMoreOpen] = useState(false);
+  const managerMore = [["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
+  const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
+  const items = isManager ? managerPrimary : tabItems(false);
+  const moreActive = isManager && managerMore.some(([key]) => key === tab);
+  return (<>
+    {isManager && moreOpen && <div style={{
+      position: "fixed", left: 12, right: 12, bottom: "calc(72px + env(safe-area-inset-bottom))",
+      maxWidth: 496, margin: "0 auto", background: "var(--card)", border: "1px solid var(--line)",
+      borderRadius: 10, padding: 8, zIndex: 12, boxShadow: "0 8px 28px rgba(0,0,0,.12)"
+    }}>
+      {managerMore.map(([key, label]) => <button key={key} className="row" style={{ width: "100%", textAlign: "left" }} onClick={() => { setMoreOpen(false); setTab(key); }}>
+        <div className="row-t">{label}</div>
+      </button>)}
+    </div>}
     <nav className="tabs">
-      {tabItems(isManager).map(([k, label]) => (
-        <button key={k} className={"tab " + (tab === k ? "on" : "")} onClick={() => setTab(k)}>
+      {items.map(([k, label]) => {
+        const active = k === "more" ? moreActive || moreOpen : tab === k;
+        return <button key={k} className={"tab " + (active ? "on" : "")} onClick={() => {
+          if (k === "more") setMoreOpen((value) => !value);
+          else { setMoreOpen(false); setTab(k); }
+        }}>
           <i /> {label}
-        </button>))}
-    </nav>);
+        </button>;
+      })}
+    </nav>
+  </>);
 }
 export function Sheet({ children, onClose }) {
   return (<><div className="sheet-bg" onClick={onClose} /><div className="sheet">{children}</div></>);
