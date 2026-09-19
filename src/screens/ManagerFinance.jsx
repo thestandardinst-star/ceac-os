@@ -41,9 +41,9 @@ export default function ManagerFinance({me,openProject}){
   <div className="metric-grid"><MoneyLines title="Planned" values={planned} empty="No unit budget recorded"/><MoneyLines title="Recorded spend" values={recorded} empty="No unit spend recorded"/><MoneyLines title="Approved, not yet spent" values={committed} empty="No approved requests waiting to be spent"/><MoneyLines title="Remaining" values={remaining} empty="No comparable budget recorded"/></div>
   {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="small">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
   <div className="sec"><span>Projects</span><span>{projects.length}</span></div>
-  {projects.map(p=>{const pb=totals(budgets.filter(x=>x.project_id===p.id));const ps=spendTotals(spend.filter(x=>x.project_id===p.id));const keys=[...new Set([...Object.keys(pb),...Object.keys(ps)])].sort();return <button key={p.id} className="row" onClick={()=>openProject(p.id)} style={{width:"100%",textAlign:"left"}}>
+  {projects.map(p=>{const pb=totals(budgets.filter(x=>x.project_id===p.id));const ps=spendTotals(spend.filter(x=>x.project_id===p.id));const pc=totals(requests.filter(x=>x.project_id===p.id&&x.state==="approved"));const keys=[...new Set([...Object.keys(pb),...Object.keys(pc),...Object.keys(ps)])].sort();return <button key={p.id} className="row" onClick={()=>openProject(p.id)} style={{width:"100%",textAlign:"left"}}>
    <div className="row-t">{p.name}</div>
-   {keys.length?keys.map(c=><div key={c} className="row-m">{c}: {pb[c]!=null?`planned ${money(pb[c],c)}`:"no budget recorded"} · {ps[c]!=null?`actual ${money(ps[c],c)}`:"no spend recorded"}</div>):<div className="row-m">No project cost has been recorded.</div>}
+   {keys.length?keys.map(c=><div key={c} className="row-m">{c}: {pb[c]!=null?`planned ${money(pb[c],c)}`:"no budget recorded"} · {pc[c]!=null?`committed ${money(pc[c],c)}`:"no approved commitment"} · {ps[c]!=null?`actual ${money(ps[c],c)}`:"no spend recorded"}</div>):<div className="row-m">No project cost has been recorded.</div>}
   </button>})}
   {projects.length===0&&<div className="card small">No projects are visible for this unit.</div>}
   <div className="sec"><span>Between departments</span><span>{transfers.length}</span></div>
