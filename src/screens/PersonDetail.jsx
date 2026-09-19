@@ -134,7 +134,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     overdue: current.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on"),
     in_review: current.filter((item) => item.status === "in_review"),
   };
-  const completed = items.filter((item) => ["completed", "self_certified"].includes(item.status) && item.completed_at && new Date(item.completed_at) >= periodStart);
+  const completed = items.filter((item) => ["task", "deliverable"].includes(item.kind) && ["completed", "self_certified"].includes(item.status) && item.completed_at && new Date(item.completed_at) >= periodStart);
   const completedWithDue = completed.filter((item) => item.due_at);
   const onTime = completedWithDue.filter((item) => new Date(item.completed_at) <= new Date(item.due_at));
   const reviewed = completed.filter((item) => item.first_time_approved !== null);
