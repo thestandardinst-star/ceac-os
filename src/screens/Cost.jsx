@@ -13,8 +13,23 @@ import { Sheet } from "../components/bits";
 //   * every line keeps the paper it came from, so a figure can be traced
 // Managers can see their unit's cost. They can never enter money.
 
-const toCedis = (p) => "GHS " + (Number(p || 0) / 100).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const toPesewas = (s) => Math.round(parseFloat(String(s).replace(/[^0-9.]/g, "")) * 100);
+const CURRENCIES = [["GHS","GHS — Ghana cedi"],["USD","USD — US dollar"],["GBP","GBP — Pound sterling"],["EUR","EUR — Euro"],["NGN","NGN — Naira"],["ZAR","ZAR — Rand"],["CAD","CAD — Canadian dollar"]];
+// Totals are never converted between currencies. A rate moves daily and a
+// converted total is a figure nobody can check afterwards. Amounts are
+// grouped by currency and shown side by side instead.
+const money = (minor, cur) => (cur || "GHS") + " " + (Number(minor || 0) / 100).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const toMinor = (s) => Math.round(parseFloat(String(s).replace(/[^0-9.]/g, "")) * 100);
+function sumByCurrency(rows) {
+  const by = {};
+  rows.forEach((r) => { const c = r.currency || "GHS"; by[c] = (by[c] || 0) + Number(r.amount_minor || 0); });
+  return by;
+}
+function showTotals(by) {
+  const keys = Object.keys(by);
+  if (!keys.length) return money(0, "GHS");
+  return keys.sort().map((c) => money(by[c], c)).join("  ·  ");
+}
+
 
 export default function Cost({ me }) {
   const [units, setUnits] = useState([]);
@@ -31,6 +46,7 @@ export default function Cost({ me }) {
   const [bUnit, setBUnit] = useState("");
   const [bPeriod, setBPeriod] = useState("");
   const [bSource, setBSource] = useState("");
+  const [bCur, setBCur] = useState("GHS");
   const [lines, setLines] = useState([{ spent_on: "", description: "", amount: "" }]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -38,6 +54,7 @@ export default function Cost({ me }) {
   // budget state
   const [gUnit, setGUnit] = useState(null);
   const [gAmount, setGAmount] = useState("");
+  const [gCur, setGCur] = useState("GHS");
 
   useEffect(() => { load(); }, []);
 
@@ -45,8 +62,8 @@ export default function Cost({ me }) {
     setLoading(true);
     const [us, bs, sp, pr, fin] = await Promise.all([
       supabase.from("units").select("id, name, code, handles_finance").eq("active", true).order("name"),
-      supabase.from("budgets").select("id, unit_id, project_id, year, amount_pesewas, note").eq("year", year),
-      supabase.from("spend_lines").select("id, unit_id, period_id, spent_on, description, amount_pesewas, source_note, entered_at"),
+      supabase.from("budgets").select("id, unit_id, project_id, year, amount_minor, note, currency").eq("year", year),
+      supabase.from("spend_lines").select("id, unit_id, period_id, spent_on, description, amount_minor, source_note, entered_at, currency"),
       supabase.from("report_periods").select("id, label, starts_on, ends_on").order("starts_on", { ascending: false }).limit(24),
       supabase.from("unit_memberships").select("unit_id, units(handles_finance)").eq("profile_id", me.id),
     ]);
@@ -56,19 +73,19 @@ export default function Cost({ me }) {
   }
 
   const budgetFor = (u) => (budgets.find((b) => b.unit_id === u.id && !b.project_id) || null);
-  const spentFor = (u) => spend.filter((s) => s.unit_id === u.id).reduce((t, s) => t + Number(s.amount_pesewas), 0);
+  const spentFor = (u) => spend.filter((s) => s.unit_id === u.id && s.currency === (budgetFor(u) ? budgetFor(u).currency : "GHS")).reduce((t, s) => t + Number(s.amount_minor), 0);
 
   async function saveBudget() {
     setBusy(true); setMsg(null);
     try {
-      const amount = toPesewas(gAmount);
+      const amount = toMinor(gAmount);
       if (!amount && amount !== 0) throw new Error("Enter an amount in cedis, for example 2500");
       const existing = budgetFor(gUnit);
       if (existing) {
-        await supabase.from("budgets").update({ amount_pesewas: amount, set_by: me.id, set_at: new Date().toISOString() }).eq("id", existing.id);
+        await supabase.from("budgets").update({ amount_minor: amount, currency: gCur, set_by: me.id, set_at: new Date().toISOString() }).eq("id", existing.id);
       } else {
         const { error } = await supabase.from("budgets").insert({
-          org_id: me.org_id, unit_id: gUnit.id, year, amount_pesewas: amount, set_by: me.id });
+          org_id: me.org_id, unit_id: gUnit.id, year, amount_minor: amount, currency: gCur, set_by: me.id });
         if (error) throw error;
       }
       setSheet(null); setGAmount(""); setGUnit(null); await load();
@@ -84,12 +101,12 @@ export default function Cost({ me }) {
         .map((l) => ({
           org_id: me.org_id, unit_id: bUnit, period_id: bPeriod || null,
           spent_on: l.spent_on || new Date().toISOString().slice(0, 10),
-          description: l.description.trim(), amount_pesewas: toPesewas(l.amount),
+          description: l.description.trim(), amount_minor: toMinor(l.amount), currency: bCur,
           source_note: bSource.trim() || null, entered_by: me.id,
         }));
       if (!bUnit) throw new Error("Choose which unit this spending belongs to.");
       if (!clean.length) throw new Error("Add at least one line with a description and an amount.");
-      if (clean.some((l) => !l.amount_pesewas && l.amount_pesewas !== 0)) throw new Error("One of the amounts is not a number.");
+      if (clean.some((l) => !l.amount_minor && l.amount_minor !== 0)) throw new Error("One of the amounts is not a number.");
       const { error } = await supabase.from("spend_lines").insert(clean);
       if (error) throw error;
       setSheet(null); setLines([{ spent_on: "", description: "", amount: "" }]); setBSource(""); await load();
@@ -113,7 +130,7 @@ export default function Cost({ me }) {
           <div key={s.id} className="row">
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
               <div className="row-t">{s.description}</div>
-              <div className="row-t">{toCedis(s.amount_pesewas)}</div>
+              <div className="row-t">{money(s.amount_minor, s.currency)}</div>
             </div>
             <div className="row-m">{dateOnly(s.spent_on)}{s.source_note ? " · from " + s.source_note : ""}</div>
           </div>))}
@@ -140,7 +157,8 @@ export default function Cost({ me }) {
       {units.map((u) => {
         const b = budgetFor(u);
         const spent = spentFor(u);
-        const budget = b ? Number(b.amount_pesewas) : null;
+        const budget = b ? Number(b.amount_minor) : null;
+        const cur = b ? b.currency : "GHS";
         const over = budget !== null && spent > budget;
         const pct = budget ? Math.min(100, Math.round((spent / budget) * 100)) : null;
         return (
@@ -152,7 +170,7 @@ export default function Cost({ me }) {
             <div className="row-m" style={{ marginTop: 4 }}>
               {budget === null
                 ? "No budget set for " + year
-                : toCedis(spent) + " spent of " + toCedis(budget) + (pct !== null ? " · " + pct + "%" : "")}
+                : money(spent, cur) + " spent of " + money(budget, cur) + (pct !== null ? " · " + pct + "%" : "")}
             </div>
             {budget !== null && (
               <div style={{ height: 6, background: "var(--line-soft)", borderRadius: 4, marginTop: 8, overflow: "hidden" }}>
@@ -162,7 +180,7 @@ export default function Cost({ me }) {
               <button className="btn btn-ghost btn-sm" onClick={() => setOpen(u.id)}>See spending</button>
               {me.is_admin && (
                 <button className="btn btn-ghost btn-sm"
-                  onClick={() => { setGUnit(u); setGAmount(b ? String(Number(b.amount_pesewas) / 100) : ""); setSheet("budget"); setMsg(null); }}>
+                  onClick={() => { setGUnit(u); setGAmount(b ? String(Number(b.amount_minor) / 100) : ""); setSheet("budget"); setMsg(null); }}>
                   {b ? "Change budget" : "Set budget"}</button>)}
             </div>
           </div>);
@@ -171,8 +189,13 @@ export default function Cost({ me }) {
       {sheet === "budget" && gUnit && (
         <Sheet onClose={() => setSheet(null)}>
           <div className="h2">Budget for {gUnit.name}</div>
-          <p className="screen-note">For {year}. In cedis — type 2500, not GHS 2,500.00.</p>
-          <input className="field" inputMode="decimal" placeholder="Amount in cedis" value={gAmount} onChange={(e) => setGAmount(e.target.value)} />
+          <p className="screen-note">For {year}. Type the number only — 2500, not 2,500.00.</p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="field" inputMode="decimal" placeholder="Amount" value={gAmount} onChange={(e) => setGAmount(e.target.value)} />
+            <select className="field" value={gCur} onChange={(e) => setGCur(e.target.value)} style={{ maxWidth: 110 }}>
+              {CURRENCIES.map(([x]) => <option key={x} value={x}>{x}</option>)}
+            </select>
+          </div>
           {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
           <button className="btn" style={{ marginTop: 14 }} onClick={saveBudget} disabled={busy || !gAmount}>
             {busy ? "Saving..." : "Save budget"}</button>
@@ -191,6 +214,9 @@ export default function Cost({ me }) {
             {periods.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
           </select>
           <input className="field" placeholder="Which book or paper this came from" value={bSource} onChange={(e) => setBSource(e.target.value)} />
+          <select className="field" value={bCur} onChange={(e) => setBCur(e.target.value)}>
+            {CURRENCIES.map(([x, l]) => <option key={x} value={x}>{l}</option>)}
+          </select>
           <div className="sec"><span>Lines</span><span>{lines.filter((l) => l.description.trim()).length}</span></div>
           {lines.map((l, i) => (
             <div key={i} style={{ borderTop: i ? "1px solid var(--line-soft)" : "none", paddingTop: i ? 8 : 0 }}>
@@ -200,13 +226,13 @@ export default function Cost({ me }) {
               <div style={{ display: "flex", gap: 8 }}>
                 <input className="field" type="date" value={l.spent_on}
                   onChange={(e) => setLines((x) => x.map((v, j) => j === i ? { ...v, spent_on: e.target.value } : v))} />
-                <input className="field" inputMode="decimal" placeholder="Cedis" value={l.amount}
+                <input className="field" inputMode="decimal" placeholder="Amount" value={l.amount}
                   onChange={(e) => setLines((x) => x.map((v, j) => j === i ? { ...v, amount: e.target.value } : v))} />
               </div>
             </div>))}
           <div className="card" style={{ marginTop: 10, display: "flex", justifyContent: "space-between" }}>
             <span className="small">Batch total</span>
-            <b>{toCedis(lines.reduce((t, l) => t + (l.amount ? toPesewas(l.amount) || 0 : 0), 0))}</b>
+            <b>{money(lines.reduce((t, l) => t + (l.amount ? toMinor(l.amount) || 0 : 0), 0), bCur)}</b>
           </div>
           {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
           <button className="btn" style={{ marginTop: 14 }} onClick={saveBatch} disabled={busy}>
