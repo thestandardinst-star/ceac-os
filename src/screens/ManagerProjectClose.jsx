@@ -26,6 +26,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   const [overallCosts, setOverallCosts] = useState([]);
   const [lifecycle, setLifecycle] = useState(null);
   const [reopenReason, setReopenReason] = useState("");
+  const [historyClose, setHistoryClose] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -263,6 +264,37 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     }
   }
 
+  async function openCloseHistory(close) {
+    setBusy(true); setError(null);
+    try {
+      const [objectiveResult, deliverableResult, costResult] = await Promise.all([
+        supabase.from("project_close_objectives")
+          .select("objective_id,outcome,note,objectives(ref,name)")
+          .eq("close_id", close.id),
+        supabase.from("project_close_deliverables")
+          .select("id,description,work_item_id,submission_id")
+          .eq("close_id", close.id)
+          .order("position"),
+        supabase.from("project_close_costs")
+          .select("currency,planned_amount_minor,actual_amount_minor")
+          .eq("close_id", close.id)
+          .order("currency"),
+      ]);
+      const first = [objectiveResult.error, deliverableResult.error, costResult.error].find(Boolean);
+      if (first) throw first;
+      setHistoryClose({
+        ...close,
+        objectives: objectiveResult.data || [],
+        deliverables: deliverableResult.data || [],
+        costs: costResult.data || [],
+      });
+    } catch (err) {
+      setError(err.message || "That close version could not be loaded.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function reopenProject() {
     if (!reopenReason.trim()) return;
     setBusy(true); setError(null);
@@ -294,6 +326,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
         {unitClose ? "Prepare revised unit return" : "Prepare unit return"}
       </button>}
       {project.status === "closed" && <div className="hint">This submitted return is preserved with the closed project.</div>}
+      {closes.filter((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted").length > 0 && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openCloseHistory(closes.find((row) => row.scope === "unit" && row.unit_id === me.unit_id && row.status === "submitted"))}>View latest unit return</button>}
     </div>
 
     {isLead && <div className="card" style={{ marginTop: 10 }}>
@@ -321,7 +354,41 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
         <div className="hint">Closed. Every submitted close version is preserved.</div>
         <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => setLifecycle("reopen")}>Reopen project</button>
       </>}
+      {closes.filter((row) => row.scope === "overall" && row.status === "submitted").length > 0 && <div style={{ marginTop: 10 }}>
+        {closes.filter((row) => row.scope === "overall" && row.status === "submitted").map((close) => <button key={close.id} className="btn btn-ghost btn-sm" style={{ marginRight: 6, marginBottom: 6 }} onClick={() => openCloseHistory(close)}>Version {close.version}</button>)}
+      </div>}
     </div>}
+
+    {historyClose && <Sheet onClose={() => !busy && setHistoryClose(null)}>
+      <div className="eyebrow">{historyClose.scope === "overall" ? "Overall project close" : "Unit return"} · version {historyClose.version}</div>
+      <div className="h2" style={{ marginTop: 5 }}>Submitted close record</div>
+      <p className="screen-note">{historyClose.submitted_at ? new Date(historyClose.submitted_at).toLocaleString("en-GB") : "Submission date not recorded"}</p>
+
+      <div className="sec"><span>Deliverables</span><span>{historyClose.deliverables.length}</span></div>
+      {historyClose.deliverables.map((row) => <div className="row" key={row.id}><div className="row-t">{row.description}</div></div>)}
+      {historyClose.deliverables_note && <div className="card small">{historyClose.deliverables_note}</div>}
+      {!historyClose.deliverables.length && !historyClose.deliverables_note && <div className="card small">No deliverable detail recorded.</div>}
+
+      <div className="sec"><span>Objectives</span><span>{historyClose.objectives.length}</span></div>
+      {historyClose.objectives.map((row) => <div className="row" key={row.objective_id}>
+        <div className="row-t">{row.objectives?.ref || "Objective"} · {row.objectives?.name || "Recorded objective"}</div>
+        <div style={{ marginTop: 6 }}><Pill tone={row.outcome === "not_met" ? "brick" : row.outcome === "partly_met" ? "amber" : "green"}>{row.outcome.replaceAll("_", " ")}</Pill></div>
+        <div className="row-note">{row.note}</div>
+      </div>)}
+
+      <div className="sec"><span>Cost snapshot</span><span>{historyClose.costs.length}</span></div>
+      {historyClose.costs.map((row) => <div className="row" key={row.currency}>
+        <div className="row-t">{row.currency}</div>
+        <div className="row-m">{money(row.currency, row.planned_amount_minor)} planned · {money(row.currency, row.actual_amount_minor)} actual</div>
+      </div>)}
+      {historyClose.costs.length === 0 && <div className="card small">No complete cost snapshot was stored.</div>}
+
+      <div className="sec"><span>Challenges</span></div>
+      <div className="card small">{historyClose.challenges || "No challenge note recorded."}</div>
+      <div className="sec"><span>What to do differently</span></div>
+      <div className="card small">{historyClose.do_differently || "No next-time note recorded."}</div>
+      <button className="btn btn-ghost" style={{ marginTop: 14 }} onClick={() => setHistoryClose(null)}>Close</button>
+    </Sheet>}
 
     {lifecycle === "close" && <Sheet onClose={() => !busy && setLifecycle(null)}>
       <div className="h2">Close this project?</div>
