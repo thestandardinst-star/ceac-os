@@ -136,7 +136,7 @@ export default function ManagerReports({ me, openItem }) {
   async function loadBase() {
     setLoading(true); setError(null);
     const [projectResult, periodResult, workResult, memberResult, objectiveResult] = await Promise.all([
-      supabase.from("projects").select("id,name,starts_on,ends_on,status").order("starts_on", { ascending: false, nullsFirst: false }),
+      supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)").order("starts_on", { ascending: false, nullsFirst: false }),
       supabase.from("report_periods").select("id,kind,label,starts_on,ends_on,status").order("starts_on", { ascending: false }),
       supabase.from("work_items").select("id,ref,title,kind,status,due_at,completed_at,project_id,assignee_id,origin,projects(name),profiles!work_items_assignee_id_fkey(full_name)").eq("unit_id", me.unit_id).neq("visibility", "private"),
       supabase.from("unit_memberships").select("profile_id").eq("unit_id", me.unit_id),
@@ -144,7 +144,7 @@ export default function ManagerReports({ me, openItem }) {
     ]);
     const first = [projectResult.error, periodResult.error, workResult.error, memberResult.error, objectiveResult.error].find(Boolean);
     if (first) { setError(first.message); setLoading(false); return; }
-    setProjects(projectResult.data || []);
+    setProjects((projectResult.data || []).filter((project) => project.lead_unit_id === me.unit_id || (project.project_units || []).some((row) => row.unit_id === me.unit_id)));
     setPeriods(periodResult.data || []);
     setWork(workResult.data || []);
     setObjectives(objectiveResult.data || []);
