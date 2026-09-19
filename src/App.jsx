@@ -75,7 +75,7 @@ export default function App() {
     if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
     if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;
-    if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} />;
+    if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} openPerson={(id, focus) => setPerson({ id, focus })} />;
     if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} />;
     if (tab === "cost") return <Cost me={me} />;
