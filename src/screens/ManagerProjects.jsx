@@ -138,7 +138,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         supabase.from("project_phases").select("id, name, position, starts_on, ends_on, closed_at")
           .eq("project_id", projectId).order("position"),
         supabase.from("objectives")
-          .select("id, project_id, unit_id, phase_id, ref, name, statement, status, target_value, target_unit, achieved_value, closed_note, units!objectives_unit_id_fkey(name)")
+          .select("id, project_id, unit_id, phase_id, ref, name, statement, measure, status, target_value, target_unit, achieved_value, closed_note, units!objectives_unit_id_fkey(name)")
           .eq("project_id", projectId).order("ref"),
         supabase.from("work_items")
           .select("id, ref, title, kind, status, due_at, objective_id, phase_id, assignee_id, profiles!work_items_assignee_id_fkey(full_name), submissions(id, submitted_at, submission_files(id, url))")
@@ -188,9 +188,19 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   async function saveObjective(form) {
     setBusy(true); setError(null);
     try {
+      let objectiveRef = form.ref?.trim() || null;
+      if (!form.id) {
+        const refResult = await supabase.rpc("next_objective_ref", {
+          p_project_id: detail.id,
+          p_unit_id: me.unit_id,
+        });
+        if (refResult.error) throw new Error(`Objective reference: ${refResult.error.message}`);
+        objectiveRef = refResult.data;
+      }
       const payload = {
         org_id: me.org_id, project_id: detail.id, unit_id: me.unit_id,
-        ref: form.ref.trim(), name: form.name.trim(), statement: form.statement.trim() || null,
+        ref: objectiveRef, name: form.name.trim(), statement: form.statement.trim() || null,
+        measure: form.measure.trim() || null,
         status: form.status, target_value: form.targetValue === "" ? null : Number(form.targetValue),
         target_unit: form.targetUnit.trim() || null,
         achieved_value: form.achievedValue === "" ? null : Number(form.achievedValue),
@@ -242,6 +252,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           <div className="eyebrow">{objective.ref} · {objective.units?.name || "Unit not recorded"}</div>
           <div className="row-t" style={{ marginTop: 4 }}>{objective.name}</div>
           {objective.statement && <div className="row-note">{objective.statement}</div>}
+          {objective.measure && <div className="row-note">Measure: {objective.measure}</div>}
           <div style={{ marginTop: 8 }}><Pill tone={objectiveTone(objective.status)}>{objectiveStatus(objective.status)}</Pill></div>
           <div className="row-note">{completed} of {tasks.length} visible unit tasks completed</div>
           {objective.target_value !== null && <div className="row-note">Target: {objective.target_value} {objective.target_unit || ""}{objective.achieved_value !== null ? ` · Result: ${objective.achieved_value} ${objective.target_unit || ""}` : " · No result recorded"}</div>}
@@ -320,6 +331,7 @@ function ObjectiveSheet({ value, busy, onClose, onSave }) {
   const [ref, setRef] = useState(value?.ref || "");
   const [name, setName] = useState(value?.name || "");
   const [statement, setStatement] = useState(value?.statement || "");
+  const [measure, setMeasure] = useState(value?.measure || "");
   const [status, setStatus] = useState(value?.status || "on_track");
   const [targetValue, setTargetValue] = useState(value?.target_value ?? "");
   const [targetUnit, setTargetUnit] = useState(value?.target_unit || "");
@@ -327,15 +339,16 @@ function ObjectiveSheet({ value, busy, onClose, onSave }) {
   const [closedNote, setClosedNote] = useState(value?.closed_note || "");
   return <Sheet onClose={onClose}>
     <div className="eyebrow">Step 2 of 3</div><div className="h2">{value ? "Edit objective" : "Add objective"}</div>
-    <input className="field" placeholder="Reference, for example OBJ-3" value={ref} onChange={(event) => setRef(event.target.value)} />
+    {value ? <div className="card small">Reference: {ref}</div> : <div className="card small">A reference will be assigned automatically when you save.</div>}
     <input className="field" placeholder="Objective name" value={name} onChange={(event) => setName(event.target.value)} />
     <textarea className="field" rows={3} placeholder="What should change or be achieved?" value={statement} onChange={(event) => setStatement(event.target.value)} />
+    <input className="field" placeholder="How will you know? (optional)" value={measure} onChange={(event) => setMeasure(event.target.value)} />
     <select className="field" value={status} onChange={(event) => setStatus(event.target.value)}>{OBJECTIVE_STATUSES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
     <p className="small" style={{ marginTop: 12 }}>Numeric target and result are optional. Descriptive objectives do not need them.</p>
     <input className="field" type="number" step="any" placeholder="Target value (optional)" value={targetValue} onChange={(event) => setTargetValue(event.target.value)} />
     <input className="field" placeholder="Target unit (optional)" value={targetUnit} onChange={(event) => setTargetUnit(event.target.value)} />
     <input className="field" type="number" step="any" placeholder="Result value (optional)" value={achievedValue} onChange={(event) => setAchievedValue(event.target.value)} />
     {["met", "partly_met", "not_met"].includes(status) && <textarea className="field" rows={3} placeholder="Outcome note" value={closedNote} onChange={(event) => setClosedNote(event.target.value)} />}
-    <button className="btn" style={{ marginTop: 14 }} disabled={busy || !ref.trim() || !name.trim() || (targetValue !== "" && !targetUnit.trim()) || (achievedValue !== "" && targetValue === "")} onClick={() => onSave({ id: value?.id, ref, name, statement, status, targetValue, targetUnit, achievedValue, closedNote })}>{busy ? "Saving..." : value ? "Save objective" : "Save and add work"}</button>
+    <button className="btn" style={{ marginTop: 14 }} disabled={busy || !name.trim() || (targetValue !== "" && !targetUnit.trim()) || (achievedValue !== "" && targetValue === "")} onClick={() => onSave({ id: value?.id, ref, name, statement, measure, status, targetValue, targetUnit, achievedValue, closedNote })}>{busy ? "Saving..." : value ? "Save objective" : "Save and add work"}</button>
   </Sheet>;
 }
