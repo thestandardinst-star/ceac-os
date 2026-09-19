@@ -254,7 +254,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           {objective.statement && <div className="row-note">{objective.statement}</div>}
           {objective.measure && <div className="row-note">Measure: {objective.measure}</div>}
           <div style={{ marginTop: 8 }}><Pill tone={objectiveTone(objective.status)}>{objectiveStatus(objective.status)}</Pill></div>
-          <div className="row-note">{completed} of {tasks.length} visible unit tasks completed</div>
+          <div className="row-note">{completed} of {tasks.length} project tasks completed</div>
           {objective.target_value !== null && <div className="row-note">Target: {objective.target_value} {objective.target_unit || ""}{objective.achieved_value !== null ? ` · Result: ${objective.achieved_value} ${objective.target_unit || ""}` : " · No result recorded"}</div>}
           {objective.closed_note && <div className="row-note">Close note: {objective.closed_note}</div>}
           {objective.unit_id === me.unit_id && <div style={{ display: "flex", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
@@ -267,7 +267,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       {detail.objectives.length === 0 && <div className="card small">No objectives have been recorded for this project.</div>}
 
       <div className="sec"><span>Work not attached to an objective</span><span>{unattached.length}</span></div>
-      <p className="screen-note">Work is limited by the current unit-level work policy. Cross-unit project work is not exposed here.</p>
+      <p className="screen-note">Non-private project work is shown across participating units. Confidential work stays restricted.</p>
       {unattached.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
       {unattached.length === 0 && <div className="card small">All recorded project work is attached to an objective.</div>}
       {detail.canManageObjectives && <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => goAssign({ projectId: detail.id })}>Add project work</button>}
@@ -300,7 +300,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
       <div className="eyebrow">{project.role === "lead" ? "Lead unit" : "Participating unit"}</div>
       <div className="row-t" style={{ marginTop: 3 }}>{project.name}</div>
-      <div className="row-m">{project.objectives.length} objective{project.objectives.length === 1 ? "" : "s"} · {project.completedTasks} of {project.taskCount} visible unit tasks completed</div>
+      <div className="row-m">{project.objectives.length} objective{project.objectives.length === 1 ? "" : "s"} · {project.completedTasks} of {project.taskCount} project tasks completed</div>
       {project.costs.length ? <div className="row-note">{project.costs.map((row) => `${row.currency}: ${row.planned === null ? "no planned amount" : `${money(row.currency, row.planned)} planned`} · ${row.actual === null ? "no actual spend" : `${money(row.currency, row.actual)} actual`}`).join(" | ")}</div> : <div className="row-note">No project cost has been recorded for your unit.</div>}
       <div style={{ marginTop: 7 }}><Pill tone={project.status === "active" ? "green" : "grey"}>{project.status}</Pill></div>
     </button>)}
