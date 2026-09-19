@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 export default function Record({ me }) {
   const [s, setS] = useState(null);
+  const [feedback, setFeedback] = useState([]);
   useEffect(() => { load(); }, [me.id]);
   async function load() {
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
@@ -11,6 +12,10 @@ export default function Record({ me }) {
     const { data: sessions } = await supabase.from("work_sessions")
       .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString());
     const { data: blocked } = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
+    const { data: notes } = await supabase.from("feedback_notes")
+      .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
+      .eq("profile_id", me.id).order("created_at", { ascending: false });
+    setFeedback(notes || []);
     const done = (items || []).filter((i) => ["task", "deliverable"].includes(i.kind) && ["completed", "self_certified"].includes(i.status));
     const dueDone = done.filter((i) => i.due_at && i.completed_at);
     const reviewedDone = done.filter((i) => i.first_time_approved !== null);
@@ -59,6 +64,14 @@ export default function Record({ me }) {
           </div>
         </div>
         <div className="side-col">
+          <div className="sec"><span>Feedback from your manager</span><span>{feedback.length}</span></div>
+          {feedback.map((note) => <div className="row" key={note.id}>
+            <div className="row-t">{note.profiles?.full_name || "Manager"}</div>
+            <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
+            <div className="row-note">{note.note}</div>
+          </div>)}
+          {feedback.length === 0 && <div className="card small">No manager feedback has been recorded for you yet.</div>}
+
           <div className="sec"><span>Time this month</span></div>
           <div className="card" style={{ padding: "4px 15px" }}>
             <Row l="Days worked" v={s.days} />
