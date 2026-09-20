@@ -29,6 +29,14 @@ function accraDateKey(value) {
   return `${pick("year")}-${pick("month")}-${pick("day")}`;
 }
 
+function nextBirthday(value) {
+  const [, month, day] = String(value).slice(0, 10).split("-").map(Number);
+  const today = startOfDay();
+  const date = new Date(today.getFullYear(), month - 1, day);
+  if (date < today) date.setFullYear(date.getFullYear() + 1);
+  return date;
+}
+
 function WorkRow({ item, openItem, tone = "neutral" }) {
   return <button className={`row home-work-row home-tone-${tone}`} onClick={() => openItem(item.id)}>
     <div className="row-t">{item.title}</div>
@@ -43,6 +51,10 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const [alerts, setAlerts] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [birthdays, setBirthdays] = useState([]);
+  const [upcomingLeave, setUpcomingLeave] = useState([]);
+  const [leaveUpdates, setLeaveUpdates] = useState([]);
   const [ask, setAsk] = useState(false);
   const [place, setPlace] = useState("office");
   const [sessionWorkItem, setSessionWorkItem] = useState("");
@@ -54,6 +66,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const [recoveryEndedAt, setRecoveryEndedAt] = useState("");
   const [recoveryNote, setRecoveryNote] = useState("");
+  const [eventDetail, setEventDetail] = useState(null);
   const [, tick] = useState(0);
 
   useEffect(() => { const timer = setInterval(() => tick((value) => value + 1), 30000); return () => clearInterval(timer); }, []);
@@ -64,6 +77,9 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
     setError(null);
     setLoadFailed(false);
     try {
+      const rangeStart = startOfDay();
+      const rangeEnd = new Date(rangeStart); rangeEnd.setDate(rangeEnd.getDate() + 14);
+      const recentStart = new Date(rangeStart); recentStart.setDate(recentStart.getDate() - 14);
       const requests = [
         supabase.from("work_items")
           .select("id, ref, title, status, due_at, visibility, completed_at")
@@ -84,14 +100,42 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         supabase.from("announcements")
           .select("id,title,priority,requires_acknowledgement,published_at,profiles!announcements_author_id_fkey(full_name),announcement_receipts(profile_id,read_at,acknowledged_at)")
           .eq("status", "published").order("published_at", { ascending: false }).limit(2),
+        supabase.from("ministry_events")
+          .select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled,ministry_event_units(unit_id,note)")
+          .lte("starts_at", rangeEnd.toISOString()).order("starts_at"),
+        supabase.from("unit_memberships")
+          .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name,birthday)")
+          .eq("unit_id", me.unit_id),
+        supabase.from("leave_requests")
+          .select("id,kind,start_date,end_date,status,decided_at,decision_note")
+          .eq("profile_id", me.id).order("requested_at", { ascending: false }),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, memberResult, leaveResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
       setFeedback(requireResult(feedbackResult, "Feedback"));
       setAnnouncements(requireResult(announcementResult, "Announcements"));
+      const events = requireResult(eventResult, "Coming events").filter((event) => {
+        const stillCurrent = new Date(event.ends_at || event.starts_at) >= rangeStart;
+        const relevant = event.scope === "church" || event.unit_id === me.unit_id
+          || (event.ministry_event_units || []).some((unit) => unit.unit_id === me.unit_id);
+        return stillCurrent && relevant;
+      });
+      setCalendarEvents(events.slice(0, 4));
+      const birthdayEnd = new Date(rangeStart); birthdayEnd.setDate(birthdayEnd.getDate() + 7);
+      setBirthdays(requireResult(memberResult, "Birthdays")
+        .map((member) => member.profiles).filter((profile) => profile?.birthday)
+        .map((profile) => ({ ...profile, nextBirthday: nextBirthday(profile.birthday) }))
+        .filter((profile) => profile.nextBirthday <= birthdayEnd)
+        .sort((left, right) => left.nextBirthday - right.nextBirthday));
+      const leaveRows = requireResult(leaveResult, "Leave");
+      setUpcomingLeave(leaveRows.filter((request) => request.status === "approved"
+        && new Date(`${request.start_date}T00:00:00`) >= rangeStart
+        && new Date(`${request.start_date}T00:00:00`) <= rangeEnd).slice(0, 2));
+      setLeaveUpdates(leaveRows.filter((request) => request.decided_at
+        && new Date(request.decided_at) >= recentStart).slice(0, 2));
     } catch (err) {
       setLoadFailed(true);
       setError(err.message || "Home could not be loaded.");
@@ -112,9 +156,11 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const overdue = items.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on" && item.status !== "returned");
   const waiting = items.filter((item) => item.status === "waiting_on");
   const dueSoon = items.filter((item) => item.due_at && new Date(item.due_at) >= tomorrow && new Date(item.due_at) < soon && !["waiting_on", "returned"].includes(item.status));
-  const upcoming = items.filter((item) => item.due_at && new Date(item.due_at) >= soon && !["waiting_on", "returned"].includes(item.status)).slice(0, 4);
   const dueThisWeek = items.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek);
-  const attention = returned.length + overdue.length + visibleAlerts.length;
+  const activeWork = items.filter((item) => item.status === "in_progress" && !dueToday.some((due) => due.id === item.id)).slice(0, 3);
+  const announcementAttention = announcements.filter((announcement) => announcement.requires_acknowledgement
+    && !(announcement.announcement_receipts || []).some((receipt) => receipt.profile_id === me.id && receipt.acknowledged_at));
+  const attention = returned.length + overdue.length + visibleAlerts.length + announcementAttention.length;
   const staleSession = Boolean(session
     && accraDateKey(session.last_confirmed_at || session.started_at) < accraDateKey(new Date()));
 
@@ -203,16 +249,26 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
               <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
             </div>)}
         {overdue.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
+        {announcementAttention.map((announcement) => <button key={`ack-${announcement.id}`} className="row home-work-row home-tone-attention" onClick={openAnnouncements}>
+          <div className="row-t">Acknowledge: {announcement.title}</div><div className="row-m">Organisation announcement</div>
+        </button>)}
       </section>}
 
       <section className="home-panel home-panel-pulse" aria-labelledby="staff-today-heading">
         <div className="home-section-head"><div><div className="home-kicker">Current focus</div><h2 id="staff-today-heading">Today</h2></div><span className="home-count">{dueToday.length}</span></div>
         {dueToday.length ? dueToday.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work is due today.</div>}
+        {activeWork.length > 0 && <><div className="home-subhead">In progress</div>{activeWork.map((item) => <WorkRow key={`active-${item.id}`} item={item} openItem={openItem} />)}</>}
       </section>
 
-      {dueSoon.length > 0 && <section className="home-panel" aria-labelledby="staff-soon-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Next seven days</div><h2 id="staff-soon-heading">Due soon</h2></div><span className="home-count">{dueSoon.length}</span></div>
+      {(dueSoon.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
         {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
+        {calendarEvents.map((event) => <button key={event.id} className="row home-work-row" onClick={() => setEventDetail(event)}>
+          <div className="row-t">{event.cancelled ? "Cancelled · " : ""}{event.title}</div>
+          <div className="row-m">{new Date(event.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", hour: event.all_day ? undefined : "2-digit", minute: event.all_day ? undefined : "2-digit" })}{event.location ? ` · ${event.location}` : ""}</div>
+        </button>)}
+        {birthdays.map((profile) => <div className="row" key={`birthday-${profile.id}`}><div className="row-t">{profile.full_name}'s birthday</div><div className="row-m">{profile.nextBirthday.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div></div>)}
+        {upcomingLeave.map((request) => <div className="row" key={`leave-${request.id}`}><div className="row-t">Your approved {request.kind} leave begins</div><div className="row-m">{new Date(`${request.start_date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div></div>)}
       </section>}
 
       {waiting.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
@@ -220,11 +276,13 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         {waiting.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="attention" />)}
       </section>}
 
-      {feedback.length > 0 && <section className="home-panel" aria-labelledby="staff-feedback-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Visible to you</div><h2 id="staff-feedback-heading">Recent feedback</h2></div></div>
+      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel" aria-labelledby="staff-feedback-heading">
+        <div className="home-section-head"><div><div className="home-kicker">What changed</div><h2 id="staff-feedback-heading">Recent movement</h2></div></div>
         {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"}</div><div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div><div className="row-note">{note.note}</div>
         </div>)}
+        {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
+        {leaveUpdates.map((request) => <div key={`leave-update-${request.id}`} className="row"><div className="row-t">Leave request {request.status}</div><div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>{request.decision_note && <div className="row-note">{request.decision_note}</div>}</div>)}
       </section>}
 
       {announcements.length > 0 && <section className="home-panel" aria-labelledby="staff-announcements-heading">
@@ -240,11 +298,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
       </section>}
 
       <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">
-        {upcoming.length > 0 && <>
-          <div className="home-section-head"><div><div className="home-kicker">Further ahead</div><h2 id="staff-upcoming-heading">Upcoming</h2></div></div>
-          {upcoming.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
-        </>}
-        <div className={`home-subhead ${upcoming.length ? "home-subhead-spaced" : ""}`} id="staff-week-heading">This week</div>
+        <div className="home-subhead" id="staff-week-heading">This week</div>
         <div className="home-stat-grid">
           <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
           <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
@@ -278,6 +332,16 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
       <label className="label" htmlFor="recovery-note">Correction note (optional)</label>
       <textarea id="recovery-note" className="field" rows={3} value={recoveryNote} onChange={(event) => setRecoveryNote(event.target.value)} placeholder="Anything useful about this correction" />
       <button className="btn" style={{ marginTop: 14 }} onClick={closeRecoveredSession} disabled={busy || !recoveryEndedAt}>{busy ? "Saving..." : "Close and record correction"}</button>
+    </Sheet>}
+    {eventDetail && <Sheet onClose={() => setEventDetail(null)}>
+      <div className="eyebrow">{eventDetail.kind.replaceAll("_", " ")}</div>
+      <div className="h2" style={{ marginTop: 5 }}>{eventDetail.title}</div>
+      {eventDetail.cancelled && <div className="flag flag-brick" style={{ marginTop: 12 }}><h4>Cancelled</h4>This stays visible because people may already have planned around it.</div>}
+      <div className="card" style={{ marginTop: 14 }}>
+        <div className="row-m">{new Date(eventDetail.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", year: "numeric", hour: eventDetail.all_day ? undefined : "2-digit", minute: eventDetail.all_day ? undefined : "2-digit" })}</div>
+        {eventDetail.location && <div className="row-note">Location: {eventDetail.location}</div>}
+        {eventDetail.notes && <div className="row-note">{eventDetail.notes}</div>}
+      </div>
     </Sheet>}
   </div>;
 }
