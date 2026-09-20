@@ -24,6 +24,26 @@ function CountLink({ children, onClick }) {
   return <button onClick={(event) => { event.stopPropagation(); onClick(); }} style={{ textDecoration: "underline", color: "var(--ink-soft)" }}>{children}</button>;
 }
 
+function PersonRow({ person, openPerson }) {
+  return <div className="row">
+    <button onClick={() => openPerson(person.profile_id, "current")} style={{ width: "100%", textAlign: "left" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+        <div className="row-t">{person.profiles?.full_name || "—"}</div>
+        <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
+      </div>
+      <div className="row-m">{person.profiles?.job_title || person.role}</div>
+      {person.current.length > 0 && <div className="row-note">Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</div>}
+    </button>
+    <div className="row-note" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>Present {person.presenceDays} day{person.presenceDays === 1 ? "" : "s"}</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
+    </div>
+  </div>;
+}
+
 export default function Team({ me, openPerson }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
@@ -204,6 +224,12 @@ export default function Team({ me, openPerson }) {
     finally { setBusy(false); }
   }
 
+  const groupedPeople = subTeams.map((team) => ({
+    ...team,
+    people: people.filter((person) => (members[person.profile_id] || []).includes(team.id)),
+  }));
+  const unassignedPeople = people.filter((person) => !(members[person.profile_id] || []).length);
+
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
@@ -215,25 +241,20 @@ export default function Team({ me, openPerson }) {
       {loading && <div className="spin">Loading your team...</div>}
 
       {!loading && <><div className="sec"><span>People</span><span>{people.length}</span></div>
-      {people.map((person) => (
-        <div key={person.id} className="row">
-          <button onClick={() => openPerson(person.profile_id, "current")} style={{ width: "100%", textAlign: "left" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-            <div className="row-t">{person.profiles?.full_name || "—"}</div>
-            <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
-            </div>
-            <div className="row-m">{person.profiles?.job_title || person.role}</div>
-            {person.current.length > 0 && <div className="row-note">Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</div>}
-          </button>
-          <div className="row-note" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>Present {person.presenceDays} day{person.presenceDays === 1 ? "" : "s"}</CountLink>
-            <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
-            <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
-            <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
-            <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
-          </div>
-        </div>
-      ))}
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div className="row-t">{me.unit_name}</div>
+        <div className="row-m">Unit Head — {me.full_name || "—"}</div>
+      </div>
+      {groupedPeople.map((team) => <div key={team.id}>
+        <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
+        {team.profiles?.full_name && <div className="small" style={{ marginBottom: 7 }}>Sub-team lead — {team.profiles.full_name}</div>}
+        {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
+        {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
+      </div>)}
+      {unassignedPeople.length > 0 && <div>
+        <div className="sec" style={{ marginTop: 18 }}><span>Not assigned to a part yet</span><span>{unassignedPeople.length}</span></div>
+        {unassignedPeople.map((person) => <PersonRow key={`unassigned-${person.id}`} person={person} openPerson={openPerson} />)}
+      </div>}
       {people.length === 0 && <div className="card small">There are no other staff members in this unit yet. Your own work remains under My work.</div>}
 
       <div className="sec"><span>Team setup</span><span>{showSetup ? "Open" : "Secondary"}</span></div>
