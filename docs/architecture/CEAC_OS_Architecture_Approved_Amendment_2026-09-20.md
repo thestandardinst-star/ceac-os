@@ -935,6 +935,389 @@ That pass may change:
 
 It may **not** change the approved operating logic in this amendment merely for visual convenience.
 
+
+## 20. Homepage architecture — return through usefulness, movement and clarity
+
+The homepage on every CEAC OS surface is a command centre, not a filing cabinet.
+
+Its job is not merely to display information. It must help the user understand, within seconds:
+
+- what needs attention now;
+- what changed since the last visit;
+- what is moving well;
+- what is stuck;
+- what should be done next;
+- what is coming up.
+
+The goal is consistent return through usefulness, movement, clarity and role relevance — not through gamification, artificial rewards or visual decoration alone.
+
+### 20.1 Return-behaviour principles
+
+The home experience should deliberately create four useful return triggers:
+
+**Freshness** — the page changes when work, reviews, blockers, leave, reporting, projects, routines or deadlines change.
+
+**Progress** — the user can see real movement: completed work, reviews cleared, routines recorded, project deliverables moving, reports filed and blockers resolved.
+
+**Clear next action** — important homepage blocks lead directly to an action or canonical detail screen.
+
+**Human relevance** — each role sees information that matches its actual responsibility. Staff, unit managers, Administration & HR and Group Pastor must not receive the same generic dashboard with different labels.
+
+### 20.2 Visuals serve meaning
+
+The homepages should become more visual, but visuals are not decoration.
+
+Use visual treatment to make information faster to scan and act on:
+
+- restrained status colour;
+- progress bars where there is a real denominator;
+- compact status stacks;
+- mini trend lines where a time series exists;
+- calendar/timeline strips;
+- simple composition visuals;
+- human/avatar presence where appropriate;
+- strong typography and spacing hierarchy;
+- meaningful icons only where they improve recognition.
+
+Do not add charts merely to make a screen look sophisticated.
+
+No number or visual may imply a performance judgment that the underlying data does not support.
+
+### 20.3 Homepage information hierarchy
+
+Across roles, home should normally follow this hierarchy:
+
+1. **Context / top summary** — date, active unit/role and one factual sentence about the day.
+2. **Needs attention now** — actions specifically waiting on this user.
+3. **Pulse / movement** — a small set of meaningful, clickable operational indicators.
+4. **Progress / status** — work/project/routine/report movement appropriate to role.
+5. **Upcoming** — deadlines, leave, project milestones, calendar/ministry events and reporting dates.
+6. **Recent activity** — factual recent movement relevant to the user.
+7. **Quick actions** — the most common actions for that role.
+
+The exact visual arrangement may change during design work, but the hierarchy should remain unless real usage proves a better order.
+
+### 20.4 Actionability rule
+
+A meaningful homepage count, status, chart point, progress segment or alert must open the records or canonical screen behind it.
+
+Examples:
+
+- "3 pending reviews" opens those three reviews.
+- "2 overdue deliverables" opens those deliverables.
+- "4 HR records incomplete" opens the relevant People/HR records.
+- "3 units have not filed" opens those named units.
+- "1 project closes this week" opens that project.
+
+A homepage must not become a dead display layer.
+
+### 20.5 Priority over density
+
+Do not show everything because the database contains it.
+
+Home is not an analytics warehouse.
+
+Show:
+
+- what is actionable;
+- what changed;
+- what is time-sensitive;
+- what gives useful context for today's decisions.
+
+Secondary detail belongs behind drill-down.
+
+When nothing requires attention, the screen should become calmer rather than filling space with empty warning cards.
+
+---
+
+## 21. Staff Home
+
+Staff Home answers:
+
+**"What do I need to do, what changed, and what should I deal with next?"**
+
+### 21.1 Priority areas
+
+Staff Home may contain:
+
+- returned work needing correction;
+- new/changed work;
+- overdue and due-today work;
+- waiting-on items;
+- recent manager feedback;
+- leave decision/status when relevant;
+- upcoming calendar items;
+- this week's real progress;
+- announcements where implemented;
+- personal work-session state;
+- quick access to Add agreed work where permitted.
+
+### 21.2 Visual emphasis
+
+The staff home should feel personal and focused, not administrative.
+
+Prefer:
+
+- a clear Today section;
+- one attention block;
+- a short progress strip for the current week;
+- upcoming items;
+- recent movement/feedback.
+
+Do not display colleague rankings, unit averages or comparative productivity.
+
+### 21.3 Motivation boundary
+
+The product may show factual completion and closure, such as:
+
+- "3 of 5 due items finished";
+- "2 items approved";
+- "1 returned item left to correct."
+
+It must not use points, badges, streaks, artificial praise loops or manipulative performance pressure.
+
+---
+
+## 22. Manager Home
+
+Manager Home is an operational command centre.
+
+It answers:
+
+**"What needs my decision, what is happening in my team, what is stuck, and what needs attention next?"**
+
+### 22.1 Order
+
+The approved operating order remains:
+
+1. waiting on the manager;
+2. team today;
+3. stuck / waiting both ways where data exists;
+4. manager's own work;
+5. projects needing attention;
+6. current-week / upcoming operational view.
+
+The visual design may combine some of these into a cleaner layout, but must not hide the distinction.
+
+### 22.2 Manager pulse
+
+Useful manager-home visuals may include:
+
+- work awaiting review;
+- leave waiting for action;
+- acknowledged blockers waiting on the unit;
+- present / approved leave / not started;
+- due today / overdue;
+- completed or submitted today;
+- open deliverables on projects nearing close;
+- routine occurrences due/missed when Routine is fully built;
+- reporting status when a reporting period is open.
+
+Presence and output must remain separate.
+
+### 22.3 Manager quick actions
+
+Role-relevant quick actions may include:
+
+- Give out work;
+- Add agreed work;
+- Review submitted work;
+- Create/open project;
+- Record/manage routine when available;
+- Open report/report draft.
+
+Do not turn the home into a large menu. Show the few actions that match the manager's actual day.
+
+### 22.4 Copy
+
+Home guidance remains:
+
+**"Start with anything waiting for your decision, then check your team and your own work."**
+
+---
+
+## 23. Role-adaptive manager Home
+
+The Manager surface shares one architecture but can adapt emphasis using the unit's actual work mix and configured capabilities.
+
+This does not mean hard-coded separate applications for Media, Facilities, Finance, Programs or another unit.
+
+Examples:
+
+**Media and Technical** may surface deliverables, project deadlines, reviews, production routines and sub-team movement more prominently.
+
+**Facility, Procurement and Logistics** may surface Cases, Requests, recurring operational checks, unresolved facilities work and upcoming maintenance-style routines more prominently once those work types are implemented.
+
+The adaptation must come from work types, responsibilities, unit configuration, templates and actual records — not hard-coded assumptions about a named unit.
+
+---
+
+## 24. Administration & HR Home
+
+Administration & HR Home is an organisation operating control room.
+
+It answers:
+
+**"What needs Administration action, what is incomplete or approaching risk, and where does the office need follow-up?"**
+
+### 24.1 Priority areas
+
+Useful Admin Home areas include:
+
+- leave or administrative decisions waiting;
+- work sitting with managers past the escalation point;
+- blocker disputes/escalations;
+- reporting periods and units not filed;
+- employee records incomplete;
+- HR identity/payroll details waiting for verification;
+- contracts/documents approaching expiry when the HR record is built;
+- office attendance/leave snapshot;
+- payroll/cost actions when their modules are ready;
+- units/projects gone quiet according to approved deterministic rules;
+- upcoming office/ministry dates relevant to Administration.
+
+### 24.2 Organisational pulse
+
+Admin should see patterns at office altitude, not every person's task feed.
+
+Examples:
+
+- units filed / started / not started for an open report period;
+- staff present / on approved leave / not started;
+- HR verifications waiting;
+- contracts/documents due for attention;
+- stalled reviews by responsible manager;
+- acknowledged blockers that have reached Administration.
+
+Counts must drill to names/records.
+
+### 24.3 Quick actions
+
+Examples:
+
+- People;
+- verify employee record;
+- open reporting period;
+- attendance/leave action;
+- administrative settings relevant to the current alert.
+
+---
+
+## 25. Group Pastor / Executive Home
+
+The Group Pastor homepage is a high-level ministry and office view.
+
+It must not become a task manager for the entire organisation.
+
+It answers:
+
+**"What is being achieved, where is intervention needed, what is changing, and what requires my decision?"**
+
+### 25.1 Priority areas
+
+Useful executive Home areas include:
+
+- actions requiring Group Pastor approval/decision;
+- escalated cross-unit blockers;
+- ministry objectives and their explicit statuses/results;
+- significant projects/campaigns/events needing attention;
+- reporting coverage;
+- units/projects that have gone quiet under approved rules;
+- falling numeric routine/objective trends where sufficient comparable data exists;
+- office presence as numbers rather than a surveillance-style named list;
+- delivery and cost shown together at the appropriate altitude;
+- upcoming critical ministry dates.
+
+### 25.2 Executive visual treatment
+
+Prefer:
+
+- a small number of high-value sections;
+- trends with clear time periods;
+- project/objective status;
+- named escalations;
+- factual summaries generated from records;
+- drill-down when detail is needed.
+
+Avoid raw task lists unless the Group Pastor explicitly owns the work.
+
+---
+
+## 26. Recent activity
+
+A recent-activity layer may make Home feel alive, but it must be role-scoped and factual.
+
+Examples:
+
+- work submitted;
+- work approved/returned;
+- blocker acknowledged/resolved;
+- project started/closed/reopened;
+- reporting period opened;
+- report submitted;
+- routine occurrence recorded;
+- leave approved;
+- HR record submitted/verified where the viewer has permission.
+
+Do not expose private/confidential information through activity feeds.
+
+Do not show activity simply to increase engagement. Show it only when it helps the role understand recent movement.
+
+---
+
+## 27. Visual status language
+
+Use visual status consistently across CEAC OS.
+
+General direction:
+
+- neutral — ordinary/current;
+- blue/informational — upcoming or in progress where useful;
+- amber — attention required;
+- brick/red — overdue, returned or materially blocked where the existing product semantics support it;
+- green — completed/approved/healthy factual state.
+
+Colour never carries meaning alone; text/status remains visible for accessibility.
+
+Do not use excessive colour across every card.
+
+---
+
+## 28. Homepage acceptance gates
+
+Before a role homepage is considered complete:
+
+1. The user can identify the most important next action within a few seconds.
+2. Important counts/visuals drill to their source records.
+3. The screen separates presence, availability and output.
+4. The screen does not show invented or comparative performance measures.
+5. Empty/quiet states reduce clutter rather than displaying meaningless zero-card walls.
+6. The page reflects the active unit/role correctly.
+7. New activity changes the relevant homepage state without requiring duplicate reporting.
+8. Phone and laptop layouts preserve the same information hierarchy.
+9. No confidential/private record is exposed through summary cards or activity.
+10. The homepage remains useful if visual decoration is removed; visuals enhance meaning rather than substitute for it.
+
+---
+
+## 29. Homepage build sequence
+
+Homepage redesign should proceed incrementally while Claude remains unavailable.
+
+Codex may work now on client-only homepage improvements that use existing, authorised data contracts.
+
+Recommended sequence:
+
+1. Manager Home first, because it has been reviewed directly and has the richest currently available operational data.
+2. Staff Home second, reusing the visual language but preserving the simpler staff hierarchy.
+3. Administration & HR Home after reviewing Claude-owned current code and without changing Admin-owned screens unless ownership is explicitly handed over or Claude is available.
+4. Group Pastor Home after the executive information hierarchy is verified against current data.
+
+Do not fabricate backend-dependent Routine, HR verification, Messages or typed-work states before Claude supplies their contracts.
+
+The later cross-product visual-design pass should consolidate these home patterns into a coherent design system rather than independently styling each screen.
+
+
 ---
 
 *Approved architecture amendment — 20 September 2026. This document is binding until incorporated into a later consolidated CEAC OS architecture.*
