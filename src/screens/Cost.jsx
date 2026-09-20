@@ -82,7 +82,8 @@ export default function Cost({ me }) {
       if (!amount && amount !== 0) throw new Error("Enter an amount in cedis, for example 2500");
       const existing = budgetFor(gUnit);
       if (existing) {
-        await supabase.from("budgets").update({ amount_minor: amount, currency: gCur, set_by: me.id, set_at: new Date().toISOString() }).eq("id", existing.id);
+        const { error } = await supabase.from("budgets").update({ amount_minor: amount, currency: gCur, set_by: me.id, set_at: new Date().toISOString() }).eq("id", existing.id);
+        if (error) throw error;
       } else {
         const { error } = await supabase.from("budgets").insert({
           org_id: me.org_id, unit_id: gUnit.id, year, amount_minor: amount, currency: gCur, set_by: me.id });
