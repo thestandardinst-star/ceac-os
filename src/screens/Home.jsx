@@ -205,7 +205,7 @@ export default function Home({ me, session, setSession, openItem }) {
       {place === "elsewhere" && <>
         <select className="field" aria-label="Work being done off-site" value={sessionWorkItem} onChange={(event) => setSessionWorkItem(event.target.value)}>
           <option value="">Choose the work you are doing</option>
-          {items.filter((item) => !["waiting_on", "returned"].includes(item.status)).map((item) => <option key={item.id} value={item.id}>{item.ref} · {item.title}</option>)}
+          {items.filter((item) => ["not_started", "in_progress", "returned"].includes(item.status)).map((item) => <option key={item.id} value={item.id}>{item.ref} · {item.title}</option>)}
         </select>
         <div className="hint">The location is attached to this work when you start. CEAC OS does not track you during the day.</div>
       </>}
