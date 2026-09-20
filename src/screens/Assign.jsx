@@ -10,7 +10,7 @@ const WORK_KINDS = [
   ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", true],
   ["decision", "Decision", "A choice that someone needs to make and record.", true],
   ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting.", true],
-  ["deliverable", "Deliverable", "A finished output that must be produced and shown.", false],
+  ["deliverable", "Deliverable", "A finished output that must be produced and shown.", true],
 ];
 
 export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "" }) {
@@ -49,6 +49,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [meetingTitle, setMeetingTitle] = useState("");
   const [meetingOn, setMeetingOn] = useState(() => new Date().toISOString().slice(0, 10));
   const [meetingNote, setMeetingNote] = useState("");
+  const [deliverableEvidenceRequired, setDeliverableEvidenceRequired] = useState(true);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -149,6 +150,36 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
+
+      if (kind === "deliverable") {
+        const { data: workId, error: deliverableError } = await supabase.rpc("create_typed_work", {
+          p_kind: "deliverable",
+          p_unit_id: me.unit_id,
+          p_title: title.trim(),
+          p_assignee_id: assignee || null,
+          p_sub_team_id: subTeam || null,
+          p_project_id: project || null,
+          p_phase_id: project && phase ? phase : null,
+          p_objective_id: project && objective ? objective : null,
+          p_responsibility_id: null,
+          p_purpose: purpose.trim() || null,
+          p_expected_outcome: expectedOutcome.trim(),
+          p_due_at: due ? new Date(due).toISOString() : null,
+          p_visibility: "unit",
+          p_confidential: false,
+          p_details: {
+            evidence_required: deliverableEvidenceRequired,
+            evidence_kind: deliverableEvidenceRequired ? "link" : "none",
+          },
+        });
+        if (deliverableError) throw deliverableError;
+        const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
+        if (createdResult.error) throw createdResult.error;
+        setDone(createdResult.data.ref);
+        setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
+        setDeliverableEvidenceRequired(true); setKind("task"); setVoiceHint(null);
+        return;
+      }
 
       if (kind === "meeting_outcome") {
         const { data: workId, error: meetingError } = await supabase.rpc("create_typed_work", {
@@ -372,6 +403,17 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
             Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.
           </div>}
+          {kind === "deliverable" && <>
+            <input className="field" placeholder="What must be produced?" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Why this output matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <div className="sec"><span>Finished output</span></div>
+            <textarea className="field" rows={3} placeholder="Describe exactly what must be delivered" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <label className="card small" style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 10 }}>
+              <input type="checkbox" checked={deliverableEvidenceRequired} onChange={(e) => setDeliverableEvidenceRequired(e.target.checked)} />
+              <span>Require an evidence link before this deliverable can be approved.</span>
+            </label>
+            <div className="hint">This does not use a Task checklist. Review is based on the finished output and its evidence.</div>
+          </>}
           {kind === "meeting_outcome" && <>
             <input className="field" placeholder="What was agreed?" value={title} onChange={(e) => setTitle(e.target.value)} />
             <textarea className="field" rows={3} placeholder="Why this commitment matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
@@ -457,6 +499,34 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             </label>
           </>}
         </div>
+        {kind === "deliverable" && <div className="side-col">
+          <div className="sec"><span>Who owns the output</span></div>
+          <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <option value="">Choose owner</option>
+            {people.map((p) => <option key={p.profile_id} value={p.profile_id}>{p.profiles ? p.profiles.full_name : "—"}</option>)}
+          </select>
+          <select className="field" value={subTeam} onChange={(e) => setSubTeam(e.target.value)}>
+            <option value="">Which part of the team (optional)</option>
+            {subTeams.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
+            <option value="">Part of a project (optional)</option>
+            {projects.map((row) => <option key={row.id} value={row.id}>{row.name}{!["planned","active"].includes(row.status) ? ` · ${row.status}` : ""}</option>)}
+          </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          {project && phases.length > 0 && <select className="field" value={phase} onChange={(e) => setPhase(e.target.value)}>
+            <option value="">Project phase (optional)</option>
+            {phases.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>}
+          <div className="sec"><span>Due</span></div>
+          <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+          <button className="btn" style={{ marginTop: 20 }} onClick={create}
+            disabled={busy || !title.trim() || !expectedOutcome.trim() || !assignee}>
+            {busy ? "Saving..." : "Give deliverable"}</button>
+        </div>}
         {kind === "meeting_outcome" && <div className="side-col">
           <div className="sec"><span>Who owns the commitment</span></div>
           <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
