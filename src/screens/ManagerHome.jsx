@@ -47,6 +47,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [recentMovement, setRecentMovement] = useState([]);
   const [routines, setRoutines] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
+  const [followupAlerts, setFollowupAlerts] = useState([]);
   const [leaveLimit, setLeaveLimit] = useState(5);
   const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
@@ -74,7 +75,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const recentSince = new Date(today); recentSince.setDate(recentSince.getDate() - 7);
       const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult,
         settingResult, sessionResult, weekResult, projectUnitResult, activeProjectResult,
-        todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult] = await Promise.all([
+        todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult, followupAlertResult] = await Promise.all([
         supabase.from("unit_memberships")
           .select("profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name)")
           .eq("unit_id", me.unit_id),
@@ -119,11 +120,18 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         supabase.from("submissions").select("id,profile_id,submitted_at,profiles!submissions_profile_id_fkey(full_name),work_items!inner(id,ref,title,unit_id)")
           .eq("work_items.unit_id", me.unit_id).gte("submitted_at", recentSince.toISOString())
           .order("submitted_at", { ascending: false }).limit(8),
+        supabase.from("alerts")
+          .select("id,kind,subject_type,subject_id,message,last_seen_at")
+          .eq("for_unit_id", me.unit_id)
+          .is("resolved_at", null)
+          .in("kind", ["review_followup","blocker_followup"])
+          .order("last_seen_at", { ascending: false }),
       ]);
 
       const members = requireResult(memberResult, "Team").filter((member) => member.profile_id !== me.id);
       const memberIds = new Set(members.map((member) => member.profile_id));
       setSubmissions(requireResult(submissionResult, "Submissions"));
+      setFollowupAlerts(requireResult(followupAlertResult, "Follow-ups"));
       setLeave(requireResult(leaveResult, "Leave requests").filter((request) => memberIds.has(request.profile_id)));
       const blockerMap = new Map();
       requireResult(incomingBlockerResult, "Blockers waiting on your unit")
@@ -319,7 +327,9 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
     finally { setBusy(false); }
   }
 
-  const waitingCount = submissions.length + leave.length;
+  const reviewFollowupByWork = new Map(followupAlerts.filter((alert) => alert.kind === "review_followup").map((alert) => [alert.subject_id, alert]));
+  const blockerFollowupAlerts = followupAlerts.filter((alert) => alert.kind === "blocker_followup");
+  const waitingCount = submissions.length + leave.length + blockerFollowupAlerts.length;
   const incomingBlockers = blockers.filter((blocker) => blocker.direction === "incoming");
   const outgoingBlockers = blockers.filter((blocker) => blocker.direction === "outgoing");
   const drillRows = drill?.rows || [];
@@ -350,6 +360,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           <div className="home-row-label">Work review</div>
           <div className="row-t">{submission.work_items.title}</div>
           <div className="row-m">{submission.work_items.ref} · {submission.profiles?.full_name || "—"} · work to review</div>
+          {reviewFollowupByWork.has(submission.work_items.id) && <div className="followup-note">Follow-up received · {new Date(reviewFollowupByWork.get(submission.work_items.id).last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>}
           {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
           {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
           <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
@@ -359,6 +370,15 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           </div>
         </div>
       ))}
+      {blockerFollowupAlerts.map((alert) => {
+        const blocker = blockers.find((row) => row.id === alert.subject_id);
+        return <div key={alert.id} className="row home-action-row">
+          <div className="home-row-label">Dependency follow-up</div>
+          <div className="row-t">{alert.message}</div>
+          <div className="row-m">{new Date(alert.last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+          {blocker && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open related work</button>}
+        </div>;
+      })}
       {leave.map((request) => (
         <div key={request.id} className="row home-action-row">
           <div className="home-row-label">Leave decision</div>
