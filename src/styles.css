@@ -173,6 +173,185 @@ input,textarea,select{font:inherit;color:inherit}
   .home-stat b{font-size:25px}
 }
 
+
+/* Staff + Unit Manager visual system pass — scoped away from Admin/Executive. */
+.staff-app,.manager-app{
+  --surface-raised:#FFFFFF;
+  --surface-muted:#F7F8F5;
+  --surface-quiet:#F5F6F2;
+  --shadow-sm:0 1px 2px rgba(35,45,39,.045),0 6px 18px rgba(35,45,39,.025);
+  --shadow-md:0 12px 34px rgba(35,45,39,.10);
+}
+.staff-app .body,.manager-app .body{padding-top:2px}
+.staff-app .h1,.manager-app .h1{letter-spacing:-.028em}
+.staff-app .eyebrow,.manager-app .eyebrow{font-weight:600;letter-spacing:.015em}
+.staff-app .screen-note,.manager-app .screen-note{max-width:680px;color:var(--ink-soft)}
+.staff-app .sec,.manager-app .sec{margin-top:30px;margin-bottom:10px;letter-spacing:.015em}
+.staff-app .card,.manager-app .card,
+.staff-app .row,.manager-app .row,
+.staff-app .metric,.manager-app .metric{
+  border-color:#DFE2DC;
+  box-shadow:var(--shadow-sm);
+}
+.staff-app .row,.manager-app .row{padding:14px 16px}
+.staff-app button.row,.manager-app button.row{transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.staff-app .row-t,.manager-app .row-t{font-weight:600;letter-spacing:-.008em}
+.staff-app .row-m,.manager-app .row-m{color:#747D76}
+.staff-app .row-note,.manager-app .row-note{color:#566159}
+.staff-app .btn,.manager-app .btn{
+  min-height:46px;
+  border-radius:10px;
+  padding:12px 16px;
+  box-shadow:0 1px 1px rgba(20,35,27,.04);
+}
+.staff-app .btn-ghost,.manager-app .btn-ghost{box-shadow:none}
+.staff-app .btn-sm,.manager-app .btn-sm{min-height:38px;padding:8px 12px}
+.staff-app .field,.manager-app .field{
+  min-height:46px;
+  border-radius:10px;
+  border-color:#DCE0DA;
+  background:#fff;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.staff-app .field:focus,.manager-app .field:focus{
+  border-color:var(--green-mid);
+  box-shadow:0 0 0 3px rgba(74,122,102,.12);
+}
+.staff-app textarea.field,.manager-app textarea.field{min-height:auto;resize:vertical}
+.staff-app .pill,.manager-app .pill{font-weight:600}
+.staff-app .flag,.manager-app .flag{border-radius:10px}
+.staff-app :is(button,a,input,textarea,select):focus-visible,
+.manager-app :is(button,a,input,textarea,select):focus-visible{
+  outline:3px solid rgba(62,97,118,.24);
+  outline-offset:2px;
+}
+.staff-app .sheet-bg,.manager-app .sheet-bg{background:rgba(31,42,36,.42);backdrop-filter:blur(2px)}
+.staff-app .sheet,.manager-app .sheet{box-shadow:0 -18px 50px rgba(30,40,34,.16)}
+.staff-app .mobile-unit-switch select,.manager-app .mobile-unit-switch select{
+  min-height:42px;border-radius:10px;background:rgba(255,255,255,.96)
+}
+
+/* Staff stays personal, light and phone-first. */
+.staff-app .body{max-width:620px;width:100%;margin:0 auto}
+.staff-app .tabs{
+  background:rgba(255,255,255,.96);
+  border-color:#DDE1DA;
+  box-shadow:0 -8px 24px rgba(35,45,39,.06);
+  backdrop-filter:blur(12px);
+}
+.staff-app .tab{min-height:64px;padding-top:10px;color:#788078}
+.staff-app .tab.on{color:var(--green)}
+.staff-app .tab i{border-radius:6px}
+.staff-app .sess{box-shadow:var(--shadow-sm)}
+.staff-app .home-dashboard{gap:14px}
+.staff-app .home-panel{
+  border-radius:12px;
+  padding:16px;
+  box-shadow:var(--shadow-sm);
+}
+.staff-app .home-panel-priority{
+  background:#FFFDF8;
+  border:1px solid #E8DDC3;
+  border-left:4px solid var(--amber);
+}
+.staff-app .home-panel-pulse{background:#FBFCFB;border-color:#DDE5E0}
+.staff-app .home-panel-week{background:#FBFCFA}
+.staff-app .home-stat{border-radius:9px;background:#fff}
+.staff-app .home-quiet{background:var(--surface-quiet)}
+
+/* Manager is denser and laptop-oriented while retaining mobile order. */
+.manager-app .home-panel{
+  border-radius:12px;
+  background:#fff;
+  box-shadow:var(--shadow-sm);
+}
+.manager-app .home-panel-priority{
+  background:#FFFDF8;
+  border:1px solid #E7DABD;
+  border-left:4px solid var(--amber);
+}
+.manager-app .home-panel-pulse{background:#FBFCFC;border-color:#D9E3E7}
+.manager-app .home-panel-waiting{background:#FAFBF8;border-style:solid}
+.manager-app .home-panel-projects{border-top:1px solid var(--line);border-left:4px solid var(--amber)}
+.manager-app .home-panel-week{background:#FBFCFA}
+.manager-app .home-stat{border-radius:9px;background:#fff}
+.manager-app .home-chip{min-height:26px;align-items:center;border:1px solid transparent}
+.manager-app button.home-chip{cursor:pointer}
+.manager-app button.home-chip:hover{text-decoration:underline}
+.manager-app .home-date-row{border-radius:6px;padding-left:6px;padding-right:6px}
+.manager-app .home-progress{height:6px}
+.manager-app .metric{padding:16px}
+.manager-app .metric b{font-size:22px}
+
+/* Remove overly decorative colour fill from factual status rows. */
+.staff-app .home-tone-info,.manager-app .home-tone-info{background:#F5F9FB !important}
+.staff-app .home-tone-attention,.manager-app .home-tone-attention{background:#FFFBF2 !important}
+.staff-app .home-tone-danger,.manager-app .home-tone-danger{background:#FFF7F4 !important}
+.staff-app .home-tone-success,.manager-app .home-tone-success{background:#F5F9F6 !important}
+
+@media (hover:hover) and (pointer:fine){
+  .staff-app button.row:hover,.manager-app button.row:hover{
+    border-color:#CAD1C9;
+    box-shadow:0 4px 15px rgba(35,45,39,.055);
+  }
+  .staff-app .btn:not(:disabled):hover,.manager-app .btn:not(:disabled):hover{filter:brightness(.97)}
+  .manager-app .side nav button:hover{background:#F7F8F5;color:var(--ink)}
+}
+
+@media (max-width:819px){
+  .staff-app .body,.manager-app .body{padding-left:16px;padding-right:16px}
+  .staff-app .h1,.manager-app .h1{font-size:27px}
+  .staff-app .sheet,.manager-app .sheet{border-radius:18px 18px 0 0}
+  .manager-app .tabs{
+    background:rgba(255,255,255,.96);
+    box-shadow:0 -8px 24px rgba(35,45,39,.06);
+    backdrop-filter:blur(12px);
+  }
+  .manager-app .tab{min-height:64px}
+}
+
+@media (min-width:820px){
+  .staff-app,.manager-app{background:var(--paper)}
+  .staff-app .body{max-width:760px;padding-left:42px;padding-right:42px}
+  .manager-app .body{max-width:1000px;padding:0 42px 72px}
+  .manager-app .side,.staff-app .side{
+    width:248px;
+    padding:30px 14px 24px;
+    background:#FCFCFA;
+    border-right:1px solid #DBDED8;
+  }
+  .manager-app .side .brand,.staff-app .side .brand{padding:0 12px 24px;font-size:16px}
+  .manager-app .side nav,.staff-app .side nav{display:grid;gap:3px}
+  .manager-app .side nav button,.staff-app .side nav button{
+    border-radius:8px;
+    padding:10px 12px;
+    color:#626C65;
+  }
+  .manager-app .side nav button.on,.staff-app .side nav button.on{
+    background:#EEF2EE;
+    color:var(--green);
+  }
+  .manager-app .side nav button.on:before,.staff-app .side nav button.on:before{display:none}
+  .manager-app .side .who,.staff-app .side .who{margin:24px 10px 0;padding:16px 2px 0}
+  .manager-app .home-dashboard{gap:18px}
+  .manager-app .home-panel{padding:20px}
+  .manager-app .home-panel-priority{grid-column:1/-1}
+  .manager-app .home-panel-week{grid-column:1/-1}
+  .manager-app .sheet,.staff-app .sheet{
+    top:7vh;
+    max-width:520px;
+    border-radius:14px;
+    box-shadow:var(--shadow-md);
+  }
+  .manager-app .split,.staff-app .split{gap:34px}
+  .manager-app .sec,.staff-app .sec{margin-top:32px}
+}
+
+@media (min-width:1100px){
+  .manager-app .body{padding-left:48px;padding-right:48px}
+  .manager-app .home-dashboard{grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr)}
+}
+
 .print-only{display:none}
 @media print{
   body{background:#fff}
