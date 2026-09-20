@@ -30,17 +30,23 @@ export async function loadMe() {
     role: selected ? selected.role : null,
     memberships: options };
 }
-export async function inviteByEmail({ orgId, invitedBy, email, fullName, unitId, role }) {
-  const clean = { org_id: orgId, email: email.trim(), full_name: fullName.trim(),
-    unit_id: unitId || null, role: role || "staff", invited_by: invitedBy };
-  const { error: pErr } = await supabase.from("pending_invitations")
-    .upsert(clean, { onConflict: "email,org_id" });
-  if (pErr) throw pErr;
-  const { error: oErr } = await supabase.auth.signInWithOtp({
-    email: clean.email,
-    options: { shouldCreateUser: true,
-      data: { full_name: clean.full_name, org_id: orgId },
-      emailRedirectTo: window.location.origin },
+export async function inviteByEmail({ email, fullName, unitId }) {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = fullName.trim();
+  const { error: inviteError } = await supabase.rpc("create_pending_invitation", {
+    p_email: cleanEmail,
+    p_full_name: cleanName,
+    p_unit_id: unitId,
+    p_role: "staff",
   });
-  if (oErr) throw oErr;
+  if (inviteError) throw inviteError;
+
+  const { error: authError } = await supabase.auth.signInWithOtp({
+    email: cleanEmail,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${window.location.origin}/activate`,
+    },
+  });
+  if (authError) throw authError;
 }
