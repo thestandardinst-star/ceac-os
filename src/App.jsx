@@ -83,8 +83,9 @@ export default function App() {
   if (!ready) return <div className="spin">Loading...</div>;
   if (!me) return <SignIn />;
 
-  const isAdmin = me.is_admin || me.is_exec;
-  const isUnitManager = !isAdmin && me.role === "manager";
+  const isAdmin = Boolean(me.is_admin);
+  const isExec = Boolean(me.is_exec);
+  const isUnitManager = !isAdmin && !isExec && me.role === "manager";
   const isManager = isAdmin || isUnitManager;
   const overlay = itemId || assigning || goalId || person || projectId;
 
@@ -108,8 +109,8 @@ export default function App() {
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={setItemId} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} openItem={setItemId} />;
     if (tab === "announcements") return <Announcements me={me} back={() => go("home")} />;
-    if (tab === "cost") return <Cost me={me} />;
-    if (tab === "finance") return <Finance me={me} />;
+    if (tab === "cost" && isAdmin) return <Cost me={me} />;
+    if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
     if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
     if (tab === "people" && isAdmin) return <People me={me} openItem={setItemId} />;
@@ -118,11 +119,11 @@ export default function App() {
     return <MeScreen me={me} openGoal={setGoalId} />;
   }
 
-  const appModeClass = isUnitManager ? "manager-app" : !isAdmin ? "staff-app" : "office-app";
+  const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
 
   return (
     <div className={`app ${appModeClass}`}>
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} onUnitChange={switchUnit} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
           {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
@@ -136,6 +137,6 @@ export default function App() {
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} openProject={setProjectId} back={() => setPerson(null)} />
         : pageForTab()}
-      {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} />}
+      {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} />}
     </div>);
 }
