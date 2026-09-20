@@ -29,6 +29,7 @@ export default function StaffTeam({ me }) {
   const [onLeave, setOnLeave] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
   const [subTeamLeads, setSubTeamLeads] = useState([]);
+  const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   useEffect(() => { load(); }, [me.unit_id]);
@@ -45,7 +46,7 @@ export default function StaffTeam({ me }) {
       const today = new Date();
       const todayKey = today.toISOString().slice(0, 10);
       const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
-      const [leaveResult, subTeamResult] = await Promise.all([
+      const [leaveResult, subTeamResult, resourceResult] = await Promise.all([
         profileIds.length ? supabase.from("leave_requests")
           .select("profile_id, start_date, end_date, kind, profiles!leave_requests_profile_id_fkey(full_name)")
           .in("profile_id", profileIds).eq("status", "approved")
@@ -54,12 +55,18 @@ export default function StaffTeam({ me }) {
         supabase.from("sub_teams")
           .select("id, name, lead_id, profiles!sub_teams_lead_fk(id, full_name, job_title)")
           .eq("unit_id", me.unit_id).eq("active", true).order("position"),
+        supabase.from("unit_resources")
+          .select("id, title, category, reference_url, description, pinned")
+          .eq("unit_id", me.unit_id).eq("active", true)
+          .order("pinned", { ascending: false }).order("sort_order").order("title"),
       ]);
       if (leaveResult.error) throw new Error(`Approved leave: ${leaveResult.error.message}`);
       if (subTeamResult.error) throw new Error(`Team leads: ${subTeamResult.error.message}`);
+      if (resourceResult.error) throw new Error(`Unit resources: ${resourceResult.error.message}`);
       setTeam(members);
       setOnLeave(leaveResult.data || []);
       setSubTeamLeads((subTeamResult.data || []).filter((row) => row.lead_id && row.profiles));
+      setResources(resourceResult.data || []);
       const birthdayCutoff = new Date(today); birthdayCutoff.setDate(birthdayCutoff.getDate() + 30);
       setBirthdays(members.map((row) => row.profiles).filter((profile) => profile?.birthday)
         .map((profile) => ({ ...profile, nextBirthday: nextBirthday(profile.birthday) }))
@@ -67,7 +74,7 @@ export default function StaffTeam({ me }) {
         .sort((left, right) => left.nextBirthday - right.nextBirthday));
     } catch (err) {
       setError(err.message || "The unit directory could not be loaded.");
-      setTeam([]); setOnLeave([]); setBirthdays([]); setSubTeamLeads([]);
+      setTeam([]); setOnLeave([]); setBirthdays([]); setSubTeamLeads([]); setResources([]);
     } finally { setLoading(false); }
   }
   const now = new Date();
@@ -132,6 +139,13 @@ export default function StaffTeam({ me }) {
               <div className="row-t">{birthday.full_name}</div>
               <div className="row-m">{birthday.nextBirthday.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</div>
             </div>))}
+          <div className="sec"><span>Unit resources</span><span>{resources.length}</span></div>
+          {resources.length === 0 && <div className="card small">No shared unit resources have been added yet.</div>}
+          {resources.map((resource) => <a key={resource.id} className="row" href={resource.reference_url} target="_blank" rel="noreferrer noopener">
+            <div className="row-t">{resource.pinned ? "Pinned · " : ""}{resource.title}</div>
+            <div className="row-m">{resource.category.replace("_", " ")}</div>
+            {resource.description && <div className="row-note">{resource.description}</div>}
+          </a>)}
         </div>
       </div>
       </>}

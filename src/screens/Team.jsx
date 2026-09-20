@@ -49,6 +49,7 @@ export default function Team({ me, openPerson, goAssign }) {
   const [subTeams, setSubTeams] = useState([]);
   const [members, setMembers] = useState({});
   const [pending, setPending] = useState([]);
+  const [resources, setResources] = useState([]);
   const [showSetup, setShowSetup] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [name, setName] = useState("");
@@ -58,6 +59,7 @@ export default function Team({ me, openPerson, goAssign }) {
   const [editName, setEditName] = useState("");
   const [moveWorkTo, setMoveWorkTo] = useState("");
   const [removeWorkCount, setRemoveWorkCount] = useState(0);
+  const [resourceForm, setResourceForm] = useState({ id: null, title: "", category: "reference", reference_url: "", description: "", pinned: false, sort_order: 0 });
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState(null);
@@ -73,7 +75,7 @@ export default function Team({ me, openPerson, goAssign }) {
       const start = weekStart();
       const today = dayKey();
       const [membershipResult, subTeamResult, workResult, sessionResult,
-        submissionResult, leaveResult, pendingResult] = await Promise.all([
+        submissionResult, leaveResult, pendingResult, resourceResult] = await Promise.all([
         supabase.from("unit_memberships")
           .select("id, role, profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name, email, job_title)")
           .eq("unit_id", me.unit_id),
@@ -91,6 +93,8 @@ export default function Team({ me, openPerson, goAssign }) {
           .eq("status", "approved").lte("start_date", today).gte("end_date", today),
         supabase.from("pending_invitations").select("email, full_name, invited_at")
           .eq("unit_id", me.unit_id).is("resolved_at", null),
+        supabase.from("unit_resources").select("*").eq("unit_id", me.unit_id)
+          .order("active", { ascending: false }).order("pinned", { ascending: false }).order("sort_order").order("title"),
       ]);
 
       const memberships = requireResult(membershipResult, "Team members");
@@ -132,6 +136,7 @@ export default function Team({ me, openPerson, goAssign }) {
         setMembers(map);
       } else setMembers({});
       setPending(requireResult(pendingResult, "Pending invitations"));
+      setResources(requireResult(resourceResult, "Unit resources"));
     } catch (err) { setError(err.message || "The team could not be loaded."); }
     finally { setLoading(false); }
   }
@@ -207,6 +212,38 @@ export default function Team({ me, openPerson, goAssign }) {
     finally { setBusy(false); }
   }
 
+  function openResource(resource = null) {
+    setMsg(null);
+    setResourceForm(resource ? {
+      id: resource.id, title: resource.title, category: resource.category,
+      reference_url: resource.reference_url, description: resource.description || "",
+      pinned: resource.pinned, sort_order: resource.sort_order,
+    } : { id: null, title: "", category: "reference", reference_url: "", description: "", pinned: false, sort_order: resources.length });
+    setSheet("resource");
+  }
+
+  async function saveResource() {
+    setBusy(true); setMsg(null);
+    try {
+      const { error: saveError } = await supabase.rpc("save_unit_resource", {
+        p_resource_id: resourceForm.id, p_unit_id: me.unit_id, p_title: resourceForm.title.trim(),
+        p_category: resourceForm.category, p_reference_url: resourceForm.reference_url.trim(),
+        p_description: resourceForm.description.trim() || null, p_visibility: "unit",
+        p_pinned: resourceForm.pinned, p_sort_order: Number(resourceForm.sort_order) || 0,
+      });
+      if (saveError) throw saveError;
+      setSheet(null); await load();
+    } catch (err) { setMsg(err.message || "That resource could not be saved."); }
+    finally { setBusy(false); }
+  }
+
+  async function setResourceActive(resource, active) {
+    setError(null);
+    const { error: updateError } = await supabase.rpc("set_unit_resource_active", { p_resource_id: resource.id, p_active: active });
+    if (updateError) { setError(updateError.message); return; }
+    await load();
+  }
+
   const groupedPeople = subTeams.map((team) => ({
     ...team,
     people: people.filter((person) => (members[person.profile_id] || []).includes(team.id)),
@@ -279,6 +316,21 @@ export default function Team({ me, openPerson, goAssign }) {
           <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => { setSheet("subteam"); setMsg(null); }}>Add a part</button>
         </div>
       </div>}
+      {showSetup && <>
+        <div className="sec"><span>Unit resources</span><span>{resources.filter((resource) => resource.active).length} active</span></div>
+        <p className="screen-note">Share approved links and references with this unit. Files remain in their authorised source.</p>
+        {resources.map((resource) => <div key={resource.id} className="row">
+          <div className="row-t">{resource.pinned ? "Pinned · " : ""}{resource.title}</div>
+          <div className="row-m">{resource.category.replace("_", " ")} · {resource.active ? "Active" : "Archived"}</div>
+          <div className="row-note">{resource.reference_url}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => openResource(resource)}>Edit</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setResourceActive(resource, !resource.active)}>{resource.active ? "Archive" : "Restore"}</button>
+          </div>
+        </div>)}
+        {resources.length === 0 && <div className="card small">No unit resources have been added.</div>}
+        <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => openResource()}>Add a resource</button>
+      </>}
 
       {sheet === "subteam" && <Sheet onClose={() => setSheet(null)}>
         <div className="h2">Add a part of the team</div>
@@ -312,6 +364,27 @@ export default function Team({ me, openPerson, goAssign }) {
         <input className="field" placeholder="Their work email" type="email" autoCapitalize="none" value={email} onChange={(event) => setEmail(event.target.value)} />
         {msg && <div className="flag flag-amber" style={{ marginTop: 12 }}>{msg}</div>}
         <button className="btn" style={{ marginTop: 14 }} onClick={invite} disabled={busy || !email.trim() || !fullName.trim()}>{busy ? "Sending..." : "Send invitation"}</button>
+      </Sheet>}
+      {sheet === "resource" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">{resourceForm.id ? "Edit unit resource" : "Add unit resource"}</div>
+        <p className="screen-note">Use a secure link to an approved guide, template or shared document.</p>
+        <label className="field-label">Title</label>
+        <input className="field" value={resourceForm.title} onChange={(event) => setResourceForm((value) => ({ ...value, title: event.target.value }))} />
+        <label className="field-label">Category</label>
+        <select className="field" value={resourceForm.category} onChange={(event) => setResourceForm((value) => ({ ...value, category: event.target.value }))}>
+          <option value="reference">Reference</option><option value="guide">Operating guide</option>
+          <option value="template">Approved template</option><option value="run_sheet">Run sheet</option>
+          <option value="brand">Brand resource</option><option value="other">Other</option>
+        </select>
+        <label className="field-label">Secure link</label>
+        <input className="field" type="url" placeholder="https://" value={resourceForm.reference_url} onChange={(event) => setResourceForm((value) => ({ ...value, reference_url: event.target.value }))} />
+        <label className="field-label">Description (optional)</label>
+        <textarea className="field" rows="3" value={resourceForm.description} onChange={(event) => setResourceForm((value) => ({ ...value, description: event.target.value }))} />
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
+          <input type="checkbox" checked={resourceForm.pinned} onChange={(event) => setResourceForm((value) => ({ ...value, pinned: event.target.checked }))} /> Pin for the unit
+        </label>
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} onClick={saveResource} disabled={busy || !resourceForm.title.trim() || !resourceForm.reference_url.trim()}>{busy ? "Saving..." : "Save resource"}</button>
       </Sheet>}
       </>}
     </div>
