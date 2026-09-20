@@ -172,6 +172,6 @@ CREATE POLICY pr_all ON personal_reminders FOR ALL
   USING (profile_id = auth.uid()) WITH CHECK (profile_id = auth.uid());
 
 -- Seed the church's leave defaults
-INSERT INTO leave_settings (org_id) 
-SELECT id FROM organisations 
+INSERT INTO leave_settings (org_id)
+SELECT id FROM organisations
 ON CONFLICT (org_id) DO NOTHING;
