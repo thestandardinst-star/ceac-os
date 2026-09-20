@@ -15,6 +15,8 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [routine, setRoutine] = useState(null);
   const [routineOccurrences, setRoutineOccurrences] = useState([]);
   const [caseRecord, setCaseRecord] = useState(null);
+  const [requestRecord, setRequestRecord] = useState(null);
+  const [requestResponses, setRequestResponses] = useState([]);
   const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [routineValue, setRoutineValue] = useState("");
   const [routineEffective, setRoutineEffective] = useState("");
@@ -39,6 +41,21 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "request") {
+      const requestResult = await supabase.from("work_requests")
+        .select("requester_id,responsible_profile_id,responsible_unit_id,request_state,responded_at,responded_by,response_note, units:responsible_unit_id(name)")
+        .eq("work_item_id", id).single();
+      if (requestResult.error) { setErr(`Request: ${requestResult.error.message}`); return; }
+      setRequestRecord(requestResult.data);
+      const responseResult = await supabase.from("work_request_responses")
+        .select("id,actor_id,outcome,note,created_at")
+        .eq("work_item_id", id).order("created_at", { ascending: false });
+      if (responseResult.error) { setErr(`Request history: ${responseResult.error.message}`); return; }
+      setRequestResponses(responseResult.data || []);
+    } else {
+      setRequestRecord(null);
+      setRequestResponses([]);
+    }
     if (w.kind === "case") {
       const caseResult = await supabase.from("work_cases")
         .select("opened_on,target_resolution_on,case_state,resolution_note,resolved_at,resolved_by")
@@ -150,6 +167,35 @@ export default function Item({ id, me, session, isManager = false, back }) {
       if (statusError) throw statusError;
       setSheet(null); setNote(""); setLink(""); await load();
     } catch (e) { setErr(e.message || "The work could not be submitted."); }
+    finally { setBusy(false); }
+  }
+
+  async function respondRequest(outcome) {
+    if (["declined", "clarification"].includes(outcome) && !note.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("respond_work_request", {
+        p_work_item_id: id,
+        p_outcome: outcome,
+        p_note: note.trim() || null,
+      });
+      if (error) throw error;
+      setSheet(null); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The request response could not be saved."); }
+    finally { setBusy(false); }
+  }
+
+  async function provideRequestClarification() {
+    if (!note.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("provide_request_clarification", {
+        p_work_item_id: id,
+        p_note: note.trim(),
+      });
+      if (error) throw error;
+      setSheet(null); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The clarification could not be sent."); }
     finally { setBusy(false); }
   }
 
@@ -311,6 +357,33 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
 
+      {item.kind === "request" && requestRecord && <>
+        <div className="sec"><span>Request</span></div>
+        <div className="card">
+          <div className="row-t">{requestRecord.request_state.replaceAll("_", " ")}</div>
+          <div className="row-m">Responsible: {requestRecord.units?.name || (requestRecord.responsible_profile_id ? "Named person" : "—")}</div>
+          {requestRecord.response_note && <div className="row-note" style={{ marginTop: 8 }}>{requestRecord.response_note}</div>}
+        </div>
+        {requestResponses.length > 0 && <>
+          <div className="sec"><span>Response history</span><span>{requestResponses.length}</span></div>
+          {requestResponses.map((response) => <div className="row" key={response.id}>
+            <div className="row-t">{response.outcome.replaceAll("_", " ")}</div>
+            {response.note && <div className="row-m">{response.note}</div>}
+            <div className="row-note">{new Date(response.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
+          </div>)}
+        </>}
+        {requestRecord.request_state === "waiting" && (requestRecord.responsible_profile_id === me.id || isManager || me.is_admin) &&
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+            <button className="btn btn-sm" onClick={() => { setNote(""); setSheet("request-fulfilled"); }}>Mark fulfilled</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setNote(""); setSheet("request-clarification"); }}>Ask for clarification</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { setNote(""); setSheet("request-declined"); }}>Decline</button>
+          </div>}
+        {requestRecord.request_state === "clarification" && requestRecord.requester_id === me.id &&
+          <button className="btn" style={{ marginTop: 16 }} onClick={() => { setNote(""); setSheet("request-provide-clarification"); }}>Provide clarification</button>}
+        {!["fulfilled", "declined", "cancelled"].includes(requestRecord.request_state) && requestRecord.requester_id === me.id &&
+          <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => { setNote(""); setSheet("request-cancel"); }}>Cancel request</button>}
+      </>}
+
       {item.kind === "case" && caseRecord && <>
         <div className="sec"><span>Case</span></div>
         <div className="card">
@@ -363,7 +436,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
             </button>))}
         </div></>)}
 
-      {!["routine", "case"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
+      {!["routine", "case", "request"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {managerOwnWork ? "Finish this work" : "Send for review"}</button>
@@ -382,6 +455,41 @@ export default function Item({ id, me, session, isManager = false, back }) {
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+      {sheet === "request-fulfilled" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Mark request fulfilled</div>
+          <textarea className="field" rows={3} placeholder="What was provided? (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("fulfilled")} disabled={busy}>{busy ? "Saving..." : "Mark fulfilled"}</button>
+        </Sheet>)}
+
+      {sheet === "request-clarification" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Ask for clarification</div>
+          <textarea className="field" rows={3} placeholder="What needs to be clarified?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("clarification")} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Ask for clarification"}</button>
+        </Sheet>)}
+
+      {sheet === "request-declined" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Decline request</div>
+          <textarea className="field" rows={3} placeholder="Why is this request being declined?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("declined")} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Decline request"}</button>
+        </Sheet>)}
+
+      {sheet === "request-provide-clarification" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Provide clarification</div>
+          <textarea className="field" rows={3} placeholder="Clarification" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={provideRequestClarification} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Send clarification"}</button>
+        </Sheet>)}
+
+      {sheet === "request-cancel" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Cancel request</div>
+          <textarea className="field" rows={3} placeholder="Reason (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("cancelled")} disabled={busy}>{busy ? "Saving..." : "Cancel request"}</button>
+        </Sheet>)}
 
       {sheet === "case-resolve" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
