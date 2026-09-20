@@ -171,10 +171,11 @@ export default function Team({ me, openPerson, goAssign }) {
     const other = subTeams[index + direction];
     if (!other) return;
     setError(null);
-    const first = await supabase.from("sub_teams").update({ position: other.position }).eq("id", team.id).eq("unit_id", me.unit_id);
-    if (first.error) { setError(first.error.message); return; }
-    const second = await supabase.from("sub_teams").update({ position: team.position }).eq("id", other.id).eq("unit_id", me.unit_id);
-    if (second.error) { setError(second.error.message); return; }
+    const result = await supabase.rpc("swap_sub_team_positions", {
+      p_first_id: team.id,
+      p_second_id: other.id,
+    });
+    if (result.error) { setError(result.error.message); return; }
     await load();
   }
 
