@@ -2,34 +2,65 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
-const FILTERS = [["active","Active"],["waiting_on","Waiting on"],["in_review","In review"],["completed","Completed"],["private","Private"]];
+
+const MODES = [
+  ["assigned", "Assigned"],
+  ["agreed", "My agreed work"],
+  ["private", "Private"],
+];
+
+const STATUS_FILTERS = [
+  ["active", "Active"],
+  ["waiting_on", "Waiting"],
+  ["in_review", "In review"],
+  ["completed", "Completed"],
+];
+
 export default function Work({ me, isManager = false, openItem }) {
-  const [filter, setFilter] = useState("active");
+  const [mode, setMode] = useState("assigned");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [projects, setProjects] = useState([]);
   const [sheet, setSheet] = useState(null);
+  const [createVisibility, setCreateVisibility] = useState("unit");
   const [projectId, setProjectId] = useState("");
   const [title, setTitle] = useState("");
+  const [purpose, setPurpose] = useState("");
+  const [expectedOutcome, setExpectedOutcome] = useState("");
   const [due, setDue] = useState("");
   const [steps, setSteps] = useState([""]);
+  const [noStepsNeeded, setNoStepsNeeded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
-  useEffect(() => { load(); }, [filter, me.id, isManager]);
+
+  useEffect(() => { load(); }, [mode, statusFilter, me.id, isManager]);
   useEffect(() => { loadProjects(); }, [me.id, me.unit_id]);
+
   async function load() {
     setLoading(true);
     setLoadError(null);
     setItems([]);
-    let q = supabase.from("work_items")
-      .select("id, ref, title, kind, status, due_at, visibility, projects(name)").eq("assignee_id", me.id);
-    if (filter === "active") q = q.in("status", ["not_started", "in_progress", "returned"]).eq("visibility", "unit");
-    else if (filter === "private") q = q.eq("visibility", "private");
-    else if (filter === "completed") q = q.in("status", ["completed", "self_certified"]);
-    else q = q.eq("status", filter);
-    const { data, error } = await q.order("due_at", { ascending: true, nullsFirst: false });
-    if (error) { setLoadError(error.message); setLoading(false); return; }
+
+    let query = supabase.from("work_items")
+      .select("id,ref,title,kind,status,due_at,visibility,origin,expected_outcome,projects(name)")
+      .eq("assignee_id", me.id);
+
+    if (mode === "assigned") query = query.eq("visibility", "unit").eq("origin", "assigned");
+    if (mode === "agreed") query = query.eq("visibility", "unit").eq("origin", "self_created");
+    if (mode === "private") query = query.eq("visibility", "private");
+
+    if (statusFilter === "active") query = query.in("status", ["not_started", "in_progress", "returned"]);
+    else if (statusFilter === "completed") query = query.in("status", ["completed", "self_certified"]);
+    else query = query.eq("status", statusFilter);
+
+    const { data, error } = await query.order("due_at", { ascending: true, nullsFirst: false });
+    if (error) {
+      setLoadError(error.message);
+      setLoading(false);
+      return;
+    }
     setItems(data || []);
     setLoading(false);
   }
@@ -46,39 +77,69 @@ export default function Work({ me, isManager = false, openItem }) {
     ));
   }
 
+  function openCreate(visibility) {
+    setCreateVisibility(visibility);
+    setProjectId("");
+    setTitle("");
+    setPurpose("");
+    setExpectedOutcome("");
+    setDue("");
+    setSteps([""]);
+    setNoStepsNeeded(false);
+    setNotice(null);
+    setSheet("self");
+  }
+
   async function createOwnTask() {
-    const clean = steps.map((step) => step.trim()).filter(Boolean);
-    if (!projectId || !title.trim() || !due || !clean.length) return;
-    setBusy(true); setLoadError(null); setNotice(null);
+    const clean = noStepsNeeded ? [] : steps.map((step) => step.trim()).filter(Boolean);
+    if (!title.trim() || !expectedOutcome.trim() || (!noStepsNeeded && !clean.length)) return;
+
+    setBusy(true);
+    setLoadError(null);
+    setNotice(null);
     try {
       const { data: ref, error: refError } = await supabase.rpc("next_work_ref", {
-        p_unit_id: me.unit_id, p_sub_team_id: null,
+        p_unit_id: me.unit_id,
+        p_sub_team_id: null,
       });
       if (refError) throw refError;
-      const dueIso = new Date(due).toISOString();
+
+      const dueIso = due ? new Date(due).toISOString() : null;
       const itemId = crypto.randomUUID();
+
       const { error: itemError } = await supabase.from("work_items").insert({
         id: itemId,
         org_id: me.org_id,
         ref,
         kind: "task",
         unit_id: me.unit_id,
-        project_id: projectId,
+        project_id: projectId || null,
         assignee_id: me.id,
         assigned_by: me.id,
         title: title.trim(),
+        purpose: purpose.trim() || null,
+        expected_outcome: expectedOutcome.trim(),
         original_due_at: dueIso,
         due_at: dueIso,
         origin: "self_created",
+        visibility: createVisibility,
         status: "not_started",
       });
       if (itemError) throw itemError;
-      const { error: checklistError } = await supabase.from("checklist_items").insert(
-        clean.map((label, index) => ({ work_item_id: itemId, label, position: index + 1 }))
-      );
-      if (checklistError) throw new Error(`Task ${ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
-      setSheet(null); setProjectId(""); setTitle(""); setDue(""); setSteps([""]);
-      setNotice(`${ref} added to your work. It appears immediately in your record.`);
+
+      if (clean.length) {
+        const { error: checklistError } = await supabase.from("checklist_items").insert(
+          clean.map((label, index) => ({ work_item_id: itemId, label, position: index + 1 }))
+        );
+        if (checklistError) throw new Error(`Task ${ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
+      }
+
+      setSheet(null);
+      setMode(createVisibility === "private" ? "private" : "agreed");
+      setStatusFilter("active");
+      setNotice(createVisibility === "private"
+        ? `${ref} added as private work. Only you can see it.`
+        : `${ref} added to your agreed work. It appears immediately in your record.`);
       await load();
     } catch (error) {
       setLoadError(error.message || "The work could not be added.");
@@ -86,68 +147,129 @@ export default function Work({ me, isManager = false, openItem }) {
       setBusy(false);
     }
   }
+
   const grouped = {};
-  items.forEach((i) => {
-    const k = i.projects ? i.projects.name : "Other work";
-    if (!grouped[k]) grouped[k] = [];
-    grouped[k].push(i);
+  items.forEach((item) => {
+    const key = item.projects ? item.projects.name : "Not attached to a project";
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(item);
   });
-  return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">My work</h1>
-        <p className="screen-note">Everything assigned to you, and anything you added yourself.</p>
+
+  const modeNote = mode === "assigned"
+    ? "Formal work given to you."
+    : mode === "agreed"
+      ? "Work you already agreed to carry and recorded yourself."
+      : "Personal work visible only to you. It is not counted in formal CEAC reports.";
+
+  return <div className="body staff-work">
+    <div className="staff-page-intro">
+      <h1 className="h1">My work</h1>
+      <p className="screen-note">See what was assigned, record work you already agreed to carry, or keep private work for yourself.</p>
+    </div>
+
+    <div className="staff-segment" role="tablist" aria-label="Work source">
+      {MODES.map(([key, label]) => <button
+        key={key}
+        role="tab"
+        aria-selected={mode === key}
+        className={mode === key ? "on" : ""}
+        onClick={() => { setMode(key); setStatusFilter("active"); }}
+      >{label}</button>)}
+    </div>
+    <p className="context-note">{modeNote}</p>
+
+    <div className="work-actions">
+      <button className="btn btn-sm" onClick={() => openCreate("unit")}>Add agreed work</button>
+      <button className="btn btn-ghost btn-sm" onClick={() => openCreate("private")}>Add private work</button>
+    </div>
+
+    {notice && <div className="flag flag-green" style={{ marginTop: 12 }}>{notice}</div>}
+
+    <div className="status-filter" aria-label="Work status">
+      {STATUS_FILTERS.map(([key, label]) => <button
+        key={key}
+        className={statusFilter === key ? "on" : ""}
+        onClick={() => setStatusFilter(key)}
+      >{label}</button>)}
+    </div>
+
+    {loadError && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not load your work</h4>{loadError}</div>}
+    {loading && <div className="spin">Loading your work...</div>}
+
+    {!loading && Object.keys(grouped).map((project) => <section key={project} className="work-group">
+      <div className="work-group-head"><strong>{project}</strong><span>{grouped[project].length}</span></div>
+      <div className="work-list">
+        {grouped[project].map((item) => <button key={item.id} className="work-list-row" onClick={() => openItem(item.id)}>
+          <div className="work-list-main">
+            <strong>{item.title}</strong>
+            <span>{item.ref} · {item.kind.replaceAll("_", " ")}</span>
+            {item.expected_outcome && <small>{item.expected_outcome}</small>}
+          </div>
+          <div className="work-list-side">
+            {statusPill(item.status)}
+            <span>{dueLabel(item.due_at)}</span>
+          </div>
+        </button>)}
       </div>
-      <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => { setSheet("self"); setNotice(null); }}>Add agreed work</button>
-      <p className="small" style={{ marginTop: 7 }}>Add work you already agreed to carry. It appears immediately in your record and does not need separate approval before you start.</p>
-      {notice && <div className="flag flag-green" style={{ marginTop: 10 }}>{notice}</div>}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
-        {FILTERS.map(([k, label]) => (
-          <button key={k} onClick={() => setFilter(k)} style={{
-            fontSize: 12.5, padding: "6px 12px", borderRadius: 20, border: "1px solid var(--line)",
-            background: filter === k ? "var(--ink)" : "var(--card)",
-            color: filter === k ? "#fff" : "var(--ink-soft)", fontWeight: filter === k ? 600 : 400,
-          }}>{label}</button>))}
-      </div>
-      {loadError && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not load your work</h4>{loadError}</div>}
-      {loading && <div className="spin">Loading your work...</div>}
-      {!loading && Object.keys(grouped).map((project) => (
-        <div key={project}>
-          <div className="sec"><span>{project}</span><span>{grouped[project].length}</span></div>
-          {grouped[project].map((i) => (
-            <button key={i.id} className="row" onClick={() => openItem(i.id)}>
-              <div className="row-t">{i.title}</div>
-              <div className="row-m">{i.ref} · {i.kind.replaceAll("_", " ")} · {dueLabel(i.due_at)}</div>
-              <div style={{ marginTop: 7, display: "flex", gap: 6 }}>
-                {statusPill(i.status)}
-                {i.visibility === "private" && <span className="pill p-grey">Only you can see this</span>}
-              </div>
-            </button>))}
-        </div>))}
-      {!loading && !loadError && items.length === 0 && (
-        <div className="empty"><h3>Nothing here</h3>
-          <p>{filter === "private" ? "Private items are yours alone — they appear in no report and nobody else can see them." : "Nothing in this list at the moment."}</p>
+    </section>)}
+
+    {!loading && !loadError && items.length === 0 && <div className="quiet-empty">
+      <strong>Nothing here right now</strong>
+      <span>{mode === "private"
+        ? "Private work you add will stay here and remain visible only to you."
+        : statusFilter === "active"
+          ? "There is no active work in this view."
+          : "There is no work in this status."}</span>
+    </div>}
+
+    {sheet === "self" && <Sheet onClose={() => !busy && setSheet(null)}>
+      <div className="eyebrow">{createVisibility === "private" ? "Only you can see this" : "Your agreed CEAC work"}</div>
+      <div className="h2" style={{ marginTop: 5 }}>{createVisibility === "private" ? "Add private work" : "Add agreed work"}</div>
+      <p className="screen-note">
+        {createVisibility === "private"
+          ? "Use this for work or planning you want to keep to yourself."
+          : "Record work you already agreed to carry. You can attach it to a project, but you do not have to."}
+      </p>
+
+      <input className="field" placeholder="What are you doing?" value={title} onChange={(event) => setTitle(event.target.value)} />
+      <textarea className="field" rows={2} placeholder="Why it matters (optional)" value={purpose} onChange={(event) => setPurpose(event.target.value)} />
+      <textarea className="field" rows={3} placeholder="What should be true when this is finished?" value={expectedOutcome} onChange={(event) => setExpectedOutcome(event.target.value)} />
+
+      <select className="field" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
+        <option value="">No project attached</option>
+        {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+      </select>
+
+      <label className="field-label">Due date (optional)</label>
+      <input className="field" type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} />
+
+      <label className="card small no-steps-option">
+        <input type="checkbox" checked={noStepsNeeded} onChange={(event) => setNoStepsNeeded(event.target.checked)} />
+        <span>No steps needed — I will determine the method.</span>
+      </label>
+
+      {!noStepsNeeded && <>
+        <div className="small" style={{ marginTop: 12 }}>Completion steps</div>
+        {steps.map((step, index) => <div className="inline-step" key={index}>
+          <input
+            className="field"
+            placeholder={index === 0 ? "What must be done?" : "Another step (optional)"}
+            value={step}
+            onChange={(event) => setSteps((current) => current.map((value, i) => i === index ? event.target.value : value))}
+          />
+          {steps.length > 1 && <button type="button" className="text-action" onClick={() => setSteps((current) => current.filter((_, i) => i !== index))}>Remove</button>}
         </div>)}
-      {sheet === "self" && <Sheet onClose={() => !busy && setSheet(null)}>
-        <div className="h2">Add agreed work</div>
-        <p className="screen-note">For a task you already agreed to carry. Choose the project, say what you are doing, when it is due, and one clear completion point.</p>
-        <select className="field" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
-          <option value="">Project</option>
-          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-        </select>
-        <input className="field" placeholder="What I am doing" value={title} onChange={(event) => setTitle(event.target.value)} />
-        <input className="field" type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} />
-        <div className="small" style={{ marginTop: 12 }}>Completion checklist</div>
-        {steps.map((step, index) => <input key={index} className="field" placeholder={index === 0 ? "What must be true when this is finished?" : "Another completion point (optional)"} value={step}
-          onChange={(event) => setSteps((current) => current.map((value, i) => i === index ? event.target.value : value))} />)}
-        {steps.length < 4 && <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
+        {steps.length < 6 && <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
           disabled={!steps[steps.length - 1]?.trim()}
-          onClick={() => setSteps((current) => [...current, ""])}>+ Add another step</button>}
-        <div className="hint">Agreed work needs at least one checklist point before it can be added.</div>
-        {projects.length === 0 && <div className="flag flag-amber" style={{ marginTop: 10 }}>No active project in your unit is available. This task cannot be added as agreed project work yet.</div>}
-        <button className="btn" style={{ marginTop: 14 }} disabled={busy || !projectId || !title.trim() || !due || !steps.some((step) => step.trim())} onClick={createOwnTask}>
-          {busy ? "Adding..." : "Add to my work"}
-        </button>
-      </Sheet>}
-    </div>);
+          onClick={() => setSteps((current) => [...current, ""])}>Add another step</button>}
+      </>}
+
+      <button
+        className="btn"
+        style={{ marginTop: 16 }}
+        disabled={busy || !title.trim() || !expectedOutcome.trim() || (!noStepsNeeded && !steps.some((step) => step.trim()))}
+        onClick={createOwnTask}
+      >{busy ? "Adding..." : createVisibility === "private" ? "Add private work" : "Add to my work"}</button>
+    </Sheet>}
+  </div>;
 }
