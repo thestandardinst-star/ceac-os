@@ -139,3 +139,60 @@ Still required before merge:
 - end-to-end deployed-preview mutation checks.
 
 Do not claim these interactive checks passed until they are actually exercised.
+
+
+## Client build sequence completed without Claude — 20 September 2026
+
+The three agreed client-only builds after the PR #4 audit are now complete.
+
+### 1. Assignment warnings + context-aware Task prefill
+
+- Give out work preserves project, objective, phase and sub-team context when opened from those surfaces.
+- Manager Team can open Give out work preselected to a specific work lane.
+- Task assignment now surfaces deterministic factual warnings from existing authorised records:
+  - assignee marked inactive;
+  - due date falling during that assignee's approved leave;
+  - selected project recorded as closed;
+  - task due before project start;
+  - task due after project end;
+  - selected objective already carrying a recorded terminal outcome.
+- Warnings do not invent a score or make the human decision.
+- All seven work kinds remain visible and explained, but unsupported kinds still cannot be saved with Task semantics.
+
+### 2. Manager project attention + recent movement
+
+- Active project attention now also identifies active objectives that have no active work attached.
+- Existing at-risk/not-met objective, near-end and open-deliverable signals remain factual and clickable.
+- Project attention counts/chips open the project or the exact underlying work list.
+- Manager Home now includes a role-scoped Recent movement section built only from authorised work submissions and completed Task/Deliverable rows from the last seven days.
+- Recent movement opens the canonical work item and does not use a fabricated activity feed.
+
+### 3. Manager Finance request creation
+
+Before client work, the live Supabase contract was inspected directly.
+
+Verified `finance_requests` insert contract:
+- required: `org_id`, `unit_id`, `requested_by`, `title`, positive `amount_minor`, valid `currency`;
+- optional: `project_id`, `justification`, `needed_by`;
+- state defaults to `submitted`;
+- RLS permits insert only where `requested_by = auth.uid()` and `unit_id` is in `app_managed_units()`;
+- allowed currencies are GHS, USD, GBP, EUR, NGN, ZAR and CAD.
+
+The live security state also confirms ordinary authenticated clients cannot execute `finance_request_path` directly. The Manager UI therefore does not simulate or expose an approval path. It submits the authorised request row and leaves approval routing to the secured Finance workflow.
+
+Manager Finance now:
+- allows a unit manager to submit a finance request;
+- keeps budget/spend/transfer records read-only;
+- supports optional project and needed-by context;
+- stores amounts in minor units for the selected currency;
+- performs no currency conversion;
+- refreshes the recorded request list after submission.
+
+### Validation
+
+Final head for this sequence: `d8aa658d33d18485c9354f17e4643cc61587f5b5`
+
+GitHub CI run #28: **success**  
+Vercel deployment status: **success**
+
+Functional expansion should stop here until the authenticated interaction pass is completed and Claude returns for backend-owned contracts.
