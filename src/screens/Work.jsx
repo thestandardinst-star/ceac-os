@@ -6,6 +6,7 @@ const FILTERS = [["active","Active"],["waiting_on","Waiting on"],["in_review","I
 export default function Work({ me, isManager = false, openItem }) {
   const [filter, setFilter] = useState("active");
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [projects, setProjects] = useState([]);
   const [sheet, setSheet] = useState(null);
@@ -18,17 +19,19 @@ export default function Work({ me, isManager = false, openItem }) {
   useEffect(() => { load(); }, [filter, me.id, isManager]);
   useEffect(() => { loadProjects(); }, [me.id, me.unit_id]);
   async function load() {
+    setLoading(true);
     setLoadError(null);
     setItems([]);
     let q = supabase.from("work_items")
       .select("id, ref, title, status, due_at, visibility, projects(name)").eq("assignee_id", me.id);
     if (filter === "active") q = q.in("status", ["not_started", "in_progress", "returned"]).eq("visibility", "unit");
     else if (filter === "private") q = q.eq("visibility", "private");
-    else if (filter === "completed" && isManager) q = q.in("status", ["completed", "self_certified"]);
+    else if (filter === "completed") q = q.in("status", ["completed", "self_certified"]);
     else q = q.eq("status", filter);
     const { data, error } = await q.order("due_at", { ascending: true, nullsFirst: false });
-    if (error) { setLoadError(error.message); return; }
+    if (error) { setLoadError(error.message); setLoading(false); return; }
     setItems(data || []);
+    setLoading(false);
   }
 
   async function loadProjects() {
@@ -106,7 +109,8 @@ export default function Work({ me, isManager = false, openItem }) {
           }}>{label}</button>))}
       </div>
       {loadError && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not load your work</h4>{loadError}</div>}
-      {Object.keys(grouped).map((project) => (
+      {loading && <div className="spin">Loading your work...</div>}
+      {!loading && Object.keys(grouped).map((project) => (
         <div key={project}>
           <div className="sec"><span>{project}</span><span>{grouped[project].length}</span></div>
           {grouped[project].map((i) => (
@@ -119,7 +123,7 @@ export default function Work({ me, isManager = false, openItem }) {
               </div>
             </button>))}
         </div>))}
-      {items.length === 0 && (
+      {!loading && !loadError && items.length === 0 && (
         <div className="empty"><h3>Nothing here</h3>
           <p>{filter === "private" ? "Private items are yours alone — they appear in no report and nobody else can see them." : "Nothing in this list at the moment."}</p>
         </div>)}
