@@ -145,9 +145,8 @@ export default function Home({ me, session, setSession, openItem }) {
     {loading && <div className="spin">Loading Home...</div>}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
-      <section className="home-panel home-panel-priority" aria-labelledby="staff-attention-heading">
+      {attention > 0 && <section className="home-panel home-panel-priority" aria-labelledby="staff-attention-heading">
         <div className="home-section-head"><div><div className="home-kicker">Deal with these first</div><h2 id="staff-attention-heading">Needs attention</h2></div><span className="home-count home-count-attention">{attention}</span></div>
-        {attention === 0 && <div className="home-quiet home-quiet-success">Nothing needs urgent attention.</div>}
         {returned.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
         {visibleAlerts.map((alert) => alert.subject_id
           ? <button key={alert.id} className="row home-work-row home-tone-attention" onClick={() => openItem(alert.subject_id)}>
@@ -162,34 +161,36 @@ export default function Home({ me, session, setSession, openItem }) {
           {blocker.work_item_id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open work</button>}
         </div>)}
         {overdue.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
-      </section>
+      </section>}
 
       <section className="home-panel home-panel-pulse" aria-labelledby="staff-today-heading">
         <div className="home-section-head"><div><div className="home-kicker">Current focus</div><h2 id="staff-today-heading">Today</h2></div><span className="home-count">{dueToday.length}</span></div>
         {dueToday.length ? dueToday.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work is due today.</div>}
       </section>
 
-      <section className="home-panel" aria-labelledby="staff-soon-heading">
+      {dueSoon.length > 0 && <section className="home-panel" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next seven days</div><h2 id="staff-soon-heading">Due soon</h2></div><span className="home-count">{dueSoon.length}</span></div>
-        {dueSoon.length ? dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">Nothing else is due in the next seven days.</div>}
-      </section>
+        {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
+      </section>}
 
-      <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
+      {waiting.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
         <div className="home-section-head"><div><div className="home-kicker">Paused dependencies</div><h2 id="staff-waiting-heading">Waiting on</h2></div><span className="home-count">{waiting.length}</span></div>
-        {waiting.length ? waiting.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="attention" />) : <div className="home-quiet">No work is waiting on someone else.</div>}
-      </section>
+        {waiting.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="attention" />)}
+      </section>}
 
-      <section className="home-panel" aria-labelledby="staff-feedback-heading">
+      {feedback.length > 0 && <section className="home-panel" aria-labelledby="staff-feedback-heading">
         <div className="home-section-head"><div><div className="home-kicker">Visible to you</div><h2 id="staff-feedback-heading">Recent feedback</h2></div></div>
-        {feedback.length ? feedback.map((note) => <div key={note.id} className="row home-feedback-row">
+        {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"}</div><div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div><div className="row-note">{note.note}</div>
-        </div>) : <div className="home-quiet">No recent manager feedback.</div>}
-      </section>
+        </div>)}
+      </section>}
 
-      <section className="home-panel home-panel-week" aria-labelledby="staff-upcoming-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Further ahead</div><h2 id="staff-upcoming-heading">Upcoming</h2></div></div>
-        {upcoming.length ? upcoming.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No later deadlines are currently recorded.</div>}
-        <div className="home-subhead home-subhead-spaced">This week</div>
+      <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">
+        {upcoming.length > 0 && <>
+          <div className="home-section-head"><div><div className="home-kicker">Further ahead</div><h2 id="staff-upcoming-heading">Upcoming</h2></div></div>
+          {upcoming.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
+        </>}
+        <div className={`home-subhead ${upcoming.length ? "home-subhead-spaced" : ""}`} id="staff-week-heading">This week</div>
         <div className="home-stat-grid">
           <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
           <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
