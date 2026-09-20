@@ -119,9 +119,13 @@ export default function Finance({ me }) {
   }
 
   async function respond(t, state, note) {
-    await supabase.from("internal_transfers").update({
+    const { error } = await supabase.from("internal_transfers").update({
       state, responded_by: me.id, responded_at: new Date().toISOString(),
       response_note: note || null }).eq("id", t.id);
+    if (error) {
+      setMsg(error.message || "The transfer decision could not be saved.");
+      return;
+    }
     await load();
   }
 
