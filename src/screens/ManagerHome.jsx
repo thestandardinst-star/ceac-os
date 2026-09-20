@@ -138,6 +138,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const leaveIds = new Set(requireResult(approvedLeaveResult, "Today’s leave").map((request) => request.profile_id));
       const todayOutput = requireResult(todayOutputResult, "Today’s completed work");
       const todaySubmissions = requireResult(todaySubmissionResult, "Today’s submissions");
+      const submittedWorkMap = new Map();
+      todaySubmissions.forEach((submission) => {
+        if (submission.work_items?.id && !submittedWorkMap.has(submission.work_items.id)) {
+          submittedWorkMap.set(submission.work_items.id, submission.work_items);
+        }
+      });
+      const submittedWork = [...submittedWorkMap.values()];
       const people = members.map((member) => ({
         id: member.profile_id,
         name: member.profiles?.full_name || "—",
@@ -149,7 +156,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         present: people.filter((person) => !leaveIds.has(person.id) && presentIds.has(person.id)),
         notStarted: people.filter((person) => !leaveIds.has(person.id) && !presentIds.has(person.id)),
         completed: todayOutput,
-        submitted: todaySubmissions.map((submission) => submission.work_items).filter(Boolean),
+        submitted: submittedWork,
       });
 
       const tasks = requireResult(weekResult, "This week");
@@ -344,7 +351,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       <div className="home-subhead home-subhead-spaced">Work movement today</div>
       <div className="home-stat-grid">
         <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Submitted</span></button>
+        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
         <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
       </div>
       {drill?.zone === "team" && <div className="home-drill">
