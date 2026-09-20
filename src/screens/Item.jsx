@@ -14,6 +14,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [units, setUnits] = useState([]);
   const [routine, setRoutine] = useState(null);
   const [routineOccurrences, setRoutineOccurrences] = useState([]);
+  const [caseRecord, setCaseRecord] = useState(null);
   const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [routineValue, setRoutineValue] = useState("");
   const [routineEffective, setRoutineEffective] = useState("");
@@ -38,6 +39,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "case") {
+      const caseResult = await supabase.from("work_cases")
+        .select("opened_on,target_resolution_on,case_state,resolution_note,resolved_at,resolved_by")
+        .eq("work_item_id", id).single();
+      if (caseResult.error) { setErr(`Case: ${caseResult.error.message}`); return; }
+      setCaseRecord(caseResult.data);
+    } else setCaseRecord(null);
     if (w.kind === "routine") {
       const routineResult = await supabase.from("recurring_operations")
         .select("id,name,cadence,records_value,value_label,active,starts_on,ends_on,paused_at,schedule_kind,weekdays,day_of_month")
@@ -142,6 +150,20 @@ export default function Item({ id, me, session, isManager = false, back }) {
       if (statusError) throw statusError;
       setSheet(null); setNote(""); setLink(""); await load();
     } catch (e) { setErr(e.message || "The work could not be submitted."); }
+    finally { setBusy(false); }
+  }
+
+  async function resolveCase() {
+    if (!note.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("resolve_work_case", {
+        p_work_item_id: id,
+        p_resolution_note: note.trim(),
+      });
+      if (error) throw error;
+      setSheet(null); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The case could not be resolved."); }
     finally { setBusy(false); }
   }
 
@@ -289,6 +311,17 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
 
+      {item.kind === "case" && caseRecord && <>
+        <div className="sec"><span>Case</span></div>
+        <div className="card">
+          <div className="row-t">{caseRecord.case_state === "resolved" ? "Resolved" : "Open case"}</div>
+          <div className="row-m">Opened {caseRecord.opened_on}{caseRecord.target_resolution_on ? ` · target ${caseRecord.target_resolution_on}` : ""}</div>
+          {caseRecord.resolution_note && <div className="row-note" style={{ marginTop: 8 }}>{caseRecord.resolution_note}</div>}
+        </div>
+        {caseRecord.case_state === "open" && (item.assignee_id === me.id || me.is_admin) &&
+          <button className="btn" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("case-resolve"); }}>Record resolution</button>}
+      </>}
+
       {item.kind === "routine" && routine && <>
         <div className="sec"><span>Routine schedule</span></div>
         <div className="card">
@@ -330,7 +363,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
             </button>))}
         </div></>)}
 
-      {item.kind !== "routine" && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
+      {!["routine", "case"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {managerOwnWork ? "Finish this work" : "Send for review"}</button>
@@ -349,6 +382,15 @@ export default function Item({ id, me, session, isManager = false, back }) {
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+      {sheet === "case-resolve" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Resolve this case</div>
+          <p className="screen-note">Record how the matter ended. The resolution stays in the case history.</p>
+          <textarea className="field" rows={4} placeholder="What resolved the case?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={resolveCase} disabled={busy || !note.trim()}>
+            {busy ? "Saving..." : "Resolve case"}</button>
+        </Sheet>)}
 
       {sheet === "routine-record" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
