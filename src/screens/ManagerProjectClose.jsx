@@ -150,106 +150,45 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     if (missingObjective || noDeliverable || !challenges.trim() || !doDifferently.trim()) return;
     setBusy(true); setError(null);
     try {
-      let draftQuery = supabase.from("project_closes")
-        .select("id,version")
-        .eq("project_id", project.id)
-        .eq("scope", sheet.scope)
-        .eq("status", "draft")
-        .eq("author_id", me.id);
-      draftQuery = sheet.scope === "unit"
-        ? draftQuery.eq("unit_id", me.unit_id)
-        : draftQuery.is("unit_id", null);
-      const draftResult = await draftQuery
-        .order("version", { ascending: false })
-        .limit(1);
-      if (draftResult.error) throw new Error(`Existing draft: ${draftResult.error.message}`);
-      let close = draftResult.data?.[0] || null;
-
-      if (close) {
-        const { error: updateError } = await supabase.from("project_closes").update({
-          deliverables_note: deliverablesNote.trim() || null,
-          challenges: challenges.trim(),
-          do_differently: doDifferently.trim(),
-        }).eq("id", close.id);
-        if (updateError) throw updateError;
-
-        const clearResults = await Promise.all([
-          supabase.from("project_close_objectives").delete().eq("close_id", close.id),
-          supabase.from("project_close_deliverables").delete().eq("close_id", close.id),
-          supabase.from("project_close_costs").delete().eq("close_id", close.id),
-        ]);
-        const clearError = clearResults.map((result) => result.error).find(Boolean);
-        if (clearError) throw new Error(`Existing draft could not be refreshed: ${clearError.message}`);
-      } else {
-        const versionResult = await supabase.rpc("next_close_version", {
-          p_project_id: project.id,
-          p_scope: sheet.scope,
-          p_unit_id: sheet.scope === "unit" ? me.unit_id : null,
-        });
-        if (versionResult.error) throw new Error(`Close version: ${versionResult.error.message}`);
-        const version = Number(versionResult.data);
-        const createResult = await supabase.from("project_closes").insert({
-          org_id: me.org_id,
-          project_id: project.id,
-          scope: sheet.scope,
-          unit_id: sheet.scope === "unit" ? me.unit_id : null,
-          version,
-          status: "draft",
-          deliverables_note: deliverablesNote.trim() || null,
-          challenges: challenges.trim(),
-          do_differently: doDifferently.trim(),
-          author_id: me.id,
-        }).select("id,version").single();
-        if (createResult.error) throw createResult.error;
-        close = createResult.data;
-      }
-
       const objectivePayload = currentObjectives.map((objective) => ({
-        close_id: close.id,
         objective_id: objective.id,
         outcome: objectiveRows[objective.id].outcome,
         note: objectiveRows[objective.id].note.trim(),
       }));
-      if (objectivePayload.length) {
-        const { error: objectiveError } = await supabase.from("project_close_objectives").insert(objectivePayload);
-        if (objectiveError) throw objectiveError;
-      }
-
-      const deliverablePayload = selectedDeliverables.map((id, index) => {
-        const item = currentDeliverables.find((row) => row.id === id);
+      const deliverablePayload = selectedDeliverables.map((workItemId, index) => {
+        const item = currentDeliverables.find((row) => row.id === workItemId);
         const submission = latestSubmission(item || {});
         return {
-          close_id: close.id,
           work_item_id: item?.id || null,
           submission_id: submission?.id || null,
           description: item?.title || "Recorded deliverable",
           position: index + 1,
         };
       });
-      if (deliverablePayload.length) {
-        const { error: deliverableError } = await supabase.from("project_close_deliverables").insert(deliverablePayload);
-        if (deliverableError) throw deliverableError;
-      }
-
       const costPayload = completeCosts.map((row) => ({
-        close_id: close.id,
         currency: row.currency,
         planned_amount_minor: Number(row.planned),
         actual_amount_minor: Number(row.actual),
       }));
-      if (costPayload.length) {
-        const { error: costError } = await supabase.from("project_close_costs").insert(costPayload);
-        if (costError) throw costError;
-      }
 
-      const { error: submitError } = await supabase.rpc("submit_project_close", { p_close_id: close.id });
+      const { error: submitError } = await supabase.rpc("save_and_submit_project_close", {
+        p_project_id: project.id,
+        p_scope: sheet.scope,
+        p_unit_id: sheet.scope === "unit" ? me.unit_id : null,
+        p_deliverables_note: deliverablesNote.trim() || null,
+        p_challenges: challenges.trim(),
+        p_do_differently: doDifferently.trim(),
+        p_objectives: objectivePayload,
+        p_deliverables: deliverablePayload,
+        p_costs: costPayload,
+      });
       if (submitError) throw submitError;
 
       setSheet(null);
       await load();
       if (onRefresh) await onRefresh();
     } catch (err) {
-      setError(err.message || "The project return could not be submitted. A draft may have been saved; nothing was silently discarded.");
+      setError(err.message || "The project return could not be submitted. No partial close was saved.");
     } finally {
       setBusy(false);
     }
