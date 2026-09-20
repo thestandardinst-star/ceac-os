@@ -7,7 +7,7 @@ const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
   ["routine", "Routine", "Work that repeats on a schedule.", true],
   ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", true],
-  ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", false],
+  ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", true],
   ["decision", "Decision", "A choice that someone needs to make and record.", false],
   ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting.", false],
   ["deliverable", "Deliverable", "A finished output that must be produced and shown.", false],
@@ -20,6 +20,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [projects, setProjects] = useState([]);
   const [objectives, setObjectives] = useState([]);
   const [phases, setPhases] = useState([]);
+  const [units, setUnits] = useState([]);
   const [title, setTitle] = useState("");
   const [purpose, setPurpose] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -43,6 +44,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [routineValueLabel, setRoutineValueLabel] = useState("");
   const [caseOpenedOn, setCaseOpenedOn] = useState(() => new Date().toISOString().slice(0, 10));
   const [caseTargetOn, setCaseTargetOn] = useState("");
+  const [requestResponsibleUnit, setRequestResponsibleUnit] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -60,16 +62,19 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   async function load() {
     if (!me.unit_id) return;
     setErr(null);
-    const [peopleResult, leaveResult] = await Promise.all([
+    const [peopleResult, leaveResult, unitResult] = await Promise.all([
       supabase.from("unit_memberships")
         .select("profile_id, profiles(full_name,active)").eq("unit_id", me.unit_id),
       supabase.from("leave_requests")
         .select("id,profile_id,kind,start_date,end_date,status")
         .eq("status", "approved"),
+      supabase.from("units").select("id,name").order("name"),
     ]);
     if (peopleResult.error) { setErr(peopleResult.error.message); return; }
     if (leaveResult.error) { setErr(leaveResult.error.message); return; }
+    if (unitResult.error) { setErr(unitResult.error.message); return; }
     setPeople(peopleResult.data || []);
+    setUnits(unitResult.data || []);
     const memberIds = new Set((peopleResult.data || []).map((row) => row.profile_id));
     setApprovedLeave((leaveResult.data || []).filter((row) => memberIds.has(row.profile_id)));
     const { data: st, error: teamError } = await supabase.from("sub_teams")
@@ -140,6 +145,35 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
+
+      if (kind === "request") {
+        const { data: workId, error: requestError } = await supabase.rpc("create_typed_work", {
+          p_kind: "request",
+          p_unit_id: me.unit_id,
+          p_title: title.trim(),
+          p_assignee_id: assignee || null,
+          p_sub_team_id: subTeam || null,
+          p_project_id: project || null,
+          p_phase_id: project && phase ? phase : null,
+          p_objective_id: project && objective ? objective : null,
+          p_responsibility_id: null,
+          p_purpose: purpose.trim() || null,
+          p_expected_outcome: expectedOutcome.trim() || null,
+          p_due_at: due ? new Date(due).toISOString() : null,
+          p_visibility: "unit",
+          p_confidential: false,
+          p_details: {
+            ...(requestResponsibleUnit ? { responsible_unit_id: requestResponsibleUnit } : {}),
+          },
+        });
+        if (requestError) throw requestError;
+        const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
+        if (createdResult.error) throw createdResult.error;
+        setDone(createdResult.data.ref);
+        setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
+        setRequestResponsibleUnit(""); setKind("task"); setVoiceHint(null);
+        return;
+      }
 
       if (kind === "case") {
         const { data: workId, error: caseError } = await supabase.rpc("create_typed_work", {
@@ -275,6 +309,11 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
             Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.
           </div>}
+          {kind === "request" && <>
+            <input className="field" placeholder="What do you need?" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="What should be provided or resolved? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+          </>}
           {kind === "case" && <>
             <input className="field" placeholder="What matter needs to stay open?" value={title} onChange={(e) => setTitle(e.target.value)} />
             <textarea className="field" rows={3} placeholder="Why this case matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
@@ -341,6 +380,32 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             </label>
           </>}
         </div>
+        {kind === "request" && <div className="side-col">
+          <div className="sec"><span>Who should respond</span></div>
+          <select className="field" value={requestResponsibleUnit} onChange={(e) => { setRequestResponsibleUnit(e.target.value); setAssignee(""); }}>
+            <option value="">Choose responsible unit</option>
+            {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+          </select>
+          <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <option value="">Named person (optional)</option>
+            {requestResponsibleUnit === me.unit_id && people.map((p) => <option key={p.profile_id} value={p.profile_id}>{p.profiles ? p.profiles.full_name : "—"}</option>)}
+          </select>
+          {requestResponsibleUnit && requestResponsibleUnit !== me.unit_id &&
+            <div className="hint">This manager can send the request to that unit. Named people outside your authorised People view are intentionally not exposed here.</div>}
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
+            <option value="">Part of a project (optional)</option>
+            {projects.map((row) => <option key={row.id} value={row.id}>{row.name}{!["planned","active"].includes(row.status) ? ` · ${row.status}` : ""}</option>)}
+          </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          <div className="sec"><span>Needed by</span></div>
+          <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+          <button className="btn" style={{ marginTop: 20 }} onClick={create}
+            disabled={busy || !title.trim() || (!requestResponsibleUnit && !assignee)}>
+            {busy ? "Sending..." : "Send request"}</button>
+        </div>}
         {kind === "case" && <div className="side-col">
           <div className="sec"><span>Case owner</span></div>
           <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
