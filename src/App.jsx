@@ -104,8 +104,10 @@ export default function App() {
     return <MeScreen me={me} openGoal={setGoalId} />;
   }
 
+  const appModeClass = isUnitManager ? "manager-app" : !isAdmin ? "staff-app" : "office-app";
+
   return (
-    <div className="app">
+    <div className={`app ${appModeClass}`}>
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
