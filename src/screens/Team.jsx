@@ -197,23 +197,6 @@ export default function Team({ me, openPerson }) {
     finally { setBusy(false); }
   }
 
-  async function toggleMember(profileId, subTeamId) {
-    setError(null);
-    const has = (members[profileId] || []).includes(subTeamId);
-    const result = has
-      ? await supabase.from("sub_team_members").delete().eq("sub_team_id", subTeamId).eq("profile_id", profileId)
-      : await supabase.from("sub_team_members").insert({ sub_team_id: subTeamId, profile_id: profileId });
-    if (result.error) { setError(result.error.message); return; }
-    await load();
-  }
-
-  async function setRole(membershipId, role) {
-    setError(null);
-    const { error: updateError } = await supabase.from("unit_memberships").update({ role }).eq("id", membershipId).eq("unit_id", me.unit_id);
-    if (updateError) { setError(updateError.message); return; }
-    await load();
-  }
-
   async function invite() {
     setBusy(true); setMsg(null);
     try {
@@ -259,25 +242,21 @@ export default function Team({ me, openPerson }) {
 
       <div className="sec"><span>Team setup</span><span>{showSetup ? "Open" : "Secondary"}</span></div>
       <button className="btn btn-ghost wide-auto" onClick={() => setShowSetup((value) => !value)}>{showSetup ? "Hide team setup" : "Open team setup"}</button>
-      <p className="screen-note">Invitations, roles and parts of the team live here. Leave decisions remain on Home.</p>
+      <p className="screen-note">Invitations and work-lane structure live here. Official role and sub-team membership changes are handled by Administration & HR. Leave decisions remain on Home.</p>
 
       {showSetup && <div className="split" style={{ marginTop: 12 }}>
         <div className="main-col">
           <div className="sec"><span>Staff and invitations</span><span>{people.length + pending.length}</span></div>
-          {people.map((person) => (
-            <div key={person.id} className="row">
+          {people.map((person) => {
+            const laneNames = subTeams
+              .filter((team) => (members[person.profile_id] || []).includes(team.id))
+              .map((team) => team.name);
+            return <div key={person.id} className="row">
               <div className="row-t">{person.profiles?.full_name || "—"}</div>
-              <select className="field" value={person.role} onChange={(event) => setRole(person.id, event.target.value)}>
-                <option value="staff">Staff</option><option value="sub_team_lead">Team lead</option><option value="manager">Unit head</option>
-              </select>
-              {subTeams.length > 0 && <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-                {subTeams.map((team) => {
-                  const on = (members[person.profile_id] || []).includes(team.id);
-                  return <button key={team.id} onClick={() => toggleMember(person.profile_id, team.id)} className={"pill " + (on ? "p-green" : "p-grey")}>{team.name}</button>;
-                })}
-              </div>}
-            </div>
-          ))}
+              <div className="row-m">{person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff"}</div>
+              <div className="row-note">{laneNames.length ? laneNames.join(" · ") : "Not assigned to a part yet"}</div>
+            </div>;
+          })}
           {pending.map((person) => <div key={person.email} className="row"><div className="row-t">{person.full_name || person.email}</div><div className="row-m">Invitation sent — waiting for sign-in</div></div>)}
           <button className="btn btn-ghost wide-auto" onClick={() => { setSheet("invite"); setMsg(null); }}>Add someone</button>
         </div>
