@@ -8,8 +8,13 @@ Stack: React + Vite (plain JavaScript, no TypeScript) → GitHub → Vercel
 
 ## Read the specification before building a screen
 
-`docs/architecture/` holds the real specifications. Read the panel spec
-for the surface you are touching **before** writing code, not after.
+`docs/architecture/` holds the real specifications. **Read
+`docs/architecture/CEAC_OS_Architecture_Approved_Amendment_2026-09-20.md`
+first for any work touching work types, templates, people/profile, reports,
+Manager Home, Team, or Admin & HR People.** It is a binding approved
+architecture amendment and supersedes conflicting older text. Then read
+the panel spec for the surface you are touching **before** writing code,
+not after.
 
 Both previous agents skipped this and built from memory. The result was a
 screen asking a church administrator to paste GPS coordinates, and a
@@ -18,7 +23,8 @@ those came from not reading a file that was already there.
 
 ## Rules
 
-1. **Read the spec for the panel you are changing first.** See above.
+1. **Read the approved 20 September architecture amendment and the spec
+   for the panel you are changing first.** See above.
 
 2. **Never invent data.** If a table does not exist, say the feature is
    not yet in the system. Do not render an empty shell that looks
@@ -46,6 +52,15 @@ those came from not reading a file that was already there.
 7. **Pull before you push, and never write back a file you only partly
    read.** A known connector bug silently truncates long files and
    commits the damage.
+
+8. **No generative AI in CEAC OS.** Do not add Claude, OpenAI, another
+   LLM, AI summaries, AI task breakdown, or an inference dependency.
+   Intelligence is deterministic: context, rules, templates, recurrence,
+   calculations, prefill and exception detection.
+
+9. **The seven work kinds are behaviours, not labels.** Keep one shared
+   Work Engine, but implement the type-specific contracts in the approved
+   20 September amendment. Do not collapse everything into Task.
 
 ## Who owns which files
 
@@ -79,15 +94,23 @@ canonical — never derive a code from the initials of a unit name.
 ## Things that are true about this codebase
 
 - Work kinds: task, routine, case, request, decision, meeting_outcome,
-  deliverable. **Only `task` uses a checklist** — guard the insert, not
-  just the display.
+  deliverable. They have different approved behaviours. **Only `task`
+  uses the existing completion checklist today**; do not silently give
+  another type Task semantics. Routine means recurrence and must build on
+  `recurring_operations` / `operation_occurrences` rather than a duplicate
+  recurrence engine.
 - `blockers.state` is claimed | acknowledged | disputed | resolved.
   There is no `open`.
-- Money is stored in pesewas as integers, shown in cedis.
+- Money records carry `currency` + `amount_minor`. Never assume GHS,
+  never combine different currencies into one total, and do not perform
+  currency conversion in the client.
 - Waiting-on is two-sided: the person waiting and the unit being waited
   on both see it.
-- Sub-teams are work lanes, not groups of people. A sub-team can hold
-  work with nobody in it. A person can work across units.
+- Sub-teams are work lanes, not rigid people silos. A sub-team can hold
+  work with nobody in it and a person can work across units/sub-teams.
+  Team and Admin People still group people by their actual sub-team
+  memberships for understandable presentation; that grouping does not
+  create a new permission boundary.
 - Media is the pilot unit, not the template. Nothing may be hard-coded
   to Media.
 
@@ -95,4 +118,3 @@ canonical — never derive a code from the initials of a unit name.
 
 - **Payroll**: which allowances and deductions beyond SSNIT and PAYE.
 - **Leave entitlement by contract type**: one org-wide figure today.
-- **Ministry calendar**: no document defines what it contains.
