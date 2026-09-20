@@ -123,3 +123,52 @@ Automated build and rollback database tests cannot replace real interaction. Bef
 6. Manager blocker acknowledge/dispute/resolve.
 7. Manager unit-resource create/edit/archive.
 8. Confirm no Admin/Executive regression from shared routing/navigation.
+
+---
+
+## Mobile architecture-correction acceptance — later 20 September 2026
+
+Authenticated Staff screenshots exposed three classes of defects:
+
+1. stale historical alerts were being shown as current employee attention;
+2. an old seven-day manually ended work session was still counted as 179+ recorded hours;
+3. Staff functionality existed but was hidden behind weak information hierarchy.
+
+### Backend corrections verified
+
+- completed Sunday service work has its former gone-quiet/overdue alerts retired;
+- Back up August project files in `in_review` has its old gone-quiet alert retired;
+- authenticated clients cannot directly mark alerts resolved;
+- the historical multi-day session is flagged for reconciliation and is excluded from Record totals until corrected;
+- employee-owned historical session correction is attributable;
+- work-review follow-up follows the 1-day / 3-day / stop cadence;
+- dependency follow-up follows the 1-day / 3-day / stop cadence;
+- follow-up alerts resolve when the underlying review/dependency ends;
+- private work is visible to its owner and invisible to both an ordinary colleague and the unit manager.
+
+### Client correction completed
+
+Home: What changed → Your next move → Waiting on others → Coming up → Announcements → This week.
+
+Team: deduplicated/collapsible leadership, availability first, compact People, and birthdays/resources only when populated.
+
+Work: Assigned, My agreed work and Private.
+
+Me: Goals & development, Leave and Personal.
+
+Record: Highlights, Work history and Time & activity, using evidence-derived highlights rather than self-scoring achievements.
+
+### Final human visual gate
+
+Before merge, repeat authenticated mobile review on the current deployment and verify:
+
+1. completed Sunday service work is absent from Your next move;
+2. in-review work appears only in Waiting on others;
+3. review follow-up availability/cadence reads clearly;
+4. dependency follow-up reads clearly;
+5. Team no longer repeats the same leader for every work lane;
+6. empty birthdays/resources/away sections do not consume screen space;
+7. private work remains private;
+8. the flagged legacy work session is excluded from totals and can be corrected;
+9. Goals are immediately discoverable from Me;
+10. Highlights / Work history / Time & activity read correctly on phone.
