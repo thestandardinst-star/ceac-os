@@ -128,3 +128,44 @@ Do not pull these into 045 or the typed-work client pass:
 ## Merge boundary
 
 PR #4 remains unmerged until the new typed-work client flows have been exercised with real authenticated Manager/Staff accounts on phone and laptop and no blocking regression remains.
+
+
+## Execution update after this checkpoint
+
+Migration **045 — typed-work reconciliation hardening** is now live and committed.
+
+Rollback acceptance confirmed:
+
+- five legacy routines are linked to `work_items`;
+- explicit Sunday routines retained Sunday schedules;
+- ambiguous legacy `Weekly` routines were not assigned invented weekdays and can be configured from today;
+- Routine, Case, Request and Decision cannot enter the generic review lifecycle;
+- named cross-unit Request responsibility works;
+- populated sub-team lanes cannot be deleted by Manager or Admin until memberships/work/routines are cleared;
+- empty lanes remain removable;
+- Meeting outcome and Deliverable retain the normal review transition.
+
+### Client integration state
+
+Typed-work client integration has begun **one type at a time**.
+
+**Routine — connected**
+- Manager Assign has a Routine-specific creation form;
+- schedule supports daily, weekly, selected weekdays and monthly;
+- optional start/end dates;
+- optional recorded numeric value + label;
+- Routine detail shows schedule and occurrence history;
+- occurrence recording uses the authoritative RPC;
+- Manager can pause/resume and change only future schedules;
+- legacy routines with ambiguous old cadence clearly show that schedule setup is required;
+- Manager Home surfaces the unit's routines, including the five reconciled legacy records;
+- generic Task submission/waiting actions are suppressed for Routine.
+
+**Still disabled in Assign**
+- Case
+- Request
+- Decision
+- Meeting outcome
+- Deliverable
+
+Do not enable the next type until the current Routine flow has been inspected with authenticated Manager/Staff accounts.
