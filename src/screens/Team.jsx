@@ -44,7 +44,7 @@ function PersonRow({ person, openPerson }) {
   </div>;
 }
 
-export default function Team({ me, openPerson }) {
+export default function Team({ me, openPerson, goAssign }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [members, setMembers] = useState({});
@@ -230,7 +230,10 @@ export default function Team({ me, openPerson }) {
       </div>
       {groupedPeople.map((team) => <div key={team.id}>
         <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
-        {team.profiles?.full_name && <div className="small" style={{ marginBottom: 7 }}>Sub-team lead — {team.profiles.full_name}</div>}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 7 }}>
+          {team.profiles?.full_name && <div className="small">Sub-team lead — {team.profiles.full_name}</div>}
+          {goAssign && <button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Give work to this part</button>}
+        </div>
         {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
         {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
       </div>)}
