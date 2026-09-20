@@ -10,11 +10,15 @@ export default function Units({ me, openItem }) {
   const [units, setUnits] = useState([]);
   const [open, setOpen] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [headChoice, setHeadChoice] = useState({});
+  const [savingHead, setSavingHead] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
+    setError(null);
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const [us, mem, items, projs, objs] = await Promise.all([
       supabase.from("units").select("id, name, code, active").eq("active", true).order("name"),
@@ -23,6 +27,14 @@ export default function Units({ me, openItem }) {
       supabase.from("projects").select("id, name, status, lead_unit_id, starts_on, ends_on"),
       supabase.from("objectives").select("id, name, status, unit_id, project_id"),
     ]);
+    const failed = [
+      ["Units", us], ["Memberships", mem], ["Work", items], ["Projects", projs], ["Objectives", objs],
+    ].find(([, result]) => result.error);
+    if (failed) {
+      setError(`${failed[0]}: ${failed[1].error.message}`);
+      setLoading(false);
+      return;
+    }
     const members = mem.data || [], allItems = (items.data || []).filter((i) => i.visibility !== "private");
     const allProjs = projs.data || [], allObjs = objs.data || [];
     setUnits((us.data || []).map((u) => {
@@ -43,6 +55,24 @@ export default function Units({ me, openItem }) {
       };
     }));
     setLoading(false);
+  }
+
+  async function assignHead(unit) {
+    const profileId = headChoice[unit.id];
+    if (!profileId) return;
+    setSavingHead(unit.id);
+    setError(null);
+    const { error: assignError } = await supabase.rpc("assign_unit_head", {
+      p_unit_id: unit.id,
+      p_profile_id: profileId,
+    });
+    setSavingHead(null);
+    if (assignError) {
+      setError(assignError.message || "The Unit Head could not be assigned.");
+      return;
+    }
+    setHeadChoice((current) => ({ ...current, [unit.id]: "" }));
+    await load();
   }
 
   if (loading) return <div className="body"><div className="spin">Loading the units...</div></div>;
@@ -98,8 +128,9 @@ export default function Units({ me, openItem }) {
     <div className="body">
       <div style={{ paddingTop: 26 }}>
         <h1 className="h1">Units</h1>
-        <p className="screen-note">Every department, what it is carrying and what it has finished. Press any number to see the rows behind it.</p>
+        <p className="screen-note">Every department, what it is carrying and what it has finished. New accounts begin as Staff; Administration assigns Unit Head authority here after activation.</p>
       </div>
+      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Units need attention</h4>{error}<button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={load}>Try again</button></div>}
       {units.map((u) => (
         <div key={u.id} className="card" style={{ marginTop: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
@@ -117,6 +148,16 @@ export default function Units({ me, openItem }) {
             <Fig n={u.doneMonth.length} label="finished this month" unit={u} kind="work" rows={u.doneMonth} />
             <Fig n={u.activeProjects.length} label="active projects" unit={u} kind="projects" rows={u.activeProjects} />
           </div>
+          {!u.head && u.people.length > 0 && <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--line-soft)" }}>
+            <div className="small" style={{ marginBottom: 6 }}>Assign Unit Head</div>
+            <select className="field" value={headChoice[u.id] || ""} onChange={(event) => setHeadChoice((current) => ({ ...current, [u.id]: event.target.value }))}>
+              <option value="">Choose an existing unit member</option>
+              {u.people.map((member) => <option key={member.profile_id} value={member.profile_id}>{member.profiles?.full_name || member.profile_id}</option>)}
+            </select>
+            <button className="btn btn-sm" style={{ marginTop: 8 }} disabled={!headChoice[u.id] || savingHead === u.id} onClick={() => assignHead(u)}>
+              {savingHead === u.id ? "Assigning..." : "Make Unit Head"}
+            </button>
+          </div>}
           {u.objectives.length > 0 && (
             <button className="row" style={{ marginTop: 10, marginBottom: 0 }}
               onClick={() => setOpen({ id: u.id, label: "Objectives", kind: "objectives", rows: u.objectives })}>
