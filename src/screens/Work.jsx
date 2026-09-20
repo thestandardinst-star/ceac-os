@@ -37,12 +37,13 @@ export default function Work({ me, isManager = false, openItem }) {
   async function loadProjects() {
     if (!me.unit_id) return;
     const { data, error } = await supabase.from("projects")
-      .select("id,name,project_units!inner(unit_id)")
-      .eq("project_units.unit_id", me.unit_id)
+      .select("id,name,lead_unit_id,project_units(unit_id)")
       .in("status", ["planned", "active"])
       .order("name");
     if (error) { setLoadError(error.message); return; }
-    setProjects(data || []);
+    setProjects((data || []).filter((project) =>
+      project.lead_unit_id === me.unit_id || (project.project_units || []).some((unit) => unit.unit_id === me.unit_id)
+    ));
   }
 
   async function createOwnTask() {
