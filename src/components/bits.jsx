@@ -15,9 +15,9 @@ function tabItems(isManager = false) {
   if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
   return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
 }
-export function SideNav({ tab, setTab, me, isAdmin, isManager, onUnitChange }) {
+export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
-  const items = tabItems(isManager);
+  const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : tabItems(isManager);
   if (isAdmin) { items.splice(1, 0, ["announcements","Announcements"], ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"], ["reporting","Reporting"]); items.push(["settings","Settings"]); }
   return (
     <aside className="side">
@@ -38,11 +38,11 @@ export function SideNav({ tab, setTab, me, isAdmin, isManager, onUnitChange }) {
       <div className="who">{me.full_name}</div>
     </aside>);
 }
-export function Tabs({ tab, setTab, isManager }) {
+export function Tabs({ tab, setTab, isManager, isExec = false }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const managerMore = [["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
-  const items = isManager ? managerPrimary : tabItems(false);
+  const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : (isManager ? managerPrimary : tabItems(false));
   const moreActive = isManager && managerMore.some(([key]) => key === tab);
   useEffect(() => { setMoreOpen(false); }, [tab, isManager]);
   return (<>
