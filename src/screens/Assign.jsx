@@ -4,13 +4,13 @@ import VoiceInput from "../components/VoiceInput";
 import { parseTask } from "../lib/parseTask";
 
 const WORK_KINDS = [
-  ["task", "Task", "A specific action for someone to complete."],
-  ["routine", "Routine", "Work that repeats on a schedule."],
-  ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it."],
-  ["request", "Request", "Something you need another person or unit to provide, arrange or resolve."],
-  ["decision", "Decision", "A choice that someone needs to make and record."],
-  ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting."],
-  ["deliverable", "Deliverable", "A finished output that must be produced and shown."],
+  ["task", "Task", "A specific action for someone to complete.", true],
+  ["routine", "Routine", "Work that repeats on a schedule.", false],
+  ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", false],
+  ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", false],
+  ["decision", "Decision", "A choice that someone needs to make and record.", false],
+  ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting.", false],
+  ["deliverable", "Deliverable", "A finished output that must be produced and shown.", false],
 ];
 
 export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "" }) {
@@ -93,6 +93,8 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   async function create() {
     setBusy(true); setErr(null);
     try {
+      const selectedKind = WORK_KINDS.find(([value]) => value === kind);
+      if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. Use Task for now rather than saving it with the wrong behaviour.");
       const { data: ref, error: refError } = await supabase
         .rpc("next_work_ref", { p_unit_id: me.unit_id, p_sub_team_id: subTeam || null });
       if (refError) throw refError;
@@ -148,9 +150,10 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         <div className="main-col">
           <div className="sec"><span>What needs doing</span></div>
           <select className="field" value={kind} onChange={(e) => setKind(e.target.value)}>
-            {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            {WORK_KINDS.map(([value, label, , supported]) => <option key={value} value={value} disabled={!supported}>{label}{supported ? "" : " — not connected yet"}</option>)}
           </select>
           <div className="hint">{WORK_KINDS.find(([value]) => value === kind)?.[2]}</div>
+          <div className="small" style={{ marginTop: 7 }}>Routine, Case, Request, Decision, Meeting outcome and Deliverable need their approved type-specific behaviour before they can be created here. They are not being saved as disguised Tasks.</div>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
           <textarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
