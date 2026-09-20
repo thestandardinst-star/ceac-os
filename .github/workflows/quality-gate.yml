@@ -1,0 +1,92 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  role-and-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ROLE_FIXTURE_PASSWORD: Local-role-fixture-2026!
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start clean local Supabase and replay migrations
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+          mkdir -p /tmp/ceac-migrations
+          find supabase/migrations -maxdepth 1 -name '*.sql' -exec mv {} /tmp/ceac-migrations/ \;
+          supabase start
+          mv /tmp/ceac-migrations/*.sql supabase/migrations/
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/replay/legacy-live-artifacts.sql
+          supabase migration up --local
+
+      - name: Seed test organisation
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 <<'SQL'
+          insert into public.organisations(id,name,short_code)
+          values('10000000-0000-4000-8000-000000000010','CEAC Quality Test','CEACQ');
+
+          insert into public.units(id,org_id,name,code)
+          values
+            ('20000000-0000-4000-8000-000000000011','10000000-0000-4000-8000-000000000010','Test Unit A','TSTA'),
+            ('20000000-0000-4000-8000-000000000012','10000000-0000-4000-8000-000000000010','Test Unit B','TSTB');
+
+          -- Clean-database test bootstrap only. Production migration 060 keeps this NOT NULL.
+          alter table public.pending_invitations alter column invited_by drop not null;
+          SQL
+
+      - name: Export local Supabase credentials
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          set -a
+          source /tmp/supabase.env
+          set +a
+          echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+          echo "VITE_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "VITE_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+
+      - name: Seed role fixtures
+        run: node scripts/seed-role-fixtures.mjs
+
+      - name: Run SQL RLS tests
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/rls_smoke.sql
+
+      - name: Install Playwright runner
+        run: |
+          npm install --no-save @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app
+        run: |
+          npm run dev -- --host 127.0.0.1 > /tmp/ceac-vite.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:5173 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ceac-vite.log
+          exit 1
+
+      - name: Run Playwright role smoke tests
+        run: npx playwright test
