@@ -44,7 +44,7 @@ those came from not reading a file that was already there.
 5. **Database migrations must have one active owner at a time.** Claude is
    the default backend owner, but on 20 September 2026 the user explicitly
    handed the backend continuation to the current ChatGPT/Codex agent.
-   Migrations 040–054 were applied under that handoff. Read
+   Migrations 040–059 were applied under that handoff. Read
    `docs/handoff/CEAC_OS_CURRENT_OWNERSHIP_AND_STATE_2026-09-20.md`
    before creating another migration. Never number migrations independently
    or recreate an applied migration.
