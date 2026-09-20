@@ -20,6 +20,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [decisionRecord, setDecisionRecord] = useState(null);
   const [decisionText, setDecisionText] = useState("");
   const [meetingRecord, setMeetingRecord] = useState(null);
+  const [deliverableRecord, setDeliverableRecord] = useState(null);
   const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [routineValue, setRoutineValue] = useState("");
   const [routineEffective, setRoutineEffective] = useState("");
@@ -44,6 +45,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "deliverable") {
+      const deliverableResult = await supabase.from("work_deliverables")
+        .select("evidence_required,evidence_kind")
+        .eq("work_item_id", id).single();
+      if (deliverableResult.error) { setErr(`Deliverable: ${deliverableResult.error.message}`); return; }
+      setDeliverableRecord(deliverableResult.data);
+    } else setDeliverableRecord(null);
     if (w.kind === "meeting_outcome") {
       const meetingResult = await supabase.from("work_meeting_outcomes")
         .select("meeting_title,meeting_on,meeting_note,source_event_id")
@@ -159,6 +167,9 @@ export default function Item({ id, me, session, isManager = false, back }) {
     setBusy(true);
     setErr(null);
     try {
+      if (item.kind === "deliverable" && deliverableRecord?.evidence_required && !link.trim()) {
+        throw new Error("Add the required evidence link before sending this deliverable.");
+      }
       if (managerOwnWork) {
         const { error: selfCertificationError } = await supabase.rpc("self_certify_work", {
           p_work_item_id: id,
@@ -389,6 +400,16 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
 
+      {item.kind === "deliverable" && deliverableRecord && <>
+        <div className="sec"><span>Deliverable evidence</span></div>
+        <div className="card">
+          <div className="row-t">{deliverableRecord.evidence_required ? "Evidence required" : "Evidence optional"}</div>
+          <div className="row-m">{deliverableRecord.evidence_required
+            ? "Add a link to the finished output before sending it for review."
+            : "The finished output can be submitted without an evidence link."}</div>
+        </div>
+      </>}
+
       {item.kind === "meeting_outcome" && meetingRecord && <>
         <div className="sec"><span>Meeting source</span></div>
         <div className="card">
@@ -495,7 +516,9 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {!["routine", "case", "request", "decision"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
-          {managerOwnWork ? "Finish this work" : "Send for review"}</button>
+          {item.kind === "deliverable"
+            ? (managerOwnWork ? "Finish deliverable" : "Send deliverable for review")
+            : managerOwnWork ? "Finish this work" : "Send for review"}</button>
         {gated && <div className="hint">No work session is open. You can still send this in; it will be recorded as outside a session.</div>}
         {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
@@ -619,15 +642,19 @@ export default function Item({ id, me, session, isManager = false, back }) {
 
       {sheet === "submit" && (
         <Sheet onClose={() => setSheet(null)}>
-          <div className="h2">{managerOwnWork ? "Finish this work" : "Send for review"}</div>
+          <div className="h2">{item.kind === "deliverable"
+            ? (managerOwnWork ? "Finish deliverable" : "Send deliverable for review")
+            : managerOwnWork ? "Finish this work" : "Send for review"}</div>
           <p className="screen-note">{managerOwnWork
             ? "This records your submission as self-certified. It will not enter your review queue."
             : "Your manager will be told."}</p>
           {gated && <div className="flag flag-amber"><h4>No work session is open</h4>This submission will still be accepted and recorded as outside a session.</div>}
           <textarea className="field" rows={3} placeholder="Anything they should know (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
-          <input className="field" placeholder="Paste a link to the file (optional)" value={link} onChange={(e) => setLink(e.target.value)} />
+          <input className="field" placeholder={item.kind === "deliverable" && deliverableRecord?.evidence_required ? "Evidence link (required)" : "Paste a link to the file (optional)"} value={link} onChange={(e) => setLink(e.target.value)} />
           <p className="small" style={{ marginTop: 8 }}>Large files — video especially — should be a link rather than an upload.</p>
-          <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Saving..." : gated ? (managerOwnWork ? "Finish outside session" : "Send outside session") : managerOwnWork ? "Finish work" : "Send"}</button>
+          <button className="btn" style={{ marginTop: 14 }} onClick={submit}
+            disabled={busy || (item.kind === "deliverable" && deliverableRecord?.evidence_required && !link.trim())}>
+            {busy ? "Saving..." : gated ? (managerOwnWork ? "Finish outside session" : "Send outside session") : managerOwnWork ? "Finish work" : "Send"}</button>
         </Sheet>)}
 
       {sheet === "reopen" && (
