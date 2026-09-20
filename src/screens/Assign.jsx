@@ -5,7 +5,7 @@ import { parseTask } from "../lib/parseTask";
 
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
-  ["routine", "Routine", "Work that repeats on a schedule.", false],
+  ["routine", "Routine", "Work that repeats on a schedule.", true],
   ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", false],
   ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", false],
   ["decision", "Decision", "A choice that someone needs to make and record.", false],
@@ -33,6 +33,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [due, setDue] = useState("");
   const [steps, setSteps] = useState([""]);
   const [noStepsNeeded, setNoStepsNeeded] = useState(false);
+  const [routineSchedule, setRoutineSchedule] = useState("weekly");
+  const [routineWeeklyDay, setRoutineWeeklyDay] = useState("7");
+  const [routineWeekdays, setRoutineWeekdays] = useState([]);
+  const [routineDayOfMonth, setRoutineDayOfMonth] = useState("");
+  const [routineStart, setRoutineStart] = useState("");
+  const [routineEnd, setRoutineEnd] = useState("");
+  const [routineRecordsValue, setRoutineRecordsValue] = useState(false);
+  const [routineValueLabel, setRoutineValueLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -129,7 +137,49 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     setBusy(true); setErr(null);
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
-      if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. Use Task for now rather than saving it with the wrong behaviour.");
+      if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
+
+      if (kind === "routine") {
+        const details = {
+          schedule_kind: routineSchedule,
+          records_value: routineRecordsValue,
+        };
+        if (routineStart) details.starts_on = routineStart;
+        if (routineEnd) details.ends_on = routineEnd;
+        if (routineSchedule === "weekly") details.weekdays = [Number(routineWeeklyDay)];
+        if (routineSchedule === "weekdays") details.weekdays = routineWeekdays.map(Number);
+        if (routineSchedule === "monthly") details.day_of_month = Number(routineDayOfMonth);
+        if (routineRecordsValue) details.value_label = routineValueLabel.trim();
+
+        const { data: workId, error: routineError } = await supabase.rpc("create_typed_work", {
+          p_kind: "routine",
+          p_unit_id: me.unit_id,
+          p_title: title.trim(),
+          p_assignee_id: assignee || null,
+          p_sub_team_id: subTeam || null,
+          p_project_id: project || null,
+          p_phase_id: project && phase ? phase : null,
+          p_objective_id: project && objective ? objective : null,
+          p_responsibility_id: null,
+          p_purpose: purpose.trim() || null,
+          p_expected_outcome: expectedOutcome.trim() || null,
+          p_due_at: null,
+          p_visibility: "unit",
+          p_confidential: false,
+          p_details: details,
+        });
+        if (routineError) throw routineError;
+        const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
+        if (createdResult.error) throw createdResult.error;
+        setDone(createdResult.data.ref);
+        setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
+        setKind("task"); setAssignee(""); setDue(""); setSteps([""]); setNoStepsNeeded(false);
+        setRoutineSchedule("weekly"); setRoutineWeeklyDay("7"); setRoutineWeekdays([]);
+        setRoutineDayOfMonth(""); setRoutineStart(""); setRoutineEnd("");
+        setRoutineRecordsValue(false); setRoutineValueLabel(""); setVoiceHint(null);
+        return;
+      }
+
       const { data: ref, error: refError } = await supabase
         .rpc("next_work_ref", { p_unit_id: me.unit_id, p_sub_team_id: subTeam || null });
       if (refError) throw refError;
@@ -188,10 +238,47 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
           <div className="hint">{WORK_KINDS.find(([value]) => value === kind)?.[2]}</div>
-          {kind !== "task" && <div className="flag flag-amber" style={{ marginTop: 10 }}>
+          {!WORK_KINDS.find(([value]) => value === kind)?.[3] && <div className="flag flag-amber" style={{ marginTop: 10 }}>
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
-            Its approved type-specific behaviour is still waiting on the backend contract. Nothing can be sent as this type yet, so CEAC OS will not save it with Task behaviour.
+            Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.
           </div>}
+          {kind === "routine" && <>
+            <input className="field" placeholder="What repeats?" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Why this routine matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="What a good occurrence records or produces (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <div className="sec"><span>Schedule</span></div>
+            <select className="field" value={routineSchedule} onChange={(e) => setRoutineSchedule(e.target.value)}>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="weekdays">Selected weekdays</option>
+              <option value="monthly">Monthly</option>
+            </select>
+            {routineSchedule === "weekly" && <select className="field" value={routineWeeklyDay} onChange={(e) => setRoutineWeeklyDay(e.target.value)}>
+              {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map((day, index) => <option key={day} value={index + 1}>{day}</option>)}
+            </select>}
+            {routineSchedule === "weekdays" && <div className="card small" style={{ marginTop: 10 }}>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Which days?</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((day, index) => {
+                  const value = index + 1;
+                  const on = routineWeekdays.includes(value);
+                  return <button type="button" key={day} className={`btn btn-sm ${on ? "" : "btn-ghost"}`}
+                    onClick={() => setRoutineWeekdays((current) => on ? current.filter((d) => d !== value) : [...current, value].sort())}>{day}</button>;
+                })}
+              </div>
+            </div>}
+            {routineSchedule === "monthly" && <input className="field" type="number" min="1" max="31" placeholder="Day of month (1–31)"
+              value={routineDayOfMonth} onChange={(e) => setRoutineDayOfMonth(e.target.value)} />}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <label className="small">Starts<input className="field" type="date" value={routineStart} onChange={(e) => setRoutineStart(e.target.value)} /></label>
+              <label className="small">Ends (optional)<input className="field" type="date" value={routineEnd} onChange={(e) => setRoutineEnd(e.target.value)} /></label>
+            </div>
+            <label className="card small" style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 10 }}>
+              <input type="checkbox" checked={routineRecordsValue} onChange={(e) => setRoutineRecordsValue(e.target.checked)} />
+              <span>Record a number each time this routine happens.</span>
+            </label>
+            {routineRecordsValue && <input className="field" placeholder="What number? e.g. Peak online viewers" value={routineValueLabel} onChange={(e) => setRoutineValueLabel(e.target.value)} />}
+          </>}
           {kind === "task" && <>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
@@ -213,6 +300,36 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             </label>
           </>}
         </div>
+        {kind === "routine" && <div className="side-col">
+          <div className="sec"><span>Who owns it</span></div>
+          <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <option value="">Choose someone</option>
+            {people.map((p) => (<option key={p.profile_id} value={p.profile_id}>{p.profiles ? p.profiles.full_name : "—"}</option>))}
+          </select>
+          <select className="field" value={subTeam} onChange={(e) => setSubTeam(e.target.value)}>
+            <option value="">Which part of the team (optional)</option>
+            {subTeams.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
+            <option value="">Part of a project (optional)</option>
+            {projects.map((row) => <option key={row.id} value={row.id}>{row.name}{!["planned","active"].includes(row.status) ? ` · ${row.status}` : ""}</option>)}
+          </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          {project && phases.length > 0 && <select className="field" value={phase} onChange={(e) => setPhase(e.target.value)}>
+            <option value="">Project phase (optional)</option>
+            {phases.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>}
+          <button className="btn" style={{ marginTop: 20 }} onClick={create}
+            disabled={busy || !title.trim() || !assignee
+              || (routineSchedule === "weekdays" && routineWeekdays.length === 0)
+              || (routineSchedule === "monthly" && !(Number(routineDayOfMonth) >= 1 && Number(routineDayOfMonth) <= 31))
+              || (routineRecordsValue && !routineValueLabel.trim())}>
+            {busy ? "Saving..." : "Create routine"}</button>
+          <div className="hint">Routine history is recorded occurrence by occurrence. Changing its schedule later does not rewrite earlier records.</div>
+        </div>}
         {kind === "task" && <div className="side-col">
           <div className="sec"><span>Who is doing it</span></div>
           <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
