@@ -230,3 +230,133 @@ Generic Task-style submission controls are shown only for:
 Routine, Case, Request and Decision expose only their own lifecycle actions.
 
 Claude-owned Admin/Executive screen files remain untouched by this typed-work client integration.
+
+## Staff experience continuation — completed
+
+The Staff-strengthening sequence was continued after the typed-work pass.
+
+### Live database
+
+Live migrations are now **001–054**. Next migration number: **055**.
+
+Added in this continuation:
+
+- 047 work-session recovery + blocker resolution
+- 048 announcements
+- 049 announcement policy-recursion fix
+- 050 unit resources
+- 051 same-unit approved-leave visibility
+- 052 employee ordinary personal details
+- 053 stale-session continue correction
+- 054 attributable personal-profile update enforcement
+
+### Staff navigation
+
+Staff navigation is now:
+
+- Home
+- Work
+- Team
+- Record
+- Me
+
+### Staff Home
+
+Home now keeps the operational core while adding relevant employee context:
+
+- current/stale work-session state;
+- returned, overdue and actionable work;
+- announcement acknowledgement attention;
+- due-today and in-progress work;
+- upcoming ministry/calendar events;
+- near-term birthdays;
+- upcoming approved leave;
+- recent leave decisions;
+- current announcements;
+- recent feedback;
+- factual weekly completion.
+
+Empty secondary sections remain suppressed.
+
+### Team
+
+Staff Team now includes:
+
+- directory;
+- unit leadership and sub-team leads;
+- who is away on approved leave;
+- recent joiners;
+- birthdays in the next 30 days;
+- approved unit resources.
+
+The Team surface remains explicitly non-performance-related.
+
+Managers can manage ordinary unit resource links from their existing Team setup area. No protected file storage was added.
+
+### Announcements
+
+A standalone Announcements surface is now routed additively through shared navigation.
+
+It supports:
+
+- organisation/unit/role targeting;
+- draft/publish/close;
+- normal/important/urgent priority;
+- optional expiry;
+- read receipts;
+- required acknowledgement;
+- factual audience/read/acknowledgement counts.
+
+Admin/Group Pastor and explicit announcement capability holders may author. Ordinary Staff cannot publish.
+
+### My Record
+
+Staff Record now provides source-based factual history:
+
+- completed Task/Deliverable timeline;
+- assigned vs self-created;
+- due-date/on-time facts;
+- first-time approval facts;
+- blocker history;
+- returned/corrected submission history;
+- manager feedback;
+- work-session history and reconciliation events.
+
+There is no employee score, rank or colleague comparison.
+
+### Me
+
+Me now supports employee-maintained ordinary personal details:
+
+- preferred name;
+- phone;
+- birthday;
+- emergency contact;
+- ordinary address;
+- Instagram/LinkedIn handles.
+
+Private ordinary details are separated from the colleague-visible profile row. Changes use an attributable RPC.
+
+### Protected HR boundary
+
+Protected HR remains intentionally deferred because it needs the approved protected-storage + verification workflow and intersects Claude-owned Administration & HR UI.
+
+Not implemented in this Staff tranche:
+
+- Ghana Card;
+- SSNIT/tax;
+- banking;
+- salary;
+- contracts;
+- payslips;
+- protected HR documents.
+
+The Staff Me screen explicitly states that these are not stored in ordinary profile details.
+
+### Acceptance defects found and corrected
+
+1. Announcement RLS recursion discovered during the 048 acceptance pass → corrected in 049.
+2. A stale session continued from the previous day would have started counting the overnight gap again → corrected in 053 by splitting stale history from the new current-day session.
+3. Employee profile fields added by 052 could still be directly self-updated without an audit event → corrected in 054 by forcing employee edits through the attributable RPC.
+
+Claude-owned Admin/Executive screen files were not modified.
