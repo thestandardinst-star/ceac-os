@@ -181,18 +181,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
         setSheet(null); setNote(""); setLink(""); await load();
         return;
       }
-      const { data: s, error: submissionError } = await supabase.from("submissions").insert({
-        org_id: me.org_id, work_item_id: id, profile_id: me.id,
-        session_id: session ? session.id : null, note, outside_session: !session,
-      }).select("id").single();
+      const { error: submissionError } = await supabase.rpc("submit_work_for_review", {
+        p_work_item_id: id,
+        p_session_id: session ? session.id : null,
+        p_note: note.trim() || null,
+        p_link: link.trim() || null,
+      });
       if (submissionError) throw submissionError;
-      if (link.trim() && s) {
-        const { error: fileError } = await supabase.from("submission_files").insert({ submission_id: s.id, kind: "link", url: link.trim() });
-        if (fileError) throw fileError;
-      }
-      const { error: statusError } = await supabase.from("work_items")
-        .update({ status: "in_review", last_movement_at: new Date().toISOString() }).eq("id", id);
-      if (statusError) throw statusError;
       setSheet(null); setNote(""); setLink(""); await load();
     } catch (e) { setErr(e.message || "The work could not be submitted."); }
     finally { setBusy(false); }
@@ -341,13 +336,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
     setBusy(true);
     setErr(null);
     try {
-      const { error: blockerError } = await supabase.from("blockers").insert({
-        org_id: me.org_id, work_item_id: id, claimed_by: me.id,
-        party_unit_id: partyUnit, party_text: party, note });
+      const { error: blockerError } = await supabase.rpc("raise_work_blocker", {
+        p_work_item_id: id,
+        p_party_unit_id: partyUnit || null,
+        p_party_text: party.trim() || null,
+        p_note: note.trim() || null,
+      });
       if (blockerError) throw blockerError;
-      const { error: statusError } = await supabase.from("work_items")
-        .update({ status: "waiting_on", last_movement_at: new Date().toISOString() }).eq("id", id);
-      if (statusError) throw statusError;
       setSheet(null); setParty(""); setNote(""); setPartyUnit(null); await load();
     } catch (e) { setErr(e.message || "The blocker could not be saved."); }
     finally { setBusy(false); }
