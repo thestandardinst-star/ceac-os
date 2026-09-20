@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase, loadMe } from "./lib/supabase";
 import { openSession } from "./lib/session";
 import SignIn from "./screens/SignIn";
+import AccountPassword from "./screens/AccountPassword";
 import Home from "./screens/Home";
 import Work from "./screens/Work";
 import Item from "./screens/Item";
@@ -66,6 +67,17 @@ export default function App() {
       role: membership.role,
     }));
     go("home");
+  }
+
+  const authPath = window.location.pathname;
+  if (authPath === "/activate" || authPath === "/reset-password") {
+    return <AccountPassword
+      mode={authPath === "/activate" ? "activate" : "recover"}
+      onDone={() => {
+        window.history.replaceState({}, "", "/");
+        boot();
+      }}
+    />;
   }
 
   if (!ready) return <div className="spin">Loading...</div>;
