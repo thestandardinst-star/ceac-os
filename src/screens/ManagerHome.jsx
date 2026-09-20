@@ -65,7 +65,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const weekStart = startOfWeek();
       const nextWeek = new Date(weekStart); nextWeek.setDate(nextWeek.getDate() + 7);
 
-      const [memberResult, submissionResult, leaveResult, blockerResult, mineResult,
+      const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult,
         settingResult, sessionResult, weekResult, projectUnitResult, activeProjectResult,
         todayOutputResult, todaySubmissionResult] = await Promise.all([
         supabase.from("unit_memberships")
@@ -80,8 +80,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           .select("id, profile_id, kind, start_date, end_date, days, status, reason, profiles!leave_requests_profile_id_fkey(full_name)")
           .eq("status", "pending").order("requested_at", { ascending: true }),
         supabase.from("blockers")
-          .select("id, party_text, note, since, state, work_item_id, profiles!blockers_claimed_by_fkey(full_name), work_items!inner(id, ref, title)")
+          .select("id, party_text, note, since, state, work_item_id, party_unit_id, profiles!blockers_claimed_by_fkey(full_name), units(name), work_items!inner(id, ref, title)")
           .eq("party_unit_id", me.unit_id).in("state", ["claimed", "acknowledged"])
+          .order("since", { ascending: true }),
+        supabase.from("blockers")
+          .select("id, party_text, note, since, state, work_item_id, party_unit_id, profiles!blockers_claimed_by_fkey(full_name), units(name), work_items!inner(id, ref, title, unit_id)")
+          .eq("work_items.unit_id", me.unit_id).neq("party_unit_id", me.unit_id)
+          .in("state", ["claimed", "acknowledged"])
           .order("since", { ascending: true }),
         supabase.from("work_items")
           .select("id, ref, title, status, due_at").eq("assignee_id", me.id)
@@ -107,7 +112,14 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const memberIds = new Set(members.map((member) => member.profile_id));
       setSubmissions(requireResult(submissionResult, "Submissions"));
       setLeave(requireResult(leaveResult, "Leave requests").filter((request) => memberIds.has(request.profile_id)));
-      setBlockers(requireResult(blockerResult, "Blockers"));
+      const blockerMap = new Map();
+      requireResult(incomingBlockerResult, "Blockers waiting on your unit")
+        .forEach((blocker) => blockerMap.set(blocker.id, { ...blocker, direction: "incoming" }));
+      requireResult(outgoingBlockerResult, "Work waiting on another unit")
+        .forEach((blocker) => {
+          if (!blockerMap.has(blocker.id)) blockerMap.set(blocker.id, { ...blocker, direction: "outgoing" });
+        });
+      setBlockers([...blockerMap.values()]);
       setMine(requireResult(mineResult, "Your work").filter((item) => {
         const dueToday = item.due_at && new Date(item.due_at) >= today && new Date(item.due_at) < tomorrow;
         return dueToday || isOverdue(item.due_at) || item.status === "returned" || item.status === "waiting_on";
@@ -253,7 +265,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
     finally { setBusy(false); }
   }
 
-  const waitingCount = submissions.length + leave.length + blockers.length;
+  const waitingCount = submissions.length + leave.length;
   const drillRows = drill?.rows || [];
 
   return (
@@ -261,7 +273,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       <div style={{ paddingTop: 26 }}>
         <div className="eyebrow">{me.unit_name}</div>
         <h1 className="h1" style={{ marginTop: 6 }}>{new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</h1>
-        <p className="screen-note">Unblock other people first, then see your team and your own work.</p>
+        <p className="screen-note">Start with anything waiting for your decision, then check your team and your own work.</p>
       </div>
       <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={goAssign}>Give out work</button>
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
@@ -294,21 +306,6 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           </div>
         </div>
       ))}
-      {blockers.map((blocker) => (
-        <div key={blocker.id} className="row">
-          <div className="row-t">{blocker.work_items.title}</div>
-          <div className="row-m">{blocker.profiles?.full_name || "Someone"} is waiting on your unit · {blocker.state}</div>
-          <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
-          <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
-            {blocker.state === "claimed" && <>
-              <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
-              <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
-            </>}
-          </div>
-        </div>
-      ))}
-
       <div className="sec"><span>Your team today</span></div>
       <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
         <button className="metric" onClick={() => setDrill({ title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>present</span></button>
@@ -322,6 +319,27 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
         </button>) : <div className="card small">Nobody in this group.</div>}
       </div>}
+
+      {blockers.length > 0 && <>
+        <div className="sec"><span>Stuck / waiting</span><span>{blockers.length}</span></div>
+        {blockers.map((blocker) => (
+          <div key={blocker.id} className="row">
+            <div className="row-t">{blocker.work_items.title}</div>
+            <div className="row-m">{blocker.direction === "incoming"
+              ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit`
+              : `Your unit is waiting on ${blocker.units?.name || blocker.party_text}`}
+              {` · ${blocker.state === "acknowledged" ? "confirmed" : "waiting for a reply"}`}</div>
+            <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
+            <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
+              {blocker.direction === "incoming" && blocker.state === "claimed" && <>
+                <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
+                <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
+              </>}
+            </div>
+          </div>
+        ))}
+      </>}
 
       <div className="sec"><span>Your own work</span><span>{mine.length}</span></div>
       {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="card small">No due, overdue, returned or waiting work.</div>}
@@ -340,7 +358,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         </div>
       )) : <div className="card small">No active project has an at-risk objective or closes this week.</div>}
 
-      <div className="sec"><span>This week</span></div>
+      <div className="sec"><span>This week / upcoming</span></div>
       <div className="metric-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
         <button className="metric" onClick={() => setDrill({ title: "Tasks due this week", rows: week.due })}><b>{week.due.length}</b><span>tasks due</span></button>
         <button className="metric" onClick={() => setDrill({ title: "Tasks completed this week", rows: week.completed })}><b>{week.completed.length}</b><span>completed</span></button>
