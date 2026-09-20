@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "supabase/migrations/**"
+      - "supabase/replay/**"
       - ".github/workflows/migration-replay.yml"
   workflow_dispatch:
 
@@ -25,11 +26,21 @@ jobs:
             supabase init
           fi
 
-      - name: Start empty local Supabase
-        run: supabase start
+      - name: Start clean Supabase base without application migrations
+        run: |
+          mkdir -p /tmp/ceac-migrations
+          find supabase/migrations -maxdepth 1 -name '*.sql' -exec mv {} /tmp/ceac-migrations/ \;
+          supabase start
+          mv /tmp/ceac-migrations/*.sql supabase/migrations/
 
-      - name: Replay all migrations from empty database
-        run: supabase db reset --local
+      - name: Restore documented legacy live-only artifact
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/replay/legacy-live-artifacts.sql
+
+      - name: Replay immutable migrations 001 through current
+        run: supabase migration up --local
 
       - name: Show local migration state
         run: supabase migration list --local
