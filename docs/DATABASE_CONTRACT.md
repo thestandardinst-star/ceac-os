@@ -559,3 +559,49 @@ A `case_action` parent must actually be a Case.
 ### Completion counting rule
 
 The architecture rule remains unchanged: **only Task and Deliverable are counted as "completed" output metrics.** Other kinds may reach a terminal base status for lifecycle handling but must not be added to Task/Deliverable completion counts.
+
+
+---
+
+## Typed-work reconciliation hardening (migration 045)
+
+Migration 045 closes four defects found after the initial 042–044 typed-work acceptance.
+
+### Legacy Routine reconciliation
+
+The five pre-typed `recurring_operations` rows are now linked to normal `work_items(kind='routine')` records.
+
+Where the old cadence explicitly said `Weekly, Sunday`, the migrated schedule is weekly/Sunday.
+
+Where the old record only said `Weekly`, CEAC OS **does not guess a weekday**. Those routines have a Work Engine record but no schedule version until an authorised manager configures one.
+
+For a legacy routine with no existing schedule version, `change_routine_schedule` may establish the first schedule from today or a future date. Once a schedule version exists, changes remain future-only.
+
+### Lifecycle enforcement
+
+Routine, Case, Request and Decision cannot be moved into arbitrary generic Work statuses by direct client updates.
+
+Their state transitions must use their type-specific RPCs:
+
+- Routine — occurrence/schedule/pause-resume actions;
+- Case — `resolve_work_case`;
+- Request — request response / clarification actions;
+- Decision — `record_work_decision`.
+
+Meeting outcome and Deliverable continue to use the ordinary submission/review path.
+
+### Named cross-unit Request
+
+A Request's named responsible person no longer has to belong to the requesting unit.
+
+If `responsible_unit_id` is supplied, the named responsible person must be an active member of that responsible unit. This allows a manager in one unit to make a legitimate Request to a named person in another unit while keeping the Request rooted in the requesting unit's context.
+
+### Safe work-lane deletion
+
+Deleting a sub-team/work lane is refused while any of the following still reference it:
+
+- official sub-team memberships;
+- work items;
+- recurring operations.
+
+This prevents a Manager delete from cascading away HR-controlled membership records. Move/clear the dependent records first, then remove the empty lane.
