@@ -515,8 +515,9 @@ export default function ManagerReports({ me, openItem }) {
       <div className="sec"><span>Completed by project</span></div>
       {displayProjects.length ? <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} /> : <div className="card small">No completed project work is recorded in this view.</div>}
 
-      <div className="sec"><span>Work composition</span></div>
+      <div className="sec"><span>Current work composition</span></div>
       <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+      <p className="small" style={{ marginTop: 8 }}>This is the current status of visible work in this report scope. It is separate from the completed-work figures for the selected period.</p>
 
       <div className="sec"><span>Attendance activity</span></div>
       <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
