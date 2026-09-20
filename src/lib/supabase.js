@@ -9,8 +9,8 @@ export const supabase = createClient(
 );
 export async function loadMe() {
   const { data: auth, error: authError } = await supabase.auth.getUser();
-  if (authError) throw authError;
-  if (!auth.user) return null;
+  if (authError && authError.name !== "AuthSessionMissingError") throw authError;
+  if (!auth?.user) return null;
   const { data: p, error: profileError } = await supabase.from("profiles")
     .select("id, full_name, preferred_name, email, job_title, phone, is_admin, is_exec, org_id, joined_at, birthday, contract_type")
     .eq("id", auth.user.id).single();
