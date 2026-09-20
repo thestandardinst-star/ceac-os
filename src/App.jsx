@@ -33,6 +33,7 @@ import { Tabs, SideNav } from "./components/bits";
 export default function App() {
   const [me, setMe] = useState(null);
   const [ready, setReady] = useState(false);
+  const [bootError, setBootError] = useState(null);
   const [tab, setTab] = useState("home");
   const [itemId, setItemId] = useState(null);
   const [goalId, setGoalId] = useState(null);
@@ -48,10 +49,19 @@ export default function App() {
   }, []);
 
   async function boot() {
-    const m = await loadMe();
-    setMe(m);
-    if (m) setSession(await openSession(m.org_id, m.id));
-    setReady(true);
+    setBootError(null);
+    try {
+      const m = await loadMe();
+      setMe(m);
+      if (m) setSession(await openSession(m.org_id, m.id));
+      else setSession(null);
+    } catch (error) {
+      setMe(null);
+      setSession(null);
+      setBootError(error.message || "CEAC could not load your account.");
+    } finally {
+      setReady(true);
+    }
   }
 
   function go(t) { setItemId(null); setGoalId(null); setAssigning(null); setPerson(null); setProjectId(null); setTab(t); }
@@ -81,6 +91,12 @@ export default function App() {
   }
 
   if (!ready) return <div className="spin">Loading...</div>;
+  if (bootError && !me) return <div className="signin-wrap">
+    <div className="eyebrow">CEAC</div>
+    <h1 className="h1" style={{ marginTop: 6 }}>Could not load your account</h1>
+    <div className="flag flag-brick" style={{ marginTop: 18 }}>{bootError}</div>
+    <button className="btn" style={{ marginTop: 18 }} onClick={boot}>Try again</button>
+  </div>;
   if (!me) return <SignIn />;
 
   const isAdmin = Boolean(me.is_admin);
