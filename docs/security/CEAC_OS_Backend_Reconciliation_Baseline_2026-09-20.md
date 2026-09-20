@@ -1,14 +1,14 @@
 # CEAC OS — Live Backend Reconciliation and Security Baseline
 
-**Date:** 20 September 2026  
-**Supabase project:** `efjljhftsesssumtshvp`  
-**Scope:** read-only live reconciliation before any new backend migration  
+**Date:** 20 September 2026
+**Supabase project:** `efjljhftsesssumtshvp`
+**Scope:** read-only live reconciliation before any new backend migration
 **Database changes in this baseline:** none
 
 ## Migration reconciliation
 The live migration registry contains **39 applied migrations, 001–039**, with no numbering gap.
 
-Before this baseline, GitHub contained only 034–039. Supabase still retained the exact SQL for every historical migration in `supabase_migrations.schema_migrations.statements`. Migrations **001–033 were recovered verbatim from that registry** and committed to this branch. No SQL was reconstructed from schema inference.
+Before this baseline, GitHub contained only 034–039. Supabase still retained the exact SQL for every historical migration in `supabase_migrations.schema_migrations.statements`. Migrations **001–033 were recovered directly from that registry** and committed to this branch. Only trailing whitespace was normalised for repository checks; no SQL logic was reconstructed from schema inference.
 
 GitHub now contains all **39** live migration files. This closes the known recoverability gap.
 
