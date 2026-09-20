@@ -169,3 +169,64 @@ Typed-work client integration has begun **one type at a time**.
 - Deliverable
 
 Do not enable the next type until the current Routine flow has been inspected with authenticated Manager/Staff accounts.
+
+
+## Typed-work client integration — completed
+
+The one-type-at-a-time client sequence is now complete.
+
+### Routine
+- type-specific creation;
+- daily/weekly/selected-weekday/monthly schedules;
+- occurrence history and occurrence recording;
+- optional numeric value;
+- pause/resume;
+- future schedule changes;
+- legacy ambiguous schedules require explicit setup rather than guessed weekdays;
+- Manager Home routine access.
+
+### Case
+- type-specific creation with owner/opened date/optional target resolution;
+- generic submission/review flow suppressed;
+- only the case owner or Administration records the permanent resolution.
+
+### Request
+- type-specific creation;
+- responsible unit is selectable across the organisation;
+- named person is selectable only where People RLS already permits that manager to see the person;
+- cross-unit unit-level Requests are supported without weakening People visibility;
+- response history;
+- fulfil / decline / ask for clarification / provide clarification / cancel;
+- responsible-unit Manager Home surfaces incoming unit Requests;
+- generic submission/review flow suppressed.
+
+### Decision
+- type-specific creation with named decision-maker and explicit question;
+- permanent decision + rationale recording;
+- generic submission/review flow suppressed.
+
+### Meeting outcome
+- type-specific creation;
+- meeting title/date/note preserved as source;
+- follows the normal submission/review path;
+- manager-owned meeting outcomes may self-certify under the existing manager-own-work rule.
+
+### Deliverable
+- explicit finished-output contract;
+- no Task checklist semantics;
+- optional/required evidence setting;
+- current client uses evidence links because no general upload pipeline exists;
+- normal submission/review flow;
+- Manager approval and manager self-certification both enforce required evidence.
+
+### Final lifecycle boundary
+
+Generic Task-style submission controls are shown only for:
+
+- Task
+- Meeting outcome
+- Deliverable
+
+Routine, Case, Request and Decision expose only their own lifecycle actions.
+
+Claude-owned Admin/Executive screen files remain untouched by this typed-work client integration.
