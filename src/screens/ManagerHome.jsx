@@ -45,6 +45,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [upcomingProjects, setUpcomingProjects] = useState([]);
   const [week, setWeek] = useState({ due: [], completed: [], overdue: [] });
   const [recentMovement, setRecentMovement] = useState([]);
+  const [routines, setRoutines] = useState([]);
   const [leaveLimit, setLeaveLimit] = useState(5);
   const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
@@ -174,6 +175,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       setRecentMovement([...recentCompleted, ...recentSubmitted]
         .sort((left, right) => new Date(right.at) - new Date(left.at))
         .slice(0, 6));
+
+      const routineResult = await supabase.from("recurring_operations")
+        .select("id,name,work_item_id,active,schedule_kind,weekdays,day_of_month,records_value,value_label,starts_on,ends_on")
+        .eq("unit_id", me.unit_id)
+        .not("work_item_id", "is", null)
+        .order("name");
+      setRoutines(requireResult(routineResult, "Routines"));
 
       const tasks = requireResult(weekResult, "This week");
       setWeek({
@@ -461,6 +469,22 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
       </div>}
       </section>
+
+      {routines.length > 0 && <section className="home-panel" aria-labelledby="manager-routines-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Recurring operations</div><h2 id="manager-routines-heading">Routines</h2></div>
+          <span>{routines.length}</span>
+        </div>
+        {routines.map((routine) => <button className="row" key={routine.id} onClick={() => openItem(routine.work_item_id)}>
+          <div className="row-t">{routine.name}</div>
+          <div className="row-m">{!routine.schedule_kind
+            ? "Schedule needs to be set"
+            : routine.schedule_kind === "daily" ? "Daily"
+              : routine.schedule_kind === "monthly" ? `Monthly · day ${routine.day_of_month}`
+                : `${routine.schedule_kind === "weekly" ? "Weekly" : "Selected weekdays"} · ${(routine.weekdays || []).map((day) => ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][day - 1]).join(", ")}`}</div>
+          <div className="row-note">{routine.active ? "Active" : "Paused"}{routine.records_value ? ` · records ${routine.value_label}` : ""}</div>
+        </button>)}
+      </section>}
 
       {recentMovement.length > 0 && <section className="home-panel home-panel-week" aria-labelledby="manager-recent-heading">
         <div className="home-section-head">
