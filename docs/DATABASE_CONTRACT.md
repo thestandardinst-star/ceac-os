@@ -352,9 +352,10 @@ instead. The read-only helpers are deliberately left — they are called
 inside RLS policies, and removing anon's execute turns a clean empty
 result into a permission error. They return nothing without a session.
 
-**Migration files are still not in the repository.** See
-`supabase/migrations/README.md` — it needs `npx supabase db pull` run on a
-machine with network access to Supabase. Claude's sandbox has none.
+**Migration history is now reconciled.** GitHub contains the live SQL for
+migrations 001–044. Historical 001–033 were recovered from Supabase's own
+migration registry; 034–044 are committed as the applied hardening/typed-work
+continuation. See `supabase/migrations/README.md`.
 
 ## Three CEAC decisions, settled (migration 030)
 
@@ -376,3 +377,185 @@ People already answers what one person did, and no separate workflow was
 ever defined. `reports.profile_id` and the `person` scope stay in the
 schema, unused and documented as such. Office scope is covered by the
 Admin Reporting screen. **Codex: unit and project scope only.**
+
+
+---
+
+## Authority and work-state hardening (migrations 040–041)
+
+### Official people / lane authority
+
+- `unit_memberships` official membership and role writes: Administration & HR only.
+- `sub_team_members` official lane membership writes: Administration & HR only.
+- Unit managers may still manage sub-team lane structure, but a trigger prevents them from changing `sub_teams.lead_id`.
+- Project-close child rows (objective verdicts, costs, deliverables) are writable only while the close is a draft **and** the caller is the close author or Administration.
+
+### Atomic Manager approval
+
+Use:
+
+```js
+await supabase.rpc("approve_work_submission", {
+  p_submission_id: submissionId,
+  p_comment: comment || null,
+});
+```
+
+This transaction:
+
+1. locks the submission/work;
+2. requires the latest submission and an authorised reviewer;
+3. writes the completed review;
+4. calculates first-time approval from retained return history;
+5. marks the work completed;
+6. writes authoritative `activity_events`.
+
+Do not insert `reviews` directly.
+
+Return remains:
+
+```js
+await supabase.rpc("return_work_for_correction", {
+  p_submission_id: submissionId,
+  p_comment: reason,
+  p_checklist_item_ids: idsOrNull,
+});
+```
+
+Both approval and return reject stale/previous submissions.
+
+### Reopen approved work
+
+```js
+await supabase.rpc("reopen_approved_work", {
+  p_work_item_id: workItemId,
+  p_reason: reason,
+});
+```
+
+The earlier approval/self-certification remains in history. The RPC records a `reopened` activity event, clears current completion time, and returns the work to `in_progress`. Direct backwards mutation of terminal work is blocked.
+
+---
+
+## Typed Work Engine (migrations 042–044)
+
+The shared Work Engine remains `work_items`, but each non-Task kind now has its own behaviour contract.
+
+### Type-specific storage
+
+- Routine — existing `recurring_operations` + `operation_occurrences`, now linked to `work_items`, plus `routine_schedule_versions`.
+- Case — `work_cases`.
+- Request — `work_requests` + append-only `work_request_responses`.
+- Decision — `work_decisions`.
+- Meeting outcome — `work_meeting_outcomes`.
+- Deliverable — `work_deliverables`.
+- Cross-work relationships — `work_item_links`.
+
+Direct writes to the typed extension tables are not a client contract. Read is RLS-scoped; writes happen through RPCs.
+
+### Create non-Task work
+
+```js
+const { data: workId } = await supabase.rpc("create_typed_work", {
+  p_kind: "case", // routine | case | request | decision | meeting_outcome | deliverable
+  p_unit_id: unitId,
+  p_title: "Equipment fault",
+  p_assignee_id: ownerId,
+  p_sub_team_id: null,
+  p_project_id: null,
+  p_phase_id: null,
+  p_objective_id: null,
+  p_responsibility_id: null,
+  p_purpose: null,
+  p_expected_outcome: null,
+  p_due_at: null,
+  p_visibility: "unit",
+  p_confidential: false,
+  p_details: {}
+});
+```
+
+Server validation checks unit authority, active unit membership of the assignee, sub-team/project/objective/responsibility context, and type-specific required fields.
+
+A non-Task `work_items` row cannot be inserted directly by an authenticated client, and `kind` cannot be changed after creation.
+
+### Routine
+
+Create details support:
+
+- `schedule_kind`: `daily | weekly | monthly | weekdays`
+- `weekdays`: ISO weekday integers 1–7
+- `day_of_month`: 1–31
+- `starts_on`, `ends_on`
+- `records_value`
+- `value_label`
+
+RPCs:
+
+- `record_routine_occurrence(work_item_id, occurred_on, value, note)`
+- `change_routine_schedule(work_item_id, effective_from, schedule_kind, weekdays, day_of_month, ends_on)`
+- `set_routine_paused(work_item_id, paused, reason)`
+
+Schedule changes are versioned and must start in the future. Past occurrences are append-only.
+
+### Case
+
+A case has a named owner, opened date, optional target resolution date, and permanent resolution record.
+
+Close it with:
+
+`resolve_work_case(work_item_id, resolution_note)`
+
+Only the case owner or Administration records the resolution.
+
+### Request
+
+A request has a requester plus a responsible person and/or responsible unit.
+
+RPCs:
+
+- `respond_work_request(work_item_id, outcome, note)`
+- `provide_request_clarification(work_item_id, note)`
+
+Outcomes: fulfilled, declined, clarification, cancelled. Every response is retained in `work_request_responses`.
+
+A responsible unit's manager can answer a unit-level request without gaining general cross-unit work visibility.
+
+### Decision
+
+A Decision has an explicitly named decision-maker and permanent question.
+
+Complete with:
+
+`record_work_decision(work_item_id, decision, rationale)`
+
+Decision and rationale are both required and attributable.
+
+### Meeting outcome
+
+`work_meeting_outcomes` preserves meeting title/date/note and optional `ministry_events` source. It uses the normal submit/review completion loop.
+
+### Deliverable
+
+`work_deliverables` records whether evidence is required and the accepted evidence kind:
+
+- `file_or_link`
+- `file`
+- `link`
+- `none`
+
+`approve_work_submission` refuses to approve a Deliverable until the required evidence exists on that submission.
+
+### Work links
+
+`link_work_items(parent, child, relation)` supports:
+
+- `case_action`
+- `follow_up`
+- `related`
+
+A `case_action` parent must actually be a Case.
+
+### Completion counting rule
+
+The architecture rule remains unchanged: **only Task and Deliverable are counted as "completed" output metrics.** Other kinds may reach a terminal base status for lifecycle handling but must not be added to Task/Deliverable completion counts.
