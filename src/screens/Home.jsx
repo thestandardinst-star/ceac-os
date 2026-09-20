@@ -4,144 +4,209 @@ import { startWork, endWork } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
 
+function startOfDay(date = new Date()) {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function startOfWeek(date = new Date()) {
+  const value = startOfDay(date);
+  value.setDate(value.getDate() - ((value.getDay() + 6) % 7));
+  return value;
+}
+
+function requireResult(result, label) {
+  if (result.error) throw new Error(`${label}: ${result.error.message}`);
+  return result.data || [];
+}
+
+function WorkRow({ item, openItem, tone = "neutral" }) {
+  return <button className={`row home-work-row home-tone-${tone}`} onClick={() => openItem(item.id)}>
+    <div className="row-t">{item.title}</div>
+    <div className="row-m">{item.ref} · {dueLabel(item.due_at)}</div>
+    <div style={{ marginTop: 7 }}>{statusPill(item.status)}</div>
+  </button>;
+}
+
 export default function Home({ me, session, setSession, openItem }) {
   const [items, setItems] = useState([]);
-  const [returned, setReturned] = useState([]);
+  const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [forMe, setForMe] = useState([]);
   const [alerts, setAlerts] = useState([]);
+  const [feedback, setFeedback] = useState([]);
   const [ask, setAsk] = useState(false);
   const [place, setPlace] = useState("office");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [drill, setDrill] = useState(null);
   const [, tick] = useState(0);
 
-  useEffect(() => { const t = setInterval(() => tick((n) => n + 1), 30000); return () => clearInterval(t); }, []);
-  useEffect(() => { load(); }, [me.id]);
+  useEffect(() => { const timer = setInterval(() => tick((value) => value + 1), 30000); return () => clearInterval(timer); }, []);
+  useEffect(() => { load(); }, [me.id, me.unit_id]);
 
   async function load() {
-    const { data } = await supabase.from("work_items")
-      .select("id, ref, title, status, due_at, visibility")
-      .eq("assignee_id", me.id).not("status", "in", "(completed,cancelled)")
-      .order("due_at", { ascending: true, nullsFirst: false });
-    setItems(data || []);
-    const { data: r } = await supabase.from("work_items").select("id, ref, title")
-      .eq("assignee_id", me.id).eq("status", "returned");
-    setReturned(r || []);
-    if (me.unit_id) {
-      const { data: b } = await supabase.from("blockers")
-        .select("id, party_text, note, since, state")
-        .eq("party_unit_id", me.unit_id).eq("state", "claimed");
-      setForMe(b || []);
+    setLoading(true);
+    setError(null);
+    setLoadFailed(false);
+    try {
+      const requests = [
+        supabase.from("work_items")
+          .select("id, ref, title, status, due_at, visibility, completed_at")
+          .eq("assignee_id", me.id).not("status", "in", "(completed,self_certified,cancelled)")
+          .order("due_at", { ascending: true, nullsFirst: false }),
+        supabase.from("work_items")
+          .select("id, ref, title, status, due_at, completed_at")
+          .eq("assignee_id", me.id).in("kind", ["task", "deliverable"])
+          .in("status", ["completed", "self_certified"])
+          .gte("completed_at", startOfWeek().toISOString())
+          .order("completed_at", { ascending: false }),
+        supabase.from("alerts")
+          .select("id, kind, subject_id, message, first_seen_at")
+          .eq("for_profile_id", me.id).is("acknowledged_at", null),
+        supabase.from("feedback_notes")
+          .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
+          .eq("profile_id", me.id).order("created_at", { ascending: false }).limit(3),
+      ];
+      if (me.unit_id) requests.push(supabase.from("blockers")
+        .select("id, party_text, note, since, state, work_item_id")
+        .eq("party_unit_id", me.unit_id).eq("state", "claimed"));
+
+      const [itemResult, completedResult, alertResult, feedbackResult, blockerResult] = await Promise.all(requests);
+      setItems(requireResult(itemResult, "Your work"));
+      setCompletedThisWeek(requireResult(completedResult, "Completed work"));
+      setAlerts(requireResult(alertResult, "Alerts"));
+      setFeedback(requireResult(feedbackResult, "Feedback"));
+      setForMe(blockerResult ? requireResult(blockerResult, "Unit blockers") : []);
+    } catch (err) {
+      setLoadFailed(true);
+      setError(err.message || "Home could not be loaded.");
+    } finally {
+      setLoading(false);
     }
-    const { data: a } = await supabase.from("alerts")
-      .select("id, kind, subject_id, message, first_seen_at")
-      .eq("for_profile_id", me.id).is("acknowledged_at", null);
-    setAlerts(a || []);
   }
 
-  const dueToday = items.filter((i) => i.due_at && new Date(i.due_at).toDateString() === new Date().toDateString());
-  const overdue = items.filter((i) => isOverdue(i.due_at) && i.status !== "waiting_on");
-  const waiting = items.filter((i) => i.status === "waiting_on");
-  const attention = returned.length + forMe.length + overdue.length + alerts.length;
+  const today = startOfDay();
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  const soon = new Date(today); soon.setDate(soon.getDate() + 7);
+  const weekStart = startOfWeek();
+  const nextWeek = new Date(weekStart); nextWeek.setDate(nextWeek.getDate() + 7);
+  const returned = items.filter((item) => item.status === "returned");
+  const returnedIds = new Set(returned.map((item) => item.id));
+  const visibleAlerts = alerts.filter((alert) => !alert.subject_id || !returnedIds.has(alert.subject_id));
+  const dueToday = items.filter((item) => item.due_at && new Date(item.due_at) >= today && new Date(item.due_at) < tomorrow && !["waiting_on", "returned"].includes(item.status));
+  const overdue = items.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on" && item.status !== "returned");
+  const waiting = items.filter((item) => item.status === "waiting_on");
+  const dueSoon = items.filter((item) => item.due_at && new Date(item.due_at) >= tomorrow && new Date(item.due_at) < soon && !["waiting_on", "returned"].includes(item.status));
+  const upcoming = items.filter((item) => item.due_at && new Date(item.due_at) >= soon && !["waiting_on", "returned"].includes(item.status)).slice(0, 4);
+  const dueThisWeek = items.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek);
+  const attention = returned.length + forMe.length + overdue.length + visibleAlerts.length;
 
   async function begin() {
-    setBusy(true);
-    try { const s = await startWork(me.org_id, me.id, place, null); setSession(s); setAsk(false); }
+    setBusy(true); setError(null);
+    try { const current = await startWork(me.org_id, me.id, place, null); setSession(current); setAsk(false); }
+    catch (err) { setError(err.message || "Work could not be started."); }
     finally { setBusy(false); }
   }
   async function stop() {
     if (!session) return;
-    setBusy(true);
-    try { await endWork(session.id); setSession(null); } finally { setBusy(false); }
+    setBusy(true); setError(null);
+    try { await endWork(session.id); setSession(null); }
+    catch (err) { setError(err.message || "Work could not be ended."); }
+    finally { setBusy(false); }
   }
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const drillRows = drill?.rows || [];
 
-  return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <div className="eyebrow">{me.unit_name} · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
-        <h1 className="h1" style={{ marginTop: 6 }}>{greeting}, {me.full_name.split(" ")[0]}</h1>
+  return <div className="body">
+    <div style={{ paddingTop: 26 }}>
+      <div className="eyebrow">{me.unit_name} · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
+      <h1 className="h1" style={{ marginTop: 6 }}>{greeting}, {me.full_name.split(" ")[0]}</h1>
+      <p className="screen-note">Start with anything that needs attention, then choose the next piece of work to move.</p>
+    </div>
+
+    <div className={`sess home-session ${session ? "live" : ""}`} style={{ marginTop: 18 }}>
+      <div>
+        <div className="s-l">{session
+          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ", " + (session.place === "office" ? "at the office" : "elsewhere")
+          : "Not working"}</div>
+        <div className="s-v">{session ? since(session.started_at) : "Start to send work in"}</div>
       </div>
+      {session
+        ? <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
+        : <button className="btn btn-sm" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
+    </div>
 
-      <div className={"sess " + (session ? "live" : "")} style={{ marginTop: 18 }}>
-        <div>
-          <div className="s-l">{session
-            ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ", " + (session.place === "office" ? "at the office" : "elsewhere")
-            : "Not working"}</div>
-          <div className="s-v">{session ? since(session.started_at) : "Start to send work in"}</div>
-        </div>
-        {session
-          ? <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
-          : <button className="btn btn-sm" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
-      </div>
+    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>{loadFailed ? "Home could not finish loading" : "Could not complete that"}</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
+    {loading && <div className="spin">Loading Home...</div>}
 
-      <div className="split" style={{ marginTop: 4 }}>
-      <div className="main-col">
-      {attention > 0 && (<>
-        <div className="sec"><span>Needs your attention</span><span>{attention}</span></div>
-        {returned.map((r) => (
-          <button key={r.id} className="row" onClick={() => openItem(r.id)}>
-            <div className="row-t">{r.title} — sent back</div>
-            <div className="row-m">{r.ref} · your manager left a note</div>
-          </button>))}
-        {alerts.map((a) => (
-          <button key={a.id} className="row" onClick={() => a.subject_id && openItem(a.subject_id)}>
-            <div className="row-t">{a.message}</div>
-            <div className="row-m">Since {new Date(a.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-          </button>))}
-        {forMe.map((b) => (
-          <div key={b.id} className="row">
-            <div className="row-t">Someone is waiting on your unit</div>
-            <div className="row-m">{b.party_text}</div>
-            {b.note && <div className="row-note">&ldquo;{b.note}&rdquo;</div>}
-          </div>))}
-        {overdue.map((i) => (
-          <button key={i.id} className="row" onClick={() => openItem(i.id)}>
-            <div className="row-t">{i.title}</div>
-            <div className="row-m">{dueLabel(i.due_at)}</div>
-          </button>))}
-      </>)}
-
-      {dueToday.length > 0 && (<>
-        <div className="sec"><span>Due today</span><span>{dueToday.length}</span></div>
-        {dueToday.map((i) => (
-          <button key={i.id} className="row" onClick={() => openItem(i.id)}>
-            <div className="row-t">{i.title}</div>
-            <div className="row-m">{i.ref} · {dueLabel(i.due_at)}</div>
-            <div style={{ marginTop: 7 }}>{statusPill(i.status)}</div>
-          </button>))}
-      </>)}
-      </div>
-
-      <div className="side-col">
-      {waiting.length > 0 && (<>
-        <div className="sec"><span>Waiting on someone else</span><span>{waiting.length}</span></div>
-        {waiting.map((i) => (
-          <button key={i.id} className="row" onClick={() => openItem(i.id)}>
-            <div className="row-t">{i.title}</div>
-            <div className="row-m">{i.ref} · not counting as late</div>
-          </button>))}
-      </>)}
-      </div>
-      </div>
-
-      {items.length === 0 && attention === 0 && (
-        <div className="empty">
-          <h3>No work assigned yet</h3>
-          <p>When your manager gives you something it will appear here, with what it is for and what finished looks like.</p>
+    {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
+      <section className="home-panel home-panel-priority" aria-labelledby="staff-attention-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Deal with these first</div><h2 id="staff-attention-heading">Needs attention</h2></div><span className="home-count home-count-attention">{attention}</span></div>
+        {attention === 0 && <div className="home-quiet home-quiet-success">Nothing needs urgent attention.</div>}
+        {returned.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
+        {visibleAlerts.map((alert) => alert.subject_id
+          ? <button key={alert.id} className="row home-work-row home-tone-attention" onClick={() => openItem(alert.subject_id)}>
+              <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+            </button>
+          : <div key={alert.id} className="row home-tone-attention">
+              <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+            </div>)}
+        {forMe.map((blocker) => <div key={blocker.id} className="row home-blocker-row home-tone-attention">
+          <div className="home-direction">Waiting for your unit to reply</div><div className="row-t">Your unit has been named on a blocker</div>
+          <div className="row-m">{blocker.party_text}</div>{blocker.note && <div className="row-note">&ldquo;{blocker.note}&rdquo;</div>}
+          {blocker.work_item_id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open work</button>}
         </div>)}
+        {overdue.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
+      </section>
 
-      {ask && (
-        <Sheet onClose={() => setAsk(false)}>
-          <div className="h2">Where are you working?</div>
-          <p className="screen-note" style={{ marginBottom: 10 }}>We record where you start. We do not track you during the day.</p>
-          <button className="opt" onClick={() => setPlace("office")}>
-            <span className={"rd " + (place === "office" ? "on" : "")} /> At the office</button>
-          <button className="opt" onClick={() => setPlace("elsewhere")}>
-            <span className={"rd " + (place === "elsewhere" ? "on" : "")} /> Somewhere else</button>
-          <button className="btn" style={{ marginTop: 16 }} onClick={begin} disabled={busy}>
-            {busy ? "Starting..." : "Start work"}</button>
-        </Sheet>)}
-    </div>);
+      <section className="home-panel home-panel-pulse" aria-labelledby="staff-today-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Current focus</div><h2 id="staff-today-heading">Today</h2></div><span className="home-count">{dueToday.length}</span></div>
+        {dueToday.length ? dueToday.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work is due today.</div>}
+      </section>
+
+      <section className="home-panel" aria-labelledby="staff-soon-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Next seven days</div><h2 id="staff-soon-heading">Due soon</h2></div><span className="home-count">{dueSoon.length}</span></div>
+        {dueSoon.length ? dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">Nothing else is due in the next seven days.</div>}
+      </section>
+
+      <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Paused dependencies</div><h2 id="staff-waiting-heading">Waiting on</h2></div><span className="home-count">{waiting.length}</span></div>
+        {waiting.length ? waiting.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="attention" />) : <div className="home-quiet">No work is waiting on someone else.</div>}
+      </section>
+
+      <section className="home-panel" aria-labelledby="staff-feedback-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Visible to you</div><h2 id="staff-feedback-heading">Recent feedback</h2></div></div>
+        {feedback.length ? feedback.map((note) => <div key={note.id} className="row home-feedback-row">
+          <div className="row-t">{note.profiles?.full_name || "Manager"}</div><div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div><div className="row-note">{note.note}</div>
+        </div>) : <div className="home-quiet">No recent manager feedback.</div>}
+      </section>
+
+      <section className="home-panel home-panel-week" aria-labelledby="staff-upcoming-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Further ahead</div><h2 id="staff-upcoming-heading">Upcoming</h2></div></div>
+        {upcoming.length ? upcoming.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No later deadlines are currently recorded.</div>}
+        <div className="home-subhead home-subhead-spaced">This week</div>
+        <div className="home-stat-grid">
+          <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
+          <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
+          <button className="home-stat home-tone-danger" onClick={() => setDrill({ title: "Overdue work", rows: overdue })}><b>{overdue.length}</b><span>Overdue</span></button>
+        </div>
+        {drill && <div className="home-drill"><div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
+          {drillRows.length ? drillRows.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No work in this group.</div>}
+        </div>}
+      </section>
+    </div>}
+
+    {ask && <Sheet onClose={() => setAsk(false)}>
+      <div className="h2">Where are you working?</div>
+      <p className="screen-note" style={{ marginBottom: 10 }}>We record where you start. We do not track you during the day.</p>
+      <button className="opt" onClick={() => setPlace("office")}><span className={`rd ${place === "office" ? "on" : ""}`} /> At the office</button>
+      <button className="opt" onClick={() => setPlace("elsewhere")}><span className={`rd ${place === "elsewhere" ? "on" : ""}`} /> Somewhere else</button>
+      <button className="btn" style={{ marginTop: 16 }} onClick={begin} disabled={busy}>{busy ? "Starting..." : "Start work"}</button>
+    </Sheet>}
+  </div>;
 }
