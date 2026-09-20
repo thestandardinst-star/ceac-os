@@ -17,6 +17,8 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [caseRecord, setCaseRecord] = useState(null);
   const [requestRecord, setRequestRecord] = useState(null);
   const [requestResponses, setRequestResponses] = useState([]);
+  const [decisionRecord, setDecisionRecord] = useState(null);
+  const [decisionText, setDecisionText] = useState("");
   const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [routineValue, setRoutineValue] = useState("");
   const [routineEffective, setRoutineEffective] = useState("");
@@ -41,6 +43,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "decision") {
+      const decisionResult = await supabase.from("work_decisions")
+        .select("authority_profile_id,question,decision_text,rationale,decided_at,decided_by")
+        .eq("work_item_id", id).single();
+      if (decisionResult.error) { setErr(`Decision: ${decisionResult.error.message}`); return; }
+      setDecisionRecord(decisionResult.data);
+    } else setDecisionRecord(null);
     if (w.kind === "request") {
       const requestResult = await supabase.from("work_requests")
         .select("requester_id,responsible_profile_id,responsible_unit_id,request_state,responded_at,responded_by,response_note, units:responsible_unit_id(name)")
@@ -167,6 +176,21 @@ export default function Item({ id, me, session, isManager = false, back }) {
       if (statusError) throw statusError;
       setSheet(null); setNote(""); setLink(""); await load();
     } catch (e) { setErr(e.message || "The work could not be submitted."); }
+    finally { setBusy(false); }
+  }
+
+  async function recordDecision() {
+    if (!decisionText.trim() || !note.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("record_work_decision", {
+        p_work_item_id: id,
+        p_decision: decisionText.trim(),
+        p_rationale: note.trim(),
+      });
+      if (error) throw error;
+      setSheet(null); setDecisionText(""); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The decision could not be recorded."); }
     finally { setBusy(false); }
   }
 
@@ -357,6 +381,21 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
 
+      {item.kind === "decision" && decisionRecord && <>
+        <div className="sec"><span>Decision required</span></div>
+        <div className="card">
+          <div className="row-t">{decisionRecord.question}</div>
+          {decisionRecord.decided_at
+            ? <>
+              <div className="row-note" style={{ marginTop: 10 }}><strong>Decision:</strong> {decisionRecord.decision_text}</div>
+              <div className="row-note" style={{ marginTop: 6 }}><strong>Rationale:</strong> {decisionRecord.rationale}</div>
+            </>
+            : <div className="row-m">Waiting for the named decision-maker.</div>}
+        </div>
+        {!decisionRecord.decided_at && (decisionRecord.authority_profile_id === me.id || me.is_admin) &&
+          <button className="btn" style={{ marginTop: 20 }} onClick={() => { setDecisionText(""); setNote(""); setSheet("decision-record"); }}>Record decision</button>}
+      </>}
+
       {item.kind === "request" && requestRecord && <>
         <div className="sec"><span>Request</span></div>
         <div className="card">
@@ -436,7 +475,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
             </button>))}
         </div></>)}
 
-      {!["routine", "case", "request"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
+      {!["routine", "case", "request", "decision"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {managerOwnWork ? "Finish this work" : "Send for review"}</button>
@@ -455,6 +494,16 @@ export default function Item({ id, me, session, isManager = false, back }) {
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+      {sheet === "decision-record" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Record decision</div>
+          <p className="screen-note">The decision and rationale are permanent, attributable records.</p>
+          <textarea className="field" rows={3} placeholder="Decision" value={decisionText} onChange={(e) => setDecisionText(e.target.value)} />
+          <textarea className="field" rows={4} placeholder="Why was this decision made?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={recordDecision} disabled={busy || !decisionText.trim() || !note.trim()}>
+            {busy ? "Saving..." : "Record decision"}</button>
+        </Sheet>)}
 
       {sheet === "request-fulfilled" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
