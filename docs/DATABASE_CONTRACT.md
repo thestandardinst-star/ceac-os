@@ -761,3 +761,78 @@ The Staff continuation deliberately does **not** store the following in ordinary
 - protected certificates/documents.
 
 Those require the approved protected-storage and HR verification model. Do not implement them with public URLs or ordinary profile columns.
+
+---
+
+## Staff operating-surface correction (migrations 055–059)
+
+### Attention state is source-driven — 055
+
+`alerts` now carries `resolved_at` and `resolved_reason`. An alert is not a permanent employee obligation.
+
+Background checks retire stale alerts when the source record changes. In particular:
+
+- completed, self-certified or cancelled work retires overdue and gone-quiet alerts;
+- work moved to `in_review` retires employee overdue/gone-quiet alerts because the next action is with the reviewer;
+- work in `waiting_on` retires those same employee-action alerts;
+- recent movement retires a gone-quiet alert;
+- blocker no-response alerts retire when the blocker is acknowledged, disputed or resolved.
+
+Clients may acknowledge permitted alerts but may not directly set alert resolution fields.
+
+### Historical session reconciliation — 056 / 057
+
+Legacy ended manual sessions longer than 24 hours with no prior correction are marked with `flags.needs_reconciliation = true` and excluded from employee time totals until corrected.
+
+Use `reconcile_closed_work_session(session_id, effective_ended_at, note)`.
+
+The employee may only correct their own flagged historical session. The corrected end must fall between the recorded start and old recorded end. The correction is retained in session/activity history. CEAC OS does not invent an end time.
+
+### Work-review follow-up — 058
+
+`work_followups` stores attributable review follow-ups. Use `follow_up_work_review(work_item_id)`.
+
+Rules:
+
+- assigned employee only;
+- work must still be `in_review`;
+- Task, Meeting outcome or Deliverable only;
+- first follow-up after one day from the latest submission;
+- final follow-up after three days;
+- maximum two follow-ups.
+
+The target Manager unit receives a `review_followup` alert. That alert resolves automatically when review ends.
+
+### Dependency follow-up — 059
+
+`blocker_followups` stores attributable dependency follow-ups. Use `follow_up_blocker(blocker_id)`.
+
+Rules:
+
+- blocker claimant only;
+- blocker must remain `claimed` or `acknowledged`;
+- blocker must target a CEAC unit;
+- first follow-up after one day from the latest claim/response;
+- final follow-up after three days;
+- maximum two follow-ups.
+
+The target unit receives a `blocker_followup` alert. It resolves when the dependency is resolved or disputed.
+
+### Staff information architecture
+
+Staff Home now separates:
+
+- What changed;
+- Your next move;
+- Waiting on others;
+- Coming up;
+- Announcements;
+- This week.
+
+Staff Work is presented as Assigned, My agreed work and Private.
+
+Self-created Task work may be unattached to a project, may have no due date and may intentionally have no checklist when the employee chooses to determine the method. Expected result remains required.
+
+Private work remains visible only to the employee and is excluded from formal Staff Record evidence.
+
+Staff Record is presented as Highlights, Work history and Time & activity. Highlights are derived from actual completed Task/Deliverable records and factual manager feedback. No self-authored performance score or achievement ranking is created.
