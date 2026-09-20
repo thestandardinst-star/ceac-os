@@ -44,6 +44,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [projects, setProjects] = useState([]);
   const [upcomingProjects, setUpcomingProjects] = useState([]);
   const [week, setWeek] = useState({ due: [], completed: [], overdue: [] });
+  const [recentMovement, setRecentMovement] = useState([]);
   const [leaveLimit, setLeaveLimit] = useState(5);
   const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
@@ -68,9 +69,10 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const weekStart = startOfWeek();
       const nextWeek = new Date(weekStart); nextWeek.setDate(nextWeek.getDate() + 7);
 
+      const recentSince = new Date(today); recentSince.setDate(recentSince.getDate() - 7);
       const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult,
         settingResult, sessionResult, weekResult, projectUnitResult, activeProjectResult,
-        todayOutputResult, todaySubmissionResult] = await Promise.all([
+        todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult] = await Promise.all([
         supabase.from("unit_memberships")
           .select("profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name)")
           .eq("unit_id", me.unit_id),
@@ -106,9 +108,15 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           .eq("unit_id", me.unit_id).in("kind", ["task", "deliverable"])
           .eq("status", "completed")
           .gte("completed_at", today.toISOString()).lt("completed_at", tomorrow.toISOString()),
-        supabase.from("submissions").select("id, profile_id, submitted_at, work_items!inner(id, ref, title, status, due_at, unit_id)")
+        supabase.from("submissions").select("id, profile_id, submitted_at, profiles!submissions_profile_id_fkey(full_name), work_items!inner(id, ref, title, status, due_at, unit_id)")
           .eq("work_items.unit_id", me.unit_id)
           .gte("submitted_at", today.toISOString()).lt("submitted_at", tomorrow.toISOString()),
+        supabase.from("work_items").select("id,ref,title,completed_at,assignee_id,profiles!work_items_assignee_id_fkey(full_name)")
+          .eq("unit_id", me.unit_id).in("kind", ["task", "deliverable"]).in("status", ["completed", "self_certified"])
+          .gte("completed_at", recentSince.toISOString()).order("completed_at", { ascending: false }).limit(8),
+        supabase.from("submissions").select("id,profile_id,submitted_at,profiles!submissions_profile_id_fkey(full_name),work_items!inner(id,ref,title,unit_id)")
+          .eq("work_items.unit_id", me.unit_id).gte("submitted_at", recentSince.toISOString())
+          .order("submitted_at", { ascending: false }).limit(8),
       ]);
 
       const members = requireResult(memberResult, "Team").filter((member) => member.profile_id !== me.id);
@@ -159,6 +167,14 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         submitted: submittedWork,
       });
 
+      const recentCompleted = requireResult(recentCompletedResult, "Recent completed work")
+        .map((item) => ({ key: `completed-${item.id}`, type: "completed", at: item.completed_at, itemId: item.id, title: `${item.ref} · ${item.title}`, detail: `${item.profiles?.full_name || "Team member"} completed this work` }));
+      const recentSubmitted = requireResult(recentSubmissionResult, "Recent submissions")
+        .map((row) => ({ key: `submitted-${row.id}`, type: "submitted", at: row.submitted_at, itemId: row.work_items.id, title: `${row.work_items.ref} · ${row.work_items.title}`, detail: `${row.profiles?.full_name || "Team member"} submitted this work` }));
+      setRecentMovement([...recentCompleted, ...recentSubmitted]
+        .sort((left, right) => new Date(right.at) - new Date(left.at))
+        .slice(0, 6));
+
       const tasks = requireResult(weekResult, "This week");
       setWeek({
         due: tasks.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek),
@@ -176,7 +192,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const projectIds = relevantProjects.map((project) => project.id);
       const [objectiveResult, projectTaskResult] = projectIds.length ? await Promise.all([
         supabase.from("objectives").select("id, project_id, name, status").in("project_id", projectIds),
-        supabase.from("work_items").select("id, ref, title, project_id, status, due_at, kind").in("project_id", projectIds).in("kind", ["task", "deliverable"]),
+        supabase.from("work_items").select("id, ref, title, project_id, objective_id, status, due_at, kind").in("project_id", projectIds),
       ]) : [{ data: [], error: null }, { data: [], error: null }];
       const objectives = requireResult(objectiveResult, "Project objectives");
       const projectTasks = requireResult(projectTaskResult, "Project tasks");
@@ -186,11 +202,16 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         const projectWork = projectTasks.filter((item) => item.project_id === project.id);
         const tasksForProject = projectWork.filter((item) => item.kind === "task");
         const openDeliverables = projectWork.filter((item) => item.kind === "deliverable" && !["completed", "self_certified", "cancelled"].includes(item.status));
+        const objectivesWithoutActiveWork = objectives.filter((objective) =>
+          objective.project_id === project.id
+          && ["on_track", "at_risk"].includes(objective.status)
+          && !projectWork.some((item) => item.objective_id === objective.id && !["completed", "self_certified", "cancelled"].includes(item.status))
+        );
         return { ...project, atRisk, closesThisWeek, tasks: tasksForProject,
-          openDeliverables,
+          openDeliverables, objectivesWithoutActiveWork,
           completedTasks: tasksForProject.filter((task) => ["completed", "self_certified"].includes(task.status)).length,
           taskCount: tasksForProject.length };
-      }).filter((project) => project.atRisk.length > 0 || project.closesThisWeek || project.openDeliverables.length > 0));
+      }).filter((project) => project.atRisk.length > 0 || project.closesThisWeek || project.openDeliverables.length > 0 || project.objectivesWithoutActiveWork.length > 0));
     } catch (err) {
       setLoadFailed(true);
       setError(err.message || "Manager Home could not be loaded.");
@@ -412,11 +433,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         <div key={project.id} className="row home-project-row">
           <button className="row-t" style={{ textDecoration: "underline", textAlign: "left" }} onClick={() => openProject(project.id)}>{project.name}</button>
           <div className="home-chip-row">
-            {project.atRisk.length > 0 && <span className="home-chip home-chip-attention">{project.atRisk.length} objective{project.atRisk.length === 1 ? "" : "s"} need attention</span>}
-            {project.closesThisWeek && <span className="home-chip home-chip-info">Ends this week</span>}
-            {project.openDeliverables.length > 0 && <span className="home-chip">{project.openDeliverables.length} open deliverable{project.openDeliverables.length === 1 ? "" : "s"}</span>}
+            {project.atRisk.length > 0 && <button className="home-chip home-chip-attention" onClick={() => openProject(project.id)}>{project.atRisk.length} objective{project.atRisk.length === 1 ? "" : "s"} need attention</button>}
+            {project.objectivesWithoutActiveWork.length > 0 && <button className="home-chip home-chip-attention" onClick={() => openProject(project.id)}>{project.objectivesWithoutActiveWork.length} active objective{project.objectivesWithoutActiveWork.length === 1 ? "" : "s"} with no active work</button>}
+            {project.closesThisWeek && <button className="home-chip home-chip-info" onClick={() => openProject(project.id)}>Ends this week</button>}
+            {project.openDeliverables.length > 0 && <button className="home-chip" onClick={() => setDrill({ zone: "project", title: `${project.name} open deliverables`, rows: project.openDeliverables })}>{project.openDeliverables.length} open deliverable{project.openDeliverables.length === 1 ? "" : "s"}</button>}
           </div>
           {project.atRisk.map((objective) => <div key={objective.id} className="row-note">{objective.status === "not_met" ? "Not met" : "At risk"}: {objective.name}</div>)}
+          {project.objectivesWithoutActiveWork.map((objective) => <div key={`no-work-${objective.id}`} className="row-note">No active work attached: {objective.name}</div>)}
           {project.atRisk.length > 0 && project.closesThisWeek && <div className="row-note">Closes {new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}</div>}
           {project.taskCount > 0 && <button className="home-progress-link" onClick={() => setDrill({ zone: "project", title: `${project.name} tasks`, rows: project.tasks })}>
             <span>{project.completedTasks} of {project.taskCount} tasks completed</span>
@@ -453,6 +476,17 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
       </div>}
       </section>
+
+      {recentMovement.length > 0 && <section className="home-panel home-panel-week" aria-labelledby="manager-recent-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Last seven days</div><h2 id="manager-recent-heading">Recent movement</h2></div>
+        </div>
+        {recentMovement.map((movement) => <button key={movement.key} className="row" onClick={() => openItem(movement.itemId)}>
+          <div className="row-t">{movement.title}</div>
+          <div className="row-m">{movement.detail}</div>
+          <div className="row-note">{new Date(movement.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
+        </button>)}
+      </section>}
 
       {sheet?.type === "work" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
         <div className="h2">{sheet.decision === "completed" ? "Approve this work" : "Return this work"}</div>
