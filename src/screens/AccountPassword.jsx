@@ -12,8 +12,14 @@ export default function AccountPassword({ mode, onDone }) {
   useEffect(() => {
     let mounted = true;
     async function check() {
-      const { data } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
       if (!mounted) return;
+      if (error) {
+        setMessage(error.message || "This secure link could not be verified.");
+        setHasSession(false);
+        setReady(true);
+        return;
+      }
       setHasSession(Boolean(data.session));
       setReady(true);
     }
