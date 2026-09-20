@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–054** are currently applied.
+Live migrations **001–059** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–054**.
+The repository now contains the historical SQL for **all live migrations 001–059**.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **055**.
+The next migration number is **060**.
 
 
 ## 20 September backend continuation
@@ -75,3 +75,13 @@ Rollback acceptance passed before Deliverable client integration.
 - **054** — employee personal profile changes must use the attributable personal-details RPC; direct self-update bypass is blocked.
 
 All acceptance records for these migrations were created inside transactions that ended with `ROLLBACK`.
+
+## Staff operating-surface correction — migrations 055–059
+
+- **055** — authoritative attention-state semantics. Stale gone-quiet, overdue and blocker-response alerts retire when the source no longer requires action.
+- **056** — historical closed-session reconciliation. Implausible legacy multi-day manual sessions are flagged for employee correction instead of being trusted as working time.
+- **057** — session-event compatibility fix found during rollback acceptance.
+- **058** — disciplined work-review follow-up: first follow-up after one day, final follow-up after three days, then stop.
+- **059** — disciplined blocker/dependency follow-up using the same two-step cadence and attributable activity history.
+
+All acceptance records for 055–059 were created inside transactions ending with `ROLLBACK`.
