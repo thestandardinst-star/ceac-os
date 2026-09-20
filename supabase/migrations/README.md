@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–059** are currently applied.
+Live migrations **001–066** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–059**.
+The repository now contains the historical SQL for **all live migrations 001–066**.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **060**.
+The next migration number is **067**.
 
 
 ## 20 September backend continuation
@@ -85,3 +85,18 @@ All acceptance records for these migrations were created inside transactions tha
 - **059** — disciplined blocker/dependency follow-up using the same two-step cadence and attributable activity history.
 
 All acceptance records for 055–059 were created inside transactions ending with `ROLLBACK`.
+
+
+## Stabilisation gate — migrations 060–066
+
+- **060** — invitation authority hardening and invite-only account creation. Managers may invite Staff only; organisation/unit come from a valid unexpired invitation; direct invitation writes are blocked.
+- **061** — canonical Task/Deliverable completed-output view and Admin-only Unit Head assignment.
+- **062** — threshold-driven deterministic attention rules with Monday–Friday working-day semantics.
+- **063** — project-silence and factual Falling rules based only on explicit comparable report target values.
+- **064** — transaction-safe multi-row application writes for Task creation, submission, blockers, project creation, project close, report submission and sub-team reorder.
+- **065** — observed hot-path indexes and targeted RLS init-plan optimisations.
+- **066** — server-side Administration People aggregation with lazy per-person detail.
+
+Repository timestamps for migrations 047–052 were reconciled to the exact live Supabase registry versions. The SQL bodies matched Supabase's stored migration statements exactly.
+
+A clean local Supabase replay workflow now rebuilds the application schema from the recovered migration history. The one documented pre-ledger live-only test helper required by immutable migration 037 is restored from `supabase/replay/legacy-live-artifacts.sql` before replay.
