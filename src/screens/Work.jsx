@@ -77,7 +77,7 @@ export default function Work({ me, isManager = false, openItem }) {
       );
       if (checklistError) throw new Error(`Task ${ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
       setSheet(null); setProjectId(""); setTitle(""); setDue(""); setSteps([""]);
-      setNotice(`${ref} added to your work. Your manager can see it without approving it first.`);
+      setNotice(`${ref} added to your work. It appears immediately in your record.`);
       await load();
     } catch (error) {
       setLoadError(error.message || "The work could not be added.");
@@ -98,7 +98,7 @@ export default function Work({ me, isManager = false, openItem }) {
         <p className="screen-note">Everything assigned to you, and anything you added yourself.</p>
       </div>
       <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => { setSheet("self"); setNotice(null); }}>Add agreed work</button>
-      <p className="small" style={{ marginTop: 7 }}>For work you already agreed to carry. It appears immediately; your manager does not approve it first.</p>
+      <p className="small" style={{ marginTop: 7 }}>Add work you already agreed to carry. It appears immediately in your record and does not need separate approval before you start.</p>
       {notice && <div className="flag flag-green" style={{ marginTop: 10 }}>{notice}</div>}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
         {FILTERS.map(([k, label]) => (
@@ -138,8 +138,11 @@ export default function Work({ me, isManager = false, openItem }) {
         <input className="field" type="datetime-local" value={due} onChange={(event) => setDue(event.target.value)} />
         <div className="small" style={{ marginTop: 12 }}>Completion checklist</div>
         {steps.map((step, index) => <input key={index} className="field" placeholder={index === 0 ? "What must be true when this is finished?" : "Another completion point (optional)"} value={step}
-          onChange={(event) => setSteps((current) => current.map((value, i) => i === index ? event.target.value : value))}
-          onBlur={() => { if (step.trim() && index === steps.length - 1 && steps.length < 4) setSteps((current) => [...current, ""]); }} />)}
+          onChange={(event) => setSteps((current) => current.map((value, i) => i === index ? event.target.value : value))} />)}
+        {steps.length < 4 && <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
+          disabled={!steps[steps.length - 1]?.trim()}
+          onClick={() => setSteps((current) => [...current, ""])}>+ Add another step</button>}
+        <div className="hint">Agreed work needs at least one checklist point before it can be added.</div>
         {projects.length === 0 && <div className="flag flag-amber" style={{ marginTop: 10 }}>No active project in your unit is available. This task cannot be added as agreed project work yet.</div>}
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !projectId || !title.trim() || !due || !steps.some((step) => step.trim())} onClick={createOwnTask}>
           {busy ? "Adding..." : "Add to my work"}
