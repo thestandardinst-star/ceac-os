@@ -8,15 +8,18 @@ export const supabase = createClient(
   { auth: { persistSession: true, autoRefreshToken: true } }
 );
 export async function loadMe() {
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
   if (!auth.user) return null;
-  const { data: p } = await supabase.from("profiles")
+  const { data: p, error: profileError } = await supabase.from("profiles")
     .select("id, full_name, preferred_name, email, job_title, phone, is_admin, is_exec, org_id, joined_at, birthday, contract_type")
     .eq("id", auth.user.id).single();
+  if (profileError) throw profileError;
   if (!p) return null;
-  const { data: memberships } = await supabase.from("unit_memberships")
+  const { data: memberships, error: membershipError } = await supabase.from("unit_memberships")
     .select("role, unit_id, units(name)")
     .eq("profile_id", auth.user.id);
+  if (membershipError) throw membershipError;
   const options = (memberships || []).map((m) => ({
     unit_id: m.unit_id,
     unit_name: m.units ? m.units.name : null,
