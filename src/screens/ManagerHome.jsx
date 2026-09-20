@@ -46,6 +46,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [week, setWeek] = useState({ due: [], completed: [], overdue: [] });
   const [recentMovement, setRecentMovement] = useState([]);
   const [routines, setRoutines] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [leaveLimit, setLeaveLimit] = useState(5);
   const [sheet, setSheet] = useState(null);
   const [drill, setDrill] = useState(null);
@@ -175,6 +176,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       setRecentMovement([...recentCompleted, ...recentSubmitted]
         .sort((left, right) => new Date(right.at) - new Date(left.at))
         .slice(0, 6));
+
+      const requestResult = await supabase.from("work_requests")
+        .select("work_item_id,request_state,responsible_unit_id, work_items!inner(id,ref,title,due_at,status,assigned_by)")
+        .eq("responsible_unit_id", me.unit_id)
+        .in("request_state", ["waiting", "clarification"])
+        .order("responded_at", { ascending: true, nullsFirst: true });
+      setIncomingRequests(requireResult(requestResult, "Incoming requests"));
 
       const routineResult = await supabase.from("recurring_operations")
         .select("id,name,work_item_id,active,schedule_kind,weekdays,day_of_month,records_value,value_label,starts_on,ends_on")
@@ -469,6 +477,18 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
       </div>}
       </section>
+
+      {incomingRequests.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="manager-requests-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Other units are waiting</div><h2 id="manager-requests-heading">Requests to your unit</h2></div>
+          <span className="home-count home-count-attention">{incomingRequests.length}</span>
+        </div>
+        {incomingRequests.map((request) => <button className="row" key={request.work_item_id} onClick={() => openItem(request.work_item_id)}>
+          <div className="row-t">{request.work_items.title}</div>
+          <div className="row-m">{request.work_items.ref}{request.work_items.due_at ? ` · due ${new Date(request.work_items.due_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}</div>
+          <div className="row-note">{request.request_state === "clarification" ? "Waiting for clarification" : "Waiting for your unit"}</div>
+        </button>)}
+      </section>}
 
       {routines.length > 0 && <section className="home-panel" aria-labelledby="manager-routines-heading">
         <div className="home-section-head">
