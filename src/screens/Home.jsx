@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { startWork, endWork } from "../lib/session";
+import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
 
@@ -19,6 +19,14 @@ function startOfWeek(date = new Date()) {
 function requireResult(result, label) {
   if (result.error) throw new Error(`${label}: ${result.error.message}`);
   return result.data || [];
+}
+
+function accraDateKey(value) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Accra", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(value));
+  const pick = (type) => parts.find((part) => part.type === type)?.value;
+  return `${pick("year")}-${pick("month")}-${pick("day")}`;
 }
 
 function WorkRow({ item, openItem, tone = "neutral" }) {
@@ -42,6 +50,9 @@ export default function Home({ me, session, setSession, openItem }) {
   const [error, setError] = useState(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [drill, setDrill] = useState(null);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoveryEndedAt, setRecoveryEndedAt] = useState("");
+  const [recoveryNote, setRecoveryNote] = useState("");
   const [, tick] = useState(0);
 
   useEffect(() => { const timer = setInterval(() => tick((value) => value + 1), 30000); return () => clearInterval(timer); }, []);
@@ -99,6 +110,8 @@ export default function Home({ me, session, setSession, openItem }) {
   const upcoming = items.filter((item) => item.due_at && new Date(item.due_at) >= soon && !["waiting_on", "returned"].includes(item.status)).slice(0, 4);
   const dueThisWeek = items.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek);
   const attention = returned.length + overdue.length + visibleAlerts.length;
+  const staleSession = Boolean(session
+    && accraDateKey(session.last_confirmed_at || session.started_at) < accraDateKey(new Date()));
 
   async function begin() {
     setBusy(true); setError(null);
@@ -115,6 +128,24 @@ export default function Home({ me, session, setSession, openItem }) {
     setBusy(true); setError(null);
     try { await endWork(session.id); setSession(null); }
     catch (err) { setError(err.message || "Work could not be ended."); }
+    finally { setBusy(false); }
+  }
+  async function continueRecoveredSession() {
+    if (!session) return;
+    setBusy(true); setError(null);
+    try {
+      const current = await reconcileWorkSession(session.id, "continue");
+      setSession(current);
+    } catch (err) { setError(err.message || "The work session could not be confirmed."); }
+    finally { setBusy(false); }
+  }
+  async function closeRecoveredSession() {
+    if (!session || !recoveryEndedAt) return;
+    setBusy(true); setError(null);
+    try {
+      await reconcileWorkSession(session.id, "close", new Date(recoveryEndedAt).toISOString(), recoveryNote.trim() || null);
+      setSession(null); setRecoveryOpen(false); setRecoveryEndedAt(""); setRecoveryNote("");
+    } catch (err) { setError(err.message || "The work session could not be reconciled."); }
     finally { setBusy(false); }
   }
 
@@ -134,12 +165,23 @@ export default function Home({ me, session, setSession, openItem }) {
         <div className="s-l">{session
           ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ", " + (session.place === "office" ? "at the office" : "elsewhere")
           : "Not working"}</div>
-        <div className="s-v">{session ? since(session.started_at) : "Start to send work in"}</div>
+        <div className="s-v">{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Start to send work in"}</div>
       </div>
       {session
-        ? <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
+        ? staleSession
+          ? <button className="btn btn-ghost btn-sm" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review session</button>
+          : <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
         : <button className="btn btn-sm" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
     </div>
+
+    {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
+      <h4>You still have a work session open from an earlier day</h4>
+      CEAC OS has paused the running duration until you confirm what happened. It will not record continuous overnight work by itself.
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        <button className="btn btn-sm" onClick={continueRecoveredSession} disabled={busy}>{busy ? "Saving..." : "Continue this session"}</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => setRecoveryOpen(true)} disabled={busy}>Close at the actual time</button>
+      </div>
+    </div>}
 
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>{loadFailed ? "Home could not finish loading" : "Could not complete that"}</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
     {loading && <div className="spin">Loading Home...</div>}
@@ -210,6 +252,15 @@ export default function Home({ me, session, setSession, openItem }) {
         <div className="hint">The location is attached to this work when you start. CEAC OS does not track you during the day.</div>
       </>}
       <button className="btn" style={{ marginTop: 16 }} onClick={begin} disabled={busy || (place === "elsewhere" && !sessionWorkItem)}>{busy ? "Starting..." : "Start work"}</button>
+    </Sheet>}
+    {recoveryOpen && <Sheet onClose={() => !busy && setRecoveryOpen(false)}>
+      <div className="h2">Close the earlier work session</div>
+      <p className="screen-note">Enter when you actually stopped. The original start, this correction and who made it remain in the history.</p>
+      <label className="label" htmlFor="recovery-ended-at">Actual end time</label>
+      <input id="recovery-ended-at" className="field" type="datetime-local" value={recoveryEndedAt} onChange={(event) => setRecoveryEndedAt(event.target.value)} />
+      <label className="label" htmlFor="recovery-note">Correction note (optional)</label>
+      <textarea id="recovery-note" className="field" rows={3} value={recoveryNote} onChange={(event) => setRecoveryNote(event.target.value)} placeholder="Anything useful about this correction" />
+      <button className="btn" style={{ marginTop: 14 }} onClick={closeRecoveredSession} disabled={busy || !recoveryEndedAt}>{busy ? "Saving..." : "Close and record correction"}</button>
     </Sheet>}
   </div>;
 }

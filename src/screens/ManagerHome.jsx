@@ -298,16 +298,30 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   async function answerBlocker(blocker, state) {
     setBusy(true); setError(null);
     try {
-      const { error: updateError } = await supabase.from("blockers").update({
-        state, responded_by: me.id, response_note: comment.trim() || null, responded_at: new Date().toISOString(),
-      }).eq("id", blocker.id);
-      if (updateError) throw updateError;
+      const { error: responseError } = await supabase.rpc("respond_to_blocker", {
+        p_blocker_id: blocker.id, p_state: state, p_note: comment.trim() || null,
+      });
+      if (responseError) throw responseError;
       setSheet(null); setComment(""); await load();
     } catch (err) { setError(err.message || "The blocker response could not be saved."); }
     finally { setBusy(false); }
   }
 
+  async function resolveBlocker(blocker) {
+    setBusy(true); setError(null);
+    try {
+      const { error: resolveError } = await supabase.rpc("resolve_blocker", {
+        p_blocker_id: blocker.id, p_note: null,
+      });
+      if (resolveError) throw resolveError;
+      await load();
+    } catch (err) { setError(err.message || "The blocker could not be resolved."); }
+    finally { setBusy(false); }
+  }
+
   const waitingCount = submissions.length + leave.length;
+  const incomingBlockers = blockers.filter((blocker) => blocker.direction === "incoming");
+  const outgoingBlockers = blockers.filter((blocker) => blocker.direction === "outgoing");
   const drillRows = drill?.rows || [];
   const ownTone = (item) => item.status === "returned" || isOverdue(item.due_at)
     ? "danger"
@@ -388,33 +402,33 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
 
       <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
         <div className="home-section-head">
-          <div><div className="home-kicker">Dependencies</div><h2 id="manager-stuck-heading">Stuck / waiting</h2></div>
+          <div><div className="home-kicker">Open blockers</div><h2 id="manager-stuck-heading">Waiting both ways</h2></div>
           <span className="home-count">{blockers.length}</span>
         </div>
-        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered unit blockers are open.</div>}
-        {blockers.map((blocker) => (
-          <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
-            <div className="home-direction">{blocker.state === "claimed"
-              ? blocker.direction === "incoming" ? "Claim needs your response" : "Waiting claim sent"
-              : blocker.direction === "incoming" ? "Waiting on your unit" : "Your unit is waiting"}</div>
-            <div className="row-t">{blocker.work_items.title}</div>
-            <div className="row-m">{blocker.direction === "incoming"
-              ? blocker.state === "acknowledged"
-                ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
-                : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
-              : blocker.state === "acknowledged"
-                ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
-                : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
-            <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
-            <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
-              {blocker.direction === "incoming" && blocker.state === "claimed" && <>
-                <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
-                <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
-              </>}
-            </div>
-          </div>
-        ))}
+        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
+        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
+          <div className="home-subhead">{group.label}</div>
+          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
+              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
+              <div className="row-t">{blocker.work_items.title}</div>
+              <div className="row-m">{blocker.direction === "incoming"
+                ? blocker.state === "acknowledged"
+                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
+                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
+                : blocker.state === "acknowledged"
+                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
+                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
+              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
+              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
+                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
+                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
+                </>}
+                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
+              </div>
+            </div>)}
+        </div>)}
       </section>
 
       <section className="home-panel" aria-labelledby="manager-own-heading">

@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+
+function accraDateKey(value) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Accra", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date(value));
+  const pick = (type) => parts.find((part) => part.type === type)?.value;
+  return `${pick("year")}-${pick("month")}-${pick("day")}`;
+}
+
 export default function Record({ me }) {
   const [s, setS] = useState(null);
   const [feedback, setFeedback] = useState([]);
@@ -19,7 +28,7 @@ export default function Record({ me }) {
       .select("id, kind, status, origin, due_at, completed_at, first_time_approved")
       .eq("assignee_id", me.id);
     const sessionResult = await supabase.from("work_sessions")
-      .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString()).lt("started_at", nextMonth.toISOString());
+      .select("started_at, ended_at, last_confirmed_at, place, end_reason").eq("profile_id", me.id).gte("started_at", monthStart.toISOString()).lt("started_at", nextMonth.toISOString());
     const blockerResult = await supabase.from("blockers").select("id,created_at").eq("claimed_by", me.id).gte("created_at", monthStart.toISOString()).lt("created_at", nextMonth.toISOString());
     const feedbackResult = await supabase.from("feedback_notes")
       .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
@@ -38,7 +47,11 @@ export default function Record({ me }) {
       && new Date(i.completed_at) < nextMonth);
     const dueDone = done.filter((i) => i.due_at && i.completed_at);
     const reviewedDone = done.filter((i) => i.first_time_approved !== null);
+    const todayKey = accraDateKey(new Date());
+    const sessionsNeedingRecovery = sessions.filter((entry) => !entry.ended_at
+      && accraDateKey(entry.last_confirmed_at || entry.started_at) < todayKey);
     const minutes = (sessions || []).reduce((sum, x) => {
+      if (!x.ended_at && accraDateKey(x.last_confirmed_at || x.started_at) < todayKey) return sum;
       const end = x.ended_at ? new Date(x.ended_at).getTime() : Date.now();
       return sum + Math.max(0, (end - new Date(x.started_at).getTime()) / 60000);
     }, 0);
@@ -54,6 +67,7 @@ export default function Record({ me }) {
       days: new Set((sessions || []).map((x) => new Date(x.started_at).toDateString())).size,
       hours: Math.floor(minutes / 60), mins: Math.round(minutes % 60),
       office: (sessions || []).filter((x) => x.place === "office").length,
+      sessionsNeedingRecovery: sessionsNeedingRecovery.length,
     });
   }
   if (!s) return error
@@ -101,6 +115,7 @@ export default function Record({ me }) {
             <Row l="Days worked" v={s.days} />
             <Row l="Hours on the platform" v={s.hours + "h " + s.mins + "m"} />
             <Row l="Sessions started at the office" v={s.office} />
+            {s.sessionsNeedingRecovery > 0 && <Row l="Sessions waiting for correction" v={s.sessionsNeedingRecovery} />}
           </div>
           <p className="small" style={{ marginTop: 10, lineHeight: 1.5 }}>
             Hours are a record of activity, not a basis for pay. Your location is recorded once,

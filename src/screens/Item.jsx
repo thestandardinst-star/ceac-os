@@ -353,6 +353,17 @@ export default function Item({ id, me, session, isManager = false, back }) {
     finally { setBusy(false); }
   }
 
+  async function resolveActiveBlocker() {
+    if (!blocker) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("resolve_blocker", { p_blocker_id: blocker.id, p_note: null });
+      if (error) throw error;
+      await load();
+    } catch (e) { setErr(e.message || "The blocker could not be resolved."); }
+    finally { setBusy(false); }
+  }
+
   if (!item) return err
     ? <div className="body"><button className="back" onClick={back}>← Back</button><div className="flag flag-brick"><h4>Could not load this work</h4>{err}</div></div>
     : <div className="spin">Loading...</div>;
@@ -389,6 +400,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
           {blocker.note && <div style={{ marginTop: 5 }}>&ldquo;{blocker.note}&rdquo;</div>}
           {blocker.state === "claimed" && <div style={{ marginTop: 6, fontSize: 12.5 }}>Waiting for them to reply. This is not counting as late.</div>}
           {blocker.state === "disputed" && blocker.response_note && <div style={{ marginTop: 6 }}>They said: &ldquo;{blocker.response_note}&rdquo;</div>}
+          {blocker.claimed_by === me.id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={resolveActiveBlocker} disabled={busy}>Mark resolved</button>}
         </div>)}
 
       {item.purpose && (<><div className="sec"><span>Why this matters</span></div>
