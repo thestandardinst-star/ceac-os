@@ -360,7 +360,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
   return (
     <div className="body">
       <button className="back" onClick={back}>← Back</button>
-      <div className="eyebrow">{item.ref}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
+      <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
       <h1 className="h2" style={{ marginTop: 6, fontSize: 22 }}>{item.title}</h1>
       <div className="screen-note">{dueLabel(item.due_at)}</div>
       <div style={{ marginTop: 10 }}>{statusPill(item.status)}</div>
@@ -449,7 +449,11 @@ export default function Item({ id, me, session, isManager = false, back }) {
             <div className="row-note">{new Date(response.created_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
           </div>)}
         </>}
-        {requestRecord.request_state === "waiting" && (requestRecord.responsible_profile_id === me.id || isManager || me.is_admin) &&
+        {requestRecord.request_state === "waiting" && (
+          requestRecord.responsible_profile_id === me.id
+          || (isManager && requestRecord.responsible_unit_id === me.unit_id)
+          || me.is_admin
+        ) &&
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
             <button className="btn btn-sm" onClick={() => { setNote(""); setSheet("request-fulfilled"); }}>Mark fulfilled</button>
             <button className="btn btn-ghost btn-sm" onClick={() => { setNote(""); setSheet("request-clarification"); }}>Ask for clarification</button>
@@ -530,7 +534,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.status === "in_review" &&
         <div className="flag flag-amber" style={{ marginTop: 20 }}><h4>Sent in</h4>Waiting on your manager to check it.</div>}
 
-      {isManager && ["completed", "self_certified"].includes(item.status) &&
+      {isManager && ["task", "meeting_outcome", "deliverable"].includes(item.kind) && ["completed", "self_certified"].includes(item.status) &&
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
