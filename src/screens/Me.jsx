@@ -28,38 +28,46 @@ export default function Me({ me, openGoal }) {
   useEffect(() => { load(); }, [me.id]);
 
   async function load() {
+    setMessage(null);
     const year = new Date().getFullYear();
-    const { data: b } = await supabase.from("leave_balances")
+    const { data: b, error: balanceError } = await supabase.from("leave_balances")
       .select("annual_taken, sick_taken, carryover_from_last_year")
       .eq("profile_id", me.id).eq("year", year).maybeSingle();
+    if (balanceError) { setMessage(balanceError.message); return; }
     setBalance(b || { annual_taken: 0, sick_taken: 0, carryover_from_last_year: 0 });
 
-    const { data: s } = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
+    const { data: s, error: settingsError } = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
+    if (settingsError) { setMessage(settingsError.message); return; }
     setSettings(s);
 
-    const { data: requests } = await supabase.from("leave_requests")
+    const { data: requests, error: requestsError } = await supabase.from("leave_requests")
       .select("id, kind, start_date, end_date, days, status")
       .eq("profile_id", me.id).order("requested_at", { ascending: false }).limit(10);
+    if (requestsError) { setMessage(requestsError.message); return; }
     setMyRequests(requests || []);
 
-    const { data: goalRows } = await supabase.from("personal_goals")
+    const { data: goalRows, error: goalsError } = await supabase.from("personal_goals")
       .select("id, title, target_date, status, achieved_at")
       .eq("profile_id", me.id).order("created_at", { ascending: false });
+    if (goalsError) { setMessage(goalsError.message); return; }
     setGoals(goalRows || []);
 
-    const { data: reminderRows } = await supabase.from("personal_reminders")
+    const { data: reminderRows, error: remindersError } = await supabase.from("personal_reminders")
       .select("id, title, remind_at, linked_goal_id").eq("profile_id", me.id)
       .is("seen_at", null).order("remind_at", { ascending: true }).limit(10);
+    if (remindersError) { setMessage(remindersError.message); return; }
     setReminders(reminderRows || []);
 
-    const { data: personal } = await supabase.from("profile_personal_details")
+    const { data: personal, error: personalError } = await supabase.from("profile_personal_details")
       .select("emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, address_text, social_handles")
       .eq("profile_id", me.id).maybeSingle();
+    if (personalError) { setMessage(personalError.message); return; }
     setDetails(personal || { emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relationship: "", address_text: "", social_handles: {} });
 
-    const { data: currentProfile } = await supabase.from("profiles")
+    const { data: currentProfile, error: profileError } = await supabase.from("profiles")
       .select("full_name, preferred_name, email, phone, birthday, job_title, joined_at, contract_type")
       .eq("id", me.id).single();
+    if (profileError) { setMessage(profileError.message); return; }
     if (currentProfile) setProfile((value) => ({ ...value, ...currentProfile }));
   }
 
@@ -132,7 +140,9 @@ export default function Me({ me, openGoal }) {
   }
 
   async function markReminderSeen(id) {
-    await supabase.from("personal_reminders").update({ seen_at: new Date().toISOString() }).eq("id", id);
+    setMessage(null);
+    const { error } = await supabase.from("personal_reminders").update({ seen_at: new Date().toISOString() }).eq("id", id);
+    if (error) { setMessage(error.message); return; }
     await load();
   }
 
@@ -180,6 +190,7 @@ export default function Me({ me, openGoal }) {
   }
 
   return <div className="body staff-me">
+    {message && !sheet && <div className="flag flag-brick" style={{ marginTop: 12 }}>{message}</div>}
     <div className="staff-page-intro">
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1">{profile.preferred_name || profile.full_name}</h1>
