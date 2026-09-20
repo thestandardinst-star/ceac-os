@@ -172,20 +172,17 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   async function createProject(form) {
     setBusy(true); setError(null);
     try {
-      const { data: project, error: createError } = await supabase.from("projects").insert({
-        org_id: me.org_id, kind: "project", lead_unit_id: me.unit_id,
-        name: form.name.trim(), purpose: form.purpose.trim() || null,
-        starts_on: form.startsOn || null, ends_on: form.endsOn || null,
-        status: "planned", created_by: me.id,
-      }).select("id").single();
+      const { data: projectId, error: createError } = await supabase.rpc("create_project_with_participants", {
+        p_lead_unit_id: me.unit_id,
+        p_name: form.name.trim(),
+        p_purpose: form.purpose.trim() || null,
+        p_starts_on: form.startsOn || null,
+        p_ends_on: form.endsOn || null,
+        p_participant_unit_ids: [...new Set(form.participants || [])],
+      });
       if (createError) throw createError;
-      const participantIds = [...new Set([me.unit_id, ...form.participants])];
-      const { error: unitsError } = await supabase.from("project_units").insert(participantIds.map((unitId) => ({
-        project_id: project.id, unit_id: unitId, role: unitId === me.unit_id ? "lead" : "participating",
-      })));
-      if (unitsError) throw new Error(`Project created, but participating units could not be saved: ${unitsError.message}`);
-      setSelectedId(project.id);
-      setSheet({ type: "created", projectId: project.id });
+      setSelectedId(projectId);
+      setSheet({ type: "created", projectId });
       await loadList();
     } catch (err) { setError(err.message || "The project could not be created."); }
     finally { setBusy(false); }
