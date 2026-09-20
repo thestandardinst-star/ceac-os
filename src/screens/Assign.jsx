@@ -6,7 +6,7 @@ import { parseTask } from "../lib/parseTask";
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
   ["routine", "Routine", "Work that repeats on a schedule.", true],
-  ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", false],
+  ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", true],
   ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", false],
   ["decision", "Decision", "A choice that someone needs to make and record.", false],
   ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting.", false],
@@ -41,6 +41,8 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [routineEnd, setRoutineEnd] = useState("");
   const [routineRecordsValue, setRoutineRecordsValue] = useState(false);
   const [routineValueLabel, setRoutineValueLabel] = useState("");
+  const [caseOpenedOn, setCaseOpenedOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [caseTargetOn, setCaseTargetOn] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -138,6 +140,37 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
+
+      if (kind === "case") {
+        const { data: workId, error: caseError } = await supabase.rpc("create_typed_work", {
+          p_kind: "case",
+          p_unit_id: me.unit_id,
+          p_title: title.trim(),
+          p_assignee_id: assignee || null,
+          p_sub_team_id: subTeam || null,
+          p_project_id: project || null,
+          p_phase_id: project && phase ? phase : null,
+          p_objective_id: project && objective ? objective : null,
+          p_responsibility_id: null,
+          p_purpose: purpose.trim() || null,
+          p_expected_outcome: expectedOutcome.trim() || null,
+          p_due_at: due ? new Date(due).toISOString() : null,
+          p_visibility: "unit",
+          p_confidential: false,
+          p_details: {
+            opened_on: caseOpenedOn,
+            ...(caseTargetOn ? { target_resolution_on: caseTargetOn } : {}),
+          },
+        });
+        if (caseError) throw caseError;
+        const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
+        if (createdResult.error) throw createdResult.error;
+        setDone(createdResult.data.ref);
+        setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
+        setCaseOpenedOn(new Date().toISOString().slice(0, 10)); setCaseTargetOn("");
+        setKind("task"); setVoiceHint(null);
+        return;
+      }
 
       if (kind === "routine") {
         const details = {
@@ -242,6 +275,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
             Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.
           </div>}
+          {kind === "case" && <>
+            <input className="field" placeholder="What matter needs to stay open?" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Why this case matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="What outcome would resolve this case? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <div className="sec"><span>Case dates</span></div>
+            <label className="small">Opened on<input className="field" type="date" value={caseOpenedOn} onChange={(e) => setCaseOpenedOn(e.target.value)} /></label>
+            <label className="small">Target resolution (optional)<input className="field" type="date" value={caseTargetOn} onChange={(e) => setCaseTargetOn(e.target.value)} /></label>
+          </>}
           {kind === "routine" && <>
             <input className="field" placeholder="What repeats?" value={title} onChange={(e) => setTitle(e.target.value)} />
             <textarea className="field" rows={3} placeholder="Why this routine matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
@@ -300,6 +341,34 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             </label>
           </>}
         </div>
+        {kind === "case" && <div className="side-col">
+          <div className="sec"><span>Case owner</span></div>
+          <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <option value="">Choose someone</option>
+            {people.map((p) => <option key={p.profile_id} value={p.profile_id}>{p.profiles ? p.profiles.full_name : "—"}</option>)}
+          </select>
+          <select className="field" value={subTeam} onChange={(e) => setSubTeam(e.target.value)}>
+            <option value="">Which part of the team (optional)</option>
+            {subTeams.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
+            <option value="">Part of a project (optional)</option>
+            {projects.map((row) => <option key={row.id} value={row.id}>{row.name}{!["planned","active"].includes(row.status) ? ` · ${row.status}` : ""}</option>)}
+          </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          {project && phases.length > 0 && <select className="field" value={phase} onChange={(e) => setPhase(e.target.value)}>
+            <option value="">Project phase (optional)</option>
+            {phases.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>}
+          <div className="sec"><span>Target date</span></div>
+          <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+          <button className="btn" style={{ marginTop: 20 }} onClick={create}
+            disabled={busy || !title.trim() || !assignee || !caseOpenedOn || (caseTargetOn && caseTargetOn < caseOpenedOn)}>
+            {busy ? "Saving..." : "Open case"}</button>
+        </div>}
         {kind === "routine" && <div className="side-col">
           <div className="sec"><span>Who owns it</span></div>
           <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
