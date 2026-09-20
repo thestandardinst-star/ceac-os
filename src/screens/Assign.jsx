@@ -341,28 +341,26 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         return;
       }
 
-      const { data: ref, error: refError } = await supabase
-        .rpc("next_work_ref", { p_unit_id: me.unit_id, p_sub_team_id: subTeam || null });
-      if (refError) throw refError;
+      const clean = noStepsNeeded ? [] : steps.map((step) => step.trim()).filter(Boolean);
       const dueIso = due ? new Date(due).toISOString() : null;
-      const { data: wi, error } = await supabase.from("work_items").insert({
-        org_id: me.org_id, ref, kind, unit_id: me.unit_id,
-        sub_team_id: subTeam || null, project_id: project || null,
-        objective_id: project && objective ? objective : null,
-        phase_id: project && phase ? phase : null,
-        assignee_id: assignee, assigned_by: me.id,
-        title, purpose: purpose || null, instructions: instructions || null,
-        expected_outcome: expectedOutcome || null,
-        original_due_at: dueIso, due_at: dueIso, origin: "assigned", status: "not_started" })
-        .select("id, ref").single();
-      if (error) throw error;
-      const clean = steps.map((s) => s.trim()).filter(Boolean);
-      if (kind === "task" && !noStepsNeeded && clean.length) {
-        const { error: checklistError } = await supabase.from("checklist_items")
-          .insert(clean.map((label, i) => ({ work_item_id: wi.id, label, position: i + 1 })));
-        if (checklistError) throw checklistError;
-      }
-      setDone(wi.ref);
+      const { data: created, error: taskError } = await supabase.rpc("create_task_with_checklist", {
+        p_unit_id: me.unit_id,
+        p_assignee_id: assignee,
+        p_title: title.trim(),
+        p_expected_outcome: expectedOutcome.trim(),
+        p_sub_team_id: subTeam || null,
+        p_project_id: project || null,
+        p_objective_id: project && objective ? objective : null,
+        p_phase_id: project && phase ? phase : null,
+        p_purpose: purpose.trim() || null,
+        p_instructions: instructions.trim() || null,
+        p_due_at: dueIso,
+        p_origin: "assigned",
+        p_visibility: "unit",
+        p_steps: clean,
+      });
+      if (taskError) throw taskError;
+      setDone(created.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
       setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null);
     } catch (e) { setErr(e.message || "Something went wrong. Nothing was sent."); }
