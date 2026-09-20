@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–046** are currently applied.
+Live migrations **001–054** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–046**.
+The repository now contains the historical SQL for **all live migrations 001–054**.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **047**.
+The next migration number is **055**.
 
 
 ## 20 September backend continuation
@@ -62,3 +62,16 @@ Rollback acceptance passed before Routine client integration began.
 - authoritative self-certification activity is recorded.
 
 Rollback acceptance passed before Deliverable client integration.
+
+## Staff experience continuation — migrations 047–054
+
+- **047** — stale work-session recovery plus auditable blocker acknowledgement/dispute/resolution.
+- **048** — first-class targeted announcements, read/acknowledgement state and publishing RPCs.
+- **049** — announcement policy-recursion correction found during acceptance.
+- **050** — unit resources / approved shared reference links with manager/Admin authority.
+- **051** — privacy-safe approved-leave visibility for members of the same unit.
+- **052** — employee-maintained ordinary personal details with private emergency/address storage.
+- **053** — corrected stale-session "continue" semantics: the previous-day session closes at its last confirmed point and a fresh current-day session is created, so overnight gaps are never counted as work.
+- **054** — employee personal profile changes must use the attributable personal-details RPC; direct self-update bypass is blocked.
+
+All acceptance records for these migrations were created inside transactions that ended with `ROLLBACK`.
