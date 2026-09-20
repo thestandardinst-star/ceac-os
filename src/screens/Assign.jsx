@@ -4,13 +4,13 @@ import VoiceInput from "../components/VoiceInput";
 import { parseTask } from "../lib/parseTask";
 
 const WORK_KINDS = [
-  ["task", "Task"],
-  ["routine", "Routine"],
-  ["case", "Case"],
-  ["request", "Request"],
-  ["decision", "Decision"],
-  ["meeting_outcome", "Meeting outcome"],
-  ["deliverable", "Deliverable"],
+  ["task", "Task", "A specific action for someone to complete."],
+  ["routine", "Routine", "Work that repeats on a schedule."],
+  ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it."],
+  ["request", "Request", "Something you need another person or unit to provide, arrange or resolve."],
+  ["decision", "Decision", "A choice that someone needs to make and record."],
+  ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting."],
+  ["deliverable", "Deliverable", "A finished output that must be produced and shown."],
 ];
 
 export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "" }) {
@@ -31,6 +31,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [phase, setPhase] = useState(initialPhaseId);
   const [due, setDue] = useState("");
   const [steps, setSteps] = useState([""]);
+  const [noStepsNeeded, setNoStepsNeeded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -108,14 +109,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         .select("id, ref").single();
       if (error) throw error;
       const clean = steps.map((s) => s.trim()).filter(Boolean);
-      if (kind === "task" && clean.length) {
+      if (kind === "task" && !noStepsNeeded && clean.length) {
         const { error: checklistError } = await supabase.from("checklist_items")
           .insert(clean.map((label, i) => ({ work_item_id: wi.id, label, position: i + 1 })));
         if (checklistError) throw checklistError;
       }
       setDone(wi.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
-      setKind("task"); setDue(""); setSteps([""]); setVoiceHint(null);
+      setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null);
     } catch (e) { setErr(e.message || "Something went wrong. Nothing was sent."); }
     finally { setBusy(false); }
   }
@@ -137,7 +138,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     <div className="body">
       <button className="back" onClick={back}>← Back</button>
       <h1 className="h1">Give out work</h1>
-      <p className="screen-note">What it is for and what finished looks like matter more than the title. Say it out loud if that is faster.</p>
+      <p className="screen-note">Describe what needs to happen and what result you expect.</p>
 
       <VoiceInput onResult={handleVoice} label="Say what needs doing" />
       {voiceHint && <div className="flag flag-green" style={{ marginTop: 10 }}>{voiceHint}</div>}
@@ -149,6 +150,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           <select className="field" value={kind} onChange={(e) => setKind(e.target.value)}>
             {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
+          <div className="hint">{WORK_KINDS.find(([value]) => value === kind)?.[2]}</div>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
           <textarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
@@ -159,8 +161,15 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <p className="small" style={{ margin: "12px 0 4px" }}>Optional task checklist</p>
             {steps.map((s, i) => (
               <input key={i} className="field" placeholder={"Step " + (i + 1)} value={s}
-                onChange={(e) => setSteps((x) => x.map((v, j) => (j === i ? e.target.value : v)))}
-                onBlur={() => { if (s.trim() && i === steps.length - 1) setSteps((x) => [...x, ""]); }} />))}
+                disabled={noStepsNeeded}
+                onChange={(e) => setSteps((x) => x.map((v, j) => (j === i ? e.target.value : v)))} />))}
+            {!noStepsNeeded && <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}
+              disabled={!steps[steps.length - 1]?.trim()}
+              onClick={() => setSteps((current) => [...current, ""])}>+ Add another step</button>}
+            <label className="card small" style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 10 }}>
+              <input type="checkbox" checked={noStepsNeeded} onChange={(event) => setNoStepsNeeded(event.target.checked)} />
+              <span>No steps needed — let the assignee determine the method.</span>
+            </label>
           </>)}
         </div>
         <div className="side-col">
