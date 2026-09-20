@@ -13,9 +13,10 @@ const WORK_KINDS = [
   ["deliverable", "Deliverable", "A finished output that must be produced and shown.", false],
 ];
 
-export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "" }) {
+export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "" }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
+  const [approvedLeave, setApprovedLeave] = useState([]);
   const [projects, setProjects] = useState([]);
   const [objectives, setObjectives] = useState([]);
   const [phases, setPhases] = useState([]);
@@ -25,7 +26,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [expectedOutcome, setExpectedOutcome] = useState("");
   const [kind, setKind] = useState("task");
   const [assignee, setAssignee] = useState("");
-  const [subTeam, setSubTeam] = useState("");
+  const [subTeam, setSubTeam] = useState(initialSubTeamId);
   const [project, setProject] = useState(initialProjectId);
   const [objective, setObjective] = useState(initialObjectiveId);
   const [phase, setPhase] = useState(initialPhaseId);
@@ -42,21 +43,30 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     setProject(initialProjectId);
     setObjective(initialObjectiveId);
     setPhase(initialPhaseId);
-  }, [initialProjectId, initialObjectiveId, initialPhaseId]);
+    setSubTeam(initialSubTeamId);
+  }, [initialProjectId, initialObjectiveId, initialPhaseId, initialSubTeamId]);
   useEffect(() => { loadProjectContext(); }, [project]);
 
   async function load() {
     if (!me.unit_id) return;
     setErr(null);
-    const { data: m, error: peopleError } = await supabase.from("unit_memberships")
-      .select("profile_id, profiles(full_name)").eq("unit_id", me.unit_id);
-    if (peopleError) { setErr(peopleError.message); return; }
-    setPeople(m || []);
+    const [peopleResult, leaveResult] = await Promise.all([
+      supabase.from("unit_memberships")
+        .select("profile_id, profiles(full_name,active)").eq("unit_id", me.unit_id),
+      supabase.from("leave_requests")
+        .select("id,profile_id,kind,start_date,end_date,status")
+        .eq("status", "approved"),
+    ]);
+    if (peopleResult.error) { setErr(peopleResult.error.message); return; }
+    if (leaveResult.error) { setErr(leaveResult.error.message); return; }
+    setPeople(peopleResult.data || []);
+    const memberIds = new Set((peopleResult.data || []).map((row) => row.profile_id));
+    setApprovedLeave((leaveResult.data || []).filter((row) => memberIds.has(row.profile_id)));
     const { data: st, error: teamError } = await supabase.from("sub_teams")
       .select("id,name,code").eq("unit_id", me.unit_id).eq("active", true).order("position");
     if (teamError) { setErr(teamError.message); return; }
     setSubTeams(st || []);
-    const { data: p, error: projectError } = await supabase.from("projects").select("id,name,lead_unit_id,project_units(unit_id)").in("status", ["planned", "active"]).order("name");
+    const { data: p, error: projectError } = await supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)").order("name");
     if (projectError) { setErr(projectError.message); return; }
     setProjects((p || []).filter((row) => row.lead_unit_id === me.unit_id || (row.project_units || []).some((unit) => unit.unit_id === me.unit_id)));
   }
@@ -64,7 +74,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   async function loadProjectContext() {
     if (!project) { setObjectives([]); setPhases([]); setObjective(""); setPhase(""); return; }
     const [objectiveResult, phaseResult] = await Promise.all([
-      supabase.from("objectives").select("id, ref, name, unit_id").eq("project_id", project).eq("unit_id", me.unit_id).order("ref"),
+      supabase.from("objectives").select("id, ref, name, unit_id, status").eq("project_id", project).eq("unit_id", me.unit_id).order("ref"),
       supabase.from("project_phases").select("id, name, position").eq("project_id", project).order("position"),
     ]);
     if (objectiveResult.error) { setErr(`Project objectives: ${objectiveResult.error.message}`); return; }
@@ -73,6 +83,31 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     setPhases(phaseResult.data || []);
     if (objective && !(objectiveResult.data || []).some((row) => row.id === objective)) setObjective("");
     if (phase && !(phaseResult.data || []).some((row) => row.id === phase)) setPhase("");
+  }
+
+  const selectedProject = projects.find((row) => row.id === project) || null;
+  const selectedObjective = objectives.find((row) => row.id === objective) || null;
+  const selectedPerson = people.find((row) => row.profile_id === assignee) || null;
+  const dueDate = due ? due.slice(0, 10) : null;
+  const assignmentWarnings = [];
+  if (selectedPerson?.profiles?.active === false) {
+    assignmentWarnings.push({ key: "inactive", title: "This person is marked inactive", detail: "CEAC OS is showing the profile status already recorded for this person. Check that the intended assignee is correct before sending." });
+  }
+  if (assignee && dueDate) {
+    approvedLeave.filter((row) => row.profile_id === assignee && row.start_date <= dueDate && row.end_date >= dueDate)
+      .forEach((row) => assignmentWarnings.push({ key: `leave-${row.id}`, title: "Due date falls during approved leave", detail: `${row.kind} leave is recorded from ${row.start_date} to ${row.end_date}. This is a factual warning; change the assignee/date or proceed if the work has already been agreed.` }));
+  }
+  if (selectedProject?.status === "closed") {
+    assignmentWarnings.push({ key: "closed-project", title: "This project is closed", detail: "The selected project is recorded as closed. Confirm that this work should still be attached here." });
+  }
+  if (selectedProject && dueDate && selectedProject.starts_on && dueDate < selectedProject.starts_on) {
+    assignmentWarnings.push({ key: "before-project", title: "Due date is before the project starts", detail: `Project start: ${selectedProject.starts_on} · task due: ${dueDate}.` });
+  }
+  if (selectedProject && dueDate && selectedProject.ends_on && dueDate > selectedProject.ends_on) {
+    assignmentWarnings.push({ key: "after-project", title: "Due date is after the project ends", detail: `Project end: ${selectedProject.ends_on} · task due: ${dueDate}.` });
+  }
+  if (selectedObjective && ["met", "partly_met", "not_met"].includes(selectedObjective.status)) {
+    assignmentWarnings.push({ key: "finished-objective", title: "This objective already has an outcome recorded", detail: `${selectedObjective.ref} is marked ${selectedObjective.status.replaceAll("_", " ")}. Confirm that new work should still sit under it.` });
   }
 
   function handleVoice(text) {
@@ -190,7 +225,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           </select>
           <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
             <option value="">Part of a project (optional)</option>
-            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.map((p) => <option key={p.id} value={p.id}>{p.name}{!["planned","active"].includes(p.status) ? ` · ${p.status}` : ""}</option>)}
           </select>
           {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
             <option value="">Project objective (optional)</option>
@@ -202,6 +237,11 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           </select>}
           <div className="sec"><span>When</span></div>
           <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+          {assignmentWarnings.length > 0 && <div style={{ marginTop: 12 }}>
+            {assignmentWarnings.map((warning) => <div key={warning.key} className="flag flag-amber" style={{ marginTop: 8 }}>
+              <h4>{warning.title}</h4>{warning.detail}
+            </div>)}
+          </div>}
           <button className="btn" style={{ marginTop: 20 }} onClick={create} disabled={busy || !title.trim() || !assignee}>
             {busy ? "Sending..." : "Give it out"}</button>
         </div>}
