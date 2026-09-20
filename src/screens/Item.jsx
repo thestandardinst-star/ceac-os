@@ -19,6 +19,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [requestResponses, setRequestResponses] = useState([]);
   const [decisionRecord, setDecisionRecord] = useState(null);
   const [decisionText, setDecisionText] = useState("");
+  const [meetingRecord, setMeetingRecord] = useState(null);
   const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [routineValue, setRoutineValue] = useState("");
   const [routineEffective, setRoutineEffective] = useState("");
@@ -43,6 +44,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "meeting_outcome") {
+      const meetingResult = await supabase.from("work_meeting_outcomes")
+        .select("meeting_title,meeting_on,meeting_note,source_event_id")
+        .eq("work_item_id", id).single();
+      if (meetingResult.error) { setErr(`Meeting outcome: ${meetingResult.error.message}`); return; }
+      setMeetingRecord(meetingResult.data);
+    } else setMeetingRecord(null);
     if (w.kind === "decision") {
       const decisionResult = await supabase.from("work_decisions")
         .select("authority_profile_id,question,decision_text,rationale,decided_at,decided_by")
@@ -380,6 +388,15 @@ export default function Item({ id, me, session, isManager = false, back }) {
 
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
+
+      {item.kind === "meeting_outcome" && meetingRecord && <>
+        <div className="sec"><span>Meeting source</span></div>
+        <div className="card">
+          <div className="row-t">{meetingRecord.meeting_title}</div>
+          <div className="row-m">{meetingRecord.meeting_on}</div>
+          {meetingRecord.meeting_note && <div className="row-note" style={{ marginTop: 8 }}>{meetingRecord.meeting_note}</div>}
+        </div>
+      </>}
 
       {item.kind === "decision" && decisionRecord && <>
         <div className="sec"><span>Decision required</span></div>
