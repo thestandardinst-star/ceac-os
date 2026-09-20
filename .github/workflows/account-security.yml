@@ -1,0 +1,102 @@
+name: Account Security
+
+on:
+  pull_request:
+    paths:
+      - "src/App.jsx"
+      - "src/lib/supabase.js"
+      - "src/screens/SignIn.jsx"
+      - "src/screens/AccountPassword.jsx"
+      - "scripts/test-account-security.mjs"
+      - "supabase/migrations/**"
+      - "supabase/replay/**"
+      - ".github/workflows/account-security.yml"
+  workflow_dispatch:
+
+jobs:
+  invited-account-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Initialise local Supabase
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+          mkdir -p /tmp/ceac-migrations
+          find supabase/migrations -maxdepth 1 -name '*.sql' -exec mv {} /tmp/ceac-migrations/ \;
+          supabase start
+          mv /tmp/ceac-migrations/*.sql supabase/migrations/
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/replay/legacy-live-artifacts.sql
+          supabase migration up --local
+
+      - name: Seed one authorised unit manager and invitation
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 <<'SQL'
+          insert into public.organisations(id,name,short_code)
+          values('10000000-0000-4000-8000-000000000001','CEAC Test','CEACT');
+
+          insert into public.units(id,org_id,name,code)
+          values('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Test Unit','TST');
+
+          alter table auth.users disable trigger on_auth_user_created;
+          insert into auth.users(
+            id,aud,role,email,raw_app_meta_data,raw_user_meta_data,created_at,updated_at,is_sso_user,is_anonymous
+          ) values(
+            '30000000-0000-4000-8000-000000000001','authenticated','authenticated',
+            'manager@ceac.local.test','{}','{}',now(),now(),false,false
+          );
+          alter table auth.users enable trigger on_auth_user_created;
+
+          insert into public.profiles(id,org_id,full_name,email)
+          values(
+            '30000000-0000-4000-8000-000000000001',
+            '10000000-0000-4000-8000-000000000001',
+            'Test Manager','manager@ceac.local.test'
+          );
+
+          insert into public.unit_memberships(org_id,profile_id,unit_id,role)
+          values(
+            '10000000-0000-4000-8000-000000000001',
+            '30000000-0000-4000-8000-000000000001',
+            '20000000-0000-4000-8000-000000000001','manager'
+          );
+
+          insert into public.pending_invitations(
+            id,org_id,email,full_name,unit_id,role,invited_by,expires_at
+          ) values(
+            '40000000-0000-4000-8000-000000000001',
+            '10000000-0000-4000-8000-000000000001',
+            'new.employee@ceac.local.test','New Employee',
+            '20000000-0000-4000-8000-000000000001','staff',
+            '30000000-0000-4000-8000-000000000001',
+            now()+interval '1 day'
+          );
+          SQL
+
+      - name: Export local Auth credentials
+        run: |
+          supabase status -o env > /tmp/supabase.env
+          set -a
+          source /tmp/supabase.env
+          set +a
+          echo "SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+
+      - name: Test invited account lifecycle
+        run: node scripts/test-account-security.mjs
