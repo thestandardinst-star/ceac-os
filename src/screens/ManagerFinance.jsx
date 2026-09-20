@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { Sheet } from "../components/bits";
 
 const money=(minor,cur)=>`${cur} ${(Number(minor||0)/100).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 function totals(rows){const out={}; rows.forEach(r=>{if(!r.currency)return; out[r.currency]=(out[r.currency]||0)+Number(r.amount_minor||0);}); return out;}
@@ -9,6 +10,8 @@ function MoneyLines({title,values,empty,onOpen}){const keys=Object.keys(values).
 export default function ManagerFinance({me,openProject}){
  const [budgets,setBudgets]=useState([]),[spend,setSpend]=useState([]),[transfers,setTransfers]=useState([]),[projects,setProjects]=useState([]),[positions,setPositions]=useState([]),[requests,setRequests]=useState([]);
  const [error,setError]=useState(null),[loading,setLoading]=useState(true),[drill,setDrill]=useState(null);
+ const [sheet,setSheet]=useState(null),[busy,setBusy]=useState(false),[notice,setNotice]=useState(null);
+ const [requestTitle,setRequestTitle]=useState(""),[requestJustification,setRequestJustification]=useState(""),[requestAmount,setRequestAmount]=useState(""),[requestCurrency,setRequestCurrency]=useState("GHS"),[requestNeededBy,setRequestNeededBy]=useState(""),[requestProject,setRequestProject]=useState("");
  const year=new Date().getFullYear();
  useEffect(()=>{load();},[me.id,me.unit_id]);
  async function load(){
@@ -24,6 +27,38 @@ export default function ManagerFinance({me,openProject}){
   const e=[b.error,s.error,t.error,p.error,pos.error,req.error].find(Boolean); if(e){setError(e.message);setLoading(false);return;}
   setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setRequests(req.data||[]);setLoading(false);
  }
+
+ function amountToMinor(value){
+  const clean=String(value||"").trim();
+  if(!/^\d+(\.\d{1,2})?$/.test(clean)) return null;
+  const [whole,fraction=""]=clean.split(".");
+  const minor=Number(whole)*100+Number((fraction+"00").slice(0,2));
+  return Number.isSafeInteger(minor)&&minor>0?minor:null;
+ }
+
+ async function createRequest(){
+  const amountMinor=amountToMinor(requestAmount);
+  if(!requestTitle.trim()||!amountMinor) return;
+  setBusy(true);setError(null);setNotice(null);
+  try{
+   const {error:insertError}=await supabase.from("finance_requests").insert({
+    org_id:me.org_id,
+    unit_id:me.unit_id,
+    project_id:requestProject||null,
+    requested_by:me.id,
+    title:requestTitle.trim(),
+    justification:requestJustification.trim()||null,
+    amount_minor:amountMinor,
+    currency:requestCurrency,
+    needed_by:requestNeededBy||null
+   });
+   if(insertError) throw insertError;
+   setSheet(null);setRequestTitle("");setRequestJustification("");setRequestAmount("");setRequestCurrency("GHS");setRequestNeededBy("");setRequestProject("");
+   setNotice("Finance request submitted. It is now waiting for the authorised CEAC decision path.");
+   await load();
+  }catch(err){setError(err.message||"The finance request could not be submitted.");}
+  finally{setBusy(false);}
+ }
  const unitBudget=useMemo(()=>totals(budgets.filter(x=>!x.project_id)),[budgets]);
  const budgetCurrencies=new Set(Object.keys(unitBudget));
  const planned={},recorded={},committed={},remaining={};
@@ -35,8 +70,10 @@ export default function ManagerFinance({me,openProject}){
  });
  if(loading)return <div className="body"><div className="spin">Loading finance...</div></div>;
  return <div className="body">
-  <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Read-only view of your unit's recorded budget, spending, project costs and transfers. Different currencies are kept separate and never converted.</p></div>
-  {error&&<div className="flag flag-brick"><h4>Could not load finance</h4>{error}</div>}
+  <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Your unit's budget, spending, commitments, transfers and finance requests. Managers can request funds here; recorded Finance entries remain read-only.</p></div>
+  <button className="btn wide-auto" style={{marginTop:16}} onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button>
+  {error&&<div className="flag flag-brick"><h4>Could not complete that</h4>{error}</div>}
+  {notice&&<div className="flag flag-green" style={{marginTop:12}}>{notice}</div>}
   <div className="sec"><span>Unit position</span><span>{year}</span></div>
   <div className="metric-grid"><MoneyLines title="Planned" values={planned} empty="No unit budget recorded" onOpen={(currency)=>setDrill({kind:"planned",currency,title:`Planned · ${currency}`})}/><MoneyLines title="Recorded spend" values={recorded} empty="No unit spend recorded" onOpen={(currency)=>setDrill({kind:"spend",currency,title:`Recorded spend · ${currency}`})}/><MoneyLines title="Approved, not yet spent" values={committed} empty="No approved requests waiting to be spent" onOpen={(currency)=>setDrill({kind:"committed",currency,title:`Approved, not yet spent · ${currency}`})}/><MoneyLines title="Remaining" values={remaining} empty="No comparable budget recorded" onOpen={(currency)=>setDrill({kind:"remaining",currency,title:`Remaining · ${currency}`})}/></div>
   {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="small">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
@@ -68,5 +105,27 @@ export default function ManagerFinance({me,openProject}){
   </div>)}
   {requests.length===0&&<div className="card small">No finance requests are recorded for this unit.</div>}
   <p className="small" style={{marginTop:12}}>These figures are CEAC OS records, not a bank balance. Managers cannot post or edit Finance entries from this screen.</p>
+
+  {sheet==="request"&&<Sheet onClose={()=>!busy&&setSheet(null)}>
+   <div className="eyebrow">Finance request</div>
+   <div className="h2" style={{marginTop:5}}>Request funds</div>
+   <p className="screen-note">Submit what your unit needs. CEAC OS records the request and the authorised approval workflow handles the decision.</p>
+   <input className="field" placeholder="What is the money for?" value={requestTitle} onChange={e=>setRequestTitle(e.target.value)} />
+   <textarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={requestJustification} onChange={e=>setRequestJustification(e.target.value)} />
+   <div style={{display:"grid",gridTemplateColumns:"1fr 120px",gap:8}}>
+    <input className="field" inputMode="decimal" placeholder="Amount, e.g. 850.00" value={requestAmount} onChange={e=>setRequestAmount(e.target.value)} />
+    <select className="field" value={requestCurrency} onChange={e=>setRequestCurrency(e.target.value)}>
+     {["GHS","USD","GBP","EUR","NGN","ZAR","CAD"].map(currency=><option key={currency} value={currency}>{currency}</option>)}
+    </select>
+   </div>
+   <select className="field" value={requestProject} onChange={e=>setRequestProject(e.target.value)}>
+    <option value="">No project / general unit request</option>
+    {projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}
+   </select>
+   <label className="small" style={{display:"block",marginTop:10}}>Needed by (optional)</label>
+   <input className="field" type="date" value={requestNeededBy} onChange={e=>setRequestNeededBy(e.target.value)} />
+   <div className="hint">Amounts are stored in the selected currency. CEAC OS does not convert currencies or treat this request as money already spent.</div>
+   <button className="btn" style={{marginTop:14}} disabled={busy||!requestTitle.trim()||!amountToMinor(requestAmount)} onClick={createRequest}>{busy?"Submitting...":"Submit request"}</button>
+  </Sheet>}
  </div>;
 }
