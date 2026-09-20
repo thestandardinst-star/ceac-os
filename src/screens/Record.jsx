@@ -4,17 +4,23 @@ export default function Record({ me }) {
   const [s, setS] = useState(null);
   const [feedback, setFeedback] = useState([]);
   const [error, setError] = useState(null);
-  useEffect(() => { load(); }, [me.id]);
+  const [month, setMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+  useEffect(() => { load(); }, [me.id, month]);
   async function load() {
     setError(null);
     setS(null);
-    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+    const [year, monthNumber] = month.split("-").map(Number);
+    const monthStart = new Date(year, monthNumber - 1, 1);
+    const nextMonth = new Date(year, monthNumber, 1);
     const itemResult = await supabase.from("work_items")
       .select("id, kind, status, origin, due_at, completed_at, first_time_approved")
-      .eq("assignee_id", me.id).eq("visibility", "unit");
+      .eq("assignee_id", me.id);
     const sessionResult = await supabase.from("work_sessions")
-      .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString());
-    const blockerResult = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
+      .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString()).lt("started_at", nextMonth.toISOString());
+    const blockerResult = await supabase.from("blockers").select("id,created_at").eq("claimed_by", me.id).gte("created_at", monthStart.toISOString()).lt("created_at", nextMonth.toISOString());
     const feedbackResult = await supabase.from("feedback_notes")
       .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
       .eq("profile_id", me.id).order("created_at", { ascending: false });
@@ -25,7 +31,11 @@ export default function Record({ me }) {
     const blocked = blockerResult.data || [];
     const notes = feedbackResult.data || [];
     setFeedback(notes || []);
-    const done = (items || []).filter((i) => ["task", "deliverable"].includes(i.kind) && ["completed", "self_certified"].includes(i.status));
+    const done = (items || []).filter((i) => ["task", "deliverable"].includes(i.kind)
+      && ["completed", "self_certified"].includes(i.status)
+      && i.completed_at
+      && new Date(i.completed_at) >= monthStart
+      && new Date(i.completed_at) < nextMonth);
     const dueDone = done.filter((i) => i.due_at && i.completed_at);
     const reviewedDone = done.filter((i) => i.first_time_approved !== null);
     const minutes = (sessions || []).reduce((sum, x) => {
@@ -56,15 +66,18 @@ export default function Record({ me }) {
         <span style={{ fontSize: 16, fontWeight: 600 }}>{v}</span>
       </div>);
   }
+  const [year, monthNumber] = month.split("-").map(Number);
+  const monthLabel = new Date(year, monthNumber - 1, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
         <h1 className="h1">My record</h1>
         <p className="screen-note">Your own evidence, built from work you actually did. Nobody is compared with anybody.</p>
+        <input className="field" type="month" aria-label="Record month" value={month} onChange={(event) => setMonth(event.target.value)} style={{ maxWidth: 190, marginTop: 12 }} />
       </div>
       <div className="split" style={{ marginTop: 4 }}>
         <div className="main-col">
-          <div className="sec"><span>Work</span></div>
+          <div className="sec"><span>Work · {monthLabel}</span></div>
           <div className="card" style={{ padding: "4px 15px" }}>
             <Row l="Finished" v={s.completed} />
             <Row l="  given to you" v={s.assigned} />
@@ -83,7 +96,7 @@ export default function Record({ me }) {
           </div>)}
           {feedback.length === 0 && <div className="card small">No manager feedback has been recorded for you yet.</div>}
 
-          <div className="sec"><span>Time this month</span></div>
+          <div className="sec"><span>Time · {monthLabel}</span></div>
           <div className="card" style={{ padding: "4px 15px" }}>
             <Row l="Days worked" v={s.days} />
             <Row l="Hours on the platform" v={s.hours + "h " + s.mins + "m"} />
