@@ -529,8 +529,8 @@ export default function ManagerReports({ me, openItem }) {
       </div>)}
       {displayObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
 
-      <div className="sec"><span>Manager narrative</span></div>
-      <textarea className="field" rows={4} disabled={viewingFrozen} placeholder="What matters in this period? Add context supported by the work above." value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
+      <div className="sec"><span>Manager's summary</span></div>
+      <textarea className="field" rows={4} disabled={viewingFrozen} placeholder="What should leadership understand about this period?" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
       <textarea className="field" rows={3} disabled={viewingFrozen} placeholder="Challenges or context to explain (optional)" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} />
 
       <div className="sec"><span>Report record</span></div>
@@ -564,7 +564,7 @@ export default function ManagerReports({ me, openItem }) {
         {viewingFrozen && draft && <button className="btn btn-ghost" onClick={() => { setSelectedReportId(null); setNarrative(draft.narrative || ""); setChallenges(draft.challenges || ""); }}>Return to draft</button>}
       </div>
 
-      <div className="hint">Submitted reports use frozen figures and evidence links. AI interpretation is not connected because no report AI function exists.</div>
+      <div className="hint">Submitted reports use frozen figures and evidence links. Later activity does not rewrite them.</div>
     </>}
 
     {sheet === "correct" && <Sheet onClose={() => !busy && setSheet(null)}>
