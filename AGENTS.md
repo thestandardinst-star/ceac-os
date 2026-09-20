@@ -41,9 +41,13 @@ those came from not reading a file that was already there.
    run", "sync", "payload", or coordinates. If a ten-year-old would not
    understand the sentence, rewrite it.
 
-5. **Claude applies all database migrations.** Ask for what you need and
-   why. Two agents numbering migrations independently will collide and
-   one will be lost.
+5. **Database migrations must have one active owner at a time.** Claude is
+   the default backend owner, but on 20 September 2026 the user explicitly
+   handed the backend continuation to the current ChatGPT/Codex agent.
+   Migrations 040–046 were applied under that handoff. Read
+   `docs/handoff/CEAC_OS_CURRENT_OWNERSHIP_AND_STATE_2026-09-20.md`
+   before creating another migration. Never number migrations independently
+   or recreate an applied migration.
 
 6. **`npm ci && npm run build` must pass before you push.** Vercel
    deploys `main` automatically, so a broken push is a broken live site
