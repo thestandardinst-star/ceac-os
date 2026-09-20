@@ -12,6 +12,16 @@ export default function Item({ id, me, session, isManager = false, back }) {
   const [blocker, setBlocker] = useState(null);
   const [review, setReview] = useState(null);
   const [units, setUnits] = useState([]);
+  const [routine, setRoutine] = useState(null);
+  const [routineOccurrences, setRoutineOccurrences] = useState([]);
+  const [routineDate, setRoutineDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [routineValue, setRoutineValue] = useState("");
+  const [routineEffective, setRoutineEffective] = useState("");
+  const [routineSchedule, setRoutineSchedule] = useState("weekly");
+  const [routineWeeklyDay, setRoutineWeeklyDay] = useState("7");
+  const [routineWeekdays, setRoutineWeekdays] = useState([]);
+  const [routineDayOfMonth, setRoutineDayOfMonth] = useState("");
+  const [routineEnd, setRoutineEnd] = useState("");
   const [sheet, setSheet] = useState(null);
   const [note, setNote] = useState("");
   const [link, setLink] = useState("");
@@ -28,6 +38,23 @@ export default function Item({ id, me, session, isManager = false, back }) {
       .select("*, projects(name), sub_teams(name)").eq("id", id).single();
     if (workError) { setErr(workError.message); return; }
     setItem(w);
+    if (w.kind === "routine") {
+      const routineResult = await supabase.from("recurring_operations")
+        .select("id,name,cadence,records_value,value_label,active,starts_on,ends_on,paused_at,schedule_kind,weekdays,day_of_month")
+        .eq("work_item_id", id).single();
+      if (routineResult.error) { setErr(`Routine: ${routineResult.error.message}`); return; }
+      setRoutine(routineResult.data);
+      const occurrenceResult = await supabase.from("operation_occurrences")
+        .select("id,occurred_on,value,note,recorded_by,created_at")
+        .eq("operation_id", routineResult.data.id)
+        .order("occurred_on", { ascending: false })
+        .limit(12);
+      if (occurrenceResult.error) { setErr(`Routine history: ${occurrenceResult.error.message}`); return; }
+      setRoutineOccurrences(occurrenceResult.data || []);
+    } else {
+      setRoutine(null);
+      setRoutineOccurrences([]);
+    }
     const { data: c, error: checklistError } = await supabase.from("checklist_items")
       .select("id,label,position").eq("work_item_id", id).order("position");
     if (checklistError) { setErr(checklistError.message); return; }
@@ -118,6 +145,72 @@ export default function Item({ id, me, session, isManager = false, back }) {
     finally { setBusy(false); }
   }
 
+  async function recordRoutineOccurrence() {
+    if (!routine) return;
+    setBusy(true); setErr(null);
+    try {
+      const numericValue = routine.records_value ? Number(routineValue) : null;
+      if (routine.records_value && (routineValue.trim() === "" || Number.isNaN(numericValue))) {
+        throw new Error(`Enter ${routine.value_label || "the routine value"}.`);
+      }
+      const { error } = await supabase.rpc("record_routine_occurrence", {
+        p_work_item_id: id,
+        p_occurred_on: routineDate,
+        p_value: routine.records_value ? numericValue : null,
+        p_note: note.trim() || null,
+      });
+      if (error) throw error;
+      setSheet(null); setRoutineValue(""); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The routine occurrence could not be recorded."); }
+    finally { setBusy(false); }
+  }
+
+  function openRoutineSchedule() {
+    const today = new Date().toISOString().slice(0, 10);
+    setRoutineSchedule(routine?.schedule_kind || "weekly");
+    setRoutineWeeklyDay(String(routine?.weekdays?.[0] || 7));
+    setRoutineWeekdays(routine?.weekdays || []);
+    setRoutineDayOfMonth(routine?.day_of_month ? String(routine.day_of_month) : "");
+    setRoutineEnd(routine?.ends_on || "");
+    setRoutineEffective(routine?.schedule_kind ? "" : today);
+    setSheet("routine-schedule");
+  }
+
+  async function saveRoutineSchedule() {
+    setBusy(true); setErr(null);
+    try {
+      const weekdays = routineSchedule === "weekly"
+        ? [Number(routineWeeklyDay)]
+        : routineSchedule === "weekdays" ? routineWeekdays.map(Number) : null;
+      const { error } = await supabase.rpc("change_routine_schedule", {
+        p_work_item_id: id,
+        p_effective_from: routineEffective,
+        p_schedule_kind: routineSchedule,
+        p_weekdays: weekdays,
+        p_day_of_month: routineSchedule === "monthly" ? Number(routineDayOfMonth) : null,
+        p_ends_on: routineEnd || null,
+      });
+      if (error) throw error;
+      setSheet(null); await load();
+    } catch (e) { setErr(e.message || "The routine schedule could not be changed."); }
+    finally { setBusy(false); }
+  }
+
+  async function toggleRoutinePause() {
+    if (!routine || !note.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.rpc("set_routine_paused", {
+        p_work_item_id: id,
+        p_paused: routine.active,
+        p_reason: note.trim(),
+      });
+      if (error) throw error;
+      setSheet(null); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The routine could not be updated."); }
+    finally { setBusy(false); }
+  }
+
   async function reopenFinishedWork() {
     if (!note.trim()) return;
     setBusy(true);
@@ -196,6 +289,37 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
         <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
 
+      {item.kind === "routine" && routine && <>
+        <div className="sec"><span>Routine schedule</span></div>
+        <div className="card">
+          <div className="row-t">{routine.schedule_kind
+            ? routine.schedule_kind === "daily" ? "Daily"
+              : routine.schedule_kind === "monthly" ? `Monthly · day ${routine.day_of_month}`
+                : `${routine.schedule_kind === "weekly" ? "Weekly" : "Selected weekdays"} · ${(routine.weekdays || []).map((day) => ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][day - 1]).join(", ")}`
+            : "Schedule needs to be set"}</div>
+          <div className="row-m">{routine.starts_on ? `Started ${routine.starts_on}` : ""}{routine.ends_on ? ` · ends ${routine.ends_on}` : ""}</div>
+          <div className="row-note">{routine.active ? "Active" : "Paused"}{routine.records_value ? ` · records ${routine.value_label}` : ""}</div>
+        </div>
+        {!routine.schedule_kind && <div className="flag flag-amber" style={{ marginTop: 10 }}>
+          <h4>Schedule not yet configured</h4>This is a reconciled legacy routine. Its old record only said “Weekly”, so CEAC OS did not invent a weekday.
+        </div>}
+        {routineOccurrences.length > 0 && <>
+          <div className="sec"><span>Recent occurrences</span><span>{routineOccurrences.length}</span></div>
+          {routineOccurrences.map((occurrence) => <div className="row" key={occurrence.id}>
+            <div className="row-t">{occurrence.occurred_on}{routine.records_value && occurrence.value !== null ? ` · ${occurrence.value} ${routine.value_label || ""}` : ""}</div>
+            {occurrence.note && <div className="row-m">{occurrence.note}</div>}
+          </div>)}
+        </>}
+        {routine.active && routine.schedule_kind && <button className="btn" style={{ marginTop: 20 }} onClick={() => {
+          setRoutineDate(new Date().toISOString().slice(0, 10)); setRoutineValue(""); setNote(""); setSheet("routine-record");
+        }}>Record occurrence</button>}
+        {!routine.active && <div className="flag flag-amber" style={{ marginTop: 16 }}><h4>Routine paused</h4>No new occurrence action is shown while this routine is paused.</div>}
+        {isManager && <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+          <button className="btn btn-ghost btn-sm" onClick={openRoutineSchedule}>{routine.schedule_kind ? "Change future schedule" : "Set schedule"}</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { setNote(""); setSheet("routine-pause"); }}>{routine.active ? "Pause routine" : "Resume routine"}</button>
+        </div>}
+      </>}
+
       {checks.length > 0 && (<>
         <div className="sec"><span>Completion checklist</span><span>{done} of {checks.length}</span></div>
         <div className="card" style={{ padding: "2px 15px" }}>
@@ -206,7 +330,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
             </button>))}
         </div></>)}
 
-      {!(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
+      {item.kind !== "routine" && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {managerOwnWork ? "Finish this work" : "Send for review"}</button>
@@ -225,6 +349,57 @@ export default function Item({ id, me, session, isManager = false, back }) {
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+      {sheet === "routine-record" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Record routine occurrence</div>
+          <p className="screen-note">This creates a separate historical occurrence. Earlier occurrences are never rewritten.</p>
+          <label className="small">Date<input className="field" type="date" value={routineDate} onChange={(e) => setRoutineDate(e.target.value)} /></label>
+          {routine?.records_value && <input className="field" inputMode="decimal" placeholder={routine.value_label || "Value"} value={routineValue} onChange={(e) => setRoutineValue(e.target.value)} />}
+          <textarea className="field" rows={2} placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={recordRoutineOccurrence}
+            disabled={busy || !routineDate || (routine?.records_value && !routineValue.trim())}>{busy ? "Recording..." : "Record occurrence"}</button>
+        </Sheet>)}
+
+      {sheet === "routine-schedule" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">{routine?.schedule_kind ? "Change future schedule" : "Set routine schedule"}</div>
+          <p className="screen-note">{routine?.schedule_kind
+            ? "The new schedule starts in the future. Earlier schedule history stays unchanged."
+            : "This legacy routine had no reliable weekday in its old record. Set the schedule from today or later."}</p>
+          <label className="small">Effective from<input className="field" type="date" value={routineEffective} onChange={(e) => setRoutineEffective(e.target.value)} /></label>
+          <select className="field" value={routineSchedule} onChange={(e) => setRoutineSchedule(e.target.value)}>
+            <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="weekdays">Selected weekdays</option><option value="monthly">Monthly</option>
+          </select>
+          {routineSchedule === "weekly" && <select className="field" value={routineWeeklyDay} onChange={(e) => setRoutineWeeklyDay(e.target.value)}>
+            {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map((day, index) => <option key={day} value={index + 1}>{day}</option>)}
+          </select>}
+          {routineSchedule === "weekdays" && <div className="card small" style={{ marginTop: 10 }}>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Which days?</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((day, index) => {
+                const value = index + 1; const on = routineWeekdays.includes(value);
+                return <button type="button" key={day} className={`btn btn-sm ${on ? "" : "btn-ghost"}`}
+                  onClick={() => setRoutineWeekdays((current) => on ? current.filter((d) => d !== value) : [...current, value].sort())}>{day}</button>;
+              })}
+            </div>
+          </div>}
+          {routineSchedule === "monthly" && <input className="field" type="number" min="1" max="31" placeholder="Day of month (1–31)" value={routineDayOfMonth} onChange={(e) => setRoutineDayOfMonth(e.target.value)} />}
+          <label className="small">Ends (optional)<input className="field" type="date" value={routineEnd} onChange={(e) => setRoutineEnd(e.target.value)} /></label>
+          <button className="btn" style={{ marginTop: 14 }} onClick={saveRoutineSchedule}
+            disabled={busy || !routineEffective || (routineSchedule === "weekdays" && routineWeekdays.length === 0)
+              || (routineSchedule === "monthly" && !(Number(routineDayOfMonth) >= 1 && Number(routineDayOfMonth) <= 31))}>
+            {busy ? "Saving..." : "Save schedule"}</button>
+        </Sheet>)}
+
+      {sheet === "routine-pause" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">{routine?.active ? "Pause routine" : "Resume routine"}</div>
+          <p className="screen-note">History is kept. Record why this routine is changing state.</p>
+          <textarea className="field" rows={3} placeholder="Reason" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={toggleRoutinePause} disabled={busy || !note.trim()}>
+            {busy ? "Saving..." : routine?.active ? "Pause routine" : "Resume routine"}</button>
+        </Sheet>)}
 
       {sheet === "submit" && (
         <Sheet onClose={() => setSheet(null)}>
