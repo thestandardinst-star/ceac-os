@@ -13,7 +13,7 @@ export function statusPill(status) {
 }
 function tabItems(isManager = false) {
   if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
-  return [["home","Home"],["work","Work"],["record","Record"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
 }
 export function SideNav({ tab, setTab, me, isAdmin, isManager, onUnitChange }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
