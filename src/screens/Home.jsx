@@ -37,11 +37,12 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem }) {
+export default function Home({ me, session, setSession, openItem, openAnnouncements }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [feedback, setFeedback] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [ask, setAsk] = useState(false);
   const [place, setPlace] = useState("office");
   const [sessionWorkItem, setSessionWorkItem] = useState("");
@@ -80,13 +81,17 @@ export default function Home({ me, session, setSession, openItem }) {
         supabase.from("feedback_notes")
           .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
           .eq("profile_id", me.id).order("created_at", { ascending: false }).limit(3),
+        supabase.from("announcements")
+          .select("id,title,priority,requires_acknowledgement,published_at,profiles!announcements_author_id_fkey(full_name),announcement_receipts(profile_id,read_at,acknowledged_at)")
+          .eq("status", "published").order("published_at", { ascending: false }).limit(2),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
       setFeedback(requireResult(feedbackResult, "Feedback"));
+      setAnnouncements(requireResult(announcementResult, "Announcements"));
     } catch (err) {
       setLoadFailed(true);
       setError(err.message || "Home could not be loaded.");
@@ -220,6 +225,18 @@ export default function Home({ me, session, setSession, openItem }) {
         {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"}</div><div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div><div className="row-note">{note.note}</div>
         </div>)}
+      </section>}
+
+      {announcements.length > 0 && <section className="home-panel" aria-labelledby="staff-announcements-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Organisation context</div><h2 id="staff-announcements-heading">Announcements</h2></div><button className="btn btn-ghost btn-sm" onClick={openAnnouncements}>See all</button></div>
+        {announcements.map((announcement) => {
+          const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
+          return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
+            <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
+            <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
+            {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
+          </button>;
+        })}
       </section>}
 
       <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">

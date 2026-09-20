@@ -18,7 +18,7 @@ function tabItems(isManager = false) {
 export function SideNav({ tab, setTab, me, isAdmin, isManager, onUnitChange }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
   const items = tabItems(isManager);
-  if (isAdmin) { items.splice(1, 0, ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"], ["reporting","Reporting"]); items.push(["settings","Settings"]); }
+  if (isAdmin) { items.splice(1, 0, ["announcements","Announcements"], ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"], ["reporting","Reporting"]); items.push(["settings","Settings"]); }
   return (
     <aside className="side">
       <div className="brand">CEAC<span>{label}</span></div>

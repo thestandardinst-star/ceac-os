@@ -26,6 +26,7 @@ import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
 import ManagerReports from "./screens/ManagerReports";
+import Announcements from "./screens/Announcements";
 import { Tabs, SideNav } from "./components/bits";
 
 export default function App() {
@@ -85,7 +86,7 @@ export default function App() {
       if (me.is_exec) return <ExecutiveHome me={me} />;
       if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openSettings={() => go("settings")} openUnits={() => go("units")} />;
       if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
-      return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
+      return <Home me={me} session={session} setSession={setSession} openItem={setItemId} openAnnouncements={() => go("announcements")} />;
     }
     if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
@@ -94,6 +95,7 @@ export default function App() {
     if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={setItemId} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} />;
+    if (tab === "announcements") return <Announcements me={me} back={() => go("home")} />;
     if (tab === "cost") return <Cost me={me} />;
     if (tab === "finance") return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
