@@ -298,4 +298,3 @@ revoke all on function public.respond_to_blocker(uuid,text,text) from public,ano
 revoke all on function public.resolve_blocker(uuid,text) from public,anon;
 grant execute on function public.respond_to_blocker(uuid,text,text) to authenticated,service_role;
 grant execute on function public.resolve_blocker(uuid,text) to authenticated,service_role;
-
