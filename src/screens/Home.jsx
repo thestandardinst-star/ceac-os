@@ -32,11 +32,11 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
 export default function Home({ me, session, setSession, openItem }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
-  const [forMe, setForMe] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [ask, setAsk] = useState(false);
   const [place, setPlace] = useState("office");
+  const [sessionWorkItem, setSessionWorkItem] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -70,16 +70,12 @@ export default function Home({ me, session, setSession, openItem }) {
           .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
           .eq("profile_id", me.id).order("created_at", { ascending: false }).limit(3),
       ];
-      if (me.unit_id) requests.push(supabase.from("blockers")
-        .select("id, party_text, note, since, state, work_item_id")
-        .eq("party_unit_id", me.unit_id).eq("state", "claimed"));
 
-      const [itemResult, completedResult, alertResult, feedbackResult, blockerResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
       setFeedback(requireResult(feedbackResult, "Feedback"));
-      setForMe(blockerResult ? requireResult(blockerResult, "Unit blockers") : []);
     } catch (err) {
       setLoadFailed(true);
       setError(err.message || "Home could not be loaded.");
@@ -102,11 +98,15 @@ export default function Home({ me, session, setSession, openItem }) {
   const dueSoon = items.filter((item) => item.due_at && new Date(item.due_at) >= tomorrow && new Date(item.due_at) < soon && !["waiting_on", "returned"].includes(item.status));
   const upcoming = items.filter((item) => item.due_at && new Date(item.due_at) >= soon && !["waiting_on", "returned"].includes(item.status)).slice(0, 4);
   const dueThisWeek = items.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek);
-  const attention = returned.length + forMe.length + overdue.length + visibleAlerts.length;
+  const attention = returned.length + overdue.length + visibleAlerts.length;
 
   async function begin() {
     setBusy(true); setError(null);
-    try { const current = await startWork(me.org_id, me.id, place, null); setSession(current); setAsk(false); }
+    try {
+      if (place === "elsewhere" && !sessionWorkItem) throw new Error("Choose the work you are doing off-site before you start.");
+      const current = await startWork(me.org_id, me.id, place, place === "elsewhere" ? sessionWorkItem : null);
+      setSession(current); setAsk(false); setSessionWorkItem("");
+    }
     catch (err) { setError(err.message || "Work could not be started."); }
     finally { setBusy(false); }
   }
@@ -155,11 +155,6 @@ export default function Home({ me, session, setSession, openItem }) {
           : <div key={alert.id} className="row home-tone-attention">
               <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
             </div>)}
-        {forMe.map((blocker) => <div key={blocker.id} className="row home-blocker-row home-tone-attention">
-          <div className="home-direction">Waiting for your unit to reply</div><div className="row-t">Your unit has been named on a blocker</div>
-          <div className="row-m">{blocker.party_text}</div>{blocker.note && <div className="row-note">&ldquo;{blocker.note}&rdquo;</div>}
-          {blocker.work_item_id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open work</button>}
-        </div>)}
         {overdue.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
       </section>}
 
@@ -205,9 +200,16 @@ export default function Home({ me, session, setSession, openItem }) {
     {ask && <Sheet onClose={() => setAsk(false)}>
       <div className="h2">Where are you working?</div>
       <p className="screen-note" style={{ marginBottom: 10 }}>We record where you start. We do not track you during the day.</p>
-      <button className="opt" onClick={() => setPlace("office")}><span className={`rd ${place === "office" ? "on" : ""}`} /> At the office</button>
+      <button className="opt" onClick={() => { setPlace("office"); setSessionWorkItem(""); }}><span className={`rd ${place === "office" ? "on" : ""}`} /> At the office</button>
       <button className="opt" onClick={() => setPlace("elsewhere")}><span className={`rd ${place === "elsewhere" ? "on" : ""}`} /> Somewhere else</button>
-      <button className="btn" style={{ marginTop: 16 }} onClick={begin} disabled={busy}>{busy ? "Starting..." : "Start work"}</button>
+      {place === "elsewhere" && <>
+        <select className="field" aria-label="Work being done off-site" value={sessionWorkItem} onChange={(event) => setSessionWorkItem(event.target.value)}>
+          <option value="">Choose the work you are doing</option>
+          {items.filter((item) => !["waiting_on", "returned"].includes(item.status)).map((item) => <option key={item.id} value={item.id}>{item.ref} · {item.title}</option>)}
+        </select>
+        <div className="hint">The location is attached to this work when you start. CEAC OS does not track you during the day.</div>
+      </>}
+      <button className="btn" style={{ marginTop: 16 }} onClick={begin} disabled={busy || (place === "elsewhere" && !sessionWorkItem)}>{busy ? "Starting..." : "Start work"}</button>
     </Sheet>}
   </div>;
 }
