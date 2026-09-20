@@ -23,7 +23,7 @@ export default function Work({ me, isManager = false, openItem }) {
     setLoadError(null);
     setItems([]);
     let q = supabase.from("work_items")
-      .select("id, ref, title, status, due_at, visibility, projects(name)").eq("assignee_id", me.id);
+      .select("id, ref, title, kind, status, due_at, visibility, projects(name)").eq("assignee_id", me.id);
     if (filter === "active") q = q.in("status", ["not_started", "in_progress", "returned"]).eq("visibility", "unit");
     else if (filter === "private") q = q.eq("visibility", "private");
     else if (filter === "completed") q = q.in("status", ["completed", "self_certified"]);
@@ -117,7 +117,7 @@ export default function Work({ me, isManager = false, openItem }) {
           {grouped[project].map((i) => (
             <button key={i.id} className="row" onClick={() => openItem(i.id)}>
               <div className="row-t">{i.title}</div>
-              <div className="row-m">{i.ref} · {dueLabel(i.due_at)}</div>
+              <div className="row-m">{i.ref} · {i.kind.replaceAll("_", " ")} · {dueLabel(i.due_at)}</div>
               <div style={{ marginTop: 7, display: "flex", gap: 6 }}>
                 {statusPill(i.status)}
                 {i.visibility === "private" && <span className="pill p-grey">Only you can see this</span>}
