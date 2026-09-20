@@ -401,15 +401,18 @@ export default function ManagerReports({ me, openItem }) {
     if (!evidence) return;
     setBusy(true); setError(null); setNotice(null);
     try {
-      const reportId = await saveDraft(false);
-      const clear = await supabase.from("report_evidence_refs").delete().eq("report_id", reportId);
-      if (clear.error) throw clear.error;
-      const refs = buildRefs(reportId);
-      if (refs.length) {
-        const insert = await supabase.from("report_evidence_refs").insert(refs);
-        if (insert.error) throw insert.error;
-      }
-      const submitted = await supabase.rpc("submit_report", { p_report_id: reportId, p_evidence: buildSnapshot() });
+      if (!matchingPeriod || matchingPeriod.status !== "open") throw new Error("Administration must open this reporting period before you can submit a report.");
+      const refs = buildRefs("pending").map(({ report_id, ...ref }) => ref);
+      const submitted = await supabase.rpc("save_and_submit_report", {
+        p_period_id: matchingPeriod.id,
+        p_scope: scope,
+        p_unit_id: me.unit_id,
+        p_project_id: scope === "project" ? projectId : null,
+        p_narrative: narrative.trim() || null,
+        p_challenges: challenges.trim() || null,
+        p_evidence: buildSnapshot(),
+        p_refs: refs,
+      });
       if (submitted.error) throw submitted.error;
       setNotice("Report submitted. This version is now fixed; later corrections create a new version.");
       await loadHistory(false);
