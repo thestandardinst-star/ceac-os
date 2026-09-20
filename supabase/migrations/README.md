@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–044** are currently applied.
+Live migrations **001–045** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–044**.
+The repository now contains the historical SQL for **all live migrations 001–045**.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **045**.
+The next migration number is **046**.
 
 
 ## 20 September backend continuation
@@ -40,3 +40,14 @@ Applied and committed after the reconciliation baseline:
 - **044** — routine schedule-version fix found by rollback acceptance.
 
 All typed-work acceptance data was created inside transactions that ended with `ROLLBACK`.
+
+
+### 045 — typed-work reconciliation hardening
+
+- linked all five legacy recurring operations into the shared Work Engine;
+- preserved explicit Sunday schedules without inventing weekdays for ambiguous legacy `Weekly` records;
+- blocked generic status transitions for Routine, Case, Request and Decision;
+- enabled legitimate named cross-unit Requests;
+- blocked deletion of populated sub-team lanes until HR memberships/work/routines are explicitly moved or cleared.
+
+Rollback acceptance passed before Routine client integration began.
