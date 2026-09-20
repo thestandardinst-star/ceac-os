@@ -1,6 +1,6 @@
 # Manager acceptance QA — 20 September 2026
 
-Scope: PR #4 at `0bf709090a5ae6007d594c67ee80dca44d81e1c3`, reconciled against `main` at `8cc5d28924da32ccc7acd2ae3cbf02a1cc9b9d55` and live database migrations 031–033. This pass made no schema, policy, function or migration changes.
+Scope: PR #4, reconciled against `main` at `8cc5d28924da32ccc7acd2ae3cbf02a1cc9b9d55` and live database migrations 031–033. This pass made no schema, policy, function or migration changes. The protected Vercel preview could not be exercised interactively because the available testing session could not clear Vercel authentication, so phone/laptop interaction remains a pending manual acceptance step rather than a claimed pass.
 
 ## Manager Panel Spec §15
 
@@ -52,3 +52,28 @@ Scope: PR #4 at `0bf709090a5ae6007d594c67ee80dca44d81e1c3`, reconciled against `
 The repository had no GitHub Actions workflow. `.github/workflows/ci.yml` now runs on pull requests and pushes to `main`, using Node 20 to run `npm ci`, a range-aware `git diff --check`, and `npm run build`. No test or lint command exists in `package.json`, so none was invented.
 
 `main` is currently unprotected and has no required checks. After this workflow succeeds, the recommended required check is `CI / build`.
+
+
+## Follow-up connector audit after the protected-preview block
+
+A repository + live-Supabase audit continued after interactive preview testing was blocked. Four client defects were confirmed from the active contracts and fixed without schema changes:
+
+- Project Close draft reuse now includes the active unit for unit-scope drafts (and null unit for overall drafts), so a dual-role manager cannot accidentally reuse a draft from another unit on the same project.
+- Overall Project Close cost snapshots now use only the latest submitted unit-close version per participating unit, preventing historical unit-close versions from being summed twice.
+- My Record now has a month selector, applies work/session/blocker figures to that selected month, and no longer excludes the staff member's own private work from their personal record.
+- Forgotten-session submission now follows Architecture v4 §7: checklist editing remains session-gated, but completed work may still be submitted with no open session and is explicitly recorded as `outside_session`. The existing database paths already support this for both normal submissions and manager self-certification.
+
+These fixes were repository-only. No migration, policy, RPC or production data was changed.
+
+## Acceptance limitation
+
+The following still requires a real authenticated browser pass before production merge:
+
+- 360/390px phone rendering and mobile keyboard behaviour
+- tablet/laptop responsive layout
+- actual Frank / Nana / Joseph navigation flows
+- browser back behaviour and focus movement
+- sheet/dialog usability in a real browser
+- end-to-end mutation flows through the deployed preview
+
+Code inspection, CI, Vercel build status and rolled-back/live database contract checks are not substitutes for that final interaction pass.
