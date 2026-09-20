@@ -6,9 +6,9 @@ Live migrations **001–039** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the exact historical SQL for **all live migrations 001–039**.
+The repository now contains the historical SQL for **all live migrations 001–039**.
 
-On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema. Migrations 034–039 were already committed as the emergency security-hardening batch.
+On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
 This closes the previous migration-recoverability gap.
 
