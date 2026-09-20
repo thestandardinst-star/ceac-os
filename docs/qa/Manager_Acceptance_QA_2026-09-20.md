@@ -196,3 +196,44 @@ GitHub CI run #28: **success**
 Vercel deployment status: **success**
 
 Functional expansion should stop here until the authenticated interaction pass is completed and Claude returns for backend-owned contracts.
+
+
+---
+
+## Typed-work continuation acceptance — 20 September 2026
+
+This section supersedes earlier statements in this file that typed work or approved-work reopen were still backend-blocked.
+
+Backend migrations now applied and committed:
+
+- 040 authority hardening
+- 041 atomic approval + approved-work reopen
+- 042 typed-work schema
+- 043 typed-work contracts
+- 044 Routine schedule-version fix
+- 045 typed-work reconciliation hardening
+- 046 review-contract hardening
+
+Rollback database acceptance passed for:
+
+- legacy Routine reconciliation;
+- Routine occurrence/schedule/pause lifecycle;
+- Case resolution;
+- Request clarification/fulfilment lifecycle;
+- Decision recording;
+- Meeting outcome review;
+- Deliverable evidence enforcement;
+- cross-unit typed-work denial where required;
+- named cross-unit Request contract;
+- populated lane delete protection;
+- direct non-Task insertion/relabel prevention;
+- non-review submission prevention;
+- direct review/terminal-state bypass prevention;
+- Task checklist approval enforcement;
+- Deliverable self-cert evidence enforcement.
+
+Client integration was then completed sequentially:
+
+Routine → Case → Request → Decision → Meeting outcome → Deliverable.
+
+Each intermediate client stage passed CI before the next type was enabled. Final real-account interaction remains the human acceptance gate; CI/build validation does not substitute for clicking the flows as Frank/Gabriel on phone/laptop.
