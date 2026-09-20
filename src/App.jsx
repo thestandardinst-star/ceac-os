@@ -87,7 +87,7 @@ export default function App() {
       if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} />;
     }
-    if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} /> : <StaffTeam me={me} />;
+    if (tab === "team") return isManager ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} /> : <StaffTeam me={me} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
     if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} />;
     if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} openPerson={(id, focus) => setPerson({ id, focus })} />;
@@ -115,7 +115,7 @@ export default function App() {
         </select>
       </div>}
       {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} back={() => setItemId(null)} />
-        : assigning ? <Assign me={me} initialProjectId={assigning.projectId} initialObjectiveId={assigning.objectiveId} initialPhaseId={assigning.phaseId} back={() => setAssigning(null)} />
+        : assigning ? <Assign me={me} initialProjectId={assigning.projectId} initialObjectiveId={assigning.objectiveId} initialPhaseId={assigning.phaseId} initialSubTeamId={assigning.subTeamId} back={() => setAssigning(null)} />
         : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} back={() => setProjectId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} openProject={setProjectId} back={() => setPerson(null)} />
