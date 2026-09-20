@@ -605,3 +605,32 @@ Deleting a sub-team/work lane is refused while any of the following still refere
 - recurring operations.
 
 This prevents a Manager delete from cascading away HR-controlled membership records. Move/clear the dependent records first, then remove the empty lane.
+
+
+---
+
+## Review-contract hardening (migration 046)
+
+Only these kinds use `submissions`:
+
+- Task
+- Meeting outcome
+- Deliverable
+
+Routine, Case, Request and Decision cannot insert generic submission rows.
+
+### Task approval
+
+`approve_work_submission` now independently verifies that every Task checklist item has a current tick before approval. The UI checklist gate is therefore convenience, not the security/integrity boundary.
+
+### Manager self-certification
+
+`self_certify_work` accepts only:
+
+- Task
+- Meeting outcome
+- Deliverable
+
+For Deliverable, the type-specific evidence contract is enforced during self-certification. A Deliverable configured with required link evidence cannot be completed by a manager without that link.
+
+The current Manager/Staff client records Deliverable evidence as a link. It does not pretend that a general upload pipeline exists.
