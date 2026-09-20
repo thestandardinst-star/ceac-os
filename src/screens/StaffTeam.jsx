@@ -42,16 +42,13 @@ export default function StaffTeam({ me }) {
         .eq("unit_id", me.unit_id);
       if (membershipResult.error) throw new Error(`Directory: ${membershipResult.error.message}`);
       const members = membershipResult.data || [];
-      const profileIds = members.map((row) => row.profiles?.id).filter(Boolean);
       const today = new Date();
       const todayKey = today.toISOString().slice(0, 10);
       const weekEnd = new Date(today); weekEnd.setDate(weekEnd.getDate() + 7);
       const [leaveResult, subTeamResult, resourceResult] = await Promise.all([
-        profileIds.length ? supabase.from("leave_requests")
-          .select("profile_id, start_date, end_date, kind, profiles!leave_requests_profile_id_fkey(full_name)")
-          .in("profile_id", profileIds).eq("status", "approved")
-          .lte("start_date", weekEnd.toISOString().slice(0, 10)).gte("end_date", todayKey)
-          : Promise.resolve({ data: [], error: null }),
+        supabase.rpc("list_unit_approved_leave", {
+          p_unit_id: me.unit_id, p_from: todayKey, p_to: weekEnd.toISOString().slice(0, 10),
+        }),
         supabase.from("sub_teams")
           .select("id, name, lead_id, profiles!sub_teams_lead_fk(id, full_name, job_title)")
           .eq("unit_id", me.unit_id).eq("active", true).order("position"),
@@ -111,7 +108,7 @@ export default function StaffTeam({ me }) {
           {onLeave.length === 0 && <div className="card small">No approved leave is currently visible for this week.</div>}
           {onLeave.map((l, i) => (
             <div key={`${l.profile_id}-${l.start_date}-${i}`} className="row">
-              <div className="row-t">{l.profiles ? l.profiles.full_name : "—"}</div>
+              <div className="row-t">{l.full_name || "—"}</div>
               <div className="row-m">{dateLabel(l.start_date)} — {dateLabel(l.end_date)} · {l.kind} leave</div>
             </div>))}
 
