@@ -105,3 +105,46 @@ The next migration should be a narrow authority-hardening package that:
 5. is followed by rolled-back acceptance tests for staff, manager, Administration and cross-unit cases.
 
 After that passes, proceed to atomic Manager approval / approved-work reopen, then typed-work.
+
+
+---
+
+## Post-baseline execution status — completed later on 20 September 2026
+
+The baseline above was intentionally written before any new migration. Its three security blockers have now been acted on.
+
+### 040 — authority hardening
+
+Completed and rollback-tested:
+
+- official `unit_memberships` writes are now Administration & HR only;
+- managers can still manage sub-team lane structure;
+- managers cannot change official sub-team membership or lead assignment;
+- project-close objective/cost/deliverable draft rows now follow the authorised close author/Admin boundary.
+
+### 041 — atomic approval and approved-work reopen
+
+Completed and rollback-tested:
+
+- approval is now one RPC transaction: review + work completion + authoritative activity;
+- return-for-correction is also constrained to the latest in-review submission;
+- direct review inserts are blocked;
+- direct completion/reversal of terminal work is blocked;
+- approved/self-certified work reopens only through a reasoned RPC and preserves the earlier history.
+
+### 042–044 — typed-work backend
+
+Completed and rollback-tested for all six non-Task kinds:
+
+- Routine
+- Case
+- Request
+- Decision
+- Meeting outcome
+- Deliverable
+
+The shared `work_items.kind` is no longer merely a label for new non-Task rows. Direct non-Task insertion/relabeling is blocked and type-specific records/RPCs are required.
+
+Public tables are now **68**, all with RLS enabled.
+
+The original baseline conclusion ("do not begin typed work yet") is therefore historical. The remaining backend roadmap begins after these migrations, not before them.
