@@ -256,26 +256,11 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); await load();
         return;
       }
-      const { error: reviewError } = await supabase.from("reviews").insert({
-        org_id: me.org_id, submission_id: submission.id, reviewer_id: me.id,
-        decision, comment: comment.trim() || null, seen_at: new Date().toISOString(),
+      const { error: approveError } = await supabase.rpc("approve_work_submission", {
+        p_submission_id: submission.id,
+        p_comment: comment.trim() || null,
       });
-      if (reviewError) throw reviewError;
-      let firstTimeApproved = false;
-      if (decision === "completed") {
-        const submissionResult = await supabase.from("submissions").select("id").eq("work_item_id", submission.work_items.id);
-        const ids = requireResult(submissionResult, "Submission history").map((row) => row.id);
-        const reviewResult = await supabase.from("reviews").select("id", { count: "exact", head: true })
-          .eq("decision", "returned").in("submission_id", ids);
-        if (reviewResult.error) throw reviewResult.error;
-        firstTimeApproved = (reviewResult.count || 0) === 0;
-      }
-      const { error: updateError } = await supabase.from("work_items").update({
-        status: decision, first_time_approved: decision === "completed" ? firstTimeApproved : false,
-        completed_at: decision === "completed" ? new Date().toISOString() : null,
-        last_movement_at: new Date().toISOString(),
-      }).eq("id", submission.work_items.id);
-      if (updateError) throw updateError;
+      if (approveError) throw approveError;
       setSheet(null); setComment(""); await load();
     } catch (err) { setError(err.message || "The review could not be saved."); }
     finally { setBusy(false); }
