@@ -8,7 +8,7 @@ export async function loadMe() {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
   const { data: p } = await supabase.from("profiles")
-    .select("id, full_name, email, job_title, is_admin, is_exec, org_id, joined_at, birthday, contract_type")
+    .select("id, full_name, preferred_name, email, job_title, phone, is_admin, is_exec, org_id, joined_at, birthday, contract_type")
     .eq("id", auth.user.id).single();
   if (!p) return null;
   const { data: memberships } = await supabase.from("unit_memberships")
