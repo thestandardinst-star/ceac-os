@@ -117,6 +117,7 @@ export default function ManagerReports({ me, openItem }) {
   const [work, setWork] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [memberIds, setMemberIds] = useState([]);
   const [objectives, setObjectives] = useState([]);
   const [history, setHistory] = useState([]);
   const [selectedReportId, setSelectedReportId] = useState(null);
@@ -149,20 +150,9 @@ export default function ManagerReports({ me, openItem }) {
     setWork(workResult.data || []);
     setObjectives(objectiveResult.data || []);
 
-    const memberIds = (memberResult.data || []).map((row) => row.profile_id);
-    const workIds = (workResult.data || []).map((row) => row.id);
-    const [sessionResult, submissionResult] = await Promise.all([
-      memberIds.length
-        ? supabase.from("work_sessions").select("id,profile_id,work_item_id,started_at,ended_at,end_reason,profiles!work_sessions_profile_id_fkey(full_name)").in("profile_id", memberIds)
-        : Promise.resolve({ data: [], error: null }),
-      workIds.length
-        ? supabase.from("submissions").select("id,work_item_id,profile_id,submitted_at,note,profiles!submissions_profile_id_fkey(full_name)").in("work_item_id", workIds)
-        : Promise.resolve({ data: [], error: null }),
-    ]);
-    const second = [sessionResult.error, submissionResult.error].find(Boolean);
-    if (second) { setError(second.message); setLoading(false); return; }
-    setSessions(sessionResult.data || []);
-    setSubmissions(submissionResult.data || []);
+    setMemberIds((memberResult.data || []).map((row) => row.profile_id));
+    setSessions([]);
+    setSubmissions([]);
     setLoading(false);
   }
 
@@ -192,6 +182,48 @@ export default function ManagerReports({ me, openItem }) {
       label: project.name,
     };
   }, [mode, baseRange, matchingPeriod, projectId, projects, work]);
+
+  useEffect(() => {
+    if (!range || !memberIds.length) {
+      setSessions([]);
+      setSubmissions([]);
+      return;
+    }
+    let cancelled = false;
+    async function loadPeriodRows() {
+      const start = new Date(range.start + "T00:00:00");
+      const endExclusive = new Date(range.end + "T00:00:00");
+      endExclusive.setDate(endExclusive.getDate() + 1);
+      const relevantWorkIds = work
+        .filter((row) => mode !== "project" || row.project_id === projectId)
+        .map((row) => row.id);
+
+      const [sessionResult, submissionResult] = await Promise.all([
+        supabase.from("work_sessions")
+          .select("id,profile_id,work_item_id,started_at,ended_at,end_reason,profiles!work_sessions_profile_id_fkey(full_name)")
+          .in("profile_id", memberIds)
+          .gte("started_at", start.toISOString())
+          .lt("started_at", endExclusive.toISOString()),
+        relevantWorkIds.length
+          ? supabase.from("submissions")
+              .select("id,work_item_id,profile_id,submitted_at,note,profiles!submissions_profile_id_fkey(full_name)")
+              .in("work_item_id", relevantWorkIds)
+              .gte("submitted_at", start.toISOString())
+              .lt("submitted_at", endExclusive.toISOString())
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (cancelled) return;
+      const periodError = sessionResult.error || submissionResult.error;
+      if (periodError) {
+        setError(periodError.message);
+        return;
+      }
+      setSessions(sessionResult.data || []);
+      setSubmissions(submissionResult.data || []);
+    }
+    loadPeriodRows();
+    return () => { cancelled = true; };
+  }, [range?.start, range?.end, mode, projectId, memberIds.join(","), work]);
 
   const evidence = useMemo(() => {
     if (!range) return null;
