@@ -8,7 +8,7 @@ const WORK_KINDS = [
   ["routine", "Routine", "Work that repeats on a schedule.", true],
   ["case", "Case", "A matter that stays open while several actions or follow-ups happen around it.", true],
   ["request", "Request", "Something you need another person or unit to provide, arrange or resolve.", true],
-  ["decision", "Decision", "A choice that someone needs to make and record.", false],
+  ["decision", "Decision", "A choice that someone needs to make and record.", true],
   ["meeting_outcome", "Meeting outcome", "An action or commitment agreed in a meeting.", false],
   ["deliverable", "Deliverable", "A finished output that must be produced and shown.", false],
 ];
@@ -45,6 +45,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [caseOpenedOn, setCaseOpenedOn] = useState(() => new Date().toISOString().slice(0, 10));
   const [caseTargetOn, setCaseTargetOn] = useState("");
   const [requestResponsibleUnit, setRequestResponsibleUnit] = useState("");
+  const [decisionQuestion, setDecisionQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
@@ -145,6 +146,33 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
+
+      if (kind === "decision") {
+        const { data: workId, error: decisionError } = await supabase.rpc("create_typed_work", {
+          p_kind: "decision",
+          p_unit_id: me.unit_id,
+          p_title: title.trim(),
+          p_assignee_id: assignee || null,
+          p_sub_team_id: subTeam || null,
+          p_project_id: project || null,
+          p_phase_id: project && phase ? phase : null,
+          p_objective_id: project && objective ? objective : null,
+          p_responsibility_id: null,
+          p_purpose: purpose.trim() || null,
+          p_expected_outcome: expectedOutcome.trim() || null,
+          p_due_at: due ? new Date(due).toISOString() : null,
+          p_visibility: "unit",
+          p_confidential: false,
+          p_details: { question: decisionQuestion.trim() || title.trim() },
+        });
+        if (decisionError) throw decisionError;
+        const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
+        if (createdResult.error) throw createdResult.error;
+        setDone(createdResult.data.ref);
+        setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
+        setDecisionQuestion(""); setKind("task"); setVoiceHint(null);
+        return;
+      }
 
       if (kind === "request") {
         const { data: workId, error: requestError } = await supabase.rpc("create_typed_work", {
@@ -309,6 +337,11 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
             Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.
           </div>}
+          {kind === "decision" && <>
+            <input className="field" placeholder="What decision is needed?" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Decision question" value={decisionQuestion} onChange={(e) => setDecisionQuestion(e.target.value)} />
+            <textarea className="field" rows={3} placeholder="Context the decision-maker should know (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+          </>}
           {kind === "request" && <>
             <input className="field" placeholder="What do you need?" value={title} onChange={(e) => setTitle(e.target.value)} />
             <textarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
@@ -380,6 +413,30 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             </label>
           </>}
         </div>
+        {kind === "decision" && <div className="side-col">
+          <div className="sec"><span>Who decides</span></div>
+          <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+            <option value="">Choose decision-maker</option>
+            {people.map((p) => <option key={p.profile_id} value={p.profile_id}>{p.profiles ? p.profiles.full_name : "—"}</option>)}
+          </select>
+          <select className="field" value={subTeam} onChange={(e) => setSubTeam(e.target.value)}>
+            <option value="">Which part of the team (optional)</option>
+            {subTeams.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+          </select>
+          <select className="field" value={project} onChange={(e) => { setProject(e.target.value); setObjective(""); setPhase(""); }}>
+            <option value="">Part of a project (optional)</option>
+            {projects.map((row) => <option key={row.id} value={row.id}>{row.name}{!["planned","active"].includes(row.status) ? ` · ${row.status}` : ""}</option>)}
+          </select>
+          {project && <select className="field" value={objective} onChange={(e) => setObjective(e.target.value)}>
+            <option value="">Project objective (optional)</option>
+            {objectives.map((row) => <option key={row.id} value={row.id}>{row.ref} · {row.name}</option>)}
+          </select>}
+          <div className="sec"><span>Decision due</span></div>
+          <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
+          <button className="btn" style={{ marginTop: 20 }} onClick={create}
+            disabled={busy || !title.trim() || !decisionQuestion.trim() || !assignee}>
+            {busy ? "Saving..." : "Ask for decision"}</button>
+        </div>}
         {kind === "request" && <div className="side-col">
           <div className="sec"><span>Who should respond</span></div>
           <select className="field" value={requestResponsibleUnit} onChange={(e) => { setRequestResponsibleUnit(e.target.value); setAssignee(""); }}>
