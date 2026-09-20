@@ -282,7 +282,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           p_responsibility_id: null,
           p_purpose: purpose.trim() || null,
           p_expected_outcome: expectedOutcome.trim() || null,
-          p_due_at: due ? new Date(due).toISOString() : null,
+          p_due_at: caseTargetOn ? new Date(`${caseTargetOn}T23:59:00`).toISOString() : null,
           p_visibility: "unit",
           p_confidential: false,
           p_details: {
@@ -623,8 +623,6 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
             <option value="">Project phase (optional)</option>
             {phases.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
           </select>}
-          <div className="sec"><span>Target date</span></div>
-          <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
           <button className="btn" style={{ marginTop: 20 }} onClick={create}
             disabled={busy || !title.trim() || !assignee || !caseOpenedOn || (caseTargetOn && caseTargetOn < caseOpenedOn)}>
             {busy ? "Saving..." : "Open case"}</button>
