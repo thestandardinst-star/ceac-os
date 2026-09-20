@@ -98,48 +98,31 @@ export default function Work({ me, isManager = false, openItem }) {
     setLoadError(null);
     setNotice(null);
     try {
-      const { data: ref, error: refError } = await supabase.rpc("next_work_ref", {
-        p_unit_id: me.unit_id,
-        p_sub_team_id: null,
-      });
-      if (refError) throw refError;
-
       const dueIso = due ? new Date(due).toISOString() : null;
-      const itemId = crypto.randomUUID();
-
-      const { error: itemError } = await supabase.from("work_items").insert({
-        id: itemId,
-        org_id: me.org_id,
-        ref,
-        kind: "task",
-        unit_id: me.unit_id,
-        project_id: projectId || null,
-        assignee_id: me.id,
-        assigned_by: me.id,
-        title: title.trim(),
-        purpose: purpose.trim() || null,
-        expected_outcome: expectedOutcome.trim(),
-        original_due_at: dueIso,
-        due_at: dueIso,
-        origin: "self_created",
-        visibility: createVisibility,
-        status: "not_started",
+      const { data: created, error: createError } = await supabase.rpc("create_task_with_checklist", {
+        p_unit_id: me.unit_id,
+        p_assignee_id: me.id,
+        p_title: title.trim(),
+        p_expected_outcome: expectedOutcome.trim(),
+        p_sub_team_id: null,
+        p_project_id: projectId || null,
+        p_objective_id: null,
+        p_phase_id: null,
+        p_purpose: purpose.trim() || null,
+        p_instructions: null,
+        p_due_at: dueIso,
+        p_origin: "self_created",
+        p_visibility: createVisibility,
+        p_steps: clean,
       });
-      if (itemError) throw itemError;
-
-      if (clean.length) {
-        const { error: checklistError } = await supabase.from("checklist_items").insert(
-          clean.map((label, index) => ({ work_item_id: itemId, label, position: index + 1 }))
-        );
-        if (checklistError) throw new Error(`Task ${ref} was created but its checklist could not be saved. Tell your manager before using it: ${checklistError.message}`);
-      }
+      if (createError) throw createError;
 
       setSheet(null);
       setMode(createVisibility === "private" ? "private" : "agreed");
       setStatusFilter("active");
       setNotice(createVisibility === "private"
-        ? `${ref} added as private work. Only you can see it.`
-        : `${ref} added to your agreed work. It appears immediately in your record.`);
+        ? `${created.ref} added as private work. Only you can see it.`
+        : `${created.ref} added to your agreed work. It appears immediately in your record.`);
       await load();
     } catch (error) {
       setLoadError(error.message || "The work could not be added.");
