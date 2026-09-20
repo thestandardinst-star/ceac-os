@@ -360,3 +360,69 @@ The Staff Me screen explicitly states that these are not stored in ordinary prof
 3. Employee profile fields added by 052 could still be directly self-updated without an audit event → corrected in 054 by forcing employee edits through the attributable RPC.
 
 Claude-owned Admin/Executive screen files were not modified.
+
+## Staff operating-surface correction — completed
+
+Following authenticated mobile review, the Staff surface was corrected again to match the intended operating-system architecture rather than presenting raw database state.
+
+### Live database
+
+Live migrations are now **001–059**. Next migration number: **060**.
+
+New migrations:
+
+- 055 authoritative attention-state semantics
+- 056 historical multi-day session reconciliation
+- 057 session-event compatibility fix found by rollback testing
+- 058 disciplined Manager review follow-up
+- 059 disciplined dependency/blocker follow-up
+
+### Home information architecture
+
+Staff Home now follows:
+
+1. work-session state;
+2. What changed;
+3. Your next move;
+4. Waiting on others;
+5. Coming up;
+6. Announcements;
+7. This week.
+
+Completed or in-review work no longer remains in Staff attention simply because an older alert exists. Submitted work waiting for Manager review is explicitly separated from employee-action work.
+
+### Follow-up discipline
+
+Staff can follow up on submitted work awaiting Manager review and on a dependency/blocker targeting another CEAC unit.
+
+The server enforces: first follow-up after one day, final follow-up after three days, then stop. Manager Home surfaces these follow-ups in the existing Waiting on you decision area.
+
+### Team
+
+Staff Team now uses progressive disclosure. Leadership is deduplicated by person, away/recent/birthday/resource sections only appear when meaningful, and People is compact/collapsible rather than a wall of contact cards.
+
+### Work
+
+Staff Work now exposes Assigned, My agreed work and Private.
+
+Self-recorded work can be unattached to a project and may omit a due date. Checklist steps are optional when the employee intentionally chooses to determine the method. Expected result remains explicit.
+
+Private work is RLS-isolated from colleagues and managers and excluded from formal Staff Record evidence.
+
+### Goals and Me
+
+Me now opens as an employee workspace with Goals & development, Leave and Personal. Personal goals/reminders are no longer buried below profile settings.
+
+### Record
+
+My Record now opens on evidence rather than statistics: Highlights, Work history and Time & activity.
+
+Highlights are derived from completed Task/Deliverable records and factual manager feedback.
+
+The legacy 179-hour session found during mobile acceptance is flagged for reconciliation and excluded from totals until the employee enters the actual end time. The system does not invent a correction.
+
+### Visual hierarchy
+
+The Staff visual pass reduces repeated large-card treatment: informational sections use grouped rows/dividers, actions retain stronger containers, Team uses collapsible sections, Work uses compact lists, Record uses timelines/highlights and Me uses segmented employee-service areas.
+
+Claude-owned Administration/Executive UI files remain untouched.
