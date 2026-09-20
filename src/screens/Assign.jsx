@@ -150,17 +150,20 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         <div className="main-col">
           <div className="sec"><span>What needs doing</span></div>
           <select className="field" value={kind} onChange={(e) => setKind(e.target.value)}>
-            {WORK_KINDS.map(([value, label, , supported]) => <option key={value} value={value} disabled={!supported}>{label}{supported ? "" : " — not connected yet"}</option>)}
+            {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
           <div className="hint">{WORK_KINDS.find(([value]) => value === kind)?.[2]}</div>
-          <div className="small" style={{ marginTop: 7 }}>Routine, Case, Request, Decision, Meeting outcome and Deliverable need their approved type-specific behaviour before they can be created here. They are not being saved as disguised Tasks.</div>
+          {kind !== "task" && <div className="flag flag-amber" style={{ marginTop: 10 }}>
+            <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
+            Its approved type-specific behaviour is still waiting on the backend contract. Nothing can be sent as this type yet, so CEAC OS will not save it with Task behaviour.
+          </div>}
+          {kind === "task" && <>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
           <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
           <textarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
           <div className="sec"><span>What finished looks like</span></div>
           <textarea className="field" rows={3} placeholder="Describe the finished result" value={expectedOutcome}
             onChange={(e) => setExpectedOutcome(e.target.value)} />
-          {kind === "task" && (<>
             <p className="small" style={{ margin: "12px 0 4px" }}>Optional task checklist</p>
             {steps.map((s, i) => (
               <input key={i} className="field" placeholder={"Step " + (i + 1)} value={s}
@@ -173,9 +176,9 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
               <input type="checkbox" checked={noStepsNeeded} onChange={(event) => setNoStepsNeeded(event.target.checked)} />
               <span>No steps needed — let the assignee determine the method.</span>
             </label>
-          </>)}
+          </>}
         </div>
-        <div className="side-col">
+        {kind === "task" && <div className="side-col">
           <div className="sec"><span>Who is doing it</span></div>
           <select className="field" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
             <option value="">Choose someone</option>
@@ -201,7 +204,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           <input className="field" type="datetime-local" value={due} onChange={(e) => setDue(e.target.value)} />
           <button className="btn" style={{ marginTop: 20 }} onClick={create} disabled={busy || !title.trim() || !assignee}>
             {busy ? "Sending..." : "Give it out"}</button>
-        </div>
+        </div>}
       </div>
     </div>);
 }
