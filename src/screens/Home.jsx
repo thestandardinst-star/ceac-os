@@ -55,6 +55,10 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const [birthdays, setBirthdays] = useState([]);
   const [upcomingLeave, setUpcomingLeave] = useState([]);
   const [leaveUpdates, setLeaveUpdates] = useState([]);
+  const [reviewSubmissions, setReviewSubmissions] = useState([]);
+  const [reviewFollowups, setReviewFollowups] = useState([]);
+  const [myBlockers, setMyBlockers] = useState([]);
+  const [blockerFollowups, setBlockerFollowups] = useState([]);
   const [ask, setAsk] = useState(false);
   const [place, setPlace] = useState("office");
   const [sessionWorkItem, setSessionWorkItem] = useState("");
@@ -92,8 +96,8 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
           .gte("completed_at", startOfWeek().toISOString())
           .order("completed_at", { ascending: false }),
         supabase.from("alerts")
-          .select("id, kind, subject_id, message, first_seen_at")
-          .eq("for_profile_id", me.id).is("acknowledged_at", null),
+          .select("id, kind, subject_id, message, first_seen_at,resolved_at")
+          .eq("for_profile_id", me.id).is("acknowledged_at", null).is("resolved_at", null),
         supabase.from("feedback_notes")
           .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
           .eq("profile_id", me.id).order("created_at", { ascending: false }).limit(3),
@@ -109,14 +113,30 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         supabase.from("leave_requests")
           .select("id,kind,start_date,end_date,status,decided_at,decision_note")
           .eq("profile_id", me.id).order("requested_at", { ascending: false }),
+        supabase.from("submissions")
+          .select("id,work_item_id,submitted_at")
+          .eq("profile_id", me.id).order("submitted_at", { ascending: false }),
+        supabase.from("work_followups")
+          .select("id,work_item_id,sequence,created_at")
+          .eq("actor_id", me.id).order("created_at", { ascending: false }),
+        supabase.from("blockers")
+          .select("id,work_item_id,party_text,party_unit_id,state,responded_at,created_at,units:party_unit_id(name),work_items(id,ref,title,status)")
+          .eq("claimed_by", me.id).in("state", ["claimed","acknowledged"]),
+        supabase.from("blocker_followups")
+          .select("id,blocker_id,sequence,created_at")
+          .eq("actor_id", me.id).order("created_at", { ascending: false }),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, memberResult, leaveResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
       setFeedback(requireResult(feedbackResult, "Feedback"));
       setAnnouncements(requireResult(announcementResult, "Announcements"));
+      setReviewSubmissions(requireResult(submissionResult, "Submitted work"));
+      setReviewFollowups(requireResult(reviewFollowupResult, "Review follow-ups"));
+      setMyBlockers(requireResult(blockerResult, "Dependencies"));
+      setBlockerFollowups(requireResult(blockerFollowupResult, "Dependency follow-ups"));
       const events = requireResult(eventResult, "Coming events").filter((event) => {
         const stillCurrent = new Date(event.ends_at || event.starts_at) >= rangeStart;
         const relevant = event.scope === "church" || event.unit_id === me.unit_id
@@ -151,18 +171,93 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const nextWeek = new Date(weekStart); nextWeek.setDate(nextWeek.getDate() + 7);
   const returned = items.filter((item) => item.status === "returned");
   const returnedIds = new Set(returned.map((item) => item.id));
-  const visibleAlerts = alerts.filter((alert) => !alert.subject_id || !returnedIds.has(alert.subject_id));
-  const dueToday = items.filter((item) => item.due_at && new Date(item.due_at) >= today && new Date(item.due_at) < tomorrow && !["waiting_on", "returned"].includes(item.status));
-  const overdue = items.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on" && item.status !== "returned");
-  const waiting = items.filter((item) => item.status === "waiting_on");
-  const dueSoon = items.filter((item) => item.due_at && new Date(item.due_at) >= tomorrow && new Date(item.due_at) < soon && !["waiting_on", "returned"].includes(item.status));
-  const dueThisWeek = items.filter((item) => item.due_at && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek);
-  const activeWork = items.filter((item) => item.status === "in_progress" && !dueToday.some((due) => due.id === item.id)).slice(0, 3);
+  const visibleAlerts = alerts.filter((alert) =>
+    alert.kind !== "overdue_first"
+    && (!alert.subject_id || !returnedIds.has(alert.subject_id))
+  );
+  const dueToday = items.filter((item) => item.due_at
+    && new Date(item.due_at) >= today && new Date(item.due_at) < tomorrow
+    && !["waiting_on","returned","in_review"].includes(item.status));
+  const overdue = items.filter((item) => isOverdue(item.due_at)
+    && !["waiting_on","returned","in_review"].includes(item.status));
+  const waitingDependencies = items.filter((item) => item.status === "waiting_on");
+  const waitingReviews = items.filter((item) => item.status === "in_review");
+  const dueSoon = items.filter((item) => item.due_at
+    && new Date(item.due_at) >= tomorrow && new Date(item.due_at) < soon
+    && !["waiting_on","returned","in_review"].includes(item.status));
+  const dueThisWeek = items.filter((item) => item.due_at
+    && new Date(item.due_at) >= weekStart && new Date(item.due_at) < nextWeek
+    && !["waiting_on","in_review"].includes(item.status));
+  const activeWork = items.filter((item) => item.status === "in_progress"
+    && !dueToday.some((due) => due.id === item.id)
+    && !overdue.some((due) => due.id === item.id)).slice(0, 3);
   const announcementAttention = announcements.filter((announcement) => announcement.requires_acknowledgement
     && !(announcement.announcement_receipts || []).some((receipt) => receipt.profile_id === me.id && receipt.acknowledged_at));
-  const attention = returned.length + overdue.length + visibleAlerts.length + announcementAttention.length;
+
+  const actionMap = new Map();
+  [...returned, ...overdue, ...dueToday].forEach((item) => actionMap.set(item.id, item));
+  const nextMoveItems = [...actionMap.values()];
+  const attention = nextMoveItems.length + visibleAlerts.length + announcementAttention.length;
   const staleSession = Boolean(session
     && accraDateKey(session.last_confirmed_at || session.started_at) < accraDateKey(new Date()));
+
+  function reviewFollowupState(item) {
+    const submission = reviewSubmissions.find((row) => row.work_item_id === item.id);
+    const count = reviewFollowups.filter((row) => row.work_item_id === item.id).length;
+    if (!submission) return { count, canFollowUp: false, label: "Waiting for review" };
+    if (count >= 2) return { count, canFollowUp: false, label: "2 follow-ups sent" };
+    const delayDays = count === 0 ? 1 : 3;
+    const availableAt = new Date(new Date(submission.submitted_at).getTime() + delayDays * 86400000);
+    return {
+      count,
+      canFollowUp: new Date() >= availableAt,
+      availableAt,
+      label: new Date() >= availableAt
+        ? (count === 0 ? "Follow up" : "Send final follow-up")
+        : `Follow-up available ${availableAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`,
+    };
+  }
+
+  function blockerFor(item) {
+    return myBlockers.find((blocker) => blocker.work_item_id === item.id);
+  }
+
+  function blockerFollowupState(blocker) {
+    if (!blocker) return { canFollowUp: false, label: "Waiting on another unit" };
+    const count = blockerFollowups.filter((row) => row.blocker_id === blocker.id).length;
+    if (count >= 2) return { count, canFollowUp: false, label: "2 follow-ups sent" };
+    const anchor = new Date(blocker.responded_at || blocker.created_at);
+    const delayDays = count === 0 ? 1 : 3;
+    const availableAt = new Date(anchor.getTime() + delayDays * 86400000);
+    return {
+      count,
+      canFollowUp: new Date() >= availableAt,
+      availableAt,
+      label: new Date() >= availableAt
+        ? (count === 0 ? "Follow up" : "Send final follow-up")
+        : `Follow-up available ${availableAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`,
+    };
+  }
+
+  async function followUpReview(itemId) {
+    setBusy(true); setError(null);
+    try {
+      const { error: followError } = await supabase.rpc("follow_up_work_review", { p_work_item_id: itemId });
+      if (followError) throw followError;
+      await load();
+    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    finally { setBusy(false); }
+  }
+
+  async function followUpDependency(blockerId) {
+    setBusy(true); setError(null);
+    try {
+      const { error: followError } = await supabase.rpc("follow_up_blocker", { p_blocker_id: blockerId });
+      if (followError) throw followError;
+      await load();
+    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    finally { setBusy(false); }
+  }
 
   async function begin() {
     setBusy(true); setError(null);
@@ -208,7 +303,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
     <div style={{ paddingTop: 26 }}>
       <div className="eyebrow">{me.unit_name} · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
       <h1 className="h1" style={{ marginTop: 6 }}>{greeting}, {me.full_name.split(" ")[0]}</h1>
-      <p className="screen-note">Start with anything that needs attention, then choose the next piece of work to move.</p>
+      <p className="screen-note">See what changed, then choose your next move. Work already sent for review sits separately so it does not look like your failure.</p>
     </div>
 
     <div className={`sess home-session ${session ? "live" : ""}`} style={{ marginTop: 18 }}>
@@ -238,27 +333,89 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
     {loading && <div className="spin">Loading Home...</div>}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
-      {attention > 0 && <section className="home-panel home-panel-priority" aria-labelledby="staff-attention-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Deal with these first</div><h2 id="staff-attention-heading">Needs attention</h2></div><span className="home-count home-count-attention">{attention}</span></div>
-        {returned.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
-        {visibleAlerts.map((alert) => alert.subject_id
-          ? <button key={alert.id} className="row home-work-row home-tone-attention" onClick={() => openItem(alert.subject_id)}>
-              <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-            </button>
-          : <div key={alert.id} className="row home-tone-attention">
-              <div className="row-t">{alert.message}</div><div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-            </div>)}
-        {overdue.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="danger" />)}
-        {announcementAttention.map((announcement) => <button key={`ack-${announcement.id}`} className="row home-work-row home-tone-attention" onClick={openAnnouncements}>
-          <div className="row-t">Acknowledge: {announcement.title}</div><div className="row-m">Organisation announcement</div>
-        </button>)}
+      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">What changed</h2></div></div>
+        {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
+          <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
+          <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+          <div className="row-note">{note.note}</div>
+        </div>)}
+        {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
+        {leaveUpdates.map((request) => <div key={`leave-update-${request.id}`} className="row">
+          <div className="row-t">Your leave request was {request.status}</div>
+          <div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>
+          {request.decision_note && <div className="row-note">{request.decision_note}</div>}
+        </div>)}
       </section>}
 
-      <section className="home-panel home-panel-pulse" aria-labelledby="staff-today-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Current focus</div><h2 id="staff-today-heading">Today</h2></div><span className="home-count">{dueToday.length}</span></div>
-        {dueToday.length ? dueToday.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work is due today.</div>}
-        {activeWork.length > 0 && <><div className="home-subhead">In progress</div>{activeWork.map((item) => <WorkRow key={`active-${item.id}`} item={item} openItem={openItem} />)}</>}
+      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse"}`} aria-labelledby="staff-next-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Your next move</h2></div>
+          {attention > 0 && <span className="home-count home-count-attention">{attention}</span>}
+        </div>
+        {nextMoveItems.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone={item.status === "returned" || isOverdue(item.due_at) ? "danger" : "info"} />)}
+        {visibleAlerts.map((alert) => alert.subject_id
+          ? <button key={alert.id} className="row home-work-row home-tone-attention" onClick={() => openItem(alert.subject_id)}>
+              <div className="row-t">{alert.message}</div>
+              <div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+            </button>
+          : <div key={alert.id} className="row home-tone-attention">
+              <div className="row-t">{alert.message}</div>
+              <div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
+            </div>)}
+        {announcementAttention.map((announcement) => <button key={`ack-${announcement.id}`} className="row home-work-row home-tone-attention" onClick={openAnnouncements}>
+          <div className="row-t">Acknowledge: {announcement.title}</div>
+          <div className="row-m">Organisation announcement</div>
+        </button>)}
+        {attention === 0 && activeWork.length === 0 && <div className="home-quiet home-quiet-success">Nothing urgent is waiting on you right now.</div>}
+        {activeWork.length > 0 && <>
+          <div className="home-subhead home-subhead-spaced">Continue</div>
+          {activeWork.map((item) => <WorkRow key={`active-${item.id}`} item={item} openItem={openItem} />)}
+        </>}
       </section>
+
+      {(waitingReviews.length > 0 || waitingDependencies.length > 0) && <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Already moved from your side</div><h2 id="staff-waiting-heading">Waiting on others</h2></div>
+          <span className="home-count">{waitingReviews.length + waitingDependencies.length}</span>
+        </div>
+
+        {waitingReviews.length > 0 && <div className="home-subhead">Waiting for manager review</div>}
+        {waitingReviews.map((item) => {
+          const follow = reviewFollowupState(item);
+          const submission = reviewSubmissions.find((row) => row.work_item_id === item.id);
+          return <div className="row home-work-row" key={`review-${item.id}`}>
+            <button style={{ width: "100%", textAlign: "left" }} onClick={() => openItem(item.id)}>
+              <div className="row-t">{item.title}</div>
+              <div className="row-m">{item.ref} · sent {submission ? new Date(submission.submitted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "for review"}</div>
+              <div className="row-note">Waiting for your manager to check it.</div>
+            </button>
+            <div className="waiting-action">
+              {follow.canFollowUp
+                ? <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => followUpReview(item.id)}>{follow.label}</button>
+                : <span className="waiting-note">{follow.label}</span>}
+            </div>
+          </div>;
+        })}
+
+        {waitingDependencies.length > 0 && <div className="home-subhead home-subhead-spaced">Waiting on another unit or dependency</div>}
+        {waitingDependencies.map((item) => {
+          const blocker = blockerFor(item);
+          const follow = blockerFollowupState(blocker);
+          return <div className="row home-work-row" key={`waiting-${item.id}`}>
+            <button style={{ width: "100%", textAlign: "left" }} onClick={() => openItem(item.id)}>
+              <div className="row-t">{item.title}</div>
+              <div className="row-m">{item.ref}{blocker ? ` · ${blocker.units?.name || blocker.party_text}` : ""}</div>
+              <div className="row-note">{blocker?.state === "acknowledged" ? "The dependency has been acknowledged." : "Waiting for a response."}</div>
+            </button>
+            <div className="waiting-action">
+              {follow.canFollowUp
+                ? <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => followUpDependency(blocker.id)}>{follow.label}</button>
+                : <span className="waiting-note">{follow.label}</span>}
+            </div>
+          </div>;
+        })}
+      </section>}
 
       {(dueSoon.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
@@ -267,26 +424,21 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
           <div className="row-t">{event.cancelled ? "Cancelled · " : ""}{event.title}</div>
           <div className="row-m">{new Date(event.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", hour: event.all_day ? undefined : "2-digit", minute: event.all_day ? undefined : "2-digit" })}{event.location ? ` · ${event.location}` : ""}</div>
         </button>)}
-        {birthdays.map((profile) => <div className="row" key={`birthday-${profile.id}`}><div className="row-t">{profile.full_name}'s birthday</div><div className="row-m">{profile.nextBirthday.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div></div>)}
-        {upcomingLeave.map((request) => <div className="row" key={`leave-${request.id}`}><div className="row-t">Your approved {request.kind} leave begins</div><div className="row-m">{new Date(`${request.start_date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div></div>)}
-      </section>}
-
-      {waiting.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Paused dependencies</div><h2 id="staff-waiting-heading">Waiting on</h2></div><span className="home-count">{waiting.length}</span></div>
-        {waiting.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="attention" />)}
-      </section>}
-
-      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel" aria-labelledby="staff-feedback-heading">
-        <div className="home-section-head"><div><div className="home-kicker">What changed</div><h2 id="staff-feedback-heading">Recent movement</h2></div></div>
-        {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
-          <div className="row-t">{note.profiles?.full_name || "Manager"}</div><div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div><div className="row-note">{note.note}</div>
+        {birthdays.map((profile) => <div className="row compact-context-row" key={`birthday-${profile.id}`}>
+          <div className="row-t">{profile.full_name}'s birthday</div>
+          <div className="row-m">{profile.nextBirthday.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
         </div>)}
-        {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
-        {leaveUpdates.map((request) => <div key={`leave-update-${request.id}`} className="row"><div className="row-t">Leave request {request.status}</div><div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>{request.decision_note && <div className="row-note">{request.decision_note}</div>}</div>)}
+        {upcomingLeave.map((request) => <div className="row compact-context-row" key={`leave-${request.id}`}>
+          <div className="row-t">Your approved {request.kind} leave begins</div>
+          <div className="row-m">{new Date(`${request.start_date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
+        </div>)}
       </section>}
 
-      {announcements.length > 0 && <section className="home-panel" aria-labelledby="staff-announcements-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Organisation context</div><h2 id="staff-announcements-heading">Announcements</h2></div><button className="btn btn-ghost btn-sm" onClick={openAnnouncements}>See all</button></div>
+      {announcements.length > 0 && <section className="home-panel home-panel-announcement" aria-labelledby="staff-announcements-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">From CEAC</div><h2 id="staff-announcements-heading">Announcements</h2></div>
+          <button className="text-action" onClick={openAnnouncements}>See all</button>
+        </div>
         {announcements.map((announcement) => {
           const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
           return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
@@ -298,7 +450,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
       </section>}
 
       <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">
-        <div className="home-subhead" id="staff-week-heading">This week</div>
+        <div className="home-section-head"><div><div className="home-kicker">Your factual record</div><h2 id="staff-week-heading">This week</h2></div></div>
         <div className="home-stat-grid">
           <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
           <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
