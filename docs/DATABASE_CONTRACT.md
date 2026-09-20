@@ -836,3 +836,61 @@ Self-created Task work may be unattached to a project, may have no due date and 
 Private work remains visible only to the employee and is excluded from formal Staff Record evidence.
 
 Staff Record is presented as Highlights, Work history and Time & activity. Highlights are derived from actual completed Task/Deliverable records and factual manager feedback. No self-authored performance score or achievement ranking is created.
+
+
+---
+
+## Stabilisation contracts (migrations 060–066)
+
+### Invite-only identity and authority — 060 / 061
+
+Use `create_pending_invitation(email, full_name, unit_id, role)` for application invitations.
+
+Rules:
+- Managers may invite `staff` only and only into units they manage.
+- Administration may invite Staff into any active unit in the organisation.
+- direct authenticated writes to `pending_invitations` are revoked;
+- invitations expire;
+- `handle_new_user` requires a matching unresolved/unexpired invitation;
+- organisation and unit come from that invitation;
+- client-supplied organisation metadata and first-organisation fallback are not authoritative;
+- every new account begins as Staff.
+
+Administration assigns official Unit Head authority with `assign_unit_head(unit_id, profile_id)`.
+
+`completed_outputs` is the canonical completed-output source: Task and Deliverable only, in `completed` or `self_certified`, with `completed_at`.
+
+### Threshold-driven deterministic rules — 062 / 063
+
+`app_threshold(org_id,name,default)` is the runtime source for configured rule values.
+
+`app_working_days_between(from,to)` currently counts Monday–Friday. Holiday-aware calculations require a future approved holiday-calendar contract.
+
+Daily checks cover work silence, review waiting, aged acknowledged blockers, project end/open deliverables, project silence, objective silence, missing unit reports and factual Falling from explicit comparable `report_targets.achieved_value` rows.
+
+Narrative reports are never converted into invented numeric trend data.
+
+### Atomic write RPCs — 064
+
+Use:
+- `create_task_with_checklist`
+- `submit_work_for_review`
+- `raise_work_blocker`
+- `create_project_with_participants`
+- `save_and_submit_project_close`
+- `save_and_submit_report`
+- `swap_sub_team_positions`
+
+These functions own their complete multi-row transition and authoritative activity event. Clients must not recreate their old multi-call sequences.
+
+### Performance contract — 065 / 066
+
+Hot-path indexes cover current work, submissions, alerts, blockers, leave, project participation, objectives, sessions and reporting access patterns.
+
+Administration People must use:
+- `admin_people_summary()` for list/filter facts;
+- `admin_person_detail(profile_id)` when one employee is opened.
+
+This prevents organisation-wide work/session/leave histories from being downloaded merely to render the People list.
+
+Manager reporting source rows are scoped to the selected period before transfer to the client.
