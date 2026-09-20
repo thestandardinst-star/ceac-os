@@ -77,3 +77,65 @@ The following still requires a real authenticated browser pass before production
 - end-to-end mutation flows through the deployed preview
 
 Code inspection, CI, Vercel build status and rolled-back/live database contract checks are not substitutes for that final interaction pass.
+
+
+## Final PR #4 client audit continuation — 20 September 2026
+
+This section supersedes stale branch-state references above while preserving the earlier QA record as history.
+
+The final client audit was continued after Codex paused. It was reconciled against current main `bfbcebad33c680a953ce01acc63a49a0f1cce3a0` and the binding 20 September architecture/security amendments. No migration, RLS policy, RPC, Supabase schema, Admin/HR screen or Executive screen was changed.
+
+### Additional client corrections
+
+- **Assign:** all seven approved work kinds remain visible with their plain-language explanations, but only Task exposes a working creation form today. Unsupported kinds cannot be persisted with generic Task behaviour.
+- **Staff navigation:** restored the Staff Panel's four destinations: Home, Work, Record, Me. Manager navigation remains separate.
+- **Staff Home:** empty attention/secondary sections collapse instead of creating zero-card walls. Incoming unit-level blocker claims are no longer shown to every staff member; those remain a manager/unit response responsibility.
+- **Off-site work sessions:** starting work away from the office now requires selecting the active work item, so the captured start location attaches to work rather than to the person. In-review and waiting work cannot be selected as a new off-site working session.
+- **My Work:** active lead-unit projects are available even when the project-unit join row is absent, matching the project's legitimate lead-unit relationship.
+- **Manager Home:** today's submitted-work count is deduplicated by work item so multiple submissions for the same work do not create a misleading count or duplicate drill-down rows.
+- **Manager Home desktop:** laptop layout uses the available width while preserving the locked command-centre order. Staff Home remains phone-first rather than being converted into a desktop dashboard.
+- **Team:** real sub-team membership still drives grouping, including multi-lane membership and empty lanes. Direct Manager controls that changed official roles/sub-team membership were removed; the approved architecture assigns those employment/membership controls to Administration & HR.
+- **Manager Reports:** the approved `Manager's summary` wording is present, narrative and challenges remain separate, submitted versions remain frozen/versioned, and the status visual is explicitly labelled as **current work composition** so it is not mistaken for a period-completion metric.
+- **Calendar / Finance contract reconciliation:** the current branch already consumes the live `ministry_events` / `ministry_event_units` calendar source and the live finance-request / budget-position contracts. Older PR notes saying those sources did not exist are stale and should not guide future work.
+
+### Security-sensitive client audit
+
+The changed client surfaces were checked for the post-hardening prohibitions.
+
+No changed client file:
+- inserts, updates or deletes `activity_events`;
+- updates/deletes `operation_occurrences`;
+- writes protected profile or official membership fields from the Manager surface;
+- introduces `amount_pesewas` or cross-currency conversion;
+- introduces OpenAI, Claude or another inference dependency;
+- introduces employee scoring, ranking, badges, streaks or leaderboards.
+
+`ManagerProjectClose.jsx` reads authoritative `activity_events` only to establish the latest project-reopen time; it does not write that history.
+
+### Remaining backend-owned work
+
+These are not safe client-only fixes and remain explicit handoffs rather than being simulated in the UI:
+
+- approved-work reopen/reversal;
+- project/task/direct Messages persistence;
+- stronger semantic validation of report evidence beyond the existing evidence-count integrity contract;
+- the canonical Finance reversal/correction convention where still required by Finance;
+- the remaining typed-work contracts for Routine, Case, Request, Decision, Meeting outcome and Deliverable;
+- templates and deterministic reuse contracts;
+- the protected employee/HR data and storage model;
+- reconciliation of missing historical migration SQL and the remaining SECURITY DEFINER least-privilege review.
+
+The Manager approval path is also still a client sequence (review insert followed by work-item completion update), unlike the atomic return RPC. Treat atomic approval as backend data-integrity hardening rather than attempting a client workaround.
+
+### Final acceptance boundary
+
+Repository/contract audit, CI and Vercel build success establish that the branch builds and respects the inspected contracts. They do **not** replace the final authenticated browser pass.
+
+Still required before merge:
+- real 360px / 390px phone interaction;
+- real laptop interaction;
+- authenticated Frank / Nana / Joseph navigation and mutation flows;
+- browser back/focus behaviour and dialog usability;
+- end-to-end deployed-preview mutation checks.
+
+Do not claim these interactive checks passed until they are actually exercised.
