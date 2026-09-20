@@ -143,12 +143,16 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     if (missingObjective || noDeliverable || !challenges.trim() || !doDifferently.trim()) return;
     setBusy(true); setError(null);
     try {
-      const draftResult = await supabase.from("project_closes")
+      let draftQuery = supabase.from("project_closes")
         .select("id,version")
         .eq("project_id", project.id)
         .eq("scope", sheet.scope)
         .eq("status", "draft")
-        .eq("author_id", me.id)
+        .eq("author_id", me.id);
+      draftQuery = sheet.scope === "unit"
+        ? draftQuery.eq("unit_id", me.unit_id)
+        : draftQuery.is("unit_id", null);
+      const draftResult = await draftQuery
         .order("version", { ascending: false })
         .limit(1);
       if (draftResult.error) throw new Error(`Existing draft: ${draftResult.error.message}`);
