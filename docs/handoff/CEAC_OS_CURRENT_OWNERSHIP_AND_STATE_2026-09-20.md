@@ -426,3 +426,78 @@ The legacy 179-hour session found during mobile acceptance is flagged for reconc
 The Staff visual pass reduces repeated large-card treatment: informational sections use grouped rows/dividers, actions retain stronger containers, Team uses collapsible sections, Work uses compact lists, Record uses timelines/highlights and Me uses segmented employee-service areas.
 
 Claude-owned Administration/Executive UI files remain untouched.
+
+
+## Stabilisation sequence — completed implementation state
+
+The requested stabilisation sequence has been implemented through live migration **066**.
+
+### Recoverability
+
+- migration filenames 047–052 match the exact live migration registry timestamps;
+- their committed SQL was compared with Supabase's stored SQL and matched;
+- clean-database replay is automated in CI;
+- the historical live-only `test_as(text)` helper required by immutable migration 037 is documented separately rather than rewriting applied history.
+
+### Account and authority security
+
+- invited accounts require a valid, unresolved, unexpired CEAC invitation;
+- organisation and unit are derived from the invitation, never client metadata;
+- new accounts always begin as Staff;
+- Managers may invite Staff only into units they manage;
+- Administration assigns Unit Head authority explicitly through an Admin-only RPC;
+- activation/password/recovery UI and a full local Auth lifecycle test are present.
+
+### Role correctness
+
+- Group Pastor no longer inherits the Administration navigation/authoring boundary;
+- Executive completion facts use the canonical Task/Deliverable output definition;
+- Admin Home ignores resolved alerts and uses a real recent-session window for attendance/watch facts;
+- Office/leave settings and other audited client writes now surface database errors rather than reporting false success.
+
+### Deterministic rule engine
+
+The daily rule engine now uses the `thresholds` contract for:
+- work gone quiet;
+- review waiting;
+- acknowledged blocker age;
+- project near-end/open-deliverable attention;
+- project silence;
+- objective silence;
+- unit report silence;
+- Falling across comparable reported target periods;
+- same-period-last-year decline.
+
+Working-day rules currently mean Monday–Friday. CEAC has no approved holiday-calendar table yet, so no Ghana holiday dates are guessed.
+
+### Atomic application writes
+
+The following now execute as one database transaction with authoritative activity in the same transaction:
+- Task + checklist creation;
+- work submission + evidence + status;
+- blocker creation + waiting status;
+- project + participating units;
+- project close draft rows + submission;
+- report draft/evidence + submission;
+- sub-team position swap.
+
+### Performance and quality
+
+- Node runtime contract is Node 22;
+- hot-path indexes added from observed query patterns;
+- targeted RLS init-plan fixes applied without mass-changing dormant policy semantics;
+- Manager Reports session/submission sources are scoped to the selected reporting period;
+- Administration People list is now server-aggregated and detail rows load only when a person is opened;
+- SQL RLS role smoke tests exist;
+- Playwright Staff/Manager/Admin/Group Pastor routing smoke tests exist;
+- migration replay, account security and quality-gate workflows are present.
+
+### Platform settings not writable through current connectors
+
+Two repository/project-owner settings cannot be changed by the current connected tools:
+- Supabase leaked-password protection;
+- GitHub main-branch protection / required-status-check rules.
+
+These remain explicit external owner settings; no code claims they are enabled.
+
+PR #4 remains unmerged.
