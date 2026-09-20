@@ -73,7 +73,14 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
   }
 
   async function buildOverallCosts() {
-    const submittedUnits = closes.filter((row) => row.scope === "unit" && row.status === "submitted");
+    const latestByUnit = new Map();
+    closes
+      .filter((row) => row.scope === "unit" && row.status === "submitted" && row.unit_id)
+      .forEach((row) => {
+        const current = latestByUnit.get(row.unit_id);
+        if (!current || Number(row.version) > Number(current.version)) latestByUnit.set(row.unit_id, row);
+      });
+    const submittedUnits = [...latestByUnit.values()];
     if (!submittedUnits.length) { setOverallCosts([]); return []; }
     const costResult = await supabase.from("project_close_costs")
       .select("close_id,currency,planned_amount_minor,actual_amount_minor")
