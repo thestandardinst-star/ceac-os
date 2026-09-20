@@ -1,38 +1,43 @@
 # Migrations
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
-Migrations 001–029 are applied there.
 
-## This directory is currently empty, and that is a real gap
+Live migrations **001–039** are currently applied.
 
-The schema exists only in Supabase. It is not reviewable in git, not
-diffable in a pull request, and not restorable from this repository.
+## Repository coverage
 
-That is the same failure that cost this project several days in
-September: the application source existed only on Vercel, so when a
-session ended the code was gone. The schema is in that position now.
+The repository still does **not** contain the historical SQL for migrations 001–033. That remains a recoverability gap and must be reconciled/exported.
 
-## Filling it — one command, run locally
+Emergency security migrations 034–039 were applied on 20 September 2026 after a live privilege-escalation defect was verified. Their exact applied SQL is committed in this directory:
 
-Claude applies migrations through the Supabase connector and cannot run
-the Supabase CLI: its sandbox has no network route to supabase.com.
-Pulling them down has to happen on a machine that does.
+- 034 profile self-update guard
+- 035 profile visibility and activity hardening
+- 036 append-only routines and report scope
+- 037 background job security
+- 038 revoke public helper execution
+- 039 harden reference/helper RPCs
+
+See `docs/security/CEAC_OS_Security_Hardening_2026-09-20.md` for the verified findings and acceptance results.
+
+## Filling the historical gap
+
+When a machine/session has appropriate Supabase CLI access:
 
 ```bash
 npx supabase login
 npx supabase link --project-ref efjljhftsesssumtshvp
-npx supabase db pull          # writes every applied migration into this folder
-git add supabase/migrations && git commit -m "Export applied migrations" && git push
+npx supabase db pull
+git add supabase/migrations
+git commit -m "Reconcile applied Supabase migrations"
+git push
 ```
 
-`db pull` is read-only. It does not change the database.
+Do not blindly overwrite the committed 034–039 files. Compare exported SQL with the recorded migration history and reconcile intentionally.
 
-## After that
+## Migration ownership
 
-Claude keeps applying migrations through the connector, because that is
-where the checks happen — inspecting live policies and data before
-changing them. Re-run `db pull` after a batch of migrations so the
-repository keeps up.
+Claude remains the normal migration owner.
 
-Ask Claude before adding a migration. Two agents numbering independently
-will collide.
+The 20 September 034–039 batch was an explicit emergency exception because a live privilege-escalation vulnerability had been verified while Claude was unavailable.
+
+Before adding another migration, inspect the live migration list first. Never reuse a migration number or recreate 031–039.

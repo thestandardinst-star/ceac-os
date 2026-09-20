@@ -62,6 +62,14 @@ those came from not reading a file that was already there.
    Work Engine, but implement the type-specific contracts in the approved
    20 September amendment. Do not collapse everything into Task.
 
+10. **Security migrations 034–039 are live. Do not recreate or weaken
+    them.** Profile privilege fields are protected, client writes to
+    `activity_events` are blocked, routine occurrences are append-only,
+    project reports stay at the manager's unit altitude, background jobs
+    are service-only, and reference RPCs validate caller scope. Read
+    `docs/security/CEAC_OS_Security_Hardening_2026-09-20.md` before
+    changing any of those contracts.
+
 ## Who owns which files
 
 Claude owns the Administration & HR surface:
@@ -113,6 +121,15 @@ canonical — never derive a code from the initials of a unit name.
   create a new permission boundary.
 - Media is the pilot unit, not the template. Nothing may be hard-coded
   to Media.
+- Do not add Ghana Card, SSNIT, tax, banking or other protected HR data
+  to `profiles`. The approved HR architecture requires a separate
+  protected contract. New `profiles` columns are not automatically
+  protected by the current self-update guard.
+- `activity_events` is authoritative history. Application clients read
+  permitted events but do not insert them directly; use an authorised
+  server-side RPC/trigger when a new event type is implemented.
+- `operation_occurrences` is append-only to application users until an
+  attributable correction path is built.
 
 ## Blocked, awaiting answers from CEAC — do not guess
 
