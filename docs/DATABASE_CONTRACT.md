@@ -634,3 +634,130 @@ Routine, Case, Request and Decision cannot insert generic submission rows.
 For Deliverable, the type-specific evidence contract is enforced during self-certification. A Deliverable configured with required link evidence cannot be completed by a manager without that link.
 
 The current Manager/Staff client records Deliverable evidence as a link. It does not pretend that a general upload pipeline exists.
+
+---
+
+## Staff experience continuation (migrations 047–054)
+
+### Work-session recovery and blocker resolution — 047 / 053
+
+`work_sessions` now carries `last_confirmed_at`, correction attribution and an append-only `work_session_events` history.
+
+Client contract:
+
+- `end_work_session(session_id)` ends the employee's own current session normally.
+- `reconcile_work_session(session_id, action, effective_ended_at, note)` is used when a session is stale.
+
+A previous-day session is never allowed to silently accumulate overnight time.
+
+After migration 053, `action='continue'` means:
+
+1. close the stale session at its last confirmed point;
+2. retain a reconciliation event on the old session;
+3. create a fresh open session for the current day carrying the same work/place context;
+4. return the new session.
+
+This deliberately avoids treating the overnight gap as working time.
+
+`blockers` now has explicit attributable resolution fields:
+
+- `resolved_at`
+- `resolved_by`
+- `resolution_note`
+
+Use `respond_to_blocker` for acknowledge/dispute and `resolve_blocker` for actual closure. Acknowledged is still active; resolved leaves the active attention set. If no other active blocker remains on a waiting work item, resolution returns that item to `in_progress`.
+
+### Announcements — 048 / 049
+
+Tables:
+
+- `announcements`
+- `announcement_audiences`
+- `announcement_receipts`
+
+Audience types:
+
+- organisation
+- unit
+- role
+
+Staff can only read currently published, unexpired announcements whose audience includes them. Read/acknowledgement is attributable via `mark_announcement_read`.
+
+Authoring uses RPCs rather than direct table writes:
+
+- `create_announcement`
+- `update_announcement`
+- `publish_announcement`
+- `close_announcement`
+
+Publishing authority is Administration, Group Pastor, or an explicit `post_announcement` capability. Audience counts are factual counts only; there is no employee ranking.
+
+### Unit resources — 050
+
+`unit_resources` stores approved links/references, not protected HR files.
+
+Supported categories:
+
+- brand
+- run_sheet
+- template
+- guide
+- reference
+- other
+
+Unit managers may manage resources for units they manage. Administration may also publish organisation-visible resources.
+
+Staff read active own-unit resources. Cross-unit resource visibility is denied unless the resource is intentionally organisation-visible.
+
+Use:
+
+- `save_unit_resource`
+- `set_unit_resource_active`
+
+### Approved leave visibility — 051
+
+`list_unit_approved_leave(unit_id, from, to)` exposes only the minimal operational leave facts needed by colleagues:
+
+- person
+- leave kind
+- start date
+- end date
+
+It does not expose the employee's leave reason or other private HR content.
+
+### Employee-maintained ordinary details — 052 / 054
+
+`profiles.preferred_name` is now available.
+
+Private ordinary personal information is stored in:
+
+- `profile_personal_details`
+- `profile_personal_detail_events`
+
+Private details include emergency contact, ordinary address and social handles. These are readable only by the employee and Administration.
+
+Use `update_my_personal_details` for employee changes to:
+
+- preferred name;
+- phone;
+- birthday;
+- emergency contact;
+- address;
+- social handles.
+
+Migration 054 makes the RPC the authoritative employee-write path. Direct employee updates to `profiles`, even for ordinary personal fields, are blocked so every change receives an attributable event. Administration retains its official profile authority.
+
+### Protected HR remains separate
+
+The Staff continuation deliberately does **not** store the following in ordinary profile or unit-resource storage:
+
+- Ghana Card images/details;
+- SSNIT;
+- tax details;
+- bank/payment details;
+- salary;
+- contracts;
+- payslips;
+- protected certificates/documents.
+
+Those require the approved protected-storage and HR verification model. Do not implement them with public URLs or ordinary profile columns.
