@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–045** are currently applied.
+Live migrations **001–046** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–045**.
+The repository now contains the historical SQL for **all live migrations 001–046**.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **046**.
+The next migration number is **047**.
 
 
 ## 20 September backend continuation
@@ -51,3 +51,14 @@ All typed-work acceptance data was created inside transactions that ended with `
 - blocked deletion of populated sub-team lanes until HR memberships/work/routines are explicitly moved or cleared.
 
 Rollback acceptance passed before Routine client integration began.
+
+
+### 046 — review contract hardening
+
+- non-review kinds cannot create generic submission rows;
+- Manager approval re-checks Task checklist completion server-side;
+- manager self-certification is limited to Task, Meeting outcome and Deliverable;
+- Deliverable self-certification enforces required evidence;
+- authoritative self-certification activity is recorded.
+
+Rollback acceptance passed before Deliverable client integration.
