@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 export function Pill({ tone, children }) {
   return <span className={"pill p-" + tone}>{children}</span>;
 }
@@ -44,23 +44,24 @@ export function Tabs({ tab, setTab, isManager }) {
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
   const items = isManager ? managerPrimary : tabItems(false);
   const moreActive = isManager && managerMore.some(([key]) => key === tab);
+  useEffect(() => { setMoreOpen(false); }, [tab, isManager]);
   return (<>
-    {isManager && moreOpen && <div style={{
+    {isManager && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" aria-label="More Manager destinations" style={{
       position: "fixed", left: 12, right: 12, bottom: "calc(72px + env(safe-area-inset-bottom))",
       maxWidth: 496, margin: "0 auto", background: "var(--card)", border: "1px solid var(--line)",
       borderRadius: 10, padding: 8, zIndex: 12, boxShadow: "0 8px 28px rgba(0,0,0,.12)"
     }}>
-      {managerMore.map(([key, label]) => <button key={key} className="row" style={{ width: "100%", textAlign: "left" }} onClick={() => { setMoreOpen(false); setTab(key); }}>
+      {managerMore.map(([key, label]) => <button role="menuitem" key={key} className="row" style={{ width: "100%", textAlign: "left" }} onClick={() => { setMoreOpen(false); setTab(key); }}>
         <div className="row-t">{label}</div>
       </button>)}
-    </div>}
+    </div></>}
     <nav className="tabs">
       {items.map(([k, label]) => {
         const active = k === "more" ? moreActive || moreOpen : tab === k;
         return <button key={k} className={"tab " + (active ? "on" : "")} onClick={() => {
           if (k === "more") setMoreOpen((value) => !value);
           else { setMoreOpen(false); setTab(k); }
-        }}>
+        }} aria-haspopup={k === "more" ? "menu" : undefined} aria-expanded={k === "more" ? moreOpen : undefined}>
           <i /> {label}
         </button>;
       })}
@@ -68,5 +69,10 @@ export function Tabs({ tab, setTab, isManager }) {
   </>);
 }
 export function Sheet({ children, onClose }) {
-  return (<><div className="sheet-bg" onClick={onClose} /><div className="sheet">{children}</div></>);
+  useEffect(() => {
+    function onKeyDown(event) { if (event.key === "Escape") onClose?.(); }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+  return (<><div className="sheet-bg" onClick={onClose} /><div className="sheet" role="dialog" aria-modal="true">{children}</div></>);
 }
