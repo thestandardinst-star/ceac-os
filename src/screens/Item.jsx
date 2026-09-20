@@ -193,9 +193,9 @@ export default function Item({ id, me, session, isManager = false, back }) {
 
       {!(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
-          disabled={gated || managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
+          disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {managerOwnWork ? "Finish this work" : "Send for review"}</button>
-        {gated && <div className="hint">Start work to send this in</div>}
+        {gated && <div className="hint">No work session is open. You can still send this in; it will be recorded as outside a session.</div>}
         {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
         {!blocker && (
@@ -212,10 +212,11 @@ export default function Item({ id, me, session, isManager = false, back }) {
           <p className="screen-note">{managerOwnWork
             ? "This records your submission as self-certified. It will not enter your review queue."
             : "Your manager will be told."}</p>
+          {gated && <div className="flag flag-amber"><h4>No work session is open</h4>This submission will still be accepted and recorded as outside a session.</div>}
           <textarea className="field" rows={3} placeholder="Anything they should know (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <input className="field" placeholder="Paste a link to the file (optional)" value={link} onChange={(e) => setLink(e.target.value)} />
           <p className="small" style={{ marginTop: 8 }}>Large files — video especially — should be a link rather than an upload.</p>
-          <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Saving..." : managerOwnWork ? "Finish work" : "Send"}</button>
+          <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Saving..." : gated ? (managerOwnWork ? "Finish outside session" : "Send outside session") : managerOwnWork ? "Finish work" : "Send"}</button>
         </Sheet>)}
 
       {sheet === "waiting" && (
