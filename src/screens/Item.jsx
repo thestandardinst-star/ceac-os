@@ -118,6 +118,21 @@ export default function Item({ id, me, session, isManager = false, back }) {
     finally { setBusy(false); }
   }
 
+  async function reopenFinishedWork() {
+    if (!note.trim()) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const { error } = await supabase.rpc("reopen_approved_work", {
+        p_work_item_id: id,
+        p_reason: note.trim(),
+      });
+      if (error) throw error;
+      setSheet(null); setNote(""); await load();
+    } catch (e) { setErr(e.message || "The work could not be reopened."); }
+    finally { setBusy(false); }
+  }
+
   async function markWaiting() {
     setBusy(true);
     setErr(null);
@@ -206,6 +221,11 @@ export default function Item({ id, me, session, isManager = false, back }) {
       {item.status === "in_review" &&
         <div className="flag flag-amber" style={{ marginTop: 20 }}><h4>Sent in</h4>Waiting on your manager to check it.</div>}
 
+      {isManager && ["completed", "self_certified"].includes(item.status) &&
+        <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
+          Reopen this work
+        </button>}
+
       {sheet === "submit" && (
         <Sheet onClose={() => setSheet(null)}>
           <div className="h2">{managerOwnWork ? "Finish this work" : "Send for review"}</div>
@@ -217,6 +237,16 @@ export default function Item({ id, me, session, isManager = false, back }) {
           <input className="field" placeholder="Paste a link to the file (optional)" value={link} onChange={(e) => setLink(e.target.value)} />
           <p className="small" style={{ marginTop: 8 }}>Large files — video especially — should be a link rather than an upload.</p>
           <button className="btn" style={{ marginTop: 14 }} onClick={submit} disabled={busy}>{busy ? "Saving..." : gated ? (managerOwnWork ? "Finish outside session" : "Send outside session") : managerOwnWork ? "Finish work" : "Send"}</button>
+        </Sheet>)}
+
+      {sheet === "reopen" && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Reopen this work</div>
+          <p className="screen-note">The existing approval/completion record stays in history. State why more work is required.</p>
+          <textarea className="field" rows={3} placeholder="Why is this work being reopened?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} onClick={reopenFinishedWork} disabled={busy || !note.trim()}>
+            {busy ? "Reopening..." : "Reopen work"}
+          </button>
         </Sheet>)}
 
       {sheet === "waiting" && (
