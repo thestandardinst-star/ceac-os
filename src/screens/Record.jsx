@@ -3,18 +3,27 @@ import { supabase } from "../lib/supabase";
 export default function Record({ me }) {
   const [s, setS] = useState(null);
   const [feedback, setFeedback] = useState([]);
+  const [error, setError] = useState(null);
   useEffect(() => { load(); }, [me.id]);
   async function load() {
+    setError(null);
+    setS(null);
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
-    const { data: items } = await supabase.from("work_items")
+    const itemResult = await supabase.from("work_items")
       .select("id, kind, status, origin, due_at, completed_at, first_time_approved")
       .eq("assignee_id", me.id).eq("visibility", "unit");
-    const { data: sessions } = await supabase.from("work_sessions")
+    const sessionResult = await supabase.from("work_sessions")
       .select("started_at, ended_at, place").eq("profile_id", me.id).gte("started_at", monthStart.toISOString());
-    const { data: blocked } = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
-    const { data: notes } = await supabase.from("feedback_notes")
+    const blockerResult = await supabase.from("blockers").select("id").eq("claimed_by", me.id);
+    const feedbackResult = await supabase.from("feedback_notes")
       .select("id,note,created_at,profiles!feedback_notes_author_id_fkey(full_name)")
       .eq("profile_id", me.id).order("created_at", { ascending: false });
+    const failed = [itemResult, sessionResult, blockerResult, feedbackResult].find((result) => result.error);
+    if (failed) { setError(failed.error.message); return; }
+    const items = itemResult.data || [];
+    const sessions = sessionResult.data || [];
+    const blocked = blockerResult.data || [];
+    const notes = feedbackResult.data || [];
     setFeedback(notes || []);
     const done = (items || []).filter((i) => ["task", "deliverable"].includes(i.kind) && ["completed", "self_certified"].includes(i.status));
     const dueDone = done.filter((i) => i.due_at && i.completed_at);
@@ -37,7 +46,9 @@ export default function Record({ me }) {
       office: (sessions || []).filter((x) => x.place === "office").length,
     });
   }
-  if (!s) return <div className="spin">Loading...</div>;
+  if (!s) return error
+    ? <div className="body"><div className="flag flag-brick" style={{ marginTop: 24 }}><h4>Could not load your record</h4>{error}</div></div>
+    : <div className="spin">Loading...</div>;
   function Row({ l, v }) {
     return (
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "11px 0", borderTop: "1px solid var(--line-soft)" }}>

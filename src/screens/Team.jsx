@@ -39,6 +39,7 @@ export default function Team({ me, openPerson }) {
   const [moveWorkTo, setMoveWorkTo] = useState("");
   const [removeWorkCount, setRemoveWorkCount] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
 
@@ -46,6 +47,7 @@ export default function Team({ me, openPerson }) {
 
   async function load() {
     if (!me.unit_id) return;
+    setLoading(true);
     setError(null);
     try {
       const start = weekStart();
@@ -111,6 +113,7 @@ export default function Team({ me, openPerson }) {
       } else setMembers({});
       setPending(requireResult(pendingResult, "Pending invitations"));
     } catch (err) { setError(err.message || "The team could not be loaded."); }
+    finally { setLoading(false); }
   }
 
   async function addSubTeam() {
@@ -209,8 +212,9 @@ export default function Team({ me, openPerson }) {
         <p className="screen-note">Presence and work are shown side by side as facts. They are not a judgement about a person.</p>
       </div>
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
+      {loading && <div className="spin">Loading your team...</div>}
 
-      <div className="sec"><span>People</span><span>{people.length}</span></div>
+      {!loading && <><div className="sec"><span>People</span><span>{people.length}</span></div>
       {people.map((person) => (
         <div key={person.id} className="row">
           <button onClick={() => openPerson(person.profile_id, "current")} style={{ width: "100%", textAlign: "left" }}>
@@ -306,6 +310,7 @@ export default function Team({ me, openPerson }) {
         {msg && <div className="flag flag-amber" style={{ marginTop: 12 }}>{msg}</div>}
         <button className="btn" style={{ marginTop: 14 }} onClick={invite} disabled={busy || !email.trim() || !fullName.trim()}>{busy ? "Sending..." : "Send invitation"}</button>
       </Sheet>}
+      </>}
     </div>
   );
 }

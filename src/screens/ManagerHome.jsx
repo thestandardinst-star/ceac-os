@@ -50,12 +50,14 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [returnItems, setReturnItems] = useState([]);
   const [selectedReturnItems, setSelectedReturnItems] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => { load(); }, [me.id, me.unit_id]);
 
   async function load() {
     if (!me.unit_id) return;
+    setLoading(true);
     setError(null);
     try {
       const today = startOfDay();
@@ -160,6 +162,8 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       }).filter((project) => project.atRisk.length > 0 || project.closesThisWeek));
     } catch (err) {
       setError(err.message || "Manager Home could not be loaded.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -261,8 +265,9 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       </div>
       <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={goAssign}>Give out work</button>
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
+      {loading && <div className="spin">Loading Manager Home...</div>}
 
-      <div className="sec"><span>Waiting on you</span><span>{waitingCount}</span></div>
+      {!loading && <><div className="sec"><span>Waiting on you</span><span>{waitingCount}</span></div>
       {waitingCount === 0 && <div className="card small">Nothing is waiting on you.</div>}
       {submissions.map((submission) => (
         <div key={submission.id} className="row">
@@ -374,6 +379,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         <textarea className="field" rows={3} placeholder="What is actually needed" value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => answerBlocker(sheet.item, "disputed")}>{busy ? "Saving..." : "Send response"}</button>
       </Sheet>}
+      </>}
     </div>
   );
 }

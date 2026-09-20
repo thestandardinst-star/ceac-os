@@ -78,6 +78,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   const [units, setUnits] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => { loadList(); }, [me.id, me.unit_id]);
@@ -85,6 +86,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
 
   async function loadList() {
+    setLoadingList(true);
     setError(null);
     try {
       const [projectResult, capabilityResult, unitResult] = await Promise.all([
@@ -99,7 +101,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       setCanCreate(Boolean(capabilityResult.data));
       setUnits(requireResult(unitResult, "Units"));
       const ids = visibleProjects.map((project) => project.id);
-      if (!ids.length) { setProjects([]); return; }
+      if (!ids.length) { setProjects([]); setLoadingList(false); return; }
       const [unitResultRows, objectiveResult, workResult, budgetResult, spendResult] = await Promise.all([
         supabase.from("project_units").select("project_id, unit_id, role").in("project_id", ids),
         supabase.from("objectives").select("id, project_id, status").in("project_id", ids),
@@ -125,6 +127,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         };
       }));
     } catch (err) { setError(err.message || "Projects could not be loaded."); }
+    finally { setLoadingList(false); }
   }
 
   async function loadDetail(projectId) {
@@ -305,7 +308,8 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>
     {canCreate && <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => setSheet({ type: "project" })}>Create project</button>}
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
-    <div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
+    {loadingList && <div className="spin">Loading projects...</div>}
+    {!loadingList && <><div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
     {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
       <div className="eyebrow">{project.role === "lead" ? "Lead unit" : "Participating unit"}</div>
       <div className="row-t" style={{ marginTop: 3 }}>{project.name}</div>
@@ -314,6 +318,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       <div style={{ marginTop: 7 }}><Pill tone={project.status === "active" ? "green" : "grey"}>{project.status}</Pill></div>
     </button>)}
     {projects.length === 0 && <div className="card small">No project currently involves your unit.</div>}
+    </>}
     {sheet?.type === "project" && <ProjectSheet units={units.filter((unit) => unit.id !== me.unit_id)} busy={busy} onClose={() => setSheet(null)} onCreate={createProject} />}
   </div>;
 }
