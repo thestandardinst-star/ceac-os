@@ -31,6 +31,7 @@ export default function VoiceInput({
   const [error, setError] = useState("");
   const recRef = useRef(null);
   const finalRef = useRef("");
+  const errorRef = useRef(false);
 
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -49,6 +50,7 @@ export default function VoiceInput({
       finalRef.current = "";
       setInterim("");
       setError("");
+      errorRef.current = false;
       setState("listening");
     };
 
@@ -70,13 +72,14 @@ export default function VoiceInput({
     recognition.onerror = (event) => {
       const message = messageForError(event.error);
       setError(message);
+      errorRef.current = true;
       setState("error");
       onError?.(message, event.error);
     };
 
     recognition.onend = () => {
       const finalText = finalRef.current.trim();
-      const hadError = Boolean(error);
+      const hadError = errorRef.current;
       setInterim("");
       if (finalText) onResult?.(finalText);
       setState(hadError ? "error" : "idle");
@@ -109,6 +112,7 @@ export default function VoiceInput({
     finalRef.current = "";
     setInterim("");
     setError("");
+    errorRef.current = false;
     try {
       recognition.start();
     } catch {
