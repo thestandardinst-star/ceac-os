@@ -71,6 +71,29 @@ begin
   end if;
 end $$;
 
+-- Every signed-in callable definer RPC must visibly bind itself to the caller
+-- directly or through an approved authority/visibility helper.
+do $
+declare n integer;
+begin
+  select count(*) into n
+  from pg_proc p
+  join pg_namespace ns on ns.oid=p.pronamespace
+  where ns.nspname='public'
+    and p.prosecdef
+    and has_function_privilege('authenticated',p.oid,'EXECUTE')
+    and pg_get_functiondef(p.oid) not ilike '%auth.uid%'
+    and pg_get_functiondef(p.oid) not ilike '%app_is_%'
+    and pg_get_functiondef(p.oid) not ilike '%app_managed_units%'
+    and pg_get_functiondef(p.oid) not ilike '%app_can_%'
+    and pg_get_functiondef(p.oid) not ilike '%app_visible_%'
+    and pg_get_functiondef(p.oid) not ilike '%app_my_units%'
+    and pg_get_functiondef(p.oid) not ilike '%app_led_sub_teams%';
+  if n<>0 then
+    raise exception 'Security gate failure: % authenticated SECURITY DEFINER RPC(s) lack an approved actor/authority binding.',n;
+  end if;
+end $;
+
 -- Migration 067 changes default privileges. Prove a new function is not
 -- silently exposed to signed-in or anonymous users.
 create function public.security_gate_default_probe()
@@ -126,6 +149,76 @@ begin
     raise exception 'Security gate failure: an HR/protected-document Storage bucket is public.';
   end if;
 end $$;
+
+-- Protected HR foundation must remain outside the browser-exposed public schema.
+do $
+begin
+  if not exists(select 1 from pg_namespace where nspname='hr_private') then
+    raise exception 'Security gate failure: hr_private schema is missing.';
+  end if;
+
+  if has_schema_privilege('anon','hr_private','USAGE')
+     or has_schema_privilege('authenticated','hr_private','USAGE') then
+    raise exception 'Security gate failure: anon/authenticated has USAGE on hr_private.';
+  end if;
+
+  if has_table_privilege('anon','hr_private.documents','SELECT')
+     or has_table_privilege('authenticated','hr_private.documents','SELECT')
+     or has_table_privilege('anon','hr_private.audit_events','SELECT')
+     or has_table_privilege('authenticated','hr_private.audit_events','SELECT') then
+    raise exception 'Security gate failure: protected HR tables are directly readable by browser roles.';
+  end if;
+end $;
+
+do $
+declare v_public boolean;
+begin
+  select public into v_public
+  from storage.buckets
+  where id='ceac-hr-private';
+
+  if v_public is null then
+    raise exception 'Security gate failure: ceac-hr-private bucket is missing.';
+  end if;
+  if v_public then
+    raise exception 'Security gate failure: ceac-hr-private bucket is public.';
+  end if;
+end $;
+
+-- Foundation stage deliberately has no direct browser Storage policy for the
+-- protected HR bucket. Later access must update this assertion with explicit
+-- role/path tests in the same PR.
+do $
+declare n integer;
+begin
+  select count(*) into n
+  from pg_policies
+  where schemaname='storage'
+    and tablename='objects'
+    and (
+      coalesce(qual,'') ilike '%ceac-hr-private%'
+      or coalesce(with_check,'') ilike '%ceac-hr-private%'
+    );
+  if n<>0 then
+    raise exception 'Security gate failure: direct browser policy exists for ceac-hr-private before explicit HR document-access review.';
+  end if;
+end $;
+
+do $
+begin
+  if not exists(
+    select 1
+    from pg_trigger t
+    join pg_class c on c.oid=t.tgrelid
+    join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='hr_private'
+      and c.relname='audit_events'
+      and t.tgname='hr_audit_events_immutable'
+      and not t.tgisinternal
+  ) then
+    raise exception 'Security gate failure: HR audit immutability trigger is missing.';
+  end if;
+end $;
 
 -- ---------------------------------------------------------------------------
 -- Role matrix using the local fixture organisation
