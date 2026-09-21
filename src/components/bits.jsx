@@ -18,6 +18,12 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "manager-reports" || name === "reports") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
   if (name === "more") return <svg {...props}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" /></svg>;
   if (name === "announcements") return <svg {...props}><path d="M3 11v2l12 4V7z" /><path d="M15 9l5-2v10l-5-2" /><path d="M6 14l1 6h4l-2-5" /></svg>;
+  if (name === "people") return <svg {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M17 11h5M19.5 8.5v5" /></svg>;
+  if (name === "units") return <svg {...props}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>;
+  if (name === "attendance") return <svg {...props}><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>;
+  if (name === "reporting") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 16v-4M12 16V8M15 16v-6" /></svg>;
+  if (name === "cost") return <svg {...props}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
+  if (name === "settings") return <svg {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1V21H9.6v-.09a1.7 1.7 0 0 0-1.4-1.67 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.8 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1-.4H2V9.6h.09A1.7 1.7 0 0 0 3.76 8.2a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.2 3.8a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1V2h4v.09A1.7 1.7 0 0 0 15 3.76a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.2a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1 .4H21v4h-.09A1.7 1.7 0 0 0 19.4 15z" /></svg>;
   return <svg {...props}><circle cx="12" cy="12" r="2" /></svg>;
 }
 export function MobileTopBar({ me, roleLabel = "Staff" }) {
@@ -72,7 +78,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
       <nav>
         {items.map(([k, l]) => (
           <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>
-            {operatingSurface && <Icon name={k} size={17} />}
+            <Icon name={k} size={17} />
             <span>{l}</span>
           </button>))}
       </nav>
@@ -83,18 +89,19 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }
   const [moreOpen, setMoreOpen] = useState(false);
   const managerMore = [["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
-  const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : (isManager ? managerPrimary : tabItems(false));
-  const moreActive = isManager && managerMore.some(([key]) => key === tab);
-  const operatingSurface = !isAdmin && !isExec;
-  useEffect(() => { setMoreOpen(false); }, [tab, isManager]);
+  const adminMore = [["announcements","Announcements"],["units","Units"],["cost","Cost"],["finance","Finance"],["settings","Settings"],["me","Me"]];
+  const adminPrimary = [["home","Home"],["people","People"],["attendance","Attendance"],["reporting","Reports"],["more","More"]];
+  const items = isExec
+    ? [["home","Home"],["announcements","Announcements"],["me","Me"]]
+    : isAdmin ? adminPrimary : isManager ? managerPrimary : tabItems(false);
+  const moreItems = isAdmin ? adminMore : managerMore;
+  const moreActive = (isManager || isAdmin) && moreItems.some(([key]) => key === tab);
+  useEffect(() => { setMoreOpen(false); }, [tab, isManager, isAdmin]);
   return (<>
-    {isManager && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" aria-label="More Manager destinations" style={{
-      position: "fixed", left: 12, right: 12, bottom: "calc(72px + env(safe-area-inset-bottom))",
-      maxWidth: 496, margin: "0 auto", background: "var(--card)", border: "1px solid var(--line)",
-      borderRadius: 10, padding: 8, zIndex: 12, boxShadow: "0 8px 28px rgba(0,0,0,.12)"
-    }}>
-      {managerMore.map(([key, label]) => <button role="menuitem" key={key} className="row" style={{ width: "100%", textAlign: "left" }} onClick={() => { setMoreOpen(false); setTab(key); }}>
-        <div className="row-t">{label}</div>
+    {(isManager || isAdmin) && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" className="mobile-more-menu" aria-label={isAdmin ? "More Administration destinations" : "More Manager destinations"}>
+      {moreItems.map(([key, label]) => <button role="menuitem" key={key} className="mobile-more-item" onClick={() => { setMoreOpen(false); setTab(key); }}>
+        <Icon name={key} size={17} />
+        <span>{label}</span>
       </button>)}
     </div></>}
     <nav className="tabs">
@@ -104,7 +111,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }
           if (k === "more") setMoreOpen((value) => !value);
           else { setMoreOpen(false); setTab(k); }
         }} aria-haspopup={k === "more" ? "menu" : undefined} aria-expanded={k === "more" ? moreOpen : undefined}>
-          {operatingSurface ? <Icon name={k} size={18} /> : <i />} <span>{label}</span>
+          <Icon name={k} size={18} /> <span>{label}</span>
         </button>;
       })}
     </nav>
