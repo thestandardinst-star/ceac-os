@@ -4,6 +4,28 @@ const rolePassword = process.env.ROLE_FIXTURE_PASSWORD;
 
 test.describe.configure({ mode: "serial" });
 
+test("Authentication shell matches the PWA responsive contract", async ({ browser }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 900 }]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(page.getByPlaceholder("Work email")).toBeVisible();
+    await expect(page.getByPlaceholder("Password")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    if (viewport.width >= 901) {
+      await expect(page.getByText("Know what matters.")).toBeVisible();
+      await expect(page.getByText("Today", { exact: true })).toBeVisible();
+      await expect(page.getByText("Pulse", { exact: true })).toBeVisible();
+      await expect(page.getByText("Insight", { exact: true })).toBeVisible();
+    } else {
+      await expect(page.getByText("CEAC OS", { exact: true }).first()).toBeVisible();
+    }
+    await context.close();
+  }
+});
+
 async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   const context = await browser.newContext({
     viewport,
