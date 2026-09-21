@@ -364,12 +364,16 @@ export default function Item({ id, me, session, isManager = false, back }) {
     : <div className="spin">Loading...</div>;
 
   return (
-    <div className="body">
-      <button className="back" onClick={back}>← Back</button>
-      <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
-      <h1 className="h2" style={{ marginTop: 6, fontSize: 22 }}>{item.title}</h1>
-      <div className="screen-note">{dueLabel(item.due_at)}</div>
-      <div style={{ marginTop: 10 }}>{statusPill(item.status)}</div>
+    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"}`}>
+      <button className="back work-detail-back" onClick={back}>← Back</button>
+      <header className="work-detail-head">
+        <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
+        <h1 className="h2">{item.title}</h1>
+        <div className="work-detail-meta">
+          <span>{dueLabel(item.due_at)}</span>
+          {statusPill(item.status)}
+        </div>
+      </header>
 
       {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
@@ -399,13 +403,13 @@ export default function Item({ id, me, session, isManager = false, back }) {
         </div>)}
 
       {item.purpose && (<><div className="sec"><span>Why this matters</span></div>
-        <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.purpose}</div></>)}
+        <div className="card work-context-card">{item.purpose}</div></>)}
 
       {item.instructions && (<><div className="sec"><span>What to do</span></div>
-        <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.instructions}</div></>)}
+        <div className="card work-context-card">{item.instructions}</div></>)}
 
       {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
-        <div className="card" style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--ink-soft)" }}>{item.expected_outcome}</div></>)}
+        <div className="card work-context-card">{item.expected_outcome}</div></>)}
 
       {item.kind === "deliverable" && deliverableRecord && <>
         <div className="sec"><span>Deliverable evidence</span></div>
@@ -516,7 +520,10 @@ export default function Item({ id, me, session, isManager = false, back }) {
 
       {checks.length > 0 && (<>
         <div className="sec"><span>Completion checklist</span><span>{done} of {checks.length}</span></div>
-        <div className="card" style={{ padding: "2px 15px" }}>
+        {!isManager && <div className="staff-check-progress" aria-label={`${done} of ${checks.length} checklist items complete`}>
+          <span style={{ width: `${Math.round((done / checks.length) * 100)}%` }} />
+        </div>}
+        <div className="card checklist-card" style={{ padding: "2px 15px" }}>
           {checks.map((c) => (
             <button key={c.id} className={"ck " + (ticks[c.id] ? "done" : "")} onClick={() => toggle(c.id)} disabled={gated}>
               <span className={"box " + (ticks[c.id] ? "on" : "")} />
@@ -525,7 +532,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
         </div></>)}
 
       {!["routine", "case", "request", "decision"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
-        <button className="btn" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
+        <button className="btn work-primary-action" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
           disabled={managerSubmissionBlocked || (checks.length > 0 && !allDone)}>
           {item.kind === "deliverable"
             ? (managerOwnWork ? "Finish deliverable" : "Send deliverable for review")
@@ -534,7 +541,7 @@ export default function Item({ id, me, session, isManager = false, back }) {
         {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
         {!blocker && (
-          <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => setSheet("waiting")} disabled={gated}>
+          <button className="btn btn-ghost work-secondary-action" style={{ marginTop: 10 }} onClick={() => setSheet("waiting")} disabled={gated}>
             I am waiting on someone</button>)}
       </>)}
 
