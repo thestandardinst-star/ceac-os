@@ -20,6 +20,8 @@ const users = [
   { id: "31000000-0000-4000-8000-000000000003", email: "admin@ceac.local.test", name: "Admin Fixture", unit: unitA, role: "staff", isAdmin: true },
   { id: "31000000-0000-4000-8000-000000000004", email: "exec@ceac.local.test", name: "Executive Fixture", unit: unitA, role: "staff", isExec: true },
   { id: "31000000-0000-4000-8000-000000000005", email: "other@ceac.local.test", name: "Other Unit Fixture", unit: unitB, role: "staff" },
+  { id: "31000000-0000-4000-8000-000000000006", email: "sameunit@ceac.local.test", name: "Same Unit Fixture", unit: unitA, role: "staff" },
+  { id: "31000000-0000-4000-8000-000000000007", email: "managerb@ceac.local.test", name: "Manager B Fixture", unit: unitB, role: "manager" },
 ];
 
 for (const user of users) {
