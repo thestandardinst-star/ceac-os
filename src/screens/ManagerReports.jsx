@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Pill, Sheet } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 const pad = (value) => String(value).padStart(2, "0");
 const dateKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -427,7 +428,7 @@ export default function ManagerReports({ me, openItem }) {
   async function handleSave() {
     setBusy(true); setError(null); setNotice(null);
     try { await saveDraft(true); }
-    catch (err) { setError(err.message || "The report draft could not be saved."); }
+    catch (err) { setError(humanError(err, "The report draft could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -451,7 +452,7 @@ export default function ManagerReports({ me, openItem }) {
       setNotice("Report submitted. This version is now fixed; later corrections create a new version.");
       await loadHistory(false);
     } catch (err) {
-      setError(err.message || "The report could not be submitted.");
+      setError(humanError(err, "The report could not be submitted."));
     } finally {
       setBusy(false);
     }
@@ -467,7 +468,7 @@ export default function ManagerReports({ me, openItem }) {
       setNotice("A new draft version has been opened. The submitted version remains unchanged.");
       await loadHistory(true);
     } catch (err) {
-      setError(err.message || "A correction draft could not be opened.");
+      setError(humanError(err, "A correction draft could not be opened."));
     } finally {
       setBusy(false);
     }
