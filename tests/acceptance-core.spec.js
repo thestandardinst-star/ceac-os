@@ -379,7 +379,7 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
-    await go(page, "Team");
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
     await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
     await page.getByPlaceholder("Message your unit").fill(message);
@@ -390,7 +390,7 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await go(page, "Team");
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
     await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page.getByText(message, { exact: true })).toBeVisible();
     await context.close();
