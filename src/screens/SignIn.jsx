@@ -43,7 +43,7 @@ export default function SignIn() {
       <label className="auth-field">
         <span>Work email</span>
         <input
-          placeholder="name@organisation.com"
+          placeholder="Work email"
           type="email"
           inputMode="email"
           autoCapitalize="none"
@@ -57,7 +57,7 @@ export default function SignIn() {
         <span>Password</span>
         <div className="auth-password">
           <input
-            placeholder="Enter your password"
+            placeholder="Password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
             value={password}
