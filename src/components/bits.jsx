@@ -70,6 +70,13 @@ export function EmptyState({ title, children, action = null, compact = false }) 
   </div>;
 }
 
+export function LoadingState({ label = "Loading…" }) {
+  return <div className="loading-state" role="status" aria-live="polite">
+    <span className="loading-state-dot" aria-hidden="true" />
+    <span>{label}</span>
+  </div>;
+}
+
 export function SectionHeader({ eyebrow, title, count, action = null }) {
   return <div className="section-header">
     <div>{eyebrow && <span>{eyebrow}</span>}<h2>{title}</h2></div>
