@@ -37,7 +37,7 @@ function Section({ title, meta, open, onToggle, children, tone = "" }) {
   </section>;
 }
 
-export default function StaffTeam({ me }) {
+export default function StaffTeam({ me, openRoom }) {
   const [team, setTeam] = useState([]);
   const [onLeave, setOnLeave] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
@@ -141,6 +141,10 @@ export default function StaffTeam({ me }) {
         <strong>{team.length}</strong><span>people</span>
         {unitHeads[0]?.profiles && <><i /> <span>{unitHeads[0].profiles.full_name}, Unit Head</span></>}
       </div>
+      {openRoom && <button className="team-room-entry" onClick={openRoom}>
+        <span><strong>Unit Room</strong><small>Coordinate with {me.unit_name}</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
     </div>
 
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}>
