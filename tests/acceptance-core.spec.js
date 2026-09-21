@@ -367,7 +367,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
 
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test");
-    for (const destination of ["Units", "People", "Attendance", "Cost", "Reporting", "Settings"]) {
+    for (const destination of ["Units", "People", "Attendance", "Cost", "Reports", "Settings"]) {
       await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       await expect(page.locator(".flag-brick")).toHaveCount(0);
