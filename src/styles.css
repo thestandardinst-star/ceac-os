@@ -2618,3 +2618,13 @@ textarea{width:100%}
     animation:none!important;transition:none!important
   }
 }
+
+.meeting-participant-summary{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;
+  border-top:1px solid #E8EDF0
+}
+.meeting-participant-summary>span{color:#718089;font-size:9.5px;font-weight:650}
+.meeting-participant-summary>div{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.meeting-participant-summary b{
+  padding:4px 7px;border-radius:999px;background:#EEF5F4;color:#3E625D;font-size:8.8px;font-weight:650
+}
