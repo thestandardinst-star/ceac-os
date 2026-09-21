@@ -44,7 +44,7 @@ test("Administration gets Administration authoring", async ({ browser }) => {
   await expect(nav).toContainText("Units");
   await expect(nav).toContainText("People");
   await expect(nav).toContainText("Attendance");
-  await expect(nav).toContainText("Reporting");
+  await expect(nav).toContainText("Reports");
   await expect(nav).toContainText("Settings");
   await context.close();
 });
