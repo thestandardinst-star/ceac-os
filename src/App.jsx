@@ -30,6 +30,7 @@ import ManagerReports from "./screens/ManagerReports";
 import Announcements from "./screens/Announcements";
 import Room from "./screens/Room";
 import Meeting from "./screens/Meeting";
+import MeetingScheduler from "./components/MeetingScheduler";
 import { MobileTopBar, Tabs, SideNav } from "./components/bits";
 import AuthFrame from "./components/AuthFrame";
 
@@ -45,6 +46,7 @@ export default function App() {
   const [projectId, setProjectId] = useState(null);
   const [roomContext, setRoomContext] = useState(null);
   const [meetingId, setMeetingId] = useState(null);
+  const [meetingDraft, setMeetingDraft] = useState(null);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function App() {
     }
   }
 
-  function go(t) { setItemId(null); setGoalId(null); setAssigning(null); setPerson(null); setProjectId(null); setRoomContext(null); setMeetingId(null); setTab(t); }
+  function go(t) { setItemId(null); setGoalId(null); setAssigning(null); setPerson(null); setProjectId(null); setRoomContext(null); setMeetingId(null); setMeetingDraft(null); setTab(t); }
 
   function openRoom(context, returnTo = null) {
     setRoomContext({ ...context, returnTo });
@@ -120,26 +122,30 @@ export default function App() {
   const isUnitManager = !isAdmin && !isExec && me.role === "manager";
   const isStaff = !isAdmin && !isExec && !isUnitManager;
   const isManager = isAdmin || isUnitManager;
-  const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId;
+  const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
     if (context.projectId) setProjectId(context.projectId);
     setAssigning(context);
   }
 
+  function startMeeting(context = {}) {
+    setMeetingDraft(context);
+  }
+
   function pageForTab() {
     if (tab === "home") {
-      if (me.is_exec) return <ExecutiveHome me={me} openMeeting={setMeetingId} />;
-      if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openMeeting={setMeetingId} openSettings={() => go("settings")} openUnits={() => go("units")} />;
-      if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} openMeeting={setMeetingId} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
+      if (me.is_exec) return <ExecutiveHome me={me} openMeeting={setMeetingId} scheduleMeeting={startMeeting} />;
+      if (me.is_admin) return <AdminHome me={me} openItem={setItemId} openMeeting={setMeetingId} scheduleMeeting={startMeeting} openSettings={() => go("settings")} openUnits={() => go("units")} />;
+      if (isManager) return <ManagerHome me={me} openItem={setItemId} openProject={setProjectId} openMeeting={setMeetingId} scheduleMeeting={startMeeting} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
       return <Home me={me} session={session} setSession={setSession} openItem={setItemId} openMeeting={setMeetingId} openRoom={(context) => openRoom(context)} openWork={() => go("work")} openMe={() => go("me")} openAnnouncements={() => go("announcements")} />;
     }
     if (tab === "team") return isManager
       ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />
       : <StaffTeam me={me} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
-    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} openRoom={(projectId, reference) => openRoom({ kind: "project", projectId, reference }, { type: "project", id: projectId })} />;
-    if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} openMeeting={setMeetingId} openPerson={(id, focus) => setPerson({ id, focus })} />;
+    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} scheduleMeeting={startMeeting} openRoom={(projectId, reference) => openRoom({ kind: "project", projectId, reference }, { type: "project", id: projectId })} />;
+    if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} openMeeting={setMeetingId} scheduleMeeting={startMeeting} openPerson={(id, focus) => setPerson({ id, focus })} />;
     if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={setItemId} openProject={setProjectId} />;
     if (tab === "record") return <Record me={me} openItem={setItemId} />;
@@ -158,7 +164,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <MobileTopBar me={me} roleLabel={isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff"} />
+      <MobileTopBar me={me} roleLabel={isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff"} onProfile={() => go("me")} />
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
@@ -179,10 +185,11 @@ export default function App() {
             initialMeetingOn={assigning.meetingOn}
             initialMeetingNote={assigning.meetingNote}
             back={() => setAssigning(null)} />
-        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference }, { type: "project", id })} back={() => setProjectId(null)} />
+        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} scheduleMeeting={startMeeting} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference }, { type: "project", id })} back={() => setProjectId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} openProject={setProjectId} back={() => setPerson(null)} />
-        : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={setItemId} openProject={setProjectId} />
+        : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={setItemId} openProject={setProjectId} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} />
+        : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); setMeetingId(id); }} />
         : meetingId ? <Meeting me={me} meetingId={meetingId} back={() => setMeetingId(null)} goAssign={startAssignment} openItem={setItemId} openProject={setProjectId} />
         : pageForTab()}
       {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} />}

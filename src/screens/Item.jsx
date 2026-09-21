@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
@@ -566,8 +567,8 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Record decision</div>
           <p className="screen-note">The decision and rationale are permanent, attributable records.</p>
-          <textarea className="field" rows={3} placeholder="Decision" value={decisionText} onChange={(e) => setDecisionText(e.target.value)} />
-          <textarea className="field" rows={4} placeholder="Why was this decision made?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Decision" value={decisionText} onChange={(e) => setDecisionText(e.target.value)} />
+          <AssistiveTextarea className="field" rows={4} placeholder="Why was this decision made?" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={recordDecision} disabled={busy || !decisionText.trim() || !note.trim()}>
             {busy ? "Saving..." : "Record decision"}</button>
         </Sheet>)}
@@ -575,35 +576,35 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       {sheet === "request-fulfilled" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Mark request fulfilled</div>
-          <textarea className="field" rows={3} placeholder="What was provided? (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="What was provided? (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("fulfilled")} disabled={busy}>{busy ? "Saving..." : "Mark fulfilled"}</button>
         </Sheet>)}
 
       {sheet === "request-clarification" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Ask for clarification</div>
-          <textarea className="field" rows={3} placeholder="What needs to be clarified?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="What needs to be clarified?" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("clarification")} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Ask for clarification"}</button>
         </Sheet>)}
 
       {sheet === "request-declined" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Decline request</div>
-          <textarea className="field" rows={3} placeholder="Why is this request being declined?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Why is this request being declined?" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("declined")} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Decline request"}</button>
         </Sheet>)}
 
       {sheet === "request-provide-clarification" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Provide clarification</div>
-          <textarea className="field" rows={3} placeholder="Clarification" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Clarification" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={provideRequestClarification} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Send clarification"}</button>
         </Sheet>)}
 
       {sheet === "request-cancel" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Cancel request</div>
-          <textarea className="field" rows={3} placeholder="Reason (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Reason (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={() => respondRequest("cancelled")} disabled={busy}>{busy ? "Saving..." : "Cancel request"}</button>
         </Sheet>)}
 
@@ -611,7 +612,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Resolve this case</div>
           <p className="screen-note">Record how the matter ended. The resolution stays in the case history.</p>
-          <textarea className="field" rows={4} placeholder="What resolved the case?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={4} placeholder="What resolved the case?" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={resolveCase} disabled={busy || !note.trim()}>
             {busy ? "Saving..." : "Resolve case"}</button>
         </Sheet>)}
@@ -622,7 +623,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
           <p className="screen-note">This creates a separate historical occurrence. Earlier occurrences are never rewritten.</p>
           <label className="small">Date<input className="field" type="date" value={routineDate} onChange={(e) => setRoutineDate(e.target.value)} /></label>
           {routine?.records_value && <input className="field" inputMode="decimal" placeholder={routine.value_label || "Value"} value={routineValue} onChange={(e) => setRoutineValue(e.target.value)} />}
-          <textarea className="field" rows={2} placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={2} placeholder="Note (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={recordRoutineOccurrence}
             disabled={busy || !routineDate || (routine?.records_value && !routineValue.trim())}>{busy ? "Recording..." : "Record occurrence"}</button>
         </Sheet>)}
@@ -662,7 +663,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">{routine?.active ? "Pause routine" : "Resume routine"}</div>
           <p className="screen-note">History is kept. Record why this routine is changing state.</p>
-          <textarea className="field" rows={3} placeholder="Reason" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Reason" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={toggleRoutinePause} disabled={busy || !note.trim()}>
             {busy ? "Saving..." : routine?.active ? "Pause routine" : "Resume routine"}</button>
         </Sheet>)}
@@ -676,7 +677,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
             ? "This records your submission as self-certified. It will not enter your review queue."
             : "Your manager will be told."}</p>
           {gated && <div className="flag flag-amber"><h4>No work session is open</h4>This submission will still be accepted and recorded as outside a session.</div>}
-          <textarea className="field" rows={3} placeholder="Anything they should know (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Anything they should know (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <input className="field" placeholder={item.kind === "deliverable" && deliverableRecord?.evidence_required ? "Evidence link (required)" : "Paste a link to the file (optional)"} value={link} onChange={(e) => setLink(e.target.value)} />
           <p className="small" style={{ marginTop: 8 }}>Large files — video especially — should be a link rather than an upload.</p>
           <button className="btn" style={{ marginTop: 14 }} onClick={submit}
@@ -688,7 +689,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         <Sheet onClose={() => !busy && setSheet(null)}>
           <div className="h2">Reopen this work</div>
           <p className="screen-note">The existing approval/completion record stays in history. State why more work is required.</p>
-          <textarea className="field" rows={3} placeholder="Why is this work being reopened?" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Why is this work being reopened?" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={reopenFinishedWork} disabled={busy || !note.trim()}>
             {busy ? "Reopening..." : "Reopen work"}
           </button>
@@ -705,7 +706,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
               <button key={u.id} className="opt" onClick={() => setPartyUnit(u.id)}>
                 <span className={"rd " + (partyUnit === u.id ? "on" : "")} /> {u.name}</button>))}
           </div>
-          <textarea className="field" rows={2} placeholder="Anything worth noting (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+          <AssistiveTextarea className="field" rows={2} placeholder="Anything worth noting (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn" style={{ marginTop: 14 }} onClick={markWaiting} disabled={busy || !party.trim()}>
             {busy ? "Saving..." : "Mark as waiting"}</button>
           <div className="hint">They will be asked to confirm or disagree.</div>

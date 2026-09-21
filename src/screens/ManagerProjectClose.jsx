@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Pill, Sheet } from "../components/bits";
 
@@ -350,7 +351,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
     {lifecycle === "reopen" && <Sheet onClose={() => !busy && setLifecycle(null)}>
       <div className="h2">Reopen this project</div>
       <p className="screen-note">The project returns to active. Previous close reports stay unchanged and visible. A later close will be saved as a new version.</p>
-      <textarea className="field" rows={3} placeholder="Why is this project being reopened?" value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} />
+      <AssistiveTextarea className="field" rows={3} placeholder="Why is this project being reopened?" value={reopenReason} onChange={(event) => setReopenReason(event.target.value)} />
       <button className="btn" style={{ marginTop: 14 }} disabled={busy || !reopenReason.trim()} onClick={reopenProject}>{busy ? "Reopening..." : "Reopen project"}</button>
     </Sheet>}
 
@@ -364,7 +365,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
         <span className="ck-l">{item.ref} · {item.title}</span>
       </button>)}
       {currentDeliverables.length === 0 && <div className="card small">No completed work is available to attach as a deliverable.</div>}
-      <textarea className="field" rows={2} placeholder="Other deliverables produced (optional if selected above)" value={deliverablesNote} onChange={(event) => setDeliverablesNote(event.target.value)} />
+      <AssistiveTextarea className="field" rows={2} placeholder="Other deliverables produced (optional if selected above)" value={deliverablesNote} onChange={(event) => setDeliverablesNote(event.target.value)} />
 
       <div className="sec"><span>2 · Objectives</span></div>
       {currentObjectives.map((objective) => <div className="card" key={objective.id} style={{ marginBottom: 10 }}>
@@ -374,7 +375,7 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
           <option value="">Choose outcome</option>
           {OUTCOMES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
-        <textarea className="field" rows={2} placeholder="Why this outcome?" value={objectiveRows[objective.id]?.note || ""} onChange={(event) => setObjective(objective.id, "note", event.target.value)} />
+        <AssistiveTextarea className="field" rows={2} placeholder="Why this outcome?" value={objectiveRows[objective.id]?.note || ""} onChange={(event) => setObjective(objective.id, "note", event.target.value)} />
       </div>)}
       {currentObjectives.length === 0 && <div className="card small">No objectives are recorded for this close scope.</div>}
 
@@ -389,10 +390,10 @@ export default function ManagerProjectClose({ me, project, objectives, work, cos
       {sheet.scope === "overall" && readiness.some((row) => !row.filed) && <div className="hint">Overall cost is based on the unit returns filed so far. Units that did not file are recorded separately rather than silently treated as zero.</div>}
 
       <div className="sec"><span>4 · Challenges</span></div>
-      <textarea className="field" rows={3} placeholder="What got in the way?" value={challenges} onChange={(event) => setChallenges(event.target.value)} />
+      <AssistiveTextarea className="field" rows={3} placeholder="What got in the way?" value={challenges} onChange={(event) => setChallenges(event.target.value)} />
 
       <div className="sec"><span>5 · What to do differently next time</span></div>
-      <textarea className="field" rows={3} placeholder="What should change next time?" value={doDifferently} onChange={(event) => setDoDifferently(event.target.value)} />
+      <AssistiveTextarea className="field" rows={3} placeholder="What should change next time?" value={doDifferently} onChange={(event) => setDoDifferently(event.target.value)} />
 
       <button className="btn" style={{ marginTop: 14 }} disabled={busy || missingObjective || noDeliverable || !challenges.trim() || !doDifferently.trim()} onClick={submitClose}>
         {busy ? "Submitting..." : "Submit close"}

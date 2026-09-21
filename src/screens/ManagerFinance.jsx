@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Sheet } from "../components/bits";
 
@@ -111,7 +112,7 @@ export default function ManagerFinance({me,openProject}){
    <div className="h2" style={{marginTop:5}}>Request funds</div>
    <p className="screen-note">Submit what your unit needs. CEAC OS records the request and the authorised approval workflow handles the decision.</p>
    <input className="field" placeholder="What is the money for?" value={requestTitle} onChange={e=>setRequestTitle(e.target.value)} />
-   <textarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={requestJustification} onChange={e=>setRequestJustification(e.target.value)} />
+   <AssistiveTextarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={requestJustification} onChange={e=>setRequestJustification(e.target.value)} />
    <div style={{display:"grid",gridTemplateColumns:"1fr 120px",gap:8}}>
     <input className="field" inputMode="decimal" placeholder="Amount, e.g. 850.00" value={requestAmount} onChange={e=>setRequestAmount(e.target.value)} />
     <select className="field" value={requestCurrency} onChange={e=>setRequestCurrency(e.target.value)}>

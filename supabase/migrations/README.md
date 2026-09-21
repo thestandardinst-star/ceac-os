@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–066** are currently applied.
+Live migrations **001–070** are currently applied.
 
 ## Repository coverage
 
-The repository now contains the historical SQL for **all live migrations 001–066**.
+The repository contains the historical SQL for **all live migrations 001–070**, plus unapplied migration 071 on the current collaboration branch.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -108,3 +108,16 @@ A clean local Supabase replay workflow now rebuilds the application schema from 
 - **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable notes/decisions and links back to Work Engine items.
 
 Both migrations preserve the existing Work Engine and role/security boundaries. Provider secrets are not stored in browser-readable tables.
+
+
+### 071 — Rooms 2.0 and explicit meeting audiences — pending
+
+- adds Sub-team Rooms alongside Unit and Project Rooms;
+- Sub-team Room access is limited to sub-team members/leads plus the authorised unit manager;
+- adds explicit meeting participants/audience rows;
+- replaces ambient unit/project meeting visibility with participant-based visibility;
+- adds atomic `schedule_meeting()` so meeting creation and audience distribution succeed or fail together;
+- supports organisation, unit, sub-team, project, project-manager and authorised selected-person audiences;
+- removes direct authenticated inserts into `meeting_sessions`.
+
+**071 must not be applied live until clean migration replay, RLS acceptance, account security and the Quality Gate pass.**

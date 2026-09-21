@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
-import { parseTask } from "../lib/parseTask";
+import { parseWorkInput } from "../lib/parseTask";
 
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
@@ -53,6 +54,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
+  const [voiceProposal, setVoiceProposal] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
@@ -135,18 +137,28 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   }
 
   function handleVoice(text) {
-    const parsed = parseTask(text, people);
-    setTitle(parsed.title || text);
-    if (parsed.due_at) {
-      const d = new Date(parsed.due_at);
-      const pad = (n) => String(n).padStart(2, "0");
-      setDue(d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()));
+    setVoiceProposal(parseWorkInput(text, { people, projects, subTeams }));
+    setVoiceHint(null);
+  }
+
+  function applyVoiceProposal(proposal, wordingOnly = false) {
+    if (!proposal) return;
+    setTitle(wordingOnly ? proposal.transcript : (proposal.title || proposal.transcript));
+    if (!wordingOnly) {
+      if (proposal.kind && WORK_KINDS.some(([value]) => value === proposal.kind)) setKind(proposal.kind);
+      if (proposal.assignee_id) setAssignee(proposal.assignee_id);
+      if (proposal.project_id) setProject(proposal.project_id);
+      if (proposal.sub_team_id) setSubTeam(proposal.sub_team_id);
+      if (proposal.due_at) {
+        const d = new Date(proposal.due_at);
+        const pad = (n) => String(n).padStart(2, "0");
+        setDue(d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()));
+      }
     }
-    if (parsed.assignee_id) setAssignee(parsed.assignee_id);
-    const bits = [];
-    if (parsed.due_at) bits.push("a date");
-    if (parsed.assignee_id) bits.push("who it is for");
-    setVoiceHint("Heard that" + (bits.length ? ", and picked up " + bits.join(" and ") : "") + ". Check it before you send.");
+    setVoiceHint(wordingOnly
+      ? "Transcript added. Complete the work details before sending."
+      : "CEAC applied what it could resolve. Review every field before sending.");
+    setVoiceProposal(null);
   }
 
   async function linkMeeting(workId) {
@@ -385,14 +397,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       await linkMeeting(created.id);
       setDone(created.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
-      setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null);
+      setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null); setVoiceProposal(null);
     } catch (e) { setErr(e.message || "Something went wrong. Nothing was sent."); }
     finally { setBusy(false); }
   }
 
   if (done) {
     return (
-      <div className="body">
+      <div className="body assign-screen assign-done">
         <button className="back" onClick={back}>← Back</button>
         <div className="empty">
           <h3>{done} is with them</h3>
@@ -404,12 +416,30 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   }
 
   return (
-    <div className="body">
-      <button className="back" onClick={back}>← Back</button>
-      <h1 className="h1">Give out work</h1>
-      <p className="screen-note">Describe what needs to happen and what result you expect.</p>
-
-      <VoiceInput onResult={handleVoice} label="Say what needs doing" />
+    <div className="body assign-screen">
+      <section className="assign-intro">
+        <button className="back" onClick={back}>← Back</button>
+        <div className="eyebrow">Create work</div>
+        <h1 className="h1">Give out work</h1>
+        <p className="screen-note">Describe the outcome naturally, then review exactly what CEAC understood before anything is sent.</p>
+        <div className="assign-voice">
+          <div><strong>Speak or type</strong><span>Voice can prefill the form. You remain in control.</span></div>
+          <VoiceInput onResult={handleVoice} label="Speak your instruction" />
+        </div>
+      </section>
+      {voiceProposal && <div className="voice-proposal">
+        <div className="voice-proposal-head"><span>CEAC heard</span><strong>{voiceProposal.transcript}</strong></div>
+        <div className="voice-proposal-facts">
+          <span>Type <b>{WORK_KINDS.find(([value]) => value === voiceProposal.kind)?.[1] || "Task"}</b></span>
+          {voiceProposal.resolved.map((row) => <span key={row.type + row.id}>{row.type.replaceAll("_"," ")} <b>{row.label}</b></span>)}
+          {voiceProposal.due_at && <span>Due <b>{new Date(voiceProposal.due_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</b></span>}
+        </div>
+        <p>Nothing has been created yet. Apply the proposal, then check the form.</p>
+        <div className="voice-proposal-actions">
+          <button className="btn btn-ghost btn-sm" onClick={() => applyVoiceProposal(voiceProposal, true)}>Use wording only</button>
+          <button className="btn btn-sm" onClick={() => applyVoiceProposal(voiceProposal)}>Apply proposal</button>
+        </div>
+      </div>}
       {voiceHint && <div className="flag flag-green" style={{ marginTop: 10 }}>{voiceHint}</div>}
       {err && <div className="flag flag-brick" style={{ marginTop: 10 }}>{err}</div>}
 
@@ -426,9 +456,9 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           </div>}
           {kind === "deliverable" && <>
             <input className="field" placeholder="What must be produced?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Why this output matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Why this output matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
             <div className="sec"><span>Finished output</span></div>
-            <textarea className="field" rows={3} placeholder="Describe exactly what must be delivered" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Describe exactly what must be delivered" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
             <label className="card small" style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 10 }}>
               <input type="checkbox" checked={deliverableEvidenceRequired} onChange={(e) => setDeliverableEvidenceRequired(e.target.checked)} />
               <span>Require an evidence link before this deliverable can be approved.</span>
@@ -437,35 +467,35 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           </>}
           {kind === "meeting_outcome" && <>
             <input className="field" placeholder="What was agreed?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Why this commitment matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="What finished looks like (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Why this commitment matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="What finished looks like (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
             <div className="sec"><span>Meeting source</span></div>
             <input className="field" placeholder="Meeting title" value={meetingTitle} onChange={(e) => setMeetingTitle(e.target.value)} />
             <input className="field" type="date" value={meetingOn} onChange={(e) => setMeetingOn(e.target.value)} />
-            <textarea className="field" rows={2} placeholder="Meeting note (optional)" value={meetingNote} onChange={(e) => setMeetingNote(e.target.value)} />
+            <AssistiveTextarea className="field" rows={2} placeholder="Meeting note (optional)" value={meetingNote} onChange={(e) => setMeetingNote(e.target.value)} />
           </>}
           {kind === "decision" && <>
             <input className="field" placeholder="What decision is needed?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Decision question" value={decisionQuestion} onChange={(e) => setDecisionQuestion(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Context the decision-maker should know (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Decision question" value={decisionQuestion} onChange={(e) => setDecisionQuestion(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Context the decision-maker should know (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
           </>}
           {kind === "request" && <>
             <input className="field" placeholder="What do you need?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="What should be provided or resolved? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Why is it needed? (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="What should be provided or resolved? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
           </>}
           {kind === "case" && <>
             <input className="field" placeholder="What matter needs to stay open?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Why this case matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="What outcome would resolve this case? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Why this case matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="What outcome would resolve this case? (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
             <div className="sec"><span>Case dates</span></div>
             <label className="small">Opened on<input className="field" type="date" value={caseOpenedOn} onChange={(e) => setCaseOpenedOn(e.target.value)} /></label>
             <label className="small">Target resolution (optional)<input className="field" type="date" value={caseTargetOn} onChange={(e) => setCaseTargetOn(e.target.value)} /></label>
           </>}
           {kind === "routine" && <>
             <input className="field" placeholder="What repeats?" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="Why this routine matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
-            <textarea className="field" rows={3} placeholder="What a good occurrence records or produces (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="Why this routine matters (optional)" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+            <AssistiveTextarea className="field" rows={3} placeholder="What a good occurrence records or produces (optional)" value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} />
             <div className="sec"><span>Schedule</span></div>
             <select className="field" value={routineSchedule} onChange={(e) => setRoutineSchedule(e.target.value)}>
               <option value="daily">Daily</option>
@@ -501,10 +531,10 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           </>}
           {kind === "task" && <>
           <input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <textarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
-          <textarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="Why this matters — who it is for, what happens if it is late" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+          <AssistiveTextarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} />
           <div className="sec"><span>What finished looks like</span></div>
-          <textarea className="field" rows={3} placeholder="Describe the finished result" value={expectedOutcome}
+          <AssistiveTextarea className="field" rows={3} placeholder="Describe the finished result" value={expectedOutcome}
             onChange={(e) => setExpectedOutcome(e.target.value)} />
             <p className="small" style={{ margin: "12px 0 4px" }}>Optional task checklist</p>
             {steps.map((s, i) => (

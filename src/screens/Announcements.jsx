@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Sheet } from "../components/bits";
+import VoiceInput from "../components/VoiceInput";
 
 const ROLE_OPTIONS = [
   ["staff", "Staff"], ["sub_team_lead", "Team leads"], ["manager", "Unit heads"],
@@ -174,9 +175,15 @@ export default function Announcements({ me, back }) {
     {form && <Sheet onClose={() => !busy && setForm(null)}>
       <div className="h2">{form.id ? "Edit draft" : "New announcement"}</div>
       <label className="label" htmlFor="announcement-title">Title</label>
-      <input id="announcement-title" className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+      <div className="assistive-field">
+        <input id="announcement-title" className="field" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} />
+        <VoiceInput compact label="Speak announcement title" onResult={(text) => setForm((current) => ({ ...current, title: current.title ? current.title + " " + text : text }))} />
+      </div>
       <label className="label" htmlFor="announcement-body">Message</label>
-      <textarea id="announcement-body" className="field" rows={7} value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} />
+      <div className="assistive-field textarea">
+        <textarea id="announcement-body" className="field" rows={7} value={form.body} onChange={(event) => setForm({ ...form, body: event.target.value })} />
+        <VoiceInput compact label="Speak announcement message" onResult={(text) => setForm((current) => ({ ...current, body: current.body ? current.body + " " + text : text }))} />
+      </div>
       <label className="label" htmlFor="announcement-priority">Priority</label>
       <select id="announcement-priority" className="field" value={form.priority} onChange={(event) => setForm({ ...form, priority: event.target.value })}>
         <option value="normal">Normal</option><option value="important">Important</option><option value="urgent">Urgent</option>

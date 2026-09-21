@@ -20,6 +20,8 @@ const users = [
   { id: "31000000-0000-4000-8000-000000000003", email: "admin@ceac.local.test", name: "Admin Fixture", unit: unitA, role: "staff", isAdmin: true },
   { id: "31000000-0000-4000-8000-000000000004", email: "exec@ceac.local.test", name: "Executive Fixture", unit: unitA, role: "staff", isExec: true },
   { id: "31000000-0000-4000-8000-000000000005", email: "other@ceac.local.test", name: "Other Unit Fixture", unit: unitB, role: "staff" },
+  { id: "31000000-0000-4000-8000-000000000006", email: "sameunit@ceac.local.test", name: "Same Unit Fixture", unit: unitA, role: "staff" },
+  { id: "31000000-0000-4000-8000-000000000007", email: "managerb@ceac.local.test", name: "Manager B Fixture", unit: unitB, role: "manager" },
 ];
 
 for (const user of users) {
@@ -57,6 +59,25 @@ for (const user of users) {
     assert.equal(elevated.error, null, elevated.error?.message);
   }
 }
+
+const subTeamA = "22000000-0000-4000-8000-000000000011";
+const subTeam = await service.from("sub_teams").insert({
+  id: subTeamA,
+  org_id: orgId,
+  unit_id: unitA,
+  name: "Fixture Video Team",
+  code: "VID",
+  lead_id: users[1].id,
+  position: 1,
+  active: true,
+});
+assert.equal(subTeam.error, null, subTeam.error?.message);
+
+const subTeamMember = await service.from("sub_team_members").insert({
+  sub_team_id: subTeamA,
+  profile_id: users[0].id,
+});
+assert.equal(subTeamMember.error, null, subTeamMember.error?.message);
 
 const capability = await service.from("capabilities").insert({
   org_id: orgId,
