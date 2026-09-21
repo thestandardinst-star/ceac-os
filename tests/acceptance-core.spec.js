@@ -421,8 +421,9 @@ test("A Manager can schedule a Unit meeting and Staff can open its operational r
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await expect(page.getByText(title, { exact: true })).toBeVisible();
-    await page.getByText(title, { exact: true }).first().click();
+    const meetingRow = page.locator(".home-meeting-row").filter({ hasText: title });
+    await expect(meetingRow).toBeVisible();
+    await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByText("Notes & decisions", { exact: true })).toBeVisible();
     await context.close();
