@@ -237,3 +237,14 @@ After the owner approves the merge decision:
 7. Finish whole-system onboarding, handover, production security/ownership, and only then Cloudflare migration planning.
 
 Claude may return later to review or contribute. Claude should work from this recorded baseline rather than from the earlier file-ownership assumptions.
+
+
+## Post-merge Administration & HR branch
+
+PR #4 was merged into `main` at `36d8c6d7f0e2f428f5b80845f306c5a6dc85291c`.
+
+The clean continuation branch is:
+
+`codex/admin-hr-completion`
+
+The first task on this branch is the Administration & HR security gate. No protected HR feature work should begin until migration 067 and `supabase/tests/admin_hr_security_gate.sql` pass the repository safety gates.
