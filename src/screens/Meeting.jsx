@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { statusPill } from "../components/bits";
+import { statusPill, ProductNotice, Avatar } from "../components/bits";
 import VoiceInput from "../components/VoiceInput";
 import { humanError } from "../lib/productLanguage";
 
@@ -16,8 +16,9 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
   const [records, setRecords] = useState([]);
   const [links, setLinks] = useState([]);
   const [participants, setParticipants] = useState([]);
-  const [note, setNote] = useState("");
-  const [recordKind, setRecordKind] = useState("note");
+  const [privateNote, setPrivateNote] = useState("");
+  const [decision, setDecision] = useState("");
+  const [agendaDraft, setAgendaDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +28,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
   async function load() {
     setLoading(true); setError(null);
     try {
-      const [meetingResult, recordResult, linkResult, participantResult] = await Promise.all([
+      const [meetingResult, recordResult, linkResult, participantResult, privateNoteResult] = await Promise.all([
         supabase.from("meeting_sessions")
           .select("id,org_id,scope,unit_id,project_id,title,agenda,starts_at,ends_at,provider,provider_meeting_id,join_url,location,status,created_by,units(name),projects(name,lead_unit_id,project_units(unit_id))")
           .eq("id", meetingId).single(),
@@ -40,15 +41,21 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
         supabase.from("meeting_participants")
           .select("profile_id,role,source_type,profiles!meeting_participants_profile_id_fkey(full_name)")
           .eq("meeting_id", meetingId).order("created_at", { ascending: true }),
+        supabase.from("meeting_private_notes")
+          .select("body,updated_at")
+          .eq("meeting_id", meetingId).eq("author_id", me.id).maybeSingle(),
       ]);
       if (meetingResult.error) throw meetingResult.error;
       if (recordResult.error) throw recordResult.error;
       if (linkResult.error) throw linkResult.error;
       if (participantResult.error) throw participantResult.error;
+      if (privateNoteResult.error) throw privateNoteResult.error;
       setMeeting(meetingResult.data);
+      setAgendaDraft(meetingResult.data?.agenda || "");
       setRecords(recordResult.data || []);
       setLinks(linkResult.data || []);
       setParticipants(participantResult.data || []);
+      setPrivateNote(privateNoteResult.data?.body || "");
     } catch (err) {
       setError(humanError(err, "Meeting could not be opened."));
     } finally {
@@ -68,27 +75,61 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
     )
   );
   const canManage = Boolean(me?.is_admin || me?.is_exec || myParticipant?.role === "organiser" || managesContext);
-  const canContribute = Boolean(me?.is_admin || me?.is_exec || myParticipant);
-  const decisions = useMemo(() => records.filter((row) => row.kind === "decision"), [records]);
-  const notes = useMemo(() => records.filter((row) => row.kind === "note"), [records]);
+  const canContribute = Boolean(myParticipant);
+  const decisions = records.filter((row) => row.kind === "decision");
+  const meetingStarted = Boolean(meeting && Date.now() >= new Date(meeting.starts_at).getTime());
+  const meetingEnded = Boolean(meeting?.ends_at && Date.now() > new Date(meeting.ends_at).getTime());
 
-  async function addRecord() {
-    const clean = note.trim();
-    if (!clean || !meeting) return;
+  async function savePrivateNote() {
+    if (!meeting || !canContribute || !meetingStarted) return;
+    setBusy(true); setError(null);
+    try {
+      const result = await supabase.from("meeting_private_notes").upsert({
+        meeting_id: meeting.id,
+        org_id: me.org_id,
+        author_id: me.id,
+        body: privateNote,
+        updated_at: new Date().toISOString(),
+      }, { onConflict:"meeting_id,author_id" });
+      if (result.error) throw result.error;
+    } catch (err) {
+      setError(humanError(err, "Your private meeting notes could not be saved."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addDecision() {
+    const clean = decision.trim();
+    if (!clean || !meeting || !meetingStarted || !canManage) return;
     setBusy(true); setError(null);
     try {
       const result = await supabase.from("meeting_records").insert({
         meeting_id: meeting.id,
         org_id: me.org_id,
-        kind: recordKind,
+        kind: "decision",
         body: clean,
         author_id: me.id,
       });
       if (result.error) throw result.error;
-      setNote("");
+      setDecision("");
       await load();
     } catch (err) {
-      setError(humanError(err, "Meeting record could not be saved."));
+      setError(humanError(err, "The shared decision could not be saved."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveAgenda() {
+    if (!meeting || !canManage || meetingStarted) return;
+    setBusy(true); setError(null);
+    try {
+      const result = await supabase.from("meeting_sessions").update({ agenda: agendaDraft.trim() || null }).eq("id",meeting.id);
+      if (result.error) throw result.error;
+      await load();
+    } catch (err) {
+      setError(humanError(err, "The agenda could not be saved."));
     } finally {
       setBusy(false);
     }
@@ -138,38 +179,56 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
     {error && <div className="flag flag-brick"><h4>Could not complete that</h4>{error}</div>}
 
     <section className="meeting-panel">
-      <div className="meeting-section-head"><div><span>Before</span><h2>Agenda</h2></div></div>
-      {meeting.agenda ? <p className="meeting-agenda">{meeting.agenda}</p> : <div className="quiet-empty compact"><strong>No agenda recorded</strong><span>The meeting can still proceed; this is simply not on the record yet.</span></div>}
+      <div className="meeting-section-head"><div><span>Before</span><h2>Agenda</h2></div><small>{meetingStarted ? "Meeting started" : "Preparation"}</small></div>
+      {!meetingStarted && canManage
+        ? <div className="meeting-agenda-editor">
+            <textarea rows={4} value={agendaDraft} onChange={(event) => setAgendaDraft(event.target.value)} placeholder="What should this meeting cover?" />
+            <button className="btn btn-sm" disabled={busy} onClick={saveAgenda}>{busy ? "Saving…" : "Save agenda"}</button>
+          </div>
+        : meeting.agenda ? <p className="meeting-agenda">{meeting.agenda}</p> : <div className="quiet-empty compact"><strong>No agenda recorded</strong><span>No shared agenda is on the record.</span></div>}
       {participants.length > 0 && <div className="meeting-participant-summary">
-        <span>{participants.length === 1 && participants[0].profile_id === me.id ? "You are invited" : `${participants.length} participant${participants.length === 1 ? "" : "s"} visible to you`}</span>
+        <span>{participants.length === 1 && participants[0].profile_id === me.id ? "You are invited" : `${participants.length} participant${participants.length === 1 ? "" : "s"}`}</span>
         {participants.length > 1 && <div>{participants.slice(0,8).map((participant) => <b key={participant.profile_id}>{participant.profiles?.full_name || "CEAC member"}</b>)}</div>}
       </div>}
     </section>
 
     <section className="meeting-panel">
       <div className="meeting-section-head">
-        <div><span>During</span><h2>Notes & decisions</h2></div>
-        <small>{notes.length} note{notes.length === 1 ? "" : "s"} · {decisions.length} decision{decisions.length === 1 ? "" : "s"}</small>
+        <div><span>During</span><h2>Meeting workspace</h2></div>
+        <small>{meetingStarted ? (meetingEnded ? "Meeting time has passed" : "In session") : "Opens at the scheduled start"}</small>
       </div>
-      {records.length === 0 && <div className="quiet-empty compact"><strong>Nothing recorded yet</strong><span>Add factual notes as the meeting progresses. Managers may separately record decisions.</span></div>}
-      {records.map((row) => <article className={`meeting-record meeting-record-${row.kind}`} key={row.id}>
-        <div className="meeting-record-meta">
-          <strong>{row.kind === "decision" ? "Decision" : "Note"}</strong>
-          <span>{row.profiles?.full_name || "CEAC member"} · {new Date(row.created_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>
-        </div>
-        <p>{row.body}</p>
-      </article>)}
 
-      {canContribute && <div className="meeting-record-form">
-        {canManage && <div className="meeting-record-kind">
-          <button className={recordKind === "note" ? "on" : ""} onClick={() => setRecordKind("note")}>Note</button>
-          <button className={recordKind === "decision" ? "on" : ""} onClick={() => setRecordKind("decision")}>Decision</button>
-        </div>}
-        <div className="assistive-field textarea">
-          <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={recordKind === "decision" ? "Record the decision exactly as agreed" : "Add a factual meeting note"} />
-          <VoiceInput compact label={recordKind === "decision" ? "Speak decision" : "Speak note"} onResult={(text) => setNote((current) => current ? current + " " + text : text)} />
+      {!meetingStarted && <ProductNotice tone="info" title="Notes open when the meeting starts">Before the start time, the shared agenda is the meeting's writable preparation space. Personal notes and shared decisions remain closed.</ProductNotice>}
+
+      {meetingStarted && canContribute && <div className="meeting-private-notes">
+        <div className="meeting-private-note-head">
+          <div><strong>My notes</strong><span>Only you can read these notes.</span></div>
+          <span className="pill p-grey">Private</span>
         </div>
-        <button className="btn" disabled={busy || !note.trim()} onClick={addRecord}>{busy ? "Saving..." : recordKind === "decision" ? "Record decision" : "Add note"}</button>
+        <div className="assistive-field textarea">
+          <textarea rows={7} value={privateNote} onChange={(event) => setPrivateNote(event.target.value)} placeholder="Write your own notes from this meeting…" />
+          <VoiceInput compact label="Speak private note" onResult={(text) => setPrivateNote((current) => current ? current + " " + text : text)} />
+        </div>
+        <button className="btn btn-sm" disabled={busy} onClick={savePrivateNote}>{busy ? "Saving…" : "Save my notes"}</button>
+      </div>}
+
+      {meetingStarted && <div className="meeting-shared-decisions">
+        <div className="meeting-section-subhead"><div><strong>Shared decisions</strong><span>Visible to invited participants.</span></div><b>{decisions.length}</b></div>
+        {decisions.length === 0 && <div className="quiet-empty compact"><strong>No shared decision recorded</strong><span>Use this only for decisions that belong on the organisation record.</span></div>}
+        {decisions.map((row) => <article className="meeting-record meeting-record-decision" key={row.id}>
+          <div className="meeting-record-meta">
+            <strong>Decision</strong>
+            <span>{row.profiles?.full_name || "CEAC member"} · {new Date(row.created_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</span>
+          </div>
+          <p>{row.body}</p>
+        </article>)}
+        {canManage && <div className="meeting-record-form">
+          <div className="assistive-field textarea">
+            <textarea rows={3} value={decision} onChange={(event) => setDecision(event.target.value)} placeholder="Record the decision exactly as agreed" />
+            <VoiceInput compact label="Speak decision" onResult={(text) => setDecision((current) => current ? current + " " + text : text)} />
+          </div>
+          <button className="btn" disabled={busy || !decision.trim()} onClick={addDecision}>{busy ? "Saving…" : "Record shared decision"}</button>
+        </div>}
       </div>}
     </section>
 
@@ -183,7 +242,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
         {link.work_items && statusPill(link.work_items.status)}
       </button>)}
       {links.length === 0 && <div className="quiet-empty compact"><strong>No actions linked yet</strong><span>Turn agreed actions into real CEAC work instead of leaving them buried in notes.</span></div>}
-      {canManage && <div className="meeting-action-buttons">
+      {meetingStarted && canManage && <div className="meeting-action-buttons">
         <button className="btn" onClick={() => createAction("task")}>Create action</button>
         <button className="btn btn-ghost" onClick={() => createAction("meeting_outcome")}>Record meeting outcome</button>
       </div>}

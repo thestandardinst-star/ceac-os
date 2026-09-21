@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
 import { isOverdue } from "../lib/time";
-import { Pill, Sheet } from "../components/bits";
+import { Pill, Sheet, Avatar } from "../components/bits";
 
 function weekStart() {
   const value = new Date();
@@ -25,21 +25,22 @@ function CountLink({ children, onClick }) {
 }
 
 function PersonRow({ person, openPerson }) {
-  return <div className="row">
-    <button onClick={() => openPerson(person.profile_id, "current")} style={{ width: "100%", textAlign: "left" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-        <div className="row-t">{person.profiles?.full_name || "—"}</div>
-        <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
-      </div>
-      <div className="row-m">{person.profiles?.job_title || person.role}</div>
-      {person.current.length > 0 && <div className="row-note">Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</div>}
+  return <div className="manager-person-card">
+    <button className="manager-person-main" onClick={() => openPerson(person.profile_id, "current")}>
+      <Avatar name={person.profiles?.full_name || "—"} size="md" />
+      <span className="manager-person-identity">
+        <strong>{person.profiles?.full_name || "—"}</strong>
+        <small>{person.profiles?.job_title || person.role}</small>
+        {person.current.length > 0 && <span>Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</span>}
+      </span>
+      <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
     </button>
-    <div className="row-note" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>Present {person.presenceDays} day{person.presenceDays === 1 ? "" : "s"}</CountLink>
-      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
-      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
-      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
-      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
+    <div className="manager-person-evidence">
+      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>{person.presenceDays} recorded day{person.presenceDays === 1 ? "" : "s"}</CountLink>
+      <CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
+      <CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
+      <CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
+      <CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
     </div>
   </div>;
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
-import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits }) {
@@ -12,7 +12,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   const [mine, setMine] = useState([]);
   const [office, setOffice] = useState(null);
   const [today, setToday] = useState({ working: 0, leave: 0, notStarted: 0, headcount: 0 });
-  const [delivery, setDelivery] = useState({ active: 0, closedThisMonth: 0, onTrack: 0, objectives: 0 });
+  const [delivery, setDelivery] = useState({ active: 0, closedThisMonth: 0, onTrack: 0, atRisk: 0, met: 0, notMet: 0, other: 0, objectives: 0 });
   const [reporting, setReporting] = useState(null);
   const [watch, setWatch] = useState([]);
   const [meetings, setMeetings] = useState([]);
@@ -113,11 +113,20 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       });
 
       const closedProjectIds = new Set((projectCloses || []).map((row) => row.project_id));
+      const objectiveRows = objs || [];
+      const met = objectiveRows.filter((objective) => objective.status === "met").length;
+      const onTrack = objectiveRows.filter((objective) => objective.status === "on_track").length;
+      const atRisk = objectiveRows.filter((objective) => objective.status === "at_risk").length;
+      const notMet = objectiveRows.filter((objective) => objective.status === "not_met").length;
       setDelivery({
         active: (projs || []).filter((project) => project.status === "active").length,
         closedThisMonth: (projs || []).filter((project) => project.status === "closed" && closedProjectIds.has(project.id)).length,
-        onTrack: (objs || []).filter((objective) => objective.status === "on_track" || objective.status === "met").length,
-        objectives: (objs || []).length,
+        onTrack,
+        atRisk,
+        met,
+        notMet,
+        other: Math.max(0, objectiveRows.length - onTrack - atRisk - met - notMet),
+        objectives: objectiveRows.length,
       });
 
       if (period) {
@@ -220,6 +229,43 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
     {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
     {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
+
+    {!loadError && <section className="admin-home-section admin-pulse-section">
+      <SectionHeader eyebrow="Organisation pulse" title="What is happening" />
+      <div className="admin-pulse-grid">
+        <article className="admin-pulse-card">
+          <div className="admin-pulse-head"><div><span>Objectives</span><strong>{delivery.objectives} recorded</strong></div><small>Current recorded status</small></div>
+          <StatusDistribution label="Objective status distribution" segments={[
+            { key:"met", label:"Met", value:delivery.met, tone:"success" },
+            { key:"track", label:"On track", value:delivery.onTrack, tone:"info" },
+            { key:"risk", label:"At risk", value:delivery.atRisk, tone:"attention" },
+            { key:"missed", label:"Not met", value:delivery.notMet, tone:"danger" },
+            { key:"other", label:"Other", value:delivery.other, tone:"neutral" },
+          ]} />
+        </article>
+
+        <article className="admin-pulse-card">
+          <div className="admin-pulse-head"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? `${reporting.submitted} of ${reporting.total} units` : "Open a period to track coverage"}</small></div>
+          {reporting
+            ? <ProgressMeter value={reporting.submitted} max={reporting.total} label="Coverage" detail={reporting.missing.length ? `${reporting.missing.length} outstanding` : "Everyone is in"} />
+            : <div className="admin-pulse-empty">No reporting coverage is being measured right now.</div>}
+        </article>
+
+        <article className="admin-pulse-card">
+          <div className="admin-pulse-head"><div><span>Projects</span><strong>{delivery.active} active</strong></div><small>This month</small></div>
+          <div className="admin-pulse-pair"><div><b>{delivery.closedThisMonth}</b><span>closed with submitted close record</span></div><div><b>{deliveryRisk}</b><span>delivery exceptions</span></div></div>
+        </article>
+
+        <article className="admin-pulse-card">
+          <div className="admin-pulse-head"><div><span>Office today</span><strong>{today.headcount} people on record</strong></div><small>Context, not performance</small></div>
+          <StatusDistribution label="Office context today" segments={[
+            { key:"working", label:"Working now", value:today.working, tone:"success" },
+            { key:"leave", label:"Approved leave", value:today.leave, tone:"info" },
+            { key:"not-started", label:"No session", value:today.notStarted, tone:"neutral" },
+          ]} />
+        </article>
+      </div>
+    </section>}
 
     <section className="admin-home-section admin-home-priority">
       <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />

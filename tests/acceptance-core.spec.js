@@ -156,7 +156,9 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
-    await go(page, "Record");
+    await go(page, "Me");
+    await page.getByRole("button", { name: /My work history/ }).click();
+    await expect(page.getByRole("heading", { name: "My work history" })).toBeVisible();
     await expect(page.getByText(title, { exact: true })).toBeVisible();
     await go(page, "Home");
     const endWork = page.getByRole("button", { name: "End work" });
@@ -367,7 +369,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
 
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test");
-    for (const destination of ["Units", "People", "Attendance", "Cost", "Reporting", "Settings"]) {
+    for (const destination of ["Units", "People", "Attendance", "Cost", "Reports", "Settings"]) {
       await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       await expect(page.locator(".flag-brick")).toHaveCount(0);
@@ -390,7 +392,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
 test("Staff PWA layout has no page-level horizontal overflow at supported phone widths", async ({ browser }) => {
   test.setTimeout(90000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Record", "Me"];
+  const destinations = ["Home", "Work", "Team", "Me"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width, height: 844 });
@@ -405,6 +407,17 @@ test("Staff PWA layout has no page-level horizontal overflow at supported phone 
       }));
       expect(overflow.document, `${destination} overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
       expect(overflow.body, `${destination} body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+
+      if (destination === "Me") {
+        await page.getByRole("button", { name: /My work history/ }).click();
+        await expect(page.getByRole("heading", { name: "My work history" })).toBeVisible();
+        const historyOverflow = await page.evaluate(() => ({
+          document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          body: document.body.scrollWidth - document.body.clientWidth,
+        }));
+        expect(historyOverflow.document, `My work history overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+        expect(historyOverflow.body, `My work history body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+      }
     }
     await context.close();
   }
@@ -518,9 +531,34 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     await expect(meetingRow).toBeVisible();
     await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
-    await expect(page.getByText("Notes & decisions", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Meeting workspace" })).toBeVisible();
+    await expect(page.getByText("Notes open when the meeting starts", { exact: true })).toBeVisible();
+    await expect(page.getByText("My notes", { exact: true })).toHaveCount(0);
     await context.close();
   }
+});
+
+test("Administration can combine multiple units into one meeting audience", async ({ browser }) => {
+  const title = "Acceptance multi-unit meeting";
+  const tomorrow = new Date(Date.now() + 2 * 86400000);
+  const pad = (value) => String(value).padStart(2, "0");
+  const localValue = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}T09:00`;
+
+  const { context, page } = await openAs(browser, "admin@ceac.local.test");
+  await go(page, "Home");
+  await page.getByRole("button", { name: "Schedule", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder("What is this meeting for?").fill(title);
+  await dialog.locator('input[type="datetime-local"]').first().fill(localValue);
+
+  await dialog.getByRole("button", { name: /Test Unit A/ }).click();
+  await dialog.getByRole("button", { name: /Test Unit B/ }).click();
+  await expect(dialog.getByText(/participant/).first()).toBeVisible();
+  await dialog.getByRole("button", { name: "Schedule and notify" }).click();
+
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  await expect(page.getByText(/participant/).first()).toBeVisible();
+  await context.close();
 });
 
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
@@ -621,7 +659,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Cost", "Finance", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });

@@ -12,8 +12,8 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "team") return <svg {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
   if (name === "record") return <svg {...props}><path d="M6 3h9l3 3v15H6z" /><path d="M14 3v4h4" /><path d="M9 11h6M9 15h6M9 19h4" /></svg>;
   if (name === "me") return <svg {...props}><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>;
-  if (name === "projects") return <svg {...props}><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" /></svg>;
-  if (name === "calendar") return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18" /><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" /></svg>;
+  if (name === "projects" || name === "admin-projects") return <svg {...props}><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" /></svg>;
+  if (name === "calendar" || name === "admin-calendar") return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18" /><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" /></svg>;
   if (name === "manager-finance" || name === "finance") return <svg {...props}><path d="M4 20V9M9 20V4M14 20v-7M19 20V7" /><path d="M2 20h20" /></svg>;
   if (name === "manager-reports" || name === "reports") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
   if (name === "more") return <svg {...props}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" /></svg>;
@@ -77,6 +77,39 @@ export function LoadingState({ label = "Loading…" }) {
   </div>;
 }
 
+export function Avatar({ name = "", src = null, size = "md" }) {
+  const initials = String(name || "?").trim().split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]?.toUpperCase()).join("") || "?";
+  return <span className={`avatar avatar-${size}`} aria-hidden="true">
+    {src ? <img src={src} alt="" /> : initials}
+  </span>;
+}
+
+export function StatusDistribution({ segments = [], label = "Status distribution" }) {
+  const safe = segments.filter((segment) => Number(segment.value) > 0);
+  const total = safe.reduce((sum, segment) => sum + Number(segment.value || 0), 0);
+  return <div className="status-distribution" aria-label={label}>
+    <div className="status-distribution-track">
+      {total > 0 ? safe.map((segment) => <span
+        key={segment.key || segment.label}
+        className={`status-distribution-segment tone-${segment.tone || "neutral"}`}
+        style={{ width:`${(Number(segment.value) / total) * 100}%` }}
+        title={`${segment.label}: ${segment.value}`}
+      />) : <span className="status-distribution-empty" />}
+    </div>
+    <div className="status-distribution-legend">
+      {segments.map((segment) => <span key={segment.key || segment.label}><i className={`tone-${segment.tone || "neutral"}`} />{segment.label}<b>{segment.value}</b></span>)}
+    </div>
+  </div>;
+}
+
+export function ProgressMeter({ value = 0, max = 0, label, detail }) {
+  const pct = max > 0 ? Math.max(0, Math.min(100, (Number(value) / Number(max)) * 100)) : 0;
+  return <div className="progress-meter">
+    <div className="progress-meter-head"><strong>{label}</strong>{detail && <span>{detail}</span>}</div>
+    <div className="progress-meter-track"><span style={{ width:`${pct}%` }} /></div>
+  </div>;
+}
+
 export function SectionHeader({ eyebrow, title, count, action = null }) {
   return <div className="section-header">
     <div>{eyebrow && <span>{eyebrow}</span>}<h2>{title}</h2></div>
@@ -94,55 +127,122 @@ export function statusPill(status) {
 }
 function tabItems(isManager = false) {
   if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
-  return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["me","Me"]];
 }
+
+function desktopGroups({ isAdmin, isExec, isManager }) {
+  if (isExec) return [
+    { label:"Ministry", items:[["home","Home"]] },
+    { label:"Communication", items:[["announcements","Announcements"]] },
+    { label:"Personal", items:[["me","Me"]] },
+  ];
+  if (isAdmin) return [
+    { label:"Organisation", items:[["home","Home"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"People", items:[["people","People"],["attendance","Attendance"]] },
+    { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
+    { label:"Communication", items:[["announcements","Announcements"]] },
+    { label:"System", items:[["settings","Settings"],["me","Me"]] },
+  ];
+  if (isManager) return [
+    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"]] },
+    { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
+    { label:"Personal", items:[["me","Me"]] },
+  ];
+  return [{ label:null, items:tabItems(false) }];
+}
+
+export function AppTopBar({ me, roleLabel, tab, onProfile }) {
+  const titleMap = {
+    home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
+    units:"Units", people:"People", attendance:"Attendance & leave", reporting:"Reports",
+    finance:"Finance", cost:"Cost", announcements:"Announcements", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
+    work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
+    "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
+  };
+  const section = titleMap[tab] || "Workspace";
+  const initial = (me?.full_name || "C").trim().charAt(0).toUpperCase();
+  return <header className="desktop-topbar" aria-label="Workspace context">
+    <div className="desktop-topbar-context">
+      <span>{roleLabel}</span>
+      <b aria-hidden="true">/</b>
+      <strong>{section}</strong>
+    </div>
+    <div className="desktop-topbar-actions">
+      <button type="button" className="desktop-profile" onClick={onProfile} aria-label={`Open ${me?.full_name || "your"} workspace`}>
+        <span className="desktop-profile-avatar" aria-hidden="true">{initial}</span>
+        <span className="desktop-profile-copy"><strong>{me?.full_name || "Account"}</strong><small>{me?.unit_name || roleLabel}</small></span>
+      </button>
+    </div>
+  </header>;
+}
+
 export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange }) {
-  const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
-  const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : tabItems(isManager);
-  const operatingSurface = !isAdmin && !isExec;
-  if (isAdmin) { items.splice(1, 0, ["announcements","Announcements"], ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"], ["reporting","Reporting"]); items.push(["settings","Settings"]); }
+  const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration & HR" : (me.unit_name || "—");
+  const groups = desktopGroups({ isAdmin, isExec, isManager });
   return (
     <aside className="side">
-      <div className="brand">CEAC<span>{label}</span></div>
+      <div className="brand"><span className="brand-mark">C</span><span className="brand-copy"><strong>CEAC OS</strong><small>{label}</small></span></div>
       {!isAdmin && (me.memberships?.length || 0) > 1 && <select
+        className="side-unit-switch"
         aria-label="Current unit"
         value={me.unit_id || ""}
-        onChange={(event) => onUnitChange?.(event.target.value)}
-        style={{ width: "100%", margin: "10px 0 14px", fontSize: 12.5, padding: "7px 8px", border: "1px solid var(--line)", borderRadius: 6, background: "var(--card)", color: "var(--ink)" }}>
+        onChange={(event) => onUnitChange?.(event.target.value)}>
         {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
           {membership.unit_name || "Unit"} · {membership.role === "manager" ? "Manager" : "Staff"}
         </option>)}
       </select>}
-      <nav>
-        {items.map(([k, l]) => (
-          <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>
-            <Icon name={k} size={17} />
-            <span>{l}</span>
-          </button>))}
+      <nav aria-label="Primary navigation">
+        {groups.map((group, index) => <div className="side-nav-group" key={group.label || index}>
+          {group.label && <div className="side-nav-label">{group.label}</div>}
+          {group.items.map(([k, l]) => (
+            <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>
+              <Icon name={k} size={17} />
+              <span>{l}</span>
+            </button>))}
+        </div>)}
       </nav>
-      <div className="who">{me.full_name}</div>
+      <div className="who"><span>{me.full_name}</span><small>Signed in</small></div>
     </aside>);
 }
+
+function MobileMenuGroup({ label, items, tab, setTab, close }) {
+  return <section className="mobile-more-group">
+    <div className="mobile-more-label">{label}</div>
+    {items.map(([key, name]) => <button role="menuitem" key={key} className={"mobile-more-item " + (tab === key ? "on" : "")} onClick={() => { close(); setTab(key); }}>
+      <Icon name={key} size={17} />
+      <span>{name}</span>
+    </button>)}
+  </section>;
+}
+
 export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const managerMore = [["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
+  const managerGroups = [
+    { label:"Schedule", items:[["calendar","Calendar"]] },
+    { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
+    { label:"Personal", items:[["me","Me"]] },
+  ];
+  const adminGroups = [
+    { label:"Organisation", items:[["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
+    { label:"Communication", items:[["announcements","Announcements"]] },
+    { label:"System", items:[["settings","Settings"],["me","Me"]] },
+  ];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
-  const adminMore = [["announcements","Announcements"],["units","Units"],["cost","Cost"],["finance","Finance"],["settings","Settings"],["me","Me"]];
   const adminPrimary = [["home","Home"],["people","People"],["attendance","Attendance"],["reporting","Reports"],["more","More"]];
   const items = isExec
     ? [["home","Home"],["announcements","Announcements"],["me","Me"]]
     : isAdmin ? adminPrimary : isManager ? managerPrimary : tabItems(false);
-  const moreItems = isAdmin ? adminMore : managerMore;
-  const moreActive = (isManager || isAdmin) && moreItems.some(([key]) => key === tab);
+  const moreGroups = isAdmin ? adminGroups : managerGroups;
+  const moreKeys = moreGroups.flatMap((group) => group.items.map(([key]) => key));
+  const moreActive = (isManager || isAdmin) && moreKeys.includes(tab);
   useEffect(() => { setMoreOpen(false); }, [tab, isManager, isAdmin]);
   return (<>
     {(isManager || isAdmin) && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" className="mobile-more-menu" aria-label={isAdmin ? "More Administration destinations" : "More Manager destinations"}>
-      {moreItems.map(([key, label]) => <button role="menuitem" key={key} className="mobile-more-item" onClick={() => { setMoreOpen(false); setTab(key); }}>
-        <Icon name={key} size={17} />
-        <span>{label}</span>
-      </button>)}
+      <div className="mobile-more-head"><strong>More</strong><span>{isAdmin ? "Administration" : "Manager"} workspace</span></div>
+      {moreGroups.map((group) => <MobileMenuGroup key={group.label} label={group.label} items={group.items} tab={tab} setTab={setTab} close={() => setMoreOpen(false)} />)}
     </div></>}
-    <nav className="tabs">
+    <nav className="tabs" aria-label="Mobile navigation">
       {items.map(([k, label]) => {
         const active = k === "more" ? moreActive || moreOpen : tab === k;
         return <button key={k} className={"tab " + (active ? "on" : "")} onClick={() => {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup } from "../components/bits";
+import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup, StatusDistribution } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 const pad = (value) => String(value).padStart(2, "0");
@@ -55,25 +55,14 @@ function Bars({ rows, onOpen }) {
   </div>;
 }
 
-function Donut({ rows, onOpen }) {
-  const total = rows.reduce((sum, row) => sum + row.value, 0);
-  if (!total) return <div className="card small">No work is recorded for this view.</div>;
-  let used = 0;
-  const stops = rows.map((row, index) => {
-    const start = (used / total) * 360;
-    used += row.value;
-    const end = (used / total) * 360;
-    const shade = index % 3 === 0 ? "var(--ink)" : index % 3 === 1 ? "var(--amber)" : "var(--line)";
-    return `${shade} ${start}deg ${end}deg`;
-  }).join(",");
-  return <div className="card" style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-    <div aria-label="Work composition" style={{ width: 118, height: 118, borderRadius: "50%", background: `conic-gradient(${stops})`, position: "relative" }}>
-      <div style={{ position: "absolute", inset: 28, borderRadius: "50%", background: "var(--paper)" }} />
-    </div>
-    <div style={{ flex: 1, minWidth: 180 }}>
-      {rows.map((row) => <button key={row.label} onClick={() => onOpen(row)} className="row" style={{ width: "100%", textAlign: "left" }}>
-        <div className="row-t">{row.label}</div><div className="row-m">{row.value} work item{row.value === 1 ? "" : "s"}</div>
-      </button>)}
+function WorkStatusDistribution({ rows, onOpen }) {
+  const tones = ["info","attention","neutral","success","danger"];
+  return <div className="card report-status-composition">
+    <StatusDistribution label="Current work status composition" segments={rows.map((row,index)=>({
+      key:row.label,label:row.label,value:row.value,tone:tones[index%tones.length],
+    }))} />
+    <div className="report-status-links">
+      {rows.map((row) => <button key={row.label} onClick={() => onOpen(row)}><span>{row.label}</span><b>{row.value}</b></button>)}
     </div>
   </div>;
 }
@@ -568,7 +557,7 @@ export default function ManagerReports({ me, openItem }) {
 
         {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
           <div className="sec"><span>Current work composition</span></div>
-          <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+          <WorkStatusDistribution rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
           <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
         </>}
 

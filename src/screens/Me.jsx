@@ -4,7 +4,7 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal }) {
+export default function Me({ me, openGoal, openRecord }) {
   const [profile, setProfile] = useState(me);
   const [balance, setBalance] = useState(null);
   const [settings, setSettings] = useState(null);
@@ -72,11 +72,13 @@ export default function Me({ me, openGoal }) {
     if (currentProfile) setProfile((value) => ({ ...value, ...currentProfile }));
   }
 
-  const annualEntitlement = settings ? settings.annual_days : 15;
-  const carryover = balance ? balance.carryover_from_last_year : 0;
-  const annualTaken = balance ? balance.annual_taken : 0;
-  const annualLeft = annualEntitlement + carryover - annualTaken;
-  const sickLeft = (settings ? settings.sick_days : 12) - (balance ? balance.sick_taken : 0);
+  const policyConfigured = Boolean(settings?.updated_by);
+  const annualEntitlement = policyConfigured ? Number(settings.annual_days || 0) : null;
+  const sickEntitlement = policyConfigured ? Number(settings.sick_days || 0) : null;
+  const carryover = balance ? Number(balance.carryover_from_last_year || 0) : 0;
+  const annualTaken = balance ? Number(balance.annual_taken || 0) : 0;
+  const annualLeft = annualEntitlement === null ? null : annualEntitlement + carryover - annualTaken;
+  const sickLeft = sickEntitlement === null ? null : sickEntitlement - Number(balance?.sick_taken || 0);
   const activeGoals = goals.filter((goal) => goal.status === "active");
   const achievedGoals = goals.filter((goal) => goal.status === "achieved");
 
@@ -198,6 +200,11 @@ export default function Me({ me, openGoal }) {
       <p className="screen-note">{profile.job_title || "Staff"} · your goals, leave and personal details.</p>
     </div>
 
+    <button className="personal-history-entry" type="button" onClick={() => openRecord?.()}>
+      <span><strong>My work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
+      <b aria-hidden="true">→</b>
+    </button>
+
     <div className="staff-segment" role="tablist" aria-label="Personal area">
       <button role="tab" aria-selected={area === "goals"} className={area === "goals" ? "on" : ""} onClick={() => setArea("goals")}>Goals</button>
       <button role="tab" aria-selected={area === "leave"} className={area === "leave" ? "on" : ""} onClick={() => setArea("leave")}>Leave</button>
@@ -246,9 +253,10 @@ export default function Me({ me, openGoal }) {
         <button className="btn btn-sm" onClick={() => setSheet("leave")}>Ask for leave</button>
       </div>
 
+      {!policyConfigured && <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>}
       <div className="leave-summary">
-        <div><strong>{annualLeft}</strong><span>annual days left</span></div>
-        <div><strong>{sickLeft}</strong><span>sick days left</span></div>
+        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual entitlement not configured" : "annual days left"}</span></div>
+        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick entitlement not configured" : "sick days left"}</span></div>
       </div>
       {carryover > 0 && <p className="context-note">{carryover} day{carryover === 1 ? "" : "s"} carried over from last year.</p>}
 

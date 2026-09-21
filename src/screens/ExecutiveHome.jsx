@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { StatusDistribution, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 
 export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
   const [x, setX] = useState({ doneWeek: 0, donePreviousWeek: 0, objectives: 0, objectiveAttention: 0, projects: 0, blocked: 0, review: 0 });
   const [loading, setLoading] = useState(true);
   const [meetings, setMeetings] = useState([]);
+  const [objectiveMix, setObjectiveMix] = useState({ onTrack:0, met:0, atRisk:0, notMet:0, other:0 });
+  const [reporting, setReporting] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => { load(); }, [me.org_id]);
@@ -25,7 +28,7 @@ export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
       const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
       const previousMonday = new Date(monday); previousMonday.setUTCDate(previousMonday.getUTCDate() - 7);
-      const [doneWeek, donePreviousWeek, objectives, objectiveAttention, projects, blocked, review, meetingRows] = await Promise.all([
+      const [doneWeek, donePreviousWeek, objectives, objectiveAttention, projects, blocked, review, meetingRows, objectiveRows, periodRows, unitRows] = await Promise.all([
         count("work_items", (query) => query.in("kind", ["task", "deliverable"]).in("status", ["completed", "self_certified"]).gte("completed_at", monday.toISOString())),
         count("work_items", (query) => query.in("kind", ["task", "deliverable"]).in("status", ["completed", "self_certified"]).gte("completed_at", previousMonday.toISOString()).lt("completed_at", monday.toISOString())),
         count("objectives"),
@@ -38,8 +41,29 @@ export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
           .gte("starts_at",new Date().toISOString())
           .lte("starts_at",new Date(Date.now()+14*864e5).toISOString())
           .neq("status","cancelled").order("starts_at").limit(5),
+        supabase.from("objectives").select("status").eq("org_id",me.org_id),
+        supabase.from("report_periods").select("id,label,status,starts_on").eq("status","open").order("starts_on",{ascending:false}).limit(1),
+        supabase.from("units").select("id").eq("active",true),
       ]);
       if (meetingRows.error) throw new Error(`meeting_sessions: ${meetingRows.error.message}`);
+      if (objectiveRows.error) throw new Error(`objectives: ${objectiveRows.error.message}`);
+      if (periodRows.error) throw new Error(`report_periods: ${periodRows.error.message}`);
+      if (unitRows.error) throw new Error(`units: ${unitRows.error.message}`);
+      const mixRows=objectiveRows.data||[];
+      const onTrack=mixRows.filter((row)=>row.status==="on_track").length;
+      const met=mixRows.filter((row)=>row.status==="met").length;
+      const atRisk=mixRows.filter((row)=>row.status==="at_risk").length;
+      const notMet=mixRows.filter((row)=>row.status==="not_met").length;
+      setObjectiveMix({onTrack,met,atRisk,notMet,other:Math.max(0,mixRows.length-onTrack-met-atRisk-notMet)});
+      const openPeriod=(periodRows.data||[])[0]||null;
+      if(openPeriod){
+        const reportRows=await supabase.from("reports").select("unit_id,status,version").eq("period_id",openPeriod.id).eq("scope","unit");
+        if(reportRows.error) throw new Error(`reports: ${reportRows.error.message}`);
+        const latest={};
+        (reportRows.data||[]).forEach((row)=>{if(!latest[row.unit_id]||Number(row.version)>Number(latest[row.unit_id].version))latest[row.unit_id]=row;});
+        const filed=Object.values(latest).filter((row)=>row.status!=="draft").length;
+        setReporting({label:openPeriod.label,filed,total:(unitRows.data||[]).length});
+      }else setReporting(null);
       setX({ doneWeek, donePreviousWeek, objectives, objectiveAttention, projects, blocked, review });
       setMeetings(meetingRows.data || []);
     } catch (loadError) {
@@ -63,6 +87,23 @@ export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
         <div><strong>{x.blocked}</strong><span>Open blockers</span></div>
       </div>}
     </section>
+
+    {!loading && !error && <section className="executive-intelligence-grid">
+      <article className="executive-intelligence-card">
+        <div className="executive-intelligence-head"><div><span>Objectives</span><strong>Current ministry direction</strong></div><small>{x.objectives} recorded</small></div>
+        <StatusDistribution label="Ministry objective status" segments={[
+          {key:"met",label:"Met",value:objectiveMix.met,tone:"success"},
+          {key:"track",label:"On track",value:objectiveMix.onTrack,tone:"info"},
+          {key:"risk",label:"At risk",value:objectiveMix.atRisk,tone:"attention"},
+          {key:"not-met",label:"Not met",value:objectiveMix.notMet,tone:"danger"},
+          {key:"other",label:"Other",value:objectiveMix.other,tone:"neutral"},
+        ]}/>
+      </article>
+      <article className="executive-intelligence-card">
+        <div className="executive-intelligence-head"><div><span>Reporting</span><strong>{reporting?reporting.label:"No open period"}</strong></div><small>Unit coverage</small></div>
+        {reporting?<ProgressMeter value={reporting.filed} max={reporting.total} label="Reports filed" detail={`${reporting.filed} of ${reporting.total} units`}/>:<EmptyState compact title="No reporting period is open">Administration controls reporting periods.</EmptyState>}
+      </article>
+    </section>}
 
     <section className="office-meeting-strip executive-meeting-strip">
       <div className="office-meeting-strip-head">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
-import { Sheet } from "../components/bits";
+import { Sheet, ProgressMeter, StatusDistribution, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 
 // Administration's reporting screen. Two jobs, both Rebecca's:
 //
@@ -125,48 +125,51 @@ export default function Reports({ me }) {
         <h1 className="h1" style={{ marginTop: 6 }}>{p.label}</h1>
         <p className="screen-note">{dateOnly(p.starts_on)} — {dateOnly(p.ends_on)}</p>
 
-        <div className="metric-grid" style={{ marginTop: 14 }}>
-          <div className="metric"><b>{filed.length}</b><span>filed</span></div>
-          <div className="metric"><b>{drafting.length}</b><span>started</span></div>
-          <div className="metric"><b>{missing.length}</b><span>nothing yet</span></div>
-          <div className="metric"><b>{units.length}</b><span>units</span></div>
+        <section className="report-leadership-overview">
+          <div className="report-period-title">
+            <div><span>Leadership view</span><strong>Reporting coverage</strong></div>
+            <small>{p.status === "open" ? "Period still open" : "Period closed"}</small>
+          </div>
+          <ProgressMeter value={filed.length} max={units.length} label="Submitted" detail={`${filed.length} of ${units.length} units`} />
+          <StatusDistribution label="Reporting status by unit" segments={[
+            { key:"filed", label:"Filed", value:filed.length, tone:"success" },
+            { key:"draft", label:"Started", value:drafting.length, tone:"attention" },
+            { key:"missing", label:"Nothing yet", value:missing.length, tone:"neutral" },
+          ]} />
+          <div className="report-leadership-facts">
+            <div><b>{filed.length}</b><span>submitted</span></div>
+            <div><b>{drafting.length}</b><span>drafts</span></div>
+            <div><b>{missing.length}</b><span>outstanding</span></div>
+            <div><b>{filed.filter((u) => byUnit[u.id]?.challenges).length}</b><span>reports with challenges</span></div>
+          </div>
+        </section>
+
+        <SectionHeader eyebrow="Submitted reports" title="What units reported" count={filed.length} />
+        {filed.length === 0 && <EmptyState compact title="Nobody has filed yet">Submitted unit reports will appear here with their narrative and recorded challenges.</EmptyState>}
+        <div className="report-unit-grid">
+          {filed.map((u) => {
+            const r = byUnit[u.id];
+            return <article key={u.id} className="report-unit-card">
+              <div className="report-unit-card-head">
+                <div><strong>{u.name}</strong><span>Submitted {r.submitted_at ? dateOnly(r.submitted_at) : "—"}{r.version > 1 ? ` · version ${r.version}` : ""}</span></div>
+                <span className="pill p-green">Filed</span>
+              </div>
+              {r.narrative ? <p>{r.narrative}</p> : <small>No narrative was recorded.</small>}
+              {r.challenges && <div className="report-challenge"><strong>Challenge recorded</strong><span>{r.challenges}</span></div>}
+            </article>;
+          })}
         </div>
 
-        <div className="sec"><span>Filed</span><span>{filed.length}</span></div>
-        {filed.length === 0 && <div className="card small">Nobody has filed for this period yet.</div>}
-        {filed.map((u) => {
-          const r = byUnit[u.id];
-          return (
-            <div key={u.id} className="row">
-              <div className="row-t">{u.name}</div>
-              <div className="row-m">
-                submitted {r.submitted_at ? dateOnly(r.submitted_at) : "—"}
-                {r.version > 1 ? " · version " + r.version : ""}
-              </div>
-              {r.narrative && <div className="row-note">{r.narrative}</div>}
-              {r.challenges && <div className="row-note" style={{ color: "var(--amber)" }}>Challenges: {r.challenges}</div>}
-            </div>);
-        })}
-
-        {drafting.length > 0 && (<>
-          <div className="sec"><span>Started, not filed</span><span>{drafting.length}</span></div>
-          {drafting.map((u) => (
-            <div key={u.id} className="row">
-              <div className="row-t">{u.name}</div>
-              <div className="row-m">draft saved, not submitted</div>
-            </div>))}
-        </>)}
-
-        <div className="sec"><span>Nothing yet</span><span>{missing.length}</span></div>
-        {missing.length === 0 && <div className="card small">Everyone has at least started.</div>}
-        {missing.map((u) => (
-          <div key={u.id} className="row">
-            <div className="row-t">{u.name}</div>
-            <div className="row-m">no report for this period</div>
-          </div>))}
-        <p className="small" style={{ marginTop: 8 }}>
-          Named rather than counted: &ldquo;13 of 17&rdquo; does not tell you who to ask.
-        </p>
+        <section className="report-outstanding-section">
+          <SectionHeader eyebrow="Follow-up" title="Still outstanding" count={drafting.length + missing.length} />
+          {drafting.length === 0 && missing.length === 0
+            ? <EmptyState compact title="Every unit has filed">There is no reporting follow-up required for this period.</EmptyState>
+            : <div className="report-outstanding-grid">
+                {drafting.map((u) => <div key={u.id} className="report-outstanding-row"><div><strong>{u.name}</strong><span>Draft saved, not submitted</span></div><span className="pill p-amber">Started</span></div>)}
+                {missing.map((u) => <div key={u.id} className="report-outstanding-row"><div><strong>{u.name}</strong><span>No report recorded for this period</span></div><span className="pill p-grey">Nothing yet</span></div>)}
+              </div>}
+          <p className="screen-note">CEAC OS names the units that need follow-up rather than hiding them behind a single completion percentage.</p>
+        </section>
       </div>);
   }
 
@@ -174,12 +177,13 @@ export default function Reports({ me }) {
 
   return (
     <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Reporting</h1>
-        <p className="screen-note">Nobody can file a report until you open a period. Open one, then see who has filed and who has not.</p>
+      <div className="reporting-page-intro">
+        <div className="eyebrow">Leadership reporting</div>
+        <h1 className="h1">Reports</h1>
+        <p className="screen-note">Open reporting periods, see coverage immediately, identify who still owes a report, and read unit narratives without rebuilding the picture elsewhere.</p>
       </div>
 
-      {msg && !sheet && <div className="flag flag-brick" style={{ marginTop: 14 }}>{msg}</div>}
+      {msg && !sheet && <ProductNotice tone="error" title="Reporting update">{msg}</ProductNotice>}
       <button className="btn wide-auto" style={{ marginTop: 16 }}
         onClick={() => { prefill("week"); setSheet("new"); setMsg(null); }}>Open a reporting period</button>
 
@@ -195,22 +199,23 @@ export default function Reports({ me }) {
         const byUnit = latestFor(p.id);
         const filed = units.filter((u) => byUnit[u.id] && byUnit[u.id].status !== "draft").length;
         return (
-          <div key={p.id} className="row">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-              <div className="row-t">{p.label}</div>
+          <article key={p.id} className="report-period-card">
+            <div className="report-period-card-head">
+              <div>
+                <span>{(KINDS.find((k) => k[0] === p.kind) || ["",""])[1]}</span>
+                <strong>{p.label}</strong>
+                <small>{dateOnly(p.starts_on)} — {dateOnly(p.ends_on)}</small>
+              </div>
               <span className={"pill " + (p.status === "open" ? "p-green" : "p-grey")}>{p.status}</span>
             </div>
-            <div className="row-m">
-              {(KINDS.find((k) => k[0] === p.kind) || ["",""])[1]} · {dateOnly(p.starts_on)} — {dateOnly(p.ends_on)}
-              {" · "}{filed} of {units.length} filed
-            </div>
-            <div style={{ display: "flex", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => setOpen(p.id)}>Who has filed</button>
+            <ProgressMeter value={filed} max={units.length} label="Reporting coverage" detail={`${filed} of ${units.length} filed`} />
+            <div className="report-period-actions">
+              <button className="btn btn-ghost btn-sm" onClick={() => setOpen(p.id)}>Open report</button>
               {p.status === "open"
                 ? <button className="btn btn-ghost btn-sm" onClick={() => setStatus(p, "closed")}>Close period</button>
                 : <button className="btn btn-ghost btn-sm" onClick={() => setStatus(p, "open")}>Reopen</button>}
             </div>
-          </div>);
+          </article>);
       })}
 
       {sheet === "new" && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
-import { ProductNotice, LoadingState } from "../components/bits";
+import { ProductNotice, LoadingState, StatusDistribution, Avatar, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 // Attendance & leave, organisation-wide. Spec section 7.
@@ -42,7 +42,7 @@ export default function Attendance({ me }) {
       supabase.from("work_sessions").select("id, profile_id, place, started_at, ended_at, end_reason, lat, lng, ip, flags").gte("started_at", since).order("started_at", { ascending: false }),
       supabase.from("leave_requests").select("id, profile_id, kind, start_date, end_date, days, status, profiles(full_name)").order("start_date", { ascending: false }),
       supabase.from("office_locations").select("name, lat, lng, radius_meters").eq("is_primary", true).limit(1).maybeSingle(),
-      supabase.from("leave_settings").select("annual_days, sick_days").eq("org_id", me.org_id).maybeSingle(),
+      supabase.from("leave_settings").select("annual_days, sick_days, max_carryover, updated_by").eq("org_id", me.org_id).maybeSingle(),
     ]);
     const unitOf = {};
     (mem.data || []).forEach((m) => { unitOf[m.profile_id] = m.units ? m.units.name : null; });
@@ -127,51 +127,63 @@ export default function Attendance({ me }) {
         </div>)}
 
       {tab === "today" && (<>
-        <div className="sec"><span>The office today</span></div>
-        <div className="metric-grid">
-          <div className="metric"><b>{workingNow.length}</b><span>working now</span></div>
-          <div className="metric"><b>{todaySessions.length}</b><span>started today</span></div>
-          <div className="metric"><b>{onLeaveToday.length}</b><span>on leave</span></div>
-          <div className="metric"><b>{notStarted.length}</b><span>no session started</span></div>
-        </div>
+        <section className="attendance-today-overview">
+          <div className="attendance-today-copy">
+            <span>Today</span>
+            <strong>{people.length} people on record</strong>
+            <small>Recorded work-session and approved-leave context only.</small>
+          </div>
+          <StatusDistribution label="Attendance context today" segments={[
+            { key:"started", label:"Session started", value:startedToday.size, tone:"success" },
+            { key:"leave", label:"Approved leave", value:onLeaveToday.length, tone:"info" },
+            { key:"none", label:"No session recorded", value:notStarted.length, tone:"neutral" },
+          ]} />
+          <div className="attendance-fact-strip">
+            <div><b>{workingNow.length}</b><span>working now</span></div>
+            <div><b>{todaySessions.length}</b><span>sessions started</span></div>
+            <div><b>{onLeaveToday.length}</b><span>approved leave</span></div>
+            <div><b>{notStarted.length}</b><span>no session recorded</span></div>
+          </div>
+        </section>
 
         <div className="sec"><span>Working now</span><span>{workingNow.length}</span></div>
         {workingNow.length === 0 && <div className="card small">Nobody has an open session.</div>}
         {workingNow.map((s) => (
-          <div key={s.id} className="row">
-            <div className="row-t">{nameOf(s.profile_id)}</div>
-            <div className="row-m">{s.unit_name || "no unit"} · since {new Date(s.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} · {s.place === "office" ? "at the office" : "elsewhere"}</div>
+          <div key={s.id} className="attendance-person-row">
+            <Avatar name={nameOf(s.profile_id)} size="sm" />
+            <div><strong>{nameOf(s.profile_id)}</strong><span>{s.unit_name || "No unit"} · since {new Date(s.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span></div>
+            <small>{s.place === "office" ? "Office" : "Elsewhere"}</small>
           </div>))}
 
         <div className="sec"><span>Away today</span><span>{onLeaveToday.length}</span></div>
         {onLeaveToday.length === 0 && <div className="card small">Nobody is on approved leave today.</div>}
         {onLeaveToday.map((l) => (
-          <div key={l.id} className="row">
-            <div className="row-t">{l.profiles ? l.profiles.full_name : nameOf(l.profile_id)}</div>
-            <div className="row-m">{l.kind} leave · back {dateOnly(l.end_date)}</div>
+          <div key={l.id} className="attendance-person-row">
+            <Avatar name={l.profiles ? l.profiles.full_name : nameOf(l.profile_id)} size="sm" />
+            <div><strong>{l.profiles ? l.profiles.full_name : nameOf(l.profile_id)}</strong><span>{l.kind} leave</span></div>
+            <small>Back {dateOnly(l.end_date)}</small>
           </div>))}
 
         <div className="sec"><span>No session started today</span><span>{notStarted.length}</span></div>
         {notStarted.length === 0 && <div className="card small">Everyone has started or is on leave.</div>}
         {notStarted.map((p) => (
-          <div key={p.id} className="row">
-            <div className="row-t">{p.full_name}</div>
-            <div className="row-m">{p.unit_name || "no unit"} · no session recorded today; this is not an absence judgement</div>
+          <div key={p.id} className="attendance-person-row quiet">
+            <Avatar name={p.full_name} size="sm" />
+            <div><strong>{p.full_name}</strong><span>{p.unit_name || "No unit"}</span></div>
+            <small>No session recorded · not an absence judgement</small>
           </div>))}
 
-        <div className="sec"><span>Average start by unit</span></div>
-        <p className="small" style={{ marginBottom: 6 }}>Last 30 days. Units work different hours — services, setup and shifts all differ, so these are not comparable to each other.</p>
-        {unitStarts.map((u) => (
-          <div key={u.unit} className="row">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <div className="row-t">{u.unit}</div><div className="row-t">{u.avg}</div>
-            </div>
-            <div className="row-m">from {u.n} session{u.n === 1 ? "" : "s"}</div>
-          </div>))}
       </>)}
 
       {tab === "sessions" && (<>
         <div className="sec"><span>Last 30 days</span><span>{sessions.length}</span></div>
+        <div className="attendance-unit-context">
+          <strong>Recorded start context by unit</strong>
+          <span>Descriptive only. Units work different service, setup and shift patterns, so these are not comparable performance measures.</span>
+          <div className="attendance-unit-context-grid">
+            {unitStarts.map((u) => <div key={u.unit}><b>{u.avg}</b><span>{u.unit}</span><small>{u.n} session{u.n === 1 ? "" : "s"}</small></div>)}
+          </div>
+        </div>
         {sessions.slice(0, 120).map((s) => (
           <div key={s.id} className="row">
             <div className="row-t">{nameOf(s.profile_id)}</div>
@@ -228,17 +240,15 @@ export default function Attendance({ me }) {
 
         <div className="sec"><span>Across the office</span></div>
       {!leavePolicyConfigured && <div className="card small">Entitlement and carry-over totals are unavailable until Administration confirms the leave policy in Settings.</div>}
-        <div className="card" style={{ padding: "4px 15px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", fontSize: 13.5 }}>
-            <span style={{ color: "var(--ink-soft)" }}>Total annual entitlement</span>
-            <span style={{ fontWeight: 500 }}>{liability === null ? "Not configured" : `${liability} days`}</span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", borderTop: "1px solid var(--line-soft)", fontSize: 13.5 }}>
-            <span style={{ color: "var(--ink-soft)" }}>Approved and still to come</span>
-            <span style={{ fontWeight: 500 }}>
-              {leave.filter((l) => l.status === "approved" && l.end_date >= todayStr).reduce((s, l) => s + (l.days || 0), 0)} days
-            </span>
-          </div>
+        <div className="card attendance-leave-overview">
+          {liability === null
+            ? <div className="attendance-leave-unconfigured"><strong>Annual entitlement</strong><span>Not configured</span></div>
+            : <ProgressMeter
+                value={leave.filter((l) => l.status === "approved" && l.end_date >= todayStr).reduce((s, l) => s + (l.days || 0), 0)}
+                max={liability}
+                label="Approved leave still to come"
+                detail={leave.filter((l) => l.status === "approved" && l.end_date >= todayStr).reduce((s, l) => s + (l.days || 0), 0) + " of " + liability + " organisation days"}
+              />}
         </div>
         <p className="small" style={{ marginTop: 6 }}>{leavePolicyConfigured ? `Configured annual entitlement: ${settings.annual_days} days per person.` : "No CEAC entitlement is assumed until the policy is confirmed in Settings."}</p>
       </>)}
