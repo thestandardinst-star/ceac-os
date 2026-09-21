@@ -77,6 +77,39 @@ export function LoadingState({ label = "Loading…" }) {
   </div>;
 }
 
+export function Avatar({ name = "", src = null, size = "md" }) {
+  const initials = String(name || "?").trim().split(/\s+/).filter(Boolean).slice(0,2).map((part) => part[0]?.toUpperCase()).join("") || "?";
+  return <span className={`avatar avatar-${size}`} aria-hidden="true">
+    {src ? <img src={src} alt="" /> : initials}
+  </span>;
+}
+
+export function StatusDistribution({ segments = [], label = "Status distribution" }) {
+  const safe = segments.filter((segment) => Number(segment.value) > 0);
+  const total = safe.reduce((sum, segment) => sum + Number(segment.value || 0), 0);
+  return <div className="status-distribution" aria-label={label}>
+    <div className="status-distribution-track">
+      {total > 0 ? safe.map((segment) => <span
+        key={segment.key || segment.label}
+        className={`status-distribution-segment tone-${segment.tone || "neutral"}`}
+        style={{ width:`${(Number(segment.value) / total) * 100}%` }}
+        title={`${segment.label}: ${segment.value}`}
+      />) : <span className="status-distribution-empty" />}
+    </div>
+    <div className="status-distribution-legend">
+      {segments.map((segment) => <span key={segment.key || segment.label}><i className={`tone-${segment.tone || "neutral"}`} />{segment.label}<b>{segment.value}</b></span>)}
+    </div>
+  </div>;
+}
+
+export function ProgressMeter({ value = 0, max = 0, label, detail }) {
+  const pct = max > 0 ? Math.max(0, Math.min(100, (Number(value) / Number(max)) * 100)) : 0;
+  return <div className="progress-meter">
+    <div className="progress-meter-head"><strong>{label}</strong>{detail && <span>{detail}</span>}</div>
+    <div className="progress-meter-track"><span style={{ width:`${pct}%` }} /></div>
+  </div>;
+}
+
 export function SectionHeader({ eyebrow, title, count, action = null }) {
   return <div className="section-header">
     <div>{eyebrow && <span>{eyebrow}</span>}<h2>{title}</h2></div>
