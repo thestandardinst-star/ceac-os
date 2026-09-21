@@ -555,6 +555,75 @@ test("Manager primary surfaces stay usable across supported phone widths", async
   }
 });
 
+test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
+  test.setTimeout(90000);
+  const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+
+  await expect(page.getByRole("heading", { name: "Administration", exact: true })).toBeVisible();
+  await expect(page.getByText("Need your action", { exact: true })).toBeVisible();
+  await expect(page.getByText("Reporting gaps", { exact: true })).toBeVisible();
+  await expect(page.getByText("Delivery risks", { exact: true })).toBeVisible();
+
+  await go(page, "Units");
+  await expect(page.getByRole("heading", { name: "Units", exact: true })).toBeVisible();
+  const unitCard = page.locator(".admin-unit-card").filter({ hasText: "Test Unit A" });
+  await expect(unitCard).toBeVisible();
+  await unitCard.click();
+  await expect(page.getByRole("navigation", { name: "Unit workspace" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Reporting", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Attendance", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cost", exact: true })).toBeVisible();
+
+  await go(page, "People");
+  await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
+  await page.getByLabel("Find a person").fill("Staff Fixture");
+  await page.getByRole("button", { name: /Staff Fixture/ }).click();
+  await expect(page.getByText("Protected HR", { exact: true })).toBeVisible();
+  await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
+  await expect(page.getByText(/entitlement not configured/i)).toBeVisible();
+
+  await go(page, "Attendance");
+  await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
+  await expect(page.getByText(/not a performance judgement/i)).toBeVisible();
+
+  await go(page, "Settings");
+  await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
+  await expect(page.getByText("Awaiting CEAC policy", { exact: true }).first()).toBeVisible();
+  await expect(page.getByPlaceholder("Not configured").first()).toHaveValue("");
+
+  await context.close();
+});
+
+test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
+  test.setTimeout(120000);
+  const widths = [320, 360, 375, 390, 414, 430];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Cost", "Finance", "Settings"];
+
+  for (const width of widths) {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
+
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
+        if (await direct.count()) await direct.click();
+        else {
+          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
+          await more.click();
+          await page.getByRole("menuitem", { name: destination, exact: true }).click();
+        }
+      } else {
+        const home = page.locator(".tabs").getByRole("button", { name: "Home", exact: true });
+        if (await home.count()) await home.click();
+      }
+
+      await expect(page.locator(".body")).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `Administration / ${destination} overflowed at ${width}px`).toBeLessThanOrEqual(1);
+    }
+    await context.close();
+  }
+});
+
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [
     ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects"]],
