@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader } from "../components/bits";
+import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader, Sheet, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 function money(minor, currency = "GHS") {
@@ -28,6 +28,9 @@ export default function Units({ me, openItem }) {
   const [area, setArea] = useState("overview");
   const [headChoice, setHeadChoice] = useState({});
   const [savingHead, setSavingHead] = useState(null);
+  const [unitSheet, setUnitSheet] = useState(null);
+  const [unitForm, setUnitForm] = useState({ name:"", code:"", parent_id:"", handles_finance:false, owns_calendar:false });
+  const [savingUnit, setSavingUnit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,7 +48,7 @@ export default function Units({ me, openItem }) {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString();
 
       const results = await Promise.all([
-        supabase.from("units").select("id,name,code,active").eq("active",true).order("name"),
+        supabase.from("units").select("id,name,code,parent_id,handles_finance,owns_calendar,active").eq("active",true).order("name"),
         supabase.from("unit_memberships").select("unit_id,role,profile_id,profiles(id,full_name,job_title,active)"),
         supabase.from("work_items").select("id,ref,title,kind,unit_id,assignee_id,status,due_at,completed_at,visibility").neq("visibility","private"),
         supabase.from("projects").select("id,name,status,lead_unit_id,starts_on,ends_on"),
@@ -113,6 +116,46 @@ export default function Units({ me, openItem }) {
     }
   }
 
+  function openUnitSetup(unit = null) {
+    setError(null);
+    setUnitSheet(unit || { id:null });
+    setUnitForm({
+      name: unit?.name || "",
+      code: unit?.code || "",
+      parent_id: unit?.parent_id || "",
+      handles_finance: Boolean(unit?.handles_finance),
+      owns_calendar: Boolean(unit?.owns_calendar),
+    });
+  }
+
+  async function saveUnitSetup() {
+    setSavingUnit(true);
+    setError(null);
+    try {
+      const name = unitForm.name.trim();
+      const code = unitForm.code.trim().toUpperCase();
+      if (!name) throw new Error("Enter the unit name.");
+      if (!code) throw new Error("Enter the short unit code.");
+      const payload = {
+        name,
+        code,
+        parent_id: unitForm.parent_id || null,
+        handles_finance: Boolean(unitForm.handles_finance),
+        owns_calendar: Boolean(unitForm.owns_calendar),
+      };
+      const result = unitSheet?.id
+        ? await supabase.from("units").update(payload).eq("id", unitSheet.id)
+        : await supabase.from("units").insert({ ...payload, org_id: me.org_id, active:true });
+      if (result.error) throw result.error;
+      setUnitSheet(null);
+      await load();
+    } catch (e) {
+      setError(humanError(e, "The unit setup could not be saved."));
+    } finally {
+      setSavingUnit(false);
+    }
+  }
+
   async function assignHead(unit) {
     const profileId = headChoice[unit.id];
     if (!profileId) return;
@@ -156,7 +199,10 @@ export default function Units({ me, openItem }) {
       <button className="back" onClick={() => setOpenUnitId(null)}>← All units</button>
       <div className="eyebrow">{openUnit.code || "Unit"}</div>
       <h1 className="h1">{openUnit.name}</h1>
-      <p className="screen-note">{openUnit.head ? `Led by ${openUnit.head.profiles?.full_name || "Unit Head"}` : "No Unit Head assigned"} · {openUnit.people.length} {openUnit.people.length === 1 ? "person" : "people"}.</p>
+      <div className="admin-unit-title-row">
+        <p className="screen-note">{openUnit.head ? `Led by ${openUnit.head.profiles?.full_name || "Unit Head"}` : "No Unit Head assigned"} · {openUnit.people.length} {openUnit.people.length === 1 ? "person" : "people"}.</p>
+        <button className="btn btn-ghost btn-sm" onClick={() => openUnitSetup(openUnit)}>Edit setup</button>
+      </div>
 
       {!openUnit.head && <ProductNotice tone="attention" title="Unit Head not assigned">Administration should assign an existing member as Unit Head after their account is active.</ProductNotice>}
 
@@ -257,10 +303,13 @@ export default function Units({ me, openItem }) {
   }
 
   return <div className="body admin-units">
-    <div className="office-page-intro">
-      <div className="eyebrow">Organisation structure</div>
-      <h1 className="h1">Units</h1>
-      <p className="screen-note">Each unit combines people, delivery, reporting, attendance context and cost without creating a second reporting system.</p>
+    <div className="office-page-intro admin-page-title-row">
+      <div>
+        <div className="eyebrow">Organisation structure</div>
+        <h1 className="h1">Units</h1>
+        <p className="screen-note">Each unit combines people, delivery, reporting, attendance context and cost without creating a second reporting system.</p>
+      </div>
+      <button className="btn btn-sm" onClick={() => openUnitSetup(null)}>Add unit</button>
     </div>
     {error && <ProductNotice tone="error" title="Units need attention" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
     <div className="admin-unit-list">
@@ -281,6 +330,24 @@ export default function Units({ me, openItem }) {
         </div>
       </button>)}
     </div>
-    {units.length === 0 && <EmptyState title="No active units">Create or activate units from organisation settings before assigning people or work.</EmptyState>}
+    {units.length === 0 && <EmptyState title="No active units">Create an organisation unit before assigning people or work.</EmptyState>}
+
+    {unitSheet && <Sheet onClose={() => setUnitSheet(null)}>
+      <div className="eyebrow">Organisation setup</div>
+      <div className="h2">{unitSheet.id ? "Edit unit" : "Add unit"}</div>
+      <p className="screen-note">Structure belongs to CEAC. Renaming a unit preserves its work and history because the record keeps the same identity.</p>
+      <FieldGroup label="Unit name"><input className="field" value={unitForm.name} onChange={(event) => setUnitForm((current) => ({ ...current, name:event.target.value }))} /></FieldGroup>
+      <FieldGroup label="Short code" hint="Used in short work references and spoken identifiers."><input className="field" value={unitForm.code} onChange={(event) => setUnitForm((current) => ({ ...current, code:event.target.value }))} /></FieldGroup>
+      <FieldGroup label="Parent unit" hint="Optional. Use only where CEAC actually has a parent-child unit relationship.">
+        <select className="field" value={unitForm.parent_id} onChange={(event) => setUnitForm((current) => ({ ...current, parent_id:event.target.value }))}>
+          <option value="">No parent unit</option>
+          {units.filter((unit) => unit.id !== unitSheet.id).map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+        </select>
+      </FieldGroup>
+      <label className="office-check-row"><input type="checkbox" checked={unitForm.handles_finance} onChange={(event) => setUnitForm((current) => ({ ...current, handles_finance:event.target.checked }))} /><span><strong>Handles finance</strong><small>This unit may receive finance-entry capabilities where the product explicitly allows them.</small></span></label>
+      <label className="office-check-row"><input type="checkbox" checked={unitForm.owns_calendar} onChange={(event) => setUnitForm((current) => ({ ...current, owns_calendar:event.target.checked }))} /><span><strong>Owns ministry calendar</strong><small>Marks the unit responsible for organisation calendar administration.</small></span></label>
+      {error && <ProductNotice tone="error" title="Unit setup could not be saved">{error}</ProductNotice>}
+      <button className="btn" disabled={savingUnit || !unitForm.name.trim() || !unitForm.code.trim()} onClick={saveUnitSetup}>{savingUnit ? "Saving…" : unitSheet.id ? "Save unit setup" : "Create unit"}</button>
+    </Sheet>}
   </div>;
 }
