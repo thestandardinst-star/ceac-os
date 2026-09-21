@@ -3317,3 +3317,37 @@ button.office-config-card:active{background:#EEF5F4}
 .manager-person-evidence{display:flex;flex-wrap:wrap;gap:6px 12px;padding:9px 13px;border-top:1px solid var(--line-soft);background:#FAFBFB;font-size:10.5px}
 .manager-person-evidence button{text-decoration:none!important;color:var(--ink-soft)!important}
 .manager-person-evidence button:hover{text-decoration:underline!important}
+
+
+/* Administration projects + organisation calendar */
+.admin-project-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0 4px}
+.admin-project-summary>div{padding:12px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.admin-project-summary b{display:block;font-size:20px;line-height:1}
+.admin-project-summary span{display:block;margin-top:6px;font-size:10px;color:var(--ink-soft)}
+.admin-project-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin-project-card{display:grid;gap:11px;padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}
+.admin-project-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.admin-project-card-head span{display:block;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.admin-project-card-head strong{display:block;margin-top:3px;font-size:14px}
+.admin-project-card-head small{font-size:9.5px;color:var(--ink-faint)}
+.admin-project-card p{font-size:11px;line-height:1.45;color:var(--ink-soft)}
+.admin-project-meta{display:grid;gap:3px}
+.admin-project-meta span,.admin-project-no-objectives{font-size:10px;color:var(--ink-faint)}
+.calendar-window-switch{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px}
+.calendar-window-switch button{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink-soft);font-size:10.5px}
+.calendar-window-switch button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.admin-calendar-timeline{display:grid;gap:18px}
+.admin-calendar-day{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px}
+.admin-calendar-day>time{padding-top:10px;font-size:10.5px;font-weight:650;color:var(--ink-soft)}
+.admin-calendar-day>div{display:grid;gap:7px}
+.admin-calendar-event{display:grid;gap:3px;width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fff;text-align:left}
+.admin-calendar-event:hover{border-color:#C9D7D9}
+.admin-calendar-event-type{font-size:8.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+.admin-calendar-event strong{font-size:12.5px}
+.admin-calendar-event small{font-size:10px;color:var(--ink-soft)}
+@media(max-width:700px){
+  .admin-project-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-project-grid{grid-template-columns:1fr}
+  .admin-calendar-day{grid-template-columns:1fr;gap:6px}
+  .admin-calendar-day>time{padding-top:0}
+}
