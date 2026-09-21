@@ -2828,3 +2828,18 @@ textarea{width:100%}
 .loading-state-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(17,140,131,.28);animation:ceacPulse 1.4s infinite}
 @keyframes ceacPulse{0%{box-shadow:0 0 0 0 rgba(17,140,131,.28)}70%{box-shadow:0 0 0 8px rgba(17,140,131,0)}100%{box-shadow:0 0 0 0 rgba(17,140,131,0)}}
 @media(prefers-reduced-motion:reduce){.loading-state-dot{animation:none}}
+
+
+/* Product refinement: scalable Work and compact Finance */
+.work-scale-tools{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:8px;margin:12px 0}
+.finance-section{margin-top:14px;border:1px solid var(--manager-line,var(--line));border-radius:12px;background:var(--card);overflow:hidden}
+.finance-section>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;cursor:pointer;font-size:13px;font-weight:650}
+.finance-section>summary::-webkit-details-marker{display:none}
+.finance-section>summary b{min-width:26px;padding:4px 7px;border-radius:999px;background:var(--paper-2,#f4f5f5);text-align:center;font-size:10.5px;color:var(--ink-soft)}
+.finance-section[open]>summary{border-bottom:1px solid var(--line-soft)}
+.finance-section-body{padding:4px 14px 14px}
+.finance-request-amount{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px}
+@media(max-width:430px){
+  .work-scale-tools{grid-template-columns:1fr}
+  .finance-request-amount{grid-template-columns:1fr 110px}
+}
