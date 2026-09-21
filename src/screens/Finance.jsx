@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
-import { Sheet } from "../components/bits";
+import { Sheet, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 
 // Finance — the whole church in one place. In, out, and what is moving
 // between departments.
@@ -85,6 +85,7 @@ export default function Finance({ me }) {
   [...new Set([...Object.keys(inBy), ...Object.keys(outBy)])].forEach((c) => { diffBy[c] = (inBy[c] || 0) - (outBy[c] || 0); });
   const unconfirmed = transfers.filter((t) => t.state === "sent");
   const disputed = transfers.filter((t) => t.state === "disputed");
+  const financeCurrencies = [...new Set([...Object.keys(inBy), ...Object.keys(outBy), ...Object.keys(budBy)])].sort();
 
   async function saveIncome() {
     setBusy(true); setMsg(null);
@@ -133,9 +134,10 @@ export default function Finance({ me }) {
 
   return (
     <div className="body">
-      <div style={{ paddingTop: 26 }}>
+      <div className="finance-page-intro">
+        <div className="eyebrow">Organisation finance</div>
         <h1 className="h1">Finance</h1>
-        <p className="screen-note">Everything in and out, across the whole church. Entries are never edited or deleted — a mistake is corrected by adding a reversing entry, and both stay visible.</p>
+        <p className="screen-note">See recorded income, spend, budgets and unresolved transfers without combining currencies or pretending the ledger is a bank balance.</p>
       </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
@@ -154,18 +156,31 @@ export default function Finance({ me }) {
         </div>)}
 
       {tab === "overview" && (<>
-        <div className="sec"><span>This year</span><span>{year}</span></div>
-        <div className="metric-grid">
-          <div className="metric"><b style={{ fontSize: 16 }}>{showTotals(inBy)}</b><span>received</span></div>
-          <div className="metric"><b style={{ fontSize: 16 }}>{showTotals(outBy)}</b><span>spent</span></div>
-          <div className="metric"><b style={{ fontSize: 16 }}>{showTotals(diffBy)}</b><span>difference</span></div>
-          <div className="metric"><b style={{ fontSize: 16 }}>{showTotals(budBy)}</b><span>budgeted</span></div>
+        <SectionHeader eyebrow={String(year)} title="Financial position by currency" />
+        <div className="finance-currency-grid">
+          {financeCurrencies.length === 0 && <EmptyState compact title="No finance records yet">Income, spend and budget records will build this view automatically.</EmptyState>}
+          {financeCurrencies.map((currency) => {
+            const received = Number(inBy[currency] || 0);
+            const spent = Number(outBy[currency] || 0);
+            const budgeted = Number(budBy[currency] || 0);
+            const difference = received - spent;
+            return <article className="finance-currency-card" key={currency}>
+              <div className="finance-currency-card-head"><div><span>Currency</span><strong>{currency}</strong></div><small>{year}</small></div>
+              <div className="finance-currency-facts">
+                <div><b>{money(received,currency)}</b><span>received</span></div>
+                <div><b>{money(spent,currency)}</b><span>spent</span></div>
+                <div><b>{money(budgeted,currency)}</b><span>budgeted</span></div>
+                <div><b>{money(difference,currency)}</b><span>recorded in minus out</span></div>
+              </div>
+              {budgeted > 0 && <ProgressMeter value={spent} max={budgeted} label="Spend against recorded budget" detail={money(spent,currency) + " of " + money(budgeted,currency)} />}
+              {budgeted > 0 && spent > budgeted && <ProductNotice tone="attention" title="Recorded spend is above recorded budget">Open the department rows below before drawing a conclusion.</ProductNotice>}
+            </article>;
+          })}
         </div>
-        <p className="small" style={{ marginTop: 8 }}>
-          Difference is simply what was recorded in less what was recorded out. It is not a bank balance, it does not include money held before this system started, and currencies are never converted into one another.
-        </p>
+        <p className="screen-note">Recorded in minus recorded out is not a bank balance and does not include opening balances or unrecorded activity. Currencies are never converted into one another.</p>
 
-        <div className="sec"><span>By department</span></div>
+        <SectionHeader eyebrow="Departments" title="Where money is moving" />
+        <div className="finance-unit-grid">
         {units.map((u) => {
           const outB = sumByCurrency(spend.filter((s) => s.unit_id === u.id));
           const gotB = sumByCurrency(transfers.filter((x) => x.to_unit_id === u.id && x.state === "confirmed"));
@@ -173,19 +188,17 @@ export default function Finance({ me }) {
           const out = Object.keys(outB).length, got = Object.keys(gotB).length, bud = Object.keys(budB).length;
           if (!out && !got && !bud) return null;
           return (
-            <div key={u.id} className="row">
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <div className="row-t">{u.name}</div>
-                <div className="row-t">{showTotals(outB)}</div>
+            <article key={u.id} className="finance-unit-card">
+              <div className="finance-unit-card-head"><strong>{u.name}</strong><span>{showTotals(outB)} spent</span></div>
+              <div className="finance-unit-card-meta">
+                <span>{bud ? showTotals(budB) + " budget recorded" : "No budget recorded"}</span>
+                {got ? <span>{showTotals(gotB)} confirmed transfers received</span> : <span>No confirmed transfers received</span>}
               </div>
-              <div className="row-m">
-                spent{bud ? " of " + showTotals(budB) + " budget" : ", no budget set"}
-                {got ? " · received " + showTotals(gotB) : ""}
-              </div>
-            </div>);
+            </article>);
         })}
+        </div>
         {units.every((u) => !spend.some((s) => s.unit_id === u.id)) &&
-          <div className="card small">Nothing has been recorded against any department yet.</div>}
+          <EmptyState compact title="No department spend recorded">Cost entries will appear here once they are recorded against a unit.</EmptyState>}
       </>)}
 
       {tab === "in" && (<>
