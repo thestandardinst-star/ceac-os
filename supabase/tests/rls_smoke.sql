@@ -17,6 +17,13 @@ insert into public.projects(
   '31000000-0000-4000-8000-000000000002'
 );
 
+insert into public.project_units(project_id,unit_id,role)
+values(
+  '49000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000012',
+  'participant'
+);
+
 insert into public.meeting_sessions(
   id,org_id,scope,unit_id,title,agenda,starts_at,ends_at,provider,join_url,created_by
 ) values(
@@ -30,6 +37,22 @@ insert into public.meeting_sessions(
   now()+interval '1 day 1 hour',
   'zoom',
   'https://zoom.us/j/123456789',
+  '31000000-0000-4000-8000-000000000002'
+);
+
+insert into public.meeting_participants(meeting_id,profile_id,role,source_type,source_id,invited_by)
+values
+(
+  '4a000000-0000-4000-8000-000000000001',
+  '31000000-0000-4000-8000-000000000002',
+  'organiser','organiser',null,
+  '31000000-0000-4000-8000-000000000002'
+),
+(
+  '4a000000-0000-4000-8000-000000000001',
+  '31000000-0000-4000-8000-000000000001',
+  'participant','selected',
+  '31000000-0000-4000-8000-000000000001',
   '31000000-0000-4000-8000-000000000002'
 );
 
@@ -82,6 +105,44 @@ begin
   );
 
   perform public.mark_room_read(v_unit_room);
+
+  declare
+    v_sub_room uuid;
+    v_sub_message uuid;
+  begin
+    select id into v_sub_room
+    from public.rooms
+    where kind='sub_team'
+      and sub_team_id='22000000-0000-4000-8000-000000000011'::uuid;
+
+    if v_sub_room is null then
+      raise exception 'Rooms failure: Staff sub-team Room was not bootstrapped or visible.';
+    end if;
+
+    v_sub_message:=public.send_room_message(
+      v_sub_room,
+      'Sub-team Room acceptance message',
+      null,
+      '[]'::jsonb,
+      array['31000000-0000-4000-8000-000000000002'::uuid]
+    );
+    if v_sub_message is null then
+      raise exception 'Rooms failure: Staff could not send in their Sub-team Room.';
+    end if;
+
+    begin
+      perform public.send_room_message(
+        v_sub_room,
+        'Invalid sub-team mention',
+        null,
+        '[]'::jsonb,
+        array['31000000-0000-4000-8000-000000000006'::uuid]
+      );
+      raise exception 'Rooms failure: non-member mention was accepted in Sub-team Room.';
+    exception when others then
+      if sqlerrm='Rooms failure: non-member mention was accepted in Sub-team Room.' then raise; end if;
+    end;
+  end;
 
   begin
     insert into public.room_messages(room_id,org_id,author_id,body)
@@ -206,6 +267,24 @@ $rooms_other_unit$;
 
 reset role;
 set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000006',true);
+
+do $subteam_same_unit$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count
+  from public.rooms
+  where kind='sub_team'
+    and sub_team_id='22000000-0000-4000-8000-000000000011'::uuid;
+  if v_count<>0 then
+    raise exception 'Rooms RLS failure: same-unit non-member can read Sub-team Room.';
+  end if;
+end
+$subteam_same_unit$;
+
+reset role;
+set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
 
 do $meeting_manager$
@@ -227,7 +306,140 @@ begin
 end
 $meeting_manager$;
 
-do $$
+do $meeting_schedule_manager$
+declare
+  v_selected uuid;
+  v_project_managers uuid;
+begin
+  begin
+    insert into public.meeting_sessions(
+      org_id,scope,unit_id,title,starts_at,provider,created_by
+    ) values(
+      '10000000-0000-4000-8000-000000000010',
+      'unit',
+      '20000000-0000-4000-8000-000000000011',
+      'Direct meeting bypass',
+      now()+interval '2 days',
+      'zoom',
+      '31000000-0000-4000-8000-000000000002'
+    );
+    raise exception 'Meeting security failure: Manager directly inserted meeting_sessions.';
+  exception when insufficient_privilege then null;
+  end;
+
+  v_selected:=public.schedule_meeting(
+    'unit',
+    '20000000-0000-4000-8000-000000000011',
+    null,
+    'Selected Audience Security Fixture',
+    'Only the selected Staff member should see this.',
+    now()+interval '2 days',
+    now()+interval '2 days 1 hour',
+    'zoom',
+    'https://zoom.us/j/111111111',
+    null,
+    jsonb_build_array(jsonb_build_object(
+      'type','selected',
+      'id','31000000-0000-4000-8000-000000000001'
+    ))
+  );
+
+  if v_selected is null then
+    raise exception 'Meeting failure: schedule_meeting did not return an id.';
+  end if;
+
+  v_project_managers:=public.schedule_meeting(
+    'project',
+    null,
+    '49000000-0000-4000-8000-000000000001',
+    'Project Managers Security Fixture',
+    'Managers from collaborating project units.',
+    now()+interval '3 days',
+    now()+interval '3 days 1 hour',
+    'zoom',
+    'https://zoom.us/j/222222222',
+    null,
+    jsonb_build_array(jsonb_build_object(
+      'type','project_managers',
+      'id','49000000-0000-4000-8000-000000000001'
+    ))
+  );
+
+  if v_project_managers is null then
+    raise exception 'Meeting failure: project-manager meeting was not created.';
+  end if;
+end
+$meeting_schedule_manager$;
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
+
+do $meeting_selected_staff$
+declare n integer;
+begin
+  select count(*) into n
+  from public.meeting_sessions
+  where title='Selected Audience Security Fixture';
+  if n<>1 then
+    raise exception 'Meeting audience failure: selected Staff participant cannot see meeting.';
+  end if;
+end
+$meeting_selected_staff$;
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000006',true);
+
+do $meeting_omitted_staff$
+declare n integer;
+begin
+  select count(*) into n
+  from public.meeting_sessions
+  where title='Selected Audience Security Fixture';
+  if n<>0 then
+    raise exception 'Meeting audience failure: omitted same-unit Staff can see selected meeting.';
+  end if;
+end
+$meeting_omitted_staff$;
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000007',true);
+
+do $meeting_project_manager$
+declare n integer;
+begin
+  select count(*) into n
+  from public.meeting_sessions
+  where title='Project Managers Security Fixture';
+  if n<>1 then
+    raise exception 'Meeting audience failure: collaborating unit Manager cannot see project-manager meeting.';
+  end if;
+end
+$meeting_project_manager$;
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000005',true);
+
+do $meeting_project_staff_omitted$
+declare n integer;
+begin
+  select count(*) into n
+  from public.meeting_sessions
+  where title='Project Managers Security Fixture';
+  if n<>0 then
+    raise exception 'Meeting audience failure: non-manager project-unit Staff can see manager-only meeting.';
+  end if;
+end
+$meeting_project_staff_omitted$;
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
+
+do $
 begin
   begin
     perform public.create_pending_invitation(
