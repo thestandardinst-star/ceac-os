@@ -209,7 +209,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     <p className="screen-note">Feedback saved here is visible to this staff member, you, and authorised Administration & HR users. There are no private manager notes.</p>
     {feedback.map((entry) => <div key={entry.id} className="row"><div className="row-t">{entry.profiles?.full_name || "Manager"}</div><div className="row-m">{dateOnly(entry.created_at)}</div><div className="row-note">{entry.note}</div></div>)}
     {feedback.length === 0 && <div className="card small">No feedback has been recorded.</div>}
-    <textarea className="field" rows={3} placeholder="Write factual, visible feedback" value={note} onChange={(event) => setNote(event.target.value)} />
+    <FieldGroup label="Feedback visible to this staff member" hint="Keep it factual and tied to work, support or an agreed development point."><textarea className="field" rows={3} placeholder="Write factual, visible feedback" value={note} onChange={(event) => setNote(event.target.value)} /></FieldGroup>
     <button className="btn wide-auto" style={{ marginTop: 10 }} onClick={addFeedback} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Save visible feedback"}</button>
   </div>;
 }
