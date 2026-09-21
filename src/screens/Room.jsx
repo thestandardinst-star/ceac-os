@@ -59,11 +59,19 @@ export default function Room({
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [canAnnounce, setCanAnnounce] = useState(Boolean(me.is_admin || me.is_exec));
   const endRef = useRef(null);
 
   const canCoordinate = Boolean(me.is_admin || me.is_exec || me.role === "manager");
 
   useEffect(() => { loadInitialRoom(); }, [context?.kind, context?.unitId, context?.subTeamId, context?.projectId]);
+  useEffect(() => {
+    if (me.is_admin || me.is_exec) { setCanAnnounce(true); return; }
+    supabase.from("capabilities").select("id").eq("profile_id", me.id).eq("capability", "post_announcement").maybeSingle()
+      .then(({ data, error: capabilityError }) => {
+        if (!capabilityError) setCanAnnounce(Boolean(data));
+      });
+  }, [me.id, me.is_admin, me.is_exec]);
 
   useEffect(() => {
     if (!room?.id) return undefined;
@@ -419,7 +427,7 @@ export default function Room({
         {workOptions.length > 0 && <button onClick={() => setPanel("work")}><span>✓</span><div><strong>Link work</strong><small>Keep the task in the conversation</small></div></button>}
         {projectOptions.length > 0 && <button onClick={() => setPanel("project")}><span>▱</span><div><strong>Link project</strong><small>Add project context</small></div></button>}
         {canCoordinate && <button onClick={() => { setPanel(null); scheduleMeeting?.(meetingContext()); }}><span>◷</span><div><strong>Schedule meeting</strong><small>Invite the right CEAC audience</small></div></button>}
-        {(me.is_admin || me.is_exec) && openAnnouncements && <button onClick={() => { setPanel(null); openAnnouncements(); }}><span>◉</span><div><strong>Make announcement</strong><small>Publish through the announcement system</small></div></button>}
+        {canAnnounce && openAnnouncements && <button onClick={() => { setPanel(null); openAnnouncements(); }}><span>◉</span><div><strong>Make announcement</strong><small>Publish through the announcement system</small></div></button>}
       </div>}
 
       {panel === "scope" && <div className="room-picker-panel">
