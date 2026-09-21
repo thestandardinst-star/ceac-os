@@ -28,7 +28,7 @@ import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
 import ManagerReports from "./screens/ManagerReports";
 import Announcements from "./screens/Announcements";
-import { Tabs, SideNav } from "./components/bits";
+import { MobileTopBar, Tabs, SideNav } from "./components/bits";
 import AuthFrame from "./components/AuthFrame";
 
 export default function App() {
@@ -101,6 +101,7 @@ export default function App() {
   const isAdmin = Boolean(me.is_admin);
   const isExec = Boolean(me.is_exec);
   const isUnitManager = !isAdmin && !isExec && me.role === "manager";
+  const isStaff = !isAdmin && !isExec && !isUnitManager;
   const isManager = isAdmin || isUnitManager;
   const overlay = itemId || assigning || goalId || person || projectId;
 
@@ -138,6 +139,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
+      {isStaff && <MobileTopBar me={me} />}
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
