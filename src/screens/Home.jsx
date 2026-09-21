@@ -386,8 +386,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
       {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Recent movement</div><h2 id="staff-changed-heading">What changed</h2></div></div>
-        {roomMentions.map((message) => {
+        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">Updates</h2></div></div>
+        {roomMentions.slice(0, 3).map((message) => {
           const room = message.rooms;
           const roomName = room?.kind === "project" ? room.projects?.name : room?.units?.name;
           return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
@@ -400,13 +400,13 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
             <div className="row-note">{message.body}</div>
           </button>;
         })}
-        {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
+        {feedback.slice(0, 2).map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
           <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
           <div className="row-note">{note.note}</div>
         </div>)}
         {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
-        {leaveUpdates.map((request) => <div key={`leave-update-${request.id}`} className="row">
+        {leaveUpdates.slice(0, 2).map((request) => <div key={`leave-update-${request.id}`} className="row">
           <div className="row-t">Your leave request was {request.status}</div>
           <div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>
           {request.decision_note && <div className="row-note">{request.decision_note}</div>}
@@ -504,23 +504,30 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         </div>)}
       </section>}
 
-      {announcements.length > 0 && <section className="home-panel home-panel-announcement" aria-labelledby="staff-announcements-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">From CEAC</div><h2 id="staff-announcements-heading">Announcements</h2></div>
-          <button className="text-action" onClick={openAnnouncements}>See all</button>
+      {announcements.length > 0 && <details className="home-panel home-panel-secondary">
+        <summary className="home-secondary-summary">
+          <span><small>From CEAC</small><strong>Announcements</strong></span>
+          <b>{announcements.length}</b>
+        </summary>
+        <div className="home-secondary-body">
+          {announcements.slice(0, 2).map((announcement) => {
+            const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
+            return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
+              <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
+              <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
+              {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
+            </button>;
+          })}
+          <button className="text-action" onClick={openAnnouncements}>See all announcements</button>
         </div>
-        {announcements.map((announcement) => {
-          const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
-          return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
-            <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
-            <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
-            {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
-          </button>;
-        })}
-      </section>}
+      </details>}
 
-      <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Your factual record</div><h2 id="staff-week-heading">This week</h2></div></div>
+      <details className="home-panel home-panel-week home-panel-secondary">
+        <summary className="home-secondary-summary">
+          <span><small>Your factual record</small><strong>This week</strong></span>
+          <b>{completedThisWeek.length}</b>
+        </summary>
+        <div className="home-secondary-body">
         <div className="home-stat-grid">
           <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
           <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
@@ -529,7 +536,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         {drill && <div className="home-drill"><div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
           {drillRows.length ? drillRows.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No work in this group.</div>}
         </div>}
-      </section>
+        </div>
+      </details>
     </div>}
 
     {ask && <Sheet onClose={() => setAsk(false)}>
