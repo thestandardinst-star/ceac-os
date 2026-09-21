@@ -569,10 +569,11 @@ test("Administration surfaces use policy-safe HR states and real employee record
   const unitCard = page.locator(".admin-unit-card").filter({ hasText: "Test Unit A" });
   await expect(unitCard).toBeVisible();
   await unitCard.click();
-  await expect(page.getByRole("navigation", { name: "Unit workspace" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Reporting", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Attendance", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Cost", exact: true })).toBeVisible();
+  const unitWorkspace = page.getByRole("navigation", { name: "Unit workspace" });
+  await expect(unitWorkspace).toBeVisible();
+  await expect(unitWorkspace.getByRole("button", { name: "Reporting", exact: true })).toBeVisible();
+  await expect(unitWorkspace.getByRole("button", { name: "Attendance", exact: true })).toBeVisible();
+  await expect(unitWorkspace.getByRole("button", { name: "Cost", exact: true })).toBeVisible();
 
   await go(page, "People");
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
