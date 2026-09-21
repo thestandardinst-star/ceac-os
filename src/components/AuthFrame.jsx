@@ -20,7 +20,22 @@ export default function AuthFrame({ eyebrow = "CEAC OS", title, description, chi
         <div className="auth-story-copy">
           <div className="auth-story-kicker">One operating space</div>
           <h2>Know what matters.<br />Move the work forward.</h2>
-          <p>Work, projects, people, decisions and records stay connected — without turning the day into another reporting exercise.</p>
+          <p>CEAC OS connects the work, the people, the decisions and the record — without turning the day into another reporting exercise.</p>
+
+          <div className="auth-signal-stack" aria-hidden="true">
+            <div className="auth-signal primary">
+              <span className="auth-signal-dot" />
+              <div><b>Today</b><small>What needs your attention now</small></div>
+            </div>
+            <div className="auth-signal">
+              <span className="auth-signal-dot" />
+              <div><b>Pulse</b><small>How your area is moving</small></div>
+            </div>
+            <div className="auth-signal">
+              <span className="auth-signal-dot" />
+              <div><b>Insight</b><small>What is changing over time</small></div>
+            </div>
+          </div>
         </div>
 
         <div className="auth-story-rail" aria-hidden="true">
