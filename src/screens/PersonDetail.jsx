@@ -123,7 +123,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     finally { setBusy(false); }
   }
 
-  if (!person) return <div className="body"><button className="back" onClick={back}>← Team</button>{error ? <div className="flag flag-brick"><h4>Could not open person detail</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+  if (!person) return <div className="body manager-person-detail"><button className="back" onClick={back}>← Team</button>{error ? <div className="flag flag-brick"><h4>Could not open person detail</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
 
   const periodStart = new Date(); periodStart.setDate(periodStart.getDate() - periodDays);
   const current = items.filter((item) => !["completed", "self_certified", "cancelled"].includes(item.status));
@@ -141,7 +141,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
   const approvedFirstTime = reviewed.filter((item) => item.first_time_approved === true);
   const filters = [["active", "Active"], ["waiting_on", "Waiting"], ["returned", "Returned"], ["overdue", "Overdue"], ["in_review", "Awaiting review"]];
 
-  return <div className="body">
+  return <div className="body manager-person-detail">
     <button className="back" onClick={back}>← Team</button>
     <div className="eyebrow">Operational view · {me.unit_name}</div>
     <h1 className="h1" style={{ marginTop: 6 }}>{person.profiles?.full_name || "—"}</h1>
