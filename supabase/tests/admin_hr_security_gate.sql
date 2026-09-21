@@ -78,14 +78,22 @@ returns integer
 language sql
 as $$ select 1 $$;
 
-do $$
+do $
+declare v_oid oid:='public.security_gate_default_probe()'::regprocedure::oid;
 begin
-  if has_function_privilege('anon','public.security_gate_default_probe()','EXECUTE')
-     or has_function_privilege('authenticated','public.security_gate_default_probe()','EXECUTE')
-     or has_function_privilege('public','public.security_gate_default_probe()','EXECUTE') then
+  if has_function_privilege('anon',v_oid,'EXECUTE')
+     or has_function_privilege('authenticated',v_oid,'EXECUTE')
+     or exists (
+       select 1
+       from pg_proc p
+       cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+       where p.oid=v_oid
+         and a.grantee=0
+         and a.privilege_type='EXECUTE'
+     ) then
     raise exception 'Security gate failure: newly created public functions still receive broad EXECUTE by default.';
   end if;
-end $$;
+end $;
 
 drop function public.security_gate_default_probe();
 
