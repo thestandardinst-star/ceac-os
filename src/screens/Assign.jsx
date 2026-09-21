@@ -3,6 +3,7 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
 import { parseWorkInput } from "../lib/parseTask";
+import { humanError } from "../lib/productLanguage";
 
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
