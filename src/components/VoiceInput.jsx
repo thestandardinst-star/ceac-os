@@ -42,7 +42,8 @@ export default function VoiceInput({
 
     const recognition = new SR();
     recognition.lang = language;
-    recognition.continuous = true;
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    recognition.continuous = !isiOS;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
