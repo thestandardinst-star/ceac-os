@@ -33,8 +33,8 @@ insert into public.meeting_sessions(
   '20000000-0000-4000-8000-000000000011',
   'Unit Meeting Security Fixture',
   'RLS acceptance only',
-  now()+interval '1 day',
-  now()+interval '1 day 1 hour',
+  now()-interval '1 hour',
+  now()+interval '1 hour',
   'zoom',
   'https://zoom.us/j/123456789',
   '31000000-0000-4000-8000-000000000002'
@@ -177,15 +177,21 @@ declare
   v_meeting uuid:='4a000000-0000-4000-8000-000000000001'::uuid;
   v_count integer;
 begin
-  -- Same-unit Staff may see the meeting and add a factual note.
-  insert into public.meeting_records(meeting_id,org_id,kind,body,author_id)
+  -- A participant may keep a private note once the meeting has started.
+  insert into public.meeting_private_notes(meeting_id,org_id,author_id,body)
   values(
     v_meeting,
     '10000000-0000-4000-8000-000000000010',
-    'note',
-    'Staff factual meeting note',
-    '31000000-0000-4000-8000-000000000001'
+    '31000000-0000-4000-8000-000000000001',
+    'Staff private meeting note'
   );
+
+  select count(*) into v_count
+  from public.meeting_private_notes
+  where meeting_id=v_meeting and author_id='31000000-0000-4000-8000-000000000001'::uuid;
+  if v_count<>1 then
+    raise exception 'Meeting RLS failure: Staff cannot read their own private note.';
+  end if;
 
   select count(*) into v_count from public.meeting_sessions where id=v_meeting;
   if v_count<>1 then
@@ -207,7 +213,23 @@ begin
 end
 $meeting_staff$;
 
-do $$
+-- Even the organising manager must not be able to read another participant's private note.
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
+do $private_note_isolation$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count
+  from public.meeting_private_notes
+  where meeting_id='4a000000-0000-4000-8000-000000000001'::uuid;
+  if v_count<>0 then
+    raise exception 'Meeting RLS failure: organiser can read another participant private note.';
+  end if;
+end
+$private_note_isolation$;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
+
+do $
 begin
   begin
     insert into public.pending_invitations(org_id,email,full_name,unit_id,role,invited_by,expires_at)
