@@ -473,9 +473,9 @@ export default function ManagerReports({ me, openItem }) {
 
   function printReport() { window.print(); }
 
-  if (loading) return <div className="body"><div className="spin">Preparing reports...</div></div>;
+  if (loading) return <div className="body manager-reports"><div className="spin">Preparing reports...</div></div>;
 
-  return <div className="body report-print">
+  return <div className="body manager-reports report-print">
     <div className="print-only report-print-brand">
       <b>CEAC</b>
       <span>{me.unit_name} · Manager report</span>
