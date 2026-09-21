@@ -2808,3 +2808,18 @@ textarea{width:100%}
 .section-header h2{font-size:18px;line-height:1.15;letter-spacing:-.02em}
 .section-header-actions{display:flex;align-items:center;gap:8px}
 .section-header-actions>b{min-width:26px;padding:4px 7px;border-radius:999px;background:var(--paper-2,#f4f5f5);text-align:center;font-size:10.5px;color:var(--ink-soft)}
+
+
+/* Product refinement: evidence-first reports */
+.report-analysis-toggle{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:20px 0 8px;padding:12px 13px;border:1px solid var(--manager-line,var(--line));
+  border-radius:12px;background:var(--card)
+}
+.report-analysis-toggle>div{display:grid;gap:3px}
+.report-analysis-toggle strong{font-size:13px}
+.report-analysis-toggle span{font-size:10.5px;line-height:1.35;color:var(--ink-faint)}
+.report-analysis{padding-bottom:4px}
+@media(max-width:430px){
+  .report-analysis-toggle{align-items:flex-start;flex-direction:column}
+}
