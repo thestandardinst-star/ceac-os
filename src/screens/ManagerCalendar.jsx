@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Sheet } from "../components/bits";
+import { Sheet, ProductNotice, LoadingState } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 const FILTERS = [["all","All"],["meetings","Meetings"],["projects","Projects"],["tasks","Tasks"],["leave","Leave"],["activities","Ministry/unit activities"]];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -41,7 +42,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       supabase.from("meeting_sessions").select("id,title,scope,unit_id,project_id,starts_at,ends_at,status,provider,join_url").order("starts_at")
     ]);
     const firstError=[projects.error,work.error,members.error,leave.error,ministry.error,ministryNeeds.error,meetings.error].find(Boolean);
-    if(firstError){ setError(firstError.message); setLoading(false); return; }
+    if(firstError){ setError(humanError(firstError,"Calendar could not be loaded.")); setLoading(false); return; }
     const memberIds=new Set((members.data||[]).map(x=>x.profile_id));
     const out=[];
     (projects.data||[]).filter((p)=>p.lead_unit_id===me.unit_id||(p.project_units||[]).some((row)=>row.unit_id===me.unit_id)).forEach(p=>{
@@ -112,7 +113,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
   return <div className="body manager-calendar">
     <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Meetings, project dates, task deadlines, approved leave and ministry activity in one place.</p></div>
     <button className="btn wide-auto manager-calendar-create" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</button>
-    {error&&<div className="flag flag-brick"><h4>Could not load the calendar</h4>{error}</div>}
+    {error&&<ProductNotice tone="error" title="Could not load the calendar">{error}</ProductNotice>}
     <div className="manager-calendar-toolbar">
       <div className="calendar-view-toggle" role="group" aria-label="Calendar view">
         <button className={view==="month"?"on":""} onClick={()=>setView("month")}>Month</button>
@@ -123,10 +124,10 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       </button>
     </div>
     <div className="manager-calendar-period"><button aria-label="Previous period" onClick={()=>move(-1)}>←</button><strong>{heading}</strong><button aria-label="Next period" onClick={()=>move(1)}>→</button></div>
-    {loading?<div className="spin">Loading calendar...</div>:<div className={`manager-calendar-grid manager-calendar-${view}`}>
+    {loading?<LoadingState label="Loading calendar…" />:<div className={`manager-calendar-grid manager-calendar-${view}`}>
       {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className={`manager-calendar-day ${dayEvents.length?"has-events":"is-empty"} ${muted?"is-muted":""}`}>
         <div className="manager-calendar-date">{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        <div className="manager-calendar-events">{dayEvents.map(e=><button className="manager-calendar-event" key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.meetingId?openMeeting?.(e.meetingId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}>{e.title}</button>)}</div>
+        <div className="manager-calendar-events">{dayEvents.map(e=><button className={`manager-calendar-event ${e.type==="meetings"?"is-meeting":""} ${e.meetingStatus==="cancelled"?"is-cancelled":""}`} key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.meetingId?openMeeting?.(e.meetingId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}><span>{e.title}</span>{e.type==="meetings"&&e.meta&&<small>{e.meta}</small>}</button>)}</div>
       </div>})}
     </div>}
     {!loading&&visible.length===0&&<div className="card small manager-calendar-empty">No events are recorded for this view and period.</div>}
