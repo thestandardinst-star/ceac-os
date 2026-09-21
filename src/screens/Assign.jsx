@@ -404,7 +404,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
 
   if (done) {
     return (
-      <div className="body">
+      <div className="body assign-screen assign-done">
         <button className="back" onClick={back}>← Back</button>
         <div className="empty">
           <h3>{done} is with them</h3>
@@ -416,12 +416,17 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   }
 
   return (
-    <div className="body">
-      <button className="back" onClick={back}>← Back</button>
-      <h1 className="h1">Give out work</h1>
-      <p className="screen-note">Describe what needs to happen and what result you expect.</p>
-
-      <VoiceInput onResult={handleVoice} label="Speak your instruction" />
+    <div className="body assign-screen">
+      <section className="assign-intro">
+        <button className="back" onClick={back}>← Back</button>
+        <div className="eyebrow">Create work</div>
+        <h1 className="h1">Give out work</h1>
+        <p className="screen-note">Describe the outcome naturally, then review exactly what CEAC understood before anything is sent.</p>
+        <div className="assign-voice">
+          <div><strong>Speak or type</strong><span>Voice can prefill the form. You remain in control.</span></div>
+          <VoiceInput onResult={handleVoice} label="Speak instruction" />
+        </div>
+      </section>
       {voiceProposal && <div className="voice-proposal">
         <div className="voice-proposal-head"><span>CEAC heard</span><strong>{voiceProposal.transcript}</strong></div>
         <div className="voice-proposal-facts">
