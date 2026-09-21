@@ -81,7 +81,7 @@ begin
 end
 $rooms_staff$;
 
-do $
+do $$
 begin
   begin
     insert into public.activity_events(org_id,actor_id,verb,object_type,object_id)
