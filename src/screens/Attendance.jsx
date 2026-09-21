@@ -105,7 +105,7 @@ export default function Attendance({ me }) {
       <div style={{ paddingTop: 26 }}>
         <div className="eyebrow">Factual administration</div>
     <h1 className="h1">Attendance &amp; leave</h1>
-        <p className="screen-note">Across the whole church. Hours are a record of activity, not a basis for pay or a performance judgement.</p>
+        <p className="screen-note">Across the whole church. Hours are a record of activity, not a basis for pay. Attendance is context, not a performance judgement.</p>
       </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
