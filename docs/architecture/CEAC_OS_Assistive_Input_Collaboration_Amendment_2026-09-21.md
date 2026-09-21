@@ -1,9 +1,9 @@
 # CEAC OS — Assistive Input & Collaboration Amendment
 
-**Date:** 21 September 2026  
-**Status:** APPROVED PRODUCT DECISION — binding  
-**Applies to:** all prior CEAC OS architecture, product-experience, Rooms, meetings, Staff/Manager collaboration and input behaviour  
-**Decision owner:** CEAC product owner  
+**Date:** 21 September 2026
+**Status:** APPROVED PRODUCT DECISION — binding
+**Applies to:** all prior CEAC OS architecture, product-experience, Rooms, meetings, Staff/Manager collaboration and input behaviour
+**Decision owner:** CEAC product owner
 **Implementation rule:** this amendment supersedes prior architecture only where it explicitly changes AI/input/collaboration behaviour. Existing security, evidence, no-ranking, Work Engine and protected-HR rules remain binding.
 
 ## 1. Product direction
