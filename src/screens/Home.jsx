@@ -152,7 +152,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const mentionRows = requireResult(mentionResult, "Room mentions");
       if (mentionRows.length) {
         const messageResult = await supabase.from("room_messages")
-          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,project_id,units(name),projects(name))")
+          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,sub_team_id,project_id,units(name),sub_teams(name),projects(name))")
           .in("id", mentionRows.map((row) => row.message_id));
         const messageRows = requireResult(messageResult, "Room mention messages");
         const byId = new Map(messageRows.map((row) => [row.id,row]));
@@ -390,10 +390,11 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">Updates</h2></div></div>
         {roomMentions.slice(0, 3).map((message) => {
           const room = message.rooms;
-          const roomName = room?.kind === "project" ? room.projects?.name : room?.units?.name;
+          const roomName = room?.kind === "project" ? room.projects?.name : room?.kind === "sub_team" ? room.sub_teams?.name : room?.units?.name;
           return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
             kind: room?.kind,
             unitId: room?.unit_id,
+            subTeamId: room?.sub_team_id,
             projectId: room?.project_id,
           })}>
             <div className="row-t">{message.profiles?.full_name || "A teammate"} mentioned you</div>
