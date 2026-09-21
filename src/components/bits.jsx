@@ -12,6 +12,12 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "team") return <svg {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
   if (name === "record") return <svg {...props}><path d="M6 3h9l3 3v15H6z" /><path d="M14 3v4h4" /><path d="M9 11h6M9 15h6M9 19h4" /></svg>;
   if (name === "me") return <svg {...props}><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>;
+  if (name === "projects") return <svg {...props}><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" /></svg>;
+  if (name === "calendar") return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18" /><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" /></svg>;
+  if (name === "manager-finance" || name === "finance") return <svg {...props}><path d="M4 20V9M9 20V4M14 20v-7M19 20V7" /><path d="M2 20h20" /></svg>;
+  if (name === "manager-reports" || name === "reports") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
+  if (name === "more") return <svg {...props}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" /></svg>;
+  if (name === "announcements") return <svg {...props}><path d="M3 11v2l12 4V7z" /><path d="M15 9l5-2v10l-5-2" /><path d="M6 14l1 6h4l-2-5" /></svg>;
   return <svg {...props}><circle cx="12" cy="12" r="2" /></svg>;
 }
 export function MobileTopBar({ me, roleLabel = "Staff" }) {
@@ -49,7 +55,7 @@ function tabItems(isManager = false) {
 export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange }) {
   const label = me.is_exec ? "Group Pastor" : me.is_admin ? "Administration" : (me.unit_name || "—");
   const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : tabItems(isManager);
-  const staffSurface = !isAdmin && !isExec && !isManager;
+  const operatingSurface = !isAdmin && !isExec;
   if (isAdmin) { items.splice(1, 0, ["announcements","Announcements"], ["units","Units"], ["people","People"], ["attendance","Attendance"], ["cost","Cost"], ["finance","Finance"], ["reporting","Reporting"]); items.push(["settings","Settings"]); }
   return (
     <aside className="side">
@@ -66,7 +72,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
       <nav>
         {items.map(([k, l]) => (
           <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>
-            {staffSurface && <Icon name={k} size={17} />}
+            {operatingSurface && <Icon name={k} size={17} />}
             <span>{l}</span>
           </button>))}
       </nav>
@@ -79,7 +85,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
   const items = isExec ? [["home","Home"],["announcements","Announcements"],["me","Me"]] : (isManager ? managerPrimary : tabItems(false));
   const moreActive = isManager && managerMore.some(([key]) => key === tab);
-  const staffSurface = !isAdmin && !isExec && !isManager;
+  const operatingSurface = !isAdmin && !isExec;
   useEffect(() => { setMoreOpen(false); }, [tab, isManager]);
   return (<>
     {isManager && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" aria-label="More Manager destinations" style={{
@@ -98,7 +104,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }
           if (k === "more") setMoreOpen((value) => !value);
           else { setMoreOpen(false); setTab(k); }
         }} aria-haspopup={k === "more" ? "menu" : undefined} aria-expanded={k === "more" ? moreOpen : undefined}>
-          {staffSurface ? <Icon name={k} size={18} /> : <i />} <span>{label}</span>
+          {operatingSurface ? <Icon name={k} size={18} /> : <i />} <span>{label}</span>
         </button>;
       })}
     </nav>
