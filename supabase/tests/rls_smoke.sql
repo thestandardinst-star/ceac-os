@@ -146,7 +146,7 @@ begin
 end
 $meeting_staff$;
 
-do $
+do $$
 begin
   begin
     insert into public.pending_invitations(org_id,email,full_name,unit_id,role,invited_by,expires_at)
@@ -227,7 +227,7 @@ begin
 end
 $meeting_manager$;
 
-do $
+do $$
 begin
   begin
     perform public.create_pending_invitation(
