@@ -520,9 +520,34 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     await expect(meetingRow).toBeVisible();
     await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
-    await expect(page.getByText("Notes & decisions", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Meeting workspace" })).toBeVisible();
+    await expect(page.getByText("Notes open when the meeting starts", { exact: true })).toBeVisible();
+    await expect(page.getByText("My notes", { exact: true })).toHaveCount(0);
     await context.close();
   }
+});
+
+test("Administration can combine multiple units into one meeting audience", async ({ browser }) => {
+  const title = "Acceptance multi-unit meeting";
+  const tomorrow = new Date(Date.now() + 2 * 86400000);
+  const pad = (value) => String(value).padStart(2, "0");
+  const localValue = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}T09:00`;
+
+  const { context, page } = await openAs(browser, "admin@ceac.local.test");
+  await go(page, "Home");
+  await page.getByRole("button", { name: "Schedule", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByPlaceholder("What is this meeting for?").fill(title);
+  await dialog.locator('input[type="datetime-local"]').first().fill(localValue);
+
+  await dialog.getByRole("button", { name: /Test Unit A/ }).click();
+  await dialog.getByRole("button", { name: /Test Unit B/ }).click();
+  await expect(dialog.getByText(/participant/).first()).toBeVisible();
+  await dialog.getByRole("button", { name: "Schedule and notify" }).click();
+
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  await expect(page.getByText(/participant/).first()).toBeVisible();
+  await context.close();
 });
 
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
