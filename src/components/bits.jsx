@@ -26,7 +26,7 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "settings") return <svg {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1V21H9.6v-.09a1.7 1.7 0 0 0-1.4-1.67 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.8 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1-.4H2V9.6h.09A1.7 1.7 0 0 0 3.76 8.2a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.2 3.8a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1V2h4v.09A1.7 1.7 0 0 0 15 3.76a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.2a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1 .4H21v4h-.09A1.7 1.7 0 0 0 19.4 15z" /></svg>;
   return <svg {...props}><circle cx="12" cy="12" r="2" /></svg>;
 }
-export function MobileTopBar({ me, roleLabel = "Staff" }) {
+export function MobileTopBar({ me, roleLabel = "Staff", onProfile }) {
   const initial = (me?.full_name || "C").trim().charAt(0).toUpperCase();
   return <header className="mobile-topbar" aria-label="CEAC OS">
     <div className="mobile-topbar-brand">
@@ -36,9 +36,9 @@ export function MobileTopBar({ me, roleLabel = "Staff" }) {
         <small>{me?.unit_name || "Airport City"} · {roleLabel}</small>
       </span>
     </div>
-    <div className="mobile-topbar-person" aria-label={me?.full_name || "Signed in user"}>
+    <button className="mobile-topbar-person" type="button" onClick={onProfile} aria-label={`Open ${me?.full_name || "your"} workspace`}>
       <span>{initial}</span>
-    </div>
+    </button>
   </header>;
 }
 
