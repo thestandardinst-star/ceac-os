@@ -128,4 +128,3 @@ Do not merge this package until:
 3. Quality Gate / Playwright passes including the new Staff viewport regression;
 4. PR is current with main;
 5. authenticated phone/laptop preview receives a final visual acceptance pass.
-
