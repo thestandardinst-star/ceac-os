@@ -86,7 +86,14 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
 
   useEffect(() => { loadList(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
-  useEffect(() => { setArea("overview"); }, [selectedId]);
+  useEffect(() => {
+    if (!selectedId) { setArea("overview"); return; }
+    const saved = sessionStorage.getItem(`ceac-project-area:${me.id}:${selectedId}`);
+    setArea(saved || "overview");
+  }, [selectedId, me.id]);
+  useEffect(() => {
+    if (selectedId) sessionStorage.setItem(`ceac-project-area:${me.id}:${selectedId}`, area);
+  }, [selectedId, me.id, area]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
 
   async function loadList() {
