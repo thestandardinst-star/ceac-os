@@ -326,3 +326,27 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
     await context.close();
   }
 });
+
+
+test("Staff PWA layout has no page-level horizontal overflow at supported phone widths", async ({ browser }) => {
+  test.setTimeout(90000);
+  const widths = [320, 360, 375, 390, 414, 430];
+  const destinations = ["Home", "Work", "Team", "Record", "Me"];
+
+  for (const width of widths) {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width, height: 844 });
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        await page.locator(".tabs").getByRole("button", { name: destination, exact: true }).click();
+      }
+      await expect(page.locator(".body")).toBeVisible();
+      const overflow = await page.evaluate(() => ({
+        document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        body: document.body.scrollWidth - document.body.clientWidth,
+      }));
+      expect(overflow.document, `${destination} overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+      expect(overflow.body, `${destination} body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+    }
+    await context.close();
+  }
+});
