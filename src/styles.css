@@ -2636,3 +2636,66 @@ textarea{width:100%}
 .manager-home .home-meeting-row time{flex:none;text-align:right}
 .mobile-topbar-person{cursor:pointer;transition:background .16s ease,border-color .16s ease,transform .16s ease}
 .mobile-topbar-person:active{transform:scale(.96);background:rgba(255,255,255,.13)}
+
+
+/* Assistive work creation — same premium operating language as Home/Rooms */
+.assign-screen{max-width:1040px!important}
+.assign-intro{
+  position:relative;margin:0 -16px 18px;padding:20px 16px 18px;color:#F7FAFB;
+  background:
+    radial-gradient(circle at 90% 6%,rgba(38,178,165,.17),transparent 28%),
+    linear-gradient(148deg,#17232D,#21343F);
+  border-radius:0 0 24px 24px;overflow:hidden
+}
+.assign-intro .back{color:#C6D2D8;margin-bottom:16px}
+.assign-intro .eyebrow{color:#68CFC5}
+.assign-intro .h1{margin-top:5px;color:#F9FBFC}
+.assign-intro .screen-note{max-width:680px;margin-top:7px;color:#AEBBC3}
+.assign-voice{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;padding:12px 13px;
+  border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.05)
+}
+.assign-voice>div:first-child{display:flex;flex-direction:column;min-width:0}
+.assign-voice strong{font-size:11.5px;color:#EEF5F7}
+.assign-voice span{margin-top:3px;color:#93A5AF;font-size:9.5px;line-height:1.35}
+.assign-voice .voice-input{margin:0;flex:none}
+.assign-voice .voice-button{
+  min-height:40px;border-color:rgba(255,255,255,.11);background:rgba(255,255,255,.08);color:#DDE8EC
+}
+.assign-voice .voice-button.live{background:#4B241B;border-color:#8F4A35;color:#FFD4C7}
+.assign-screen>.voice-proposal,.assign-screen>.flag{margin-left:0;margin-right:0}
+.assign-screen>.split{
+  align-items:flex-start;gap:14px!important
+}
+.assign-screen .main-col,.assign-screen .side-col{
+  min-width:0;padding:16px;border:1px solid #DCE4E7;border-radius:16px;background:#fff;
+  box-shadow:0 8px 26px rgba(25,40,50,.025)
+}
+.assign-screen .main-col .sec:first-child{margin-top:0}
+.assign-screen .sec{
+  margin-top:22px;color:#7C8B94;font-size:10px;font-weight:700;letter-spacing:.04em
+}
+.assign-screen .field{
+  margin-top:8px;background:#FBFCFC;border-color:#D7E1E4
+}
+.assign-screen select.field{min-height:44px}
+.assign-screen textarea.field{line-height:1.5}
+.assign-screen .hint{margin-top:7px;color:#87949B;font-size:10px;line-height:1.45}
+.assign-screen .assistive-field .voice-input.compact{right:7px;bottom:7px}
+.assign-screen .assistive-field.textarea textarea{padding-right:50px}
+.assign-screen .card.small{border-radius:12px;background:#F8FAFA}
+.assign-screen .side-col .btn{box-shadow:0 6px 18px rgba(17,140,131,.12)}
+.assign-done{padding-top:20px!important}
+@media (max-width:819px){
+  .assign-screen>.split{display:block!important}
+  .assign-screen .main-col,.assign-screen .side-col{padding:14px;border-radius:14px}
+  .assign-screen .side-col{margin-top:12px}
+  .assign-voice{align-items:flex-start;flex-direction:column}
+  .assign-voice .voice-input{width:100%}
+  .assign-voice .voice-button{width:100%;justify-content:center}
+}
+@media (min-width:820px){
+  .assign-intro{margin:28px 0 18px;padding:24px;border-radius:20px}
+  .assign-screen>.split{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr)}
+  .assign-screen .main-col,.assign-screen .side-col{padding:20px}
+}
