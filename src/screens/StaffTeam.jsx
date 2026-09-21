@@ -136,7 +136,7 @@ export default function StaffTeam({ me }) {
     <div className="staff-page-intro">
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1">Team</h1>
-      <p className="screen-note">Who is around, who is away, who leads what, and the shared references your unit uses.</p>
+      <p className="screen-note">People, leadership, availability and the shared references your unit uses.</p>
       <div className="team-summary">
         <strong>{team.length}</strong><span>people</span>
         {unitHeads[0]?.profiles && <><i /> <span>{unitHeads[0].profiles.full_name}, Unit Head</span></>}
