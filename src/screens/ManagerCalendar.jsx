@@ -98,7 +98,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   const move=(n)=>setCursor(view==="month"?new Date(cursor.getFullYear(),cursor.getMonth()+n,1):addDays(cursor,n*7));
   const heading=view==="month"?`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`:`${labelDate(dateKey(days[0]))} – ${labelDate(dateKey(days[6]))}`;
 
-  return <div className="body">
+  return <div className="body manager-calendar">
     <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Project dates, task deadlines, approved team leave and the ministry calendar in one place.</p></div>
     {error&&<div className="flag flag-brick"><h4>Could not load the calendar</h4>{error}</div>}
     <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:14}}>
