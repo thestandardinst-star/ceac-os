@@ -220,10 +220,10 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   }
 
   if (selectedId) {
-    if (!detail) return <div className="body"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <div className="flag flag-brick"><h4>Could not open project</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <div className="flag flag-brick"><h4>Could not open project</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
     const team = [...new Set(detail.work.map((item) => item.profiles?.full_name).filter(Boolean))];
     const unattached = detail.work.filter((item) => !item.objective_id);
-    return <div className="body">
+    return <div className="body manager-projects">
       <button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>
       <div className="eyebrow">{detail.kind} · {detail.status}</div>
       <h1 className="h1" style={{ marginTop: 6 }}>{detail.name}</h1>
@@ -297,7 +297,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>;
   }
 
-  return <div className="body">
+  return <div className="body manager-projects">
     <div style={{ paddingTop: 26 }}>
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1" style={{ marginTop: 6 }}>Projects</h1>
