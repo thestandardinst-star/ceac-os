@@ -1,10 +1,10 @@
 # CEAC OS — Current Build / Security Baseline
 
-**Checkpoint:** 21 September 2026  
-**Repository:** `thestandardinst-star/ceac-os`  
-**Stable branch:** `main`  
-**Active development branch:** `codex/admin-hr-completion`  
-**Supabase project:** `efjljhftsesssumtshvp`  
+**Checkpoint:** 21 September 2026
+**Repository:** `thestandardinst-star/ceac-os`
+**Stable branch:** `main`
+**Active development branch:** `codex/admin-hr-completion`
+**Supabase project:** `efjljhftsesssumtshvp`
 **Owner-facing URL:** <https://ceac-os-git.vercel.app>
 
 This file is the current handoff baseline for ChatGPT, Codex, Claude, or a human developer. Read it before changing CEAC OS.
