@@ -20,6 +20,9 @@ export default function Room({ me, context, back, openItem, openProject }) {
   const [messages, setMessages] = useState([]);
   const [body, setBody] = useState("");
   const [replyTo, setReplyTo] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [mentions, setMentions] = useState([]);
+  const [mentionOpen, setMentionOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
@@ -58,10 +61,38 @@ export default function Room({ me, context, back, openItem, openProject }) {
       if (result.error) throw result.error;
       if (!result.data) throw new Error("This Room is not available to your account.");
       setRoom(result.data);
-      await loadMessages(true, result.data.id);
+      await Promise.all([loadMessages(true, result.data.id), loadParticipants(result.data)]);
     } catch (err) {
       setError(err.message || "This Room could not be opened.");
       setLoading(false);
+    }
+  }
+
+  async function loadParticipants(currentRoom) {
+    try {
+      let unitIds = [];
+      if (currentRoom.kind === "unit") unitIds = [currentRoom.unit_id];
+      if (currentRoom.kind === "project") {
+        const projectResult = await supabase.from("projects")
+          .select("lead_unit_id,project_units(unit_id)").eq("id", currentRoom.project_id).single();
+        if (projectResult.error) throw projectResult.error;
+        unitIds = [...new Set([
+          projectResult.data.lead_unit_id,
+          ...(projectResult.data.project_units || []).map((row) => row.unit_id),
+        ].filter(Boolean))];
+      }
+      if (!unitIds.length) { setParticipants([]); return; }
+      const memberResult = await supabase.from("unit_memberships")
+        .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name)")
+        .in("unit_id", unitIds);
+      if (memberResult.error) throw memberResult.error;
+      const byId = new Map();
+      (memberResult.data || []).forEach((row) => {
+        if (row.profiles?.id && row.profiles.id !== me.id) byId.set(row.profiles.id, row.profiles);
+      });
+      setParticipants([...byId.values()].sort((a,b) => a.full_name.localeCompare(b.full_name)));
+    } catch {
+      setParticipants([]);
     }
   }
 
@@ -99,10 +130,10 @@ export default function Room({ me, context, back, openItem, openProject }) {
         p_body: clean,
         p_reply_to_id: replyTo?.id || null,
         p_refs: contextualRefs,
-        p_mention_ids: [],
+        p_mention_ids: mentions,
       });
       if (result.error) throw result.error;
-      setBody(""); setReplyTo(null);
+      setBody(""); setReplyTo(null); setMentions([]); setMentionOpen(false);
       await loadMessages(false);
     } catch (err) {
       setError(err.message || "Your message could not be sent.");
@@ -181,6 +212,23 @@ export default function Room({ me, context, back, openItem, openProject }) {
       {contextualRefs.length > 0 && <div className="room-composer-context">
         <span>Linked to</span><strong>{contextualRefs[0].label || contextualRefs[0].object_type.replaceAll("_", " ")}</strong>
       </div>}
+      {mentions.length > 0 && <div className="room-mention-chips">
+        {mentions.map((id) => {
+          const person = participants.find((row) => row.id === id);
+          return person ? <button key={id} onClick={() => setMentions((current) => current.filter((value) => value !== id))}>@{person.full_name} ×</button> : null;
+        })}
+      </div>}
+      {mentionOpen && participants.length > 0 && <div className="room-mention-picker">
+        {participants.map((person) => {
+          const on = mentions.includes(person.id);
+          return <button key={person.id} className={on ? "on" : ""} onClick={() => setMentions((current) => on ? current.filter((id) => id !== person.id) : [...current, person.id])}>
+            <span>{person.full_name}</span><b>{on ? "✓" : "+"}</b>
+          </button>;
+        })}
+      </div>}
+      <div className="room-composer-tools">
+        <button className={mentionOpen ? "on" : ""} onClick={() => setMentionOpen((value) => !value)} disabled={!participants.length}>@ Mention</button>
+      </div>
       <div className="room-composer-row">
         <textarea
           rows={1}
