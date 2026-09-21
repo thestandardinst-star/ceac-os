@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
+import { ProductNotice, LoadingState } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 // Attendance & leave, organisation-wide. Spec section 7.
 //
@@ -52,7 +54,7 @@ export default function Attendance({ me }) {
     setLoading(false);
   }
 
-  if (loading) return <div className="body"><div className="spin">Loading attendance...</div></div>;
+  if (loading) return <div className="body"><LoadingState label="Loading attendance & leave…" /></div>;
 
   const today = new Date().toDateString();
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -94,12 +96,15 @@ export default function Attendance({ me }) {
   }
   const flagged = sessions.map((s) => ({ s, d: differences(s) })).filter((x) => x.d.length);
 
-  const liability = people.reduce((sum) => sum + (settings ? settings.annual_days : 15), 0);
+  const leavePolicyConfigured = Boolean(settings?.updated_by);
+  const configuredAnnualDays = leavePolicyConfigured ? Number(settings.annual_days || 0) : null;
+  const liability = configuredAnnualDays === null ? null : people.length * configuredAnnualDays;
 
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Attendance &amp; leave</h1>
+        <div className="eyebrow">Factual administration</div>
+    <h1 className="h1">Attendance &amp; leave</h1>
         <p className="screen-note">Across the whole church. Hours are a record of activity, not a basis for pay.</p>
       </div>
 
@@ -124,7 +129,7 @@ export default function Attendance({ me }) {
           <div className="metric"><b>{workingNow.length}</b><span>working now</span></div>
           <div className="metric"><b>{todaySessions.length}</b><span>started today</span></div>
           <div className="metric"><b>{onLeaveToday.length}</b><span>on leave</span></div>
-          <div className="metric"><b>{notStarted.length}</b><span>not started</span></div>
+          <div className="metric"><b>{notStarted.length}</b><span>no session started</span></div>
         </div>
 
         <div className="sec"><span>Working now</span><span>{workingNow.length}</span></div>
@@ -143,12 +148,12 @@ export default function Attendance({ me }) {
             <div className="row-m">{l.kind} leave · back {dateOnly(l.end_date)}</div>
           </div>))}
 
-        <div className="sec"><span>Not started today</span><span>{notStarted.length}</span></div>
+        <div className="sec"><span>No session started today</span><span>{notStarted.length}</span></div>
         {notStarted.length === 0 && <div className="card small">Everyone has started or is on leave.</div>}
         {notStarted.map((p) => (
           <div key={p.id} className="row">
             <div className="row-t">{p.full_name}</div>
-            <div className="row-m">{p.unit_name || "no unit"} · no session started today</div>
+            <div className="row-m">{p.unit_name || "no unit"} · no session recorded today; this is not an absence judgement</div>
           </div>))}
 
         <div className="sec"><span>Average start by unit</span></div>
@@ -219,6 +224,7 @@ export default function Attendance({ me }) {
           </div>))}
 
         <div className="sec"><span>Across the office</span></div>
+      {!leavePolicyConfigured && <div className="card small">Entitlement and carry-over totals are unavailable until Administration confirms the leave policy in Settings.</div>}
         <div className="card" style={{ padding: "4px 15px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", fontSize: 13.5 }}>
             <span style={{ color: "var(--ink-soft)" }}>Total annual entitlement</span>
@@ -231,7 +237,7 @@ export default function Attendance({ me }) {
             </span>
           </div>
         </div>
-        <p className="small" style={{ marginTop: 6 }}>Entitlement is {settings ? settings.annual_days : 15} days each, set in Settings.</p>
+        <p className="small" style={{ marginTop: 6 }}>{leavePolicyConfigured ? `Configured annual entitlement: ${settings.annual_days} days per person.` : "No CEAC entitlement is assumed until the policy is confirmed in Settings."}</p>
       </>)}
     </div>);
 }
