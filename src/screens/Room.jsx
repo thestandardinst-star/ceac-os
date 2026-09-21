@@ -269,23 +269,12 @@ export default function Room({
     setMentionQuery(null);
   }
 
-  function typedMentionIds() {
-    const lower = body.toLowerCase();
-    const ids = [];
-    for (const person of participants) {
-      const full = "@" + person.full_name.toLowerCase();
-      const first = "@" + person.full_name.split(" ")[0].toLowerCase();
-      if (lower.includes(full) || lower.includes(first)) ids.push(person.id);
-    }
-    return ids;
-  }
-
   async function send() {
     const clean = body.trim();
     if (!clean || !room?.id) return;
     setSending(true); setError(null);
     try {
-      const mentionIds = [...new Set([...mentions, ...typedMentionIds()])];
+      const mentionIds = [...new Set(mentions)];
       const result = await supabase.rpc("send_room_message", {
         p_room_id: room.id,
         p_body: clean,
