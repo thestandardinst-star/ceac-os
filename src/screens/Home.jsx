@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Icon, Sheet, statusPill } from "../components/bits";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -45,7 +45,7 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem, openAnnouncements }) {
+export default function Home({ me, session, setSession, openItem, openWork, openMe, openAnnouncements }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -298,27 +298,50 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const drillRows = drill?.rows || [];
+  const primaryNextItem = nextMoveItems[0] || activeWork[0] || dueSoon[0] || null;
+  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   return <div className="body">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">{me.unit_name} · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>{greeting}, {me.full_name.split(" ")[0]}</h1>
-      <p className="screen-note">See what changed, then choose your next move. Work already sent for review sits separately so it does not look like your failure.</p>
-    </div>
+    <header className="staff-home-intro">
+      <div className="staff-home-context">
+        <span>{me.unit_name}</span>
+        <time>{todayLabel}</time>
+      </div>
+      <h1 className="h1">{greeting}, {me.full_name.split(" ")[0]}</h1>
+      <p className="screen-note">Your work, updates and next steps in one place.</p>
+    </header>
 
-    <div className={`sess home-session ${session ? "live" : ""}`} style={{ marginTop: 18 }}>
-      <div>
-        <div className="s-l">{session
-          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ", " + (session.place === "office" ? "at the office" : "elsewhere")
-          : "Not working"}</div>
-        <div className="s-v">{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Start to send work in"}</div>
+    <section className={`staff-work-status ${session ? "live" : ""} ${staleSession ? "needs-review" : ""}`} aria-label="Work session">
+      <div className="staff-work-status-icon"><Icon name="work" size={20} /></div>
+      <div className="staff-work-status-copy">
+        <span>{session
+          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" })
+          : "Work session"}</span>
+        <strong>{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Not working"}</strong>
+        {session && !staleSession && <small>{session.place === "office" ? "At the office" : "Working off-site"}</small>}
+        {!session && <small>Start when you begin CEAC work.</small>}
       </div>
       {session
         ? staleSession
-          ? <button className="btn btn-ghost btn-sm" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review session</button>
-          : <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
-        : <button className="btn btn-sm" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
-    </div>
+          ? <button className="btn btn-ghost btn-sm staff-status-action" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review</button>
+          : <button className="btn btn-ghost btn-sm staff-status-action" onClick={stop} disabled={busy}>End work</button>
+        : <button className="btn btn-sm staff-status-action" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
+    </section>
+
+    <nav className="staff-quick-actions" aria-label="Quick actions">
+      {primaryNextItem && <button className="staff-quick-action primary" onClick={() => openItem(primaryNextItem.id)}>
+        <span className="staff-quick-icon"><Icon name="work" size={17} /></span>
+        <span><strong>Open next</strong><small>{primaryNextItem.title}</small></span>
+      </button>}
+      <button className="staff-quick-action" onClick={openWork}>
+        <span className="staff-quick-icon"><Icon name="record" size={17} /></span>
+        <span><strong>My work</strong><small>See all work</small></span>
+      </button>
+      <button className="staff-quick-action" onClick={openMe}>
+        <span className="staff-quick-icon"><Icon name="me" size={17} /></span>
+        <span><strong>My space</strong><small>Goals, leave, personal</small></span>
+      </button>
+    </nav>
 
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
