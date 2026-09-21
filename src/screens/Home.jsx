@@ -45,7 +45,7 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem, openMeeting, openWork, openMe, openAnnouncements }) {
+export default function Home({ me, session, setSession, openItem, openMeeting, openRoom, openWork, openMe, openAnnouncements }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -53,6 +53,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
   const [announcements, setAnnouncements] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
+  const [roomMentions, setRoomMentions] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
   const [upcomingLeave, setUpcomingLeave] = useState([]);
   const [leaveUpdates, setLeaveUpdates] = useState([]);
@@ -130,9 +131,13 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         supabase.from("blocker_followups")
           .select("id,blocker_id,sequence,created_at")
           .eq("actor_id", me.id).order("created_at", { ascending: false }),
+        supabase.from("room_mentions")
+          .select("id,message_id,created_at")
+          .eq("profile_id", me.id).gte("created_at", recentStart.toISOString())
+          .order("created_at", { ascending: false }).limit(5),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, meetingResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, meetingResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult, mentionResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
@@ -142,6 +147,16 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       setReviewFollowups(requireResult(reviewFollowupResult, "Review follow-ups"));
       setMyBlockers(requireResult(blockerResult, "Dependencies"));
       setBlockerFollowups(requireResult(blockerFollowupResult, "Dependency follow-ups"));
+      const mentionRows = requireResult(mentionResult, "Room mentions");
+      if (mentionRows.length) {
+        const messageResult = await supabase.from("room_messages")
+          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,project_id,units(name),projects(name))")
+          .in("id", mentionRows.map((row) => row.message_id));
+        const messageRows = requireResult(messageResult, "Room mention messages");
+        const byId = new Map(messageRows.map((row) => [row.id,row]));
+        setRoomMentions(mentionRows.map((row) => byId.get(row.message_id)).filter(Boolean));
+      } else setRoomMentions([]);
+
       const events = requireResult(eventResult, "Coming events").filter((event) => {
         const stillCurrent = new Date(event.ends_at || event.starts_at) >= rangeStart;
         const relevant = event.scope === "church" || event.unit_id === me.unit_id
@@ -369,8 +384,21 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     {loading && <div className="spin">Loading Home...</div>}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
-      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
+      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
         <div className="home-section-head"><div><div className="home-kicker">Recent movement</div><h2 id="staff-changed-heading">What changed</h2></div></div>
+        {roomMentions.map((message) => {
+          const room = message.rooms;
+          const roomName = room?.kind === "project" ? room.projects?.name : room?.units?.name;
+          return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
+            kind: room?.kind,
+            unitId: room?.unit_id,
+            projectId: room?.project_id,
+          })}>
+            <div className="row-t">{message.profiles?.full_name || "A teammate"} mentioned you</div>
+            <div className="row-m">{roomName || "Room"} · {new Date(message.created_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
+            <div className="row-note">{message.body}</div>
+          </button>;
+        })}
         {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
           <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
