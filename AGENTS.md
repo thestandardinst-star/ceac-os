@@ -16,7 +16,16 @@ architecture amendment and supersedes conflicting older text. Then read
 the panel spec for the surface you are touching **before** writing code,
 not after.
 
-**For any Staff/Manager visual, navigation, responsive, PWA, Rooms or meeting-experience work, also read `docs/architecture/CEAC_OS_Product_Experience_Collaboration_PWA_Amendment_2026-09-21.md`. For visual implementation, read `docs/architecture/CEAC_OS_Design_System_v1.md`. For voice, assistive AI, Rooms 2.0, sub-team communication, meeting audiences or Calendar interaction, also read `docs/architecture/CEAC_OS_Assistive_Input_Collaboration_Amendment_2026-09-21.md`. These are binding and later amendments supersede older text only where they explicitly conflict.**
+**For the current redesign phase, read these before changing any role surface:**
+1. `docs/handoff/CEAC_OS_PRODUCT_INTELLIGENCE_REDESIGN_HANDOFF_2026-09-21.md`
+2. `docs/architecture/CEAC_OS_Product_Intelligence_Experience_Amendment_2026-09-21.md`
+3. `docs/security/CEAC_OS_Product_Intelligence_Security_Handoff_2026-09-21.md`
+4. the relevant panel spec;
+5. `docs/architecture/CEAC_OS_Design_System_v1.md`.
+
+For Staff/Manager responsive/PWA/Rooms work also read `docs/architecture/CEAC_OS_Product_Experience_Collaboration_PWA_Amendment_2026-09-21.md`. For voice, assistive AI, Rooms 2.0, sub-team communication, meeting audiences or Calendar interaction, also read `docs/architecture/CEAC_OS_Assistive_Input_Collaboration_Amendment_2026-09-21.md`.
+
+The Product Intelligence & Experience amendment is the newest approved product-experience decision and supersedes conflicting older product/meeting UX text. It does not weaken older security/database contracts.**
 
 Both previous agents skipped this and built from memory. The result was a
 screen asking a church administrator to paste GPS coordinates, and a
@@ -43,13 +52,10 @@ those came from not reading a file that was already there.
    run", "sync", "payload", or coordinates. If a ten-year-old would not
    understand the sentence, rewrite it.
 
-5. **Database migrations must have one active owner at a time.** Claude is
-   the default backend owner, but on 20 September 2026 the user explicitly
-   handed the backend continuation to the current ChatGPT/Codex agent.
-   Migrations 040–059 were applied under that handoff. Read
-   `docs/handoff/CEAC_OS_CURRENT_OWNERSHIP_AND_STATE_2026-09-20.md`
-   before creating another migration. Never number migrations independently
-   or recreate an applied migration.
+5. **Database migrations must have one active owner at a time.** Read the
+   current redesign handoff and latest migration list before creating another
+   migration. Never number migrations independently, create a parallel migration
+   sequence, or recreate an applied migration.
 
 6. **`npm ci && npm run build` must pass before you push.** Vercel
    deploys `main` automatically, so a broken push is a broken live site
@@ -79,20 +85,15 @@ those came from not reading a file that was already there.
     `docs/security/CEAC_OS_Security_Hardening_2026-09-20.md` before
     changing any of those contracts.
 
-## Who owns which files
+## Current implementation ownership
 
-Claude owns the Administration & HR surface:
-`AdminHome.jsx`, `Units.jsx`, `People.jsx`, `Attendance.jsx`,
-`Cost.jsx`, `OfficeSettings.jsx`, `ExecutiveHome.jsx`
+The historical Claude-vs-Codex file split is retired for the Product Intelligence & Experience phase.
 
-Codex owns the manager and staff surfaces:
-`ManagerHome.jsx`, `ManagerDelivery.jsx`, `ManagerProjects.jsx`,
-`Assign.jsx`, `Team.jsx`, `Home.jsx`, `Work.jsx`, `Item.jsx`,
-`Record.jsx`, `Me.jsx`, `StaffTeam.jsx`, `Goals.jsx`
+**One active implementation owner at a time** may change a tranche. The current handoff document records the active branch and sequence. A new agent must inspect the branch/PR state before editing and must not start a parallel redesign branch from stale main.
 
-`src/App.jsx` and `src/components/bits.jsx` are shared — they hold the
-menu and the routing. Add your own lines only. Never reorder or rewrite
-them.
+Shared shell files such as `src/App.jsx`, `src/components/bits.jsx`, shared styles, navigation, routing and schema contracts require whole-system review because they affect all four roles.
+
+Before touching database migrations, confirm the latest applied migration and current migration owner. Before touching a role surface, read that role's panel spec plus the current Product Intelligence amendment.
 
 ## Work references
 
