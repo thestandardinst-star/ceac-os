@@ -36,12 +36,20 @@ export default function ExecutiveHome({ me }) {
     }
   }
 
-  return <div className="body">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">Group Pastor</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>Ministry overview</h1>
-      <p className="screen-note">Objectives, movement and ministry-level exceptions. Administration authoring stays with Administration &amp; HR.</p>
-    </div>
+  const executiveDate = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+
+  return <div className="body executive-home">
+    <section className="executive-command-surface">
+      <div className="executive-command-context"><span>Group Pastor</span><time>{executiveDate}</time></div>
+      <div className="eyebrow">Ministry pulse</div>
+      <h1 className="h1">Ministry overview</h1>
+      <p className="screen-note">Objectives, delivery and ministry-level exceptions. Administration authoring stays with Administration &amp; HR.</p>
+      {!loading && !error && <div className="executive-command-stats" aria-label="Ministry pulse">
+        <div><strong>{x.projects}</strong><span>Active projects</span></div>
+        <div><strong>{x.blocked}</strong><span>Open blockers</span></div>
+        <div><strong>{x.review}</strong><span>In review</span></div>
+      </div>}
+    </section>
 
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}>
       <h4>The ministry overview could not finish loading</h4>
