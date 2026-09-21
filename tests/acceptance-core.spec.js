@@ -257,6 +257,15 @@ test("Staff personal details persist and private work stays out of another staff
   }
 });
 
+test("Assistive voice controls are real interaction affordances and proposals require review", async ({ browser }) => {
+  const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+  await page.getByRole("button", { name: "Give out work" }).click();
+  const mic = page.getByRole("button", { name: "Speak your instruction" });
+  await expect(mic).toBeVisible();
+  await expect(page.getByText("Apply proposal", { exact: true })).toHaveCount(0);
+  await context.close();
+});
+
 test("Typed work can be created and reaches the Staff work surface", async ({ browser }) => {
   const created = [
     { kind: "Routine", title: "Acceptance routine", button: "Create routine", fields: [] },
@@ -397,7 +406,42 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
   }
 });
 
-test("A Manager can schedule a Unit meeting and Staff can open its operational record", async ({ browser }) => {
+test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs", async ({ browser }) => {
+  const message = "Please confirm the camera setup";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
+
+    await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Fixture Video Team", exact: true }).click();
+    await expect(page.getByText("Sub-team Room", { exact: true })).toBeVisible();
+
+    const composer = page.getByPlaceholder("Message Fixture Video Team");
+    await composer.fill("@Sta");
+    await expect(page.getByRole("button", { name: /Staff Fixture/ })).toBeVisible();
+    await page.getByRole("button", { name: /Staff Fixture/ }).click();
+    await composer.fill((await composer.inputValue()) + message);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(page.getByText(/Staff Fixture.*Please confirm the camera setup/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Add context or action" }).click();
+    await expect(page.getByText("Schedule meeting", { exact: true })).toBeVisible();
+    await expect(page.getByText("Direct message", { exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "sameunit@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
+test("A Manager can schedule a Unit meeting with an explicit audience and Staff can open it", async ({ browser }) => {
   const title = "Acceptance unit meeting";
   const tomorrow = new Date(Date.now() + 86400000);
   const pad = (value) => String(value).padStart(2, "0");
@@ -407,13 +451,25 @@ test("A Manager can schedule a Unit meeting and Staff can open its operational r
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
     await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
     await page.getByRole("menuitem", { name: /Calendar/ }).click();
+
+    await expect(page.getByRole("button", { name: "Month", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Week", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /View All/ })).toBeVisible();
+    await page.getByRole("button", { name: /View All/ }).click();
+    const filterDialog = page.getByRole("dialog");
+    await filterDialog.getByRole("button", { name: "Meetings", exact: true }).click();
+
     await page.getByRole("button", { name: "Schedule meeting" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.getByPlaceholder("Meeting title").fill(title);
+    await dialog.getByPlaceholder("What is this meeting for?").fill(title);
     await dialog.locator('input[type="datetime-local"]').first().fill(localValue);
-    await dialog.getByPlaceholder("Zoom join link (optional)").fill("https://zoom.us/j/123456789");
-    await dialog.getByPlaceholder("Agenda (optional)").fill("Review current work and record actions.");
-    await dialog.getByRole("button", { name: "Schedule meeting" }).click();
+    await dialog.getByPlaceholder("Join link (optional)").fill("https://zoom.us/j/123456789");
+    await dialog.getByPlaceholder("What should this meeting cover?").fill("Review current work and record actions.");
+
+    const unitAudience = dialog.getByRole("button", { name: /Everyone in this unit/ });
+    if (!(await unitAudience.getAttribute("class") || "").includes("on")) await unitAudience.click();
+
+    await dialog.getByRole("button", { name: "Schedule and notify" }).click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: /Join Zoom/ })).toBeVisible();
     await context.close();
