@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
+import { humanError } from "../lib/productLanguage";
 
 function timeLabel(value) {
   return new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -43,6 +44,7 @@ export default function Room({
   openProject,
   scheduleMeeting,
   openAnnouncements,
+  onRoomChange,
 }) {
   const [room, setRoom] = useState(null);
   const [scopeRooms, setScopeRooms] = useState([]);
@@ -60,7 +62,15 @@ export default function Room({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
   const [canAnnounce, setCanAnnounce] = useState(Boolean(me.is_admin || me.is_exec));
+  const [lastReadAt, setLastReadAt] = useState(null);
+  const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
   const endRef = useRef(null);
+  const unreadRef = useRef(null);
+  const feedRef = useRef(null);
+  const atBottomRef = useRef(true);
+  const PAGE_SIZE = 60;
 
   const canCoordinate = Boolean(me.is_admin || me.is_exec || me.role === "manager");
 
@@ -78,19 +88,28 @@ export default function Room({
     const channel = supabase.channel(`ceac-room-${room.id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "room_messages", filter: `room_id=eq.${room.id}`,
-      }, () => loadMessages(room.id, false))
+      }, async () => {
+        await loadMessages(room.id, false);
+        if (atBottomRef.current) {
+          requestAnimationFrame(() => endRef.current?.scrollIntoView({ block: "end" }));
+          await markRead(room.id);
+        } else {
+          setNewMessageCount((count) => count + 1);
+        }
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [room?.id]);
 
   useEffect(() => {
-    if (!room?.id) return;
-    supabase.rpc("mark_room_read", { p_room_id: room.id });
-  }, [room?.id, messages.length]);
-
-  useEffect(() => {
-    if (!loading) endRef.current?.scrollIntoView({ block: "end" });
-  }, [loading, messages.length]);
+    if (loading || !room?.id) return;
+    requestAnimationFrame(() => {
+      if (unreadRef.current) unreadRef.current.scrollIntoView({ block: "center" });
+      else endRef.current?.scrollIntoView({ block: "end" });
+      atBottomRef.current = true;
+      markRead(room.id);
+    });
+  }, [loading, room?.id]);
 
   async function roomQueryForContext() {
     let query = supabase.from("rooms")
@@ -103,14 +122,14 @@ export default function Room({
   }
 
   async function loadInitialRoom() {
-    setLoading(true); setError(null); setRoom(null); setMessages([]);
+    setLoading(true); setError(null); setRoom(null); setMessages([]); setLastReadAt(null); setHasOlder(false); setNewMessageCount(0);
     try {
       const result = await roomQueryForContext();
       if (result.error) throw result.error;
       if (!result.data) throw new Error("This Room is not available to your account.");
       await selectRoom(result.data, true);
     } catch (err) {
-      setError(err.message || "This Room could not be opened.");
+      setError(humanError(err, "This Room could not be opened."));
       setLoading(false);
     }
   }
@@ -121,7 +140,14 @@ export default function Room({
     setReplyTo(null);
     setMentions([]);
     setMentionQuery(null);
+    setNewMessageCount(0);
     if (!initial) setSelectedRefs([]);
+    const readResult = await supabase.from("room_reads")
+      .select("last_read_at")
+      .eq("room_id", nextRoom.id)
+      .eq("profile_id", me.id)
+      .maybeSingle();
+    setLastReadAt(readResult.error ? null : readResult.data?.last_read_at || null);
     await Promise.all([
       loadMessages(nextRoom.id, true),
       loadParticipants(nextRoom),
@@ -237,22 +263,72 @@ export default function Room({
     }
   }
 
+  const messageSelect = "id,room_id,author_id,body,reply_to_id,created_at,profiles!room_messages_author_id_fkey(full_name),room_message_refs(id,object_type,object_id,label),room_mentions(profile_id,profiles!room_mentions_profile_id_fkey(full_name))";
+
   async function loadMessages(roomId, showLoading = false) {
     if (!roomId) return;
     if (showLoading) setLoading(true);
     try {
       const result = await supabase.from("room_messages")
-        .select("id,room_id,author_id,body,reply_to_id,created_at,profiles!room_messages_author_id_fkey(full_name),room_message_refs(id,object_type,object_id,label)")
+        .select(messageSelect)
         .eq("room_id", roomId)
-        .order("created_at", { ascending: true })
-        .limit(250);
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
       if (result.error) throw result.error;
-      setMessages(result.data || []);
+      setMessages([...(result.data || [])].reverse());
+      setHasOlder((result.data || []).length === PAGE_SIZE);
     } catch (err) {
-      setError(err.message || "Room messages could not be loaded.");
+      setError(humanError(err, "Room messages could not be loaded."));
     } finally {
       setLoading(false);
     }
+  }
+
+  async function loadOlder() {
+    if (!room?.id || !messages.length || loadingOlder || !hasOlder) return;
+    setLoadingOlder(true); setError(null);
+    const feed = feedRef.current;
+    const previousHeight = feed?.scrollHeight || 0;
+    try {
+      const oldest = messages[0];
+      const result = await supabase.from("room_messages")
+        .select(messageSelect)
+        .eq("room_id", room.id)
+        .lt("created_at", oldest.created_at)
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
+      if (result.error) throw result.error;
+      const older = [...(result.data || [])].reverse();
+      setMessages((current) => [...older, ...current]);
+      setHasOlder((result.data || []).length === PAGE_SIZE);
+      requestAnimationFrame(() => {
+        if (feed) feed.scrollTop += feed.scrollHeight - previousHeight;
+      });
+    } catch (err) {
+      setError(humanError(err, "Earlier Room messages could not be loaded."));
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
+
+  async function markRead(roomId = room?.id) {
+    if (!roomId) return;
+    const result = await supabase.rpc("mark_room_read", { p_room_id: roomId });
+    if (!result.error) setNewMessageCount(0);
+  }
+
+  function handleFeedScroll() {
+    const feed = feedRef.current;
+    if (!feed) return;
+    const atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 80;
+    atBottomRef.current = atBottom;
+    if (atBottom && newMessageCount > 0) markRead();
+  }
+
+  function jumpToLatest() {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    atBottomRef.current = true;
+    markRead();
   }
 
   const parentById = useMemo(() => new Map(messages.map((message) => [message.id, message])), [messages]);
@@ -297,7 +373,7 @@ export default function Room({
       setBody(""); setReplyTo(null); setMentions([]); setMentionQuery(null); setSelectedRefs([]);
       await loadMessages(room.id, false);
     } catch (err) {
-      setError(err.message || "Your message could not be sent.");
+      setError(humanError(err, "Your message could not be sent."));
     } finally {
       setSending(false);
     }
@@ -337,7 +413,14 @@ export default function Room({
     };
   }
 
+  function contextForRoom(entry) {
+    if (entry.kind === "project") return { kind: "project", projectId: entry.project_id };
+    if (entry.kind === "sub_team") return { kind: "sub_team", subTeamId: entry.sub_team_id };
+    return { kind: "unit", unitId: entry.unit_id };
+  }
+
   let previousDay = null;
+  let unreadShown = false;
 
   return <div className="body room-screen">
     <header className="room-head">
@@ -352,7 +435,7 @@ export default function Room({
     {error && <div className="flag flag-brick room-error"><h4>Room could not complete that</h4>{error}<button className="btn btn-ghost btn-sm" onClick={loadInitialRoom}>Try again</button></div>}
 
     {scopeRooms.length > 1 && <nav className="room-scope-strip" aria-label="Unit conversations">
-      {scopeRooms.map((entry) => <button key={entry.id} className={entry.id === room?.id ? "on" : ""} onClick={() => selectRoom(entry)}>
+      {scopeRooms.map((entry) => <button key={entry.id} className={entry.id === room?.id ? "on" : ""} onClick={() => entry.id === room?.id ? null : onRoomChange?.(contextForRoom(entry))}>
         {entry.kind === "unit" ? "Everyone" : roomTitle(entry)}
       </button>)}
     </nav>}
@@ -365,8 +448,9 @@ export default function Room({
           : "Operational communication for this unit. Use a sub-team conversation when the message is only for that lane."}
     </div>
 
-    <main className="room-feed" aria-live="polite">
+    <main ref={feedRef} className="room-feed" aria-live="polite" onScroll={handleFeedScroll}>
       {loading && <div className="spin">Opening Room...</div>}
+      {!loading && hasOlder && <button className="room-load-older" disabled={loadingOlder} onClick={loadOlder}>{loadingOlder ? "Loading earlier messages…" : "Load earlier messages"}</button>}
       {!loading && !messages.length && !error && <div className="room-empty">
         <strong>No messages yet</strong>
         <span>Start with the work, decision or coordination that belongs in this context.</span>
@@ -377,7 +461,10 @@ export default function Room({
         previousDay = currentDay;
         const mine = message.author_id === me.id;
         const parent = message.reply_to_id ? parentById.get(message.reply_to_id) : null;
+        const isUnread = !unreadShown && lastReadAt && !mine && new Date(message.created_at) > new Date(lastReadAt);
+        if (isUnread) unreadShown = true;
         return <div key={message.id}>
+          {isUnread && <div ref={unreadRef} className="room-unread-divider"><span>New since your last visit</span></div>}
           {showDay && <div className="room-day"><span>{dayLabel(message.created_at)}</span></div>}
           <article className={`room-message ${mine ? "mine" : ""}`}>
             <div className="room-message-meta">
@@ -389,6 +476,9 @@ export default function Room({
               <span>{parent.body}</span>
             </div>}
             <p>{message.body}</p>
+            {(message.room_mentions || []).length > 0 && <div className="room-message-mentions">
+              {(message.room_mentions || []).map((mention) => <span key={mention.profile_id}>@{mention.profiles?.full_name || "CEAC member"}</span>)}
+            </div>}
             {(message.room_message_refs || []).length > 0 && <div className="room-ref-list">
               {message.room_message_refs.map((ref) => <button key={ref.id} onClick={() => openRef(ref)}>
                 <span>{ref.object_type.replaceAll("_", " ")}</span>
@@ -401,6 +491,7 @@ export default function Room({
       })}
       <div ref={endRef} />
     </main>
+    {newMessageCount > 0 && <button className="room-new-messages" onClick={jumpToLatest}>{newMessageCount} new message{newMessageCount === 1 ? "" : "s"} ↓</button>}
 
     <footer className="room-composer">
       {replyTo && <div className="room-composer-reply">
@@ -432,7 +523,7 @@ export default function Room({
 
       {panel === "scope" && <div className="room-picker-panel">
         <div className="room-picker-head"><strong>Choose conversation</strong><button onClick={() => setPanel("actions")}>Back</button></div>
-        {scopeRooms.map((entry) => <button key={entry.id} className={entry.id === room?.id ? "on" : ""} onClick={() => selectRoom(entry)}>
+        {scopeRooms.map((entry) => <button key={entry.id} className={entry.id === room?.id ? "on" : ""} onClick={() => entry.id === room?.id ? null : onRoomChange?.(contextForRoom(entry))}>
           <span>{entry.kind === "unit" ? "Everyone in " + roomTitle(entry) : roomTitle(entry)}</span><b>{entry.id === room?.id ? "✓" : "→"}</b>
         </button>)}
       </div>}

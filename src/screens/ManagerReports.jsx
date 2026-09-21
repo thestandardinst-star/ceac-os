@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Pill, Sheet } from "../components/bits";
+import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 const pad = (value) => String(value).padStart(2, "0");
 const dateKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -132,6 +133,7 @@ export default function ManagerReports({ me, openItem }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   useEffect(() => { loadBase(); }, [me.id, me.unit_id]);
 
@@ -426,7 +428,7 @@ export default function ManagerReports({ me, openItem }) {
   async function handleSave() {
     setBusy(true); setError(null); setNotice(null);
     try { await saveDraft(true); }
-    catch (err) { setError(err.message || "The report draft could not be saved."); }
+    catch (err) { setError(humanError(err, "The report draft could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -450,7 +452,7 @@ export default function ManagerReports({ me, openItem }) {
       setNotice("Report submitted. This version is now fixed; later corrections create a new version.");
       await loadHistory(false);
     } catch (err) {
-      setError(err.message || "The report could not be submitted.");
+      setError(humanError(err, "The report could not be submitted."));
     } finally {
       setBusy(false);
     }
@@ -466,7 +468,7 @@ export default function ManagerReports({ me, openItem }) {
       setNotice("A new draft version has been opened. The submitted version remains unchanged.");
       await loadHistory(true);
     } catch (err) {
-      setError(err.message || "A correction draft could not be opened.");
+      setError(humanError(err, "A correction draft could not be opened."));
     } finally {
       setBusy(false);
     }
@@ -474,7 +476,7 @@ export default function ManagerReports({ me, openItem }) {
 
   function printReport() { window.print(); }
 
-  if (loading) return <div className="body manager-reports"><div className="spin">Preparing reports...</div></div>;
+  if (loading) return <div className="body manager-reports"><LoadingState label="Preparing reports…" /></div>;
 
   return <div className="body manager-reports report-print">
     <div className="print-only report-print-brand">
@@ -487,11 +489,11 @@ export default function ManagerReports({ me, openItem }) {
       <p className="screen-note">Built from work, submissions, projects and attendance already recorded in CEAC OS. Submitted versions keep the figures they were filed with.</p>
     </div>
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete reporting</h4>{error}</div>}
-    {notice && <div className="flag flag-green" style={{ marginTop: 14 }}>{notice}</div>}
+    {error && <ProductNotice tone="error" title="Could not complete reporting">{error}</ProductNotice>}
+    {notice && <ProductNotice tone="success" title="Report updated">{notice}</ProductNotice>}
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
-      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>{label}</button>)}
+      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
     </div>
 
     {mode !== "project" && kindPeriods.length > 0 && <select className="field" value={matchingPeriod?.id || ""} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
@@ -545,18 +547,37 @@ export default function ManagerReports({ me, openItem }) {
         {drill.rows.length === 0 && <div className="card small">No supporting rows are attached to this figure.</div>}
       </div>}
 
-      <div className="sec"><span>Completed work trend</span></div>
-      <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
+      <div className="report-analysis-toggle">
+        <div>
+          <strong>Patterns & activity</strong>
+          <span>Open only when a visual pattern helps explain the evidence above.</span>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</button>
+      </div>
 
-      <div className="sec"><span>Completed by project</span></div>
-      {displayProjects.length ? <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} /> : <div className="card small">No completed project work is recorded in this view.</div>}
+      {showAnalysis && <div className="report-analysis">
+        {displayDaily.some((point) => point.value > 0) && <>
+          <div className="sec"><span>Completed work trend</span></div>
+          <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
+        </>}
 
-      <div className="sec"><span>Current work composition</span></div>
-      <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-      <p className="small" style={{ marginTop: 8 }}>This is the current status of visible work in this report scope. It is separate from the completed-work figures for the selected period.</p>
+        {displayProjects.length > 1 && <>
+          <div className="sec"><span>Completed by project</span></div>
+          <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+        </>}
 
-      <div className="sec"><span>Attendance activity</span></div>
-      <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
+        {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
+          <div className="sec"><span>Current work composition</span></div>
+          <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+          <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
+        </>}
+
+        {displayAttendance.some((day) => day.value > 0) && <>
+          <div className="sec"><span>Attendance activity</span></div>
+          <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
+          <p className="small" style={{ marginTop: 8 }}>Attendance is operational context, not a performance measure.</p>
+        </>}
+      </div>}
 
       <div className="sec"><span>Objectives</span><span>{displayObjectives.length}</span></div>
       {displayObjectives.map((objective) => <div className="row" key={objective.id}>
@@ -567,8 +588,8 @@ export default function ManagerReports({ me, openItem }) {
       {displayObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
 
       <div className="sec"><span>Manager's summary</span></div>
-      <AssistiveTextarea className="field" rows={4} disabled={viewingFrozen} placeholder="What should leadership understand about this period?" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
-      <AssistiveTextarea className="field" rows={3} disabled={viewingFrozen} placeholder="Challenges or context to explain (optional)" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} />
+      <FieldGroup label="What leadership should understand"><AssistiveTextarea className="field" rows={4} disabled={viewingFrozen} placeholder="Summarise the period in plain language" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Challenges or context" hint="Optional. Explain what the evidence alone would not show."><AssistiveTextarea className="field" rows={3} disabled={viewingFrozen} placeholder="Add useful context" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} /></FieldGroup>
 
       <div className="sec"><span>Report record</span></div>
       {!matchingPeriod && <div className="flag flag-amber"><h4>No matching reporting period is open</h4>Administration must open this {mode === "project" ? "project" : mode} period before you can save or submit. The factual preview above remains available.</div>}

@@ -47,9 +47,9 @@ async function go(page, name) {
 
 async function assignTask(page, title, step = null) {
   await page.getByRole("button", { name: "Give out work" }).click();
-  await page.getByPlaceholder("What needs doing").fill(title);
-  await page.getByPlaceholder("Why this matters — who it is for, what happens if it is late").fill("Acceptance test purpose");
-  await page.getByPlaceholder("Describe the finished result").fill("Acceptance test finished result");
+  await page.getByLabel("Work to complete").fill(title);
+  await page.getByLabel("Why this matters").fill("Acceptance test purpose");
+  await page.getByLabel("Finished result").fill("Acceptance test finished result");
   if (step) await page.getByPlaceholder("Step 1").fill(step);
   else await page.getByLabel(/No steps needed/).check();
   const assignee = page.locator("select.field").filter({ has: page.locator("option", { hasText: "Staff Fixture" }) });
@@ -100,12 +100,14 @@ test("Staff and Manager complete the real work loop, including return and approv
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
     const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
-    await reviewRow.getByRole("button", { name: "Return" }).click();
+    await reviewRow.getByRole("button", { name: "Review" }).click();
     const returnDialog = page.getByRole("dialog");
+    await expect(returnDialog.getByText("Evidence-first review")).toBeVisible();
+    await returnDialog.getByRole("button", { name: "Return for correction" }).click();
     const redo = returnDialog.getByRole("button", { name: new RegExp(step) });
     if (await redo.count()) await redo.click();
-    await returnDialog.getByPlaceholder("What needs changing").fill("Please correct the acceptance item.");
-    await returnDialog.getByRole("button", { name: "Return", exact: true }).click();
+    await returnDialog.getByPlaceholder("Explain exactly what needs changing").fill("Please correct the acceptance item.");
+    await returnDialog.getByRole("button", { name: "Return work", exact: true }).click();
     await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
@@ -143,9 +145,11 @@ test("Staff and Manager complete the real work loop, including return and approv
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
     const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
-    await reviewRow.getByRole("button", { name: "Approve" }).click();
+    await reviewRow.getByRole("button", { name: "Review" }).click();
     const approveDialog = page.getByRole("dialog");
+    await expect(approveDialog.getByText("Evidence-first review")).toBeVisible();
     await approveDialog.getByRole("button", { name: "Approve", exact: true }).click();
+    await approveDialog.getByRole("button", { name: "Confirm approval", exact: true }).click();
     await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
@@ -172,14 +176,13 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
-    await page.getByRole("button", { name: "Start work", exact: true }).click();
-    const startDialog = page.getByRole("dialog");
-    await startDialog.getByRole("button", { name: "At the office" }).click();
-    await startDialog.getByRole("button", { name: "Start work", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Start work", exact: true })).toBeVisible();
 
     await go(page, "Work");
     await page.getByText(title, { exact: true }).click();
-    await page.getByRole("button", { name: "I am waiting on someone" }).click();
+    const waitingAction = page.getByRole("button", { name: "I am waiting on someone" });
+    await expect(waitingAction).toBeEnabled();
+    await waitingAction.click();
     const blockerDialog = page.getByRole("dialog");
     await blockerDialog.getByPlaceholder("What you need, and from whom").fill("Manager confirmation");
     await blockerDialog.getByRole("button", { name: "Test Unit A" }).click();
@@ -207,8 +210,33 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await expect(page.getByText(/Waiting on Test Unit A/)).toHaveCount(0);
     await page.getByRole("button", { name: "← Back" }).click();
     await go(page, "Home");
-    const endWork = page.getByRole("button", { name: "End work" });
-    if (await endWork.count()) await endWork.click();
+    await context.close();
+  }
+});
+
+test("Nested Work navigation survives refresh and browser Back", async ({ browser }) => {
+  const title = "Acceptance task — deep link";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test");
+    await assignTask(page, title);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test");
+    await go(page, "Work");
+    await page.getByText(title, { exact: true }).click();
+    await expect(page).toHaveURL(/(?:\?|&)item=/);
+    await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+    await expect(page).toHaveURL(/(?:\?|&)item=/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/(?:\?|&)tab=work/);
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
     await context.close();
   }
 });
@@ -268,34 +296,34 @@ test("Assistive voice controls are real interaction affordances and proposals re
 
 test("Typed work can be created and reaches the Staff work surface", async ({ browser }) => {
   const created = [
-    { kind: "Routine", title: "Acceptance routine", button: "Create routine", fields: [] },
-    { kind: "Case", title: "Acceptance case", button: "Open case", fields: [] },
-    { kind: "Request", title: "Acceptance request", button: "Send request", fields: ["requestUnit"] },
-    { kind: "Decision", title: "Acceptance decision", button: "Ask for decision", fields: ["decision"] },
-    { kind: "Meeting outcome", title: "Acceptance meeting outcome", button: "Record meeting outcome", fields: ["meeting"] },
-    { kind: "Deliverable", title: "Acceptance deliverable", button: "Give deliverable", fields: ["deliverable"] },
+    { kind: "Routine", intent: "Set repeating work", title: "Acceptance routine", button: "Create routine" },
+    { kind: "Case", intent: "Track an ongoing matter", title: "Acceptance case", button: "Open case" },
+    { kind: "Request", intent: "Ask for something", title: "Acceptance request", button: "Send request" },
+    { kind: "Decision", intent: "Get a decision", title: "Acceptance decision", button: "Ask for decision" },
+    { kind: "Meeting outcome", intent: "Follow up from a meeting", title: "Acceptance meeting outcome", button: "Record meeting outcome" },
+    { kind: "Deliverable", intent: "Get a finished output", title: "Acceptance deliverable", button: "Give deliverable" },
   ];
 
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
   await page.getByRole("button", { name: "Give out work" }).click();
 
   for (const item of created) {
-    await page.locator("select.field").first().selectOption({ label: item.kind });
+    await page.getByRole("radio", { name: new RegExp(item.intent) }).click();
 
-    if (item.kind === "Routine") await page.getByPlaceholder("What repeats?").fill(item.title);
-    if (item.kind === "Case") await page.getByPlaceholder("What matter needs to stay open?").fill(item.title);
-    if (item.kind === "Request") await page.getByPlaceholder("What do you need?").fill(item.title);
+    if (item.kind === "Routine") await page.getByLabel("Repeating responsibility").fill(item.title);
+    if (item.kind === "Case") await page.getByLabel("Matter to track").fill(item.title);
+    if (item.kind === "Request") await page.getByLabel("What you need").fill(item.title);
     if (item.kind === "Decision") {
-      await page.getByPlaceholder("What decision is needed?").fill(item.title);
-      await page.getByPlaceholder("Decision question").fill("Acceptance decision question");
+      await page.getByLabel("Decision needed").fill(item.title);
+      await page.getByLabel("Decision question").fill("Acceptance decision question");
     }
     if (item.kind === "Meeting outcome") {
-      await page.getByPlaceholder("What was agreed?").fill(item.title);
-      await page.getByPlaceholder("Meeting title").fill("Acceptance meeting");
+      await page.getByLabel("Commitment agreed").fill(item.title);
+      await page.getByLabel("Meeting title").fill("Acceptance meeting");
     }
     if (item.kind === "Deliverable") {
-      await page.getByPlaceholder("What must be produced?").fill(item.title);
-      await page.getByPlaceholder("Describe exactly what must be delivered").fill("Acceptance finished deliverable");
+      await page.getByLabel("Output to produce").fill(item.title);
+      await page.getByLabel("Finished output").fill("Acceptance finished deliverable");
     }
 
     if (item.kind === "Request") {
@@ -390,6 +418,9 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
     await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
     await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page).toHaveURL(/roomKind=unit/);
+    await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
+    await page.reload();
     await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
     await page.getByPlaceholder("Message your unit").fill(message);
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -416,6 +447,9 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
     await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Fixture Video Team", exact: true }).click();
+    await expect(page).toHaveURL(/roomKind=sub_team/);
+    await expect(page.getByText("Sub-team Room", { exact: true })).toBeVisible();
+    await page.reload();
     await expect(page.getByText("Sub-team Room", { exact: true })).toBeVisible();
 
     const composer = page.getByPlaceholder("Message Fixture Video Team");
@@ -470,8 +504,11 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     if (!(await unitAudience.getAttribute("class") || "").includes("on")) await unitAudience.click();
 
     await dialog.getByRole("button", { name: "Schedule and notify" }).click();
+    await expect(page).toHaveURL(/(?:\?|&)meeting=/);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: /Join Zoom/ })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await context.close();
   }
 
@@ -482,6 +519,38 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByText("Notes & decisions", { exact: true })).toBeVisible();
+    await context.close();
+  }
+});
+
+test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
+  test.setTimeout(120000);
+  const widths = [320, 360, 375, 390, 414, 430];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Finance", "Reports"];
+
+  for (const width of widths) {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
+        if (await direct.count()) await direct.click();
+        else {
+          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
+          await more.click();
+          await page.getByRole("menuitem", { name: destination, exact: true }).click();
+        }
+      } else {
+        const home = page.locator(".tabs").getByRole("button", { name: "Home", exact: true });
+        if (await home.count()) await home.click();
+      }
+      await expect(page.locator(".body")).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        bodyWidth: document.querySelector(".body")?.getBoundingClientRect().width || 0,
+      }));
+      expect(dimensions.overflow, `Manager / ${destination} overflowed at ${width}px`).toBeLessThanOrEqual(1);
+      expect(dimensions.bodyWidth, `Manager / ${destination} collapsed at ${width}px`).toBeGreaterThan(250);
+    }
     await context.close();
   }
 });

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { Pill, Sheet, statusPill } from "../components/bits";
+import { Pill, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import ManagerProjectClose from "./ManagerProjectClose";
+import { humanError } from "../lib/productLanguage";
 
 const OBJECTIVE_STATUSES = [
   ["on_track", "On track"],
@@ -81,9 +82,18 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   const [busy, setBusy] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState(null);
+  const [area, setArea] = useState("overview");
 
   useEffect(() => { loadList(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
+  useEffect(() => {
+    if (!selectedId) { setArea("overview"); return; }
+    const saved = sessionStorage.getItem(`ceac-project-area:${me.id}:${selectedId}`);
+    setArea(saved || "overview");
+  }, [selectedId, me.id]);
+  useEffect(() => {
+    if (selectedId) sessionStorage.setItem(`ceac-project-area:${me.id}:${selectedId}`, area);
+  }, [selectedId, me.id, area]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
 
   async function loadList() {
@@ -127,7 +137,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           costs: costRows(budgets.filter((row) => row.project_id === project.id), spend.filter((row) => row.project_id === project.id)),
         };
       }));
-    } catch (err) { setError(err.message || "Projects could not be loaded."); }
+    } catch (err) { setError(humanError(err, "Projects could not be loaded.")); }
     finally { setLoadingList(false); }
   }
 
@@ -167,7 +177,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         canManageProject: projectResult.data.lead_unit_id === me.unit_id,
         canManageObjectives: participants.some((row) => row.unit_id === me.unit_id) || projectResult.data.lead_unit_id === me.unit_id,
       });
-    } catch (err) { setError(err.message || "Project detail could not be loaded."); }
+    } catch (err) { setError(humanError(err, "Project detail could not be loaded.")); }
   }
 
   async function createProject(form) {
@@ -185,7 +195,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       setSelectedId(projectId);
       setSheet({ type: "created", projectId });
       await loadList();
-    } catch (err) { setError(err.message || "The project could not be created."); }
+    } catch (err) { setError(humanError(err, "The project could not be created.")); }
     finally { setBusy(false); }
   }
 
@@ -216,12 +226,12 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       if (result.error) throw result.error;
       await loadDetail(detail.id); await loadList();
       setSheet({ type: "objective-saved", objectiveId: result.data.id, projectId: detail.id });
-    } catch (err) { setError(err.message || "The objective could not be saved."); }
+    } catch (err) { setError(humanError(err, "The objective could not be saved.")); }
     finally { setBusy(false); }
   }
 
   if (selectedId) {
-    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <div className="flag flag-brick"><h4>Could not open project</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <ProductNotice tone="error" title="Could not open project">{error}</ProductNotice> : <LoadingState label="Loading project…" />}</div>;
     const team = [...new Set(detail.work.map((item) => item.profiles?.full_name).filter(Boolean))];
     const unattached = detail.work.filter((item) => !item.objective_id);
     return <div className="body manager-projects">
@@ -231,75 +241,108 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       {detail.purpose ? <p className="screen-note">{detail.purpose}</p> : <p className="screen-note">No purpose has been recorded.</p>}
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
 
-      <div className="sec"><span>Purpose and context</span></div>
-      <div className="card">
-        <div className="row-t">{detail.units?.name || "Lead unit not recorded"}</div>
-        <div className="row-m">Lead unit</div>
-        <div className="row-note">{detail.starts_on ? dateOnly(`${detail.starts_on}T00:00:00`) : "No start date"} → {detail.ends_on ? dateOnly(`${detail.ends_on}T00:00:00`) : "No end date"}</div>
-        <div className="row-note">Participating: {detail.participants.filter((row) => row.role === "participating").map((row) => row.units?.name).filter(Boolean).join(", ") || "No additional unit recorded"}</div>
-        <div className="row-note">Assigned people: {team.join(", ") || "No work holder recorded"}</div>
-      </div>
+      <nav className="project-workspace-nav" aria-label="Project workspace">
+        {[
+          ["overview","Overview"],
+          ["work","Work"],
+          ["objectives","Objectives"],
+          ["collaboration","Collaboration"],
+          ["close","Close & record"],
+        ].map(([key,label]) => <button key={key} className={area === key ? "on" : ""} onClick={() => setArea(key)}>{label}</button>)}
+      </nav>
 
-      {(detail.kind !== "project" || detail.phases.length > 0) && <>
-        <div className="sec"><span>Operational phases</span><span>{detail.phases.length}</span></div>
-        {detail.phases.map((phase) => <div className="row" key={phase.id}><div className="row-t">{phase.name}</div><div className="row-m">{phase.starts_on ? dateOnly(`${phase.starts_on}T00:00:00`) : "No start date"} → {phase.ends_on ? dateOnly(`${phase.ends_on}T00:00:00`) : "No end date"}</div>{phase.closed_at && <div className="row-note">Closed {dateOnly(phase.closed_at)}</div>}</div>)}
-        {!detail.phases.length && <div className="card small">No operational phases have been recorded.</div>}
-      </>}
+      {area === "overview" && <section className="project-workspace-area">
+        <div className="project-overview-grid">
+          <div className="card">
+            <div className="row-t">{detail.units?.name || "Lead unit not recorded"}</div>
+            <div className="row-m">Lead unit</div>
+            <div className="row-note">{detail.starts_on ? dateOnly(`${detail.starts_on}T00:00:00`) : "No start date"} → {detail.ends_on ? dateOnly(`${detail.ends_on}T00:00:00`) : "No end date"}</div>
+            <div className="row-note">Participating: {detail.participants.filter((row) => row.role === "participating").map((row) => row.units?.name).filter(Boolean).join(", ") || "No additional unit recorded"}</div>
+            <div className="row-note">Assigned people: {team.join(", ") || "No work holder recorded"}</div>
+          </div>
+          <div className="card project-overview-summary">
+            <div><strong>{detail.objectives.length}</strong><span>objectives</span></div>
+            <div><strong>{detail.work.filter((item) => !["completed","self_certified","cancelled"].includes(item.status)).length}</strong><span>open work</span></div>
+            <div><strong>{detail.work.filter((item) => ["completed","self_certified"].includes(item.status)).length}</strong><span>completed work</span></div>
+          </div>
+        </div>
 
-      <div className="sec"><span>Objectives</span><span>{detail.objectives.length}</span></div>
-      {detail.canManageObjectives && <button className="btn wide-auto" style={{ marginBottom: 10 }} onClick={() => setSheet({ type: "objective", value: null })}>Add objective</button>}
-      {detail.objectives.map((objective) => {
-        const work = detail.work.filter((item) => item.objective_id === objective.id);
-        const tasks = work.filter((item) => item.kind === "task");
-        const completed = tasks.filter((item) => ["completed", "self_certified"].includes(item.status)).length;
-        return <div className="card" style={{ marginBottom: 10 }} key={objective.id}>
-          <div className="eyebrow">{objective.ref} · {objective.units?.name || "Unit not recorded"}</div>
-          <div className="row-t" style={{ marginTop: 4 }}>{objective.name}</div>
-          {objective.statement && <div className="row-note">{objective.statement}</div>}
-          {objective.measure && <div className="row-note">Measure: {objective.measure}</div>}
-          <div style={{ marginTop: 8 }}><Pill tone={objectiveTone(objective.status)}>{objectiveStatus(objective.status)}</Pill></div>
-          <div className="row-note">{completed} of {tasks.length} project tasks completed</div>
-          {objective.target_value !== null && <div className="row-note">Target: {objective.target_value} {objective.target_unit || ""}{objective.achieved_value !== null ? ` · Result: ${objective.achieved_value} ${objective.target_unit || ""}` : " · No result recorded"}</div>}
-          {objective.closed_note && <div className="row-note">Close note: {objective.closed_note}</div>}
-          {objective.unit_id === me.unit_id && <div style={{ display: "flex", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "objective", value: objective })}>Edit objective</button>
-            <button className="btn btn-sm" onClick={() => goAssign({ projectId: detail.id, objectiveId: objective.id, phaseId: objective.phase_id })}>Add work</button>
-          </div>}
-          <div style={{ marginTop: 10 }}>{work.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}{work.length === 0 && <div className="small">No work has been attached to this objective.</div>}</div>
-        </div>;
-      })}
-      {detail.objectives.length === 0 && <div className="card small">No objectives have been recorded for this project.</div>}
+        {(detail.kind !== "project" || detail.phases.length > 0) && <>
+          <div className="sec"><span>Operational phases</span><span>{detail.phases.length}</span></div>
+          {detail.phases.map((phase) => <div className="row" key={phase.id}><div className="row-t">{phase.name}</div><div className="row-m">{phase.starts_on ? dateOnly(`${phase.starts_on}T00:00:00`) : "No start date"} → {phase.ends_on ? dateOnly(`${phase.ends_on}T00:00:00`) : "No end date"}</div>{phase.closed_at && <div className="row-note">Closed {dateOnly(phase.closed_at)}</div>}</div>)}
+          {!detail.phases.length && <div className="card small">No operational phases have been recorded.</div>}
+        </>}
 
-      <div className="sec"><span>Work not attached to an objective</span><span>{unattached.length}</span></div>
-      <p className="screen-note">Non-private project work is shown across participating units. Confidential work stays restricted.</p>
-      {unattached.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
-      {unattached.length === 0 && <div className="card small">All recorded project work is attached to an objective.</div>}
-      {detail.canManageObjectives && <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => goAssign({ projectId: detail.id })}>Add project work</button>}
+        <div className="sec"><span>Your unit cost · read only</span></div>
+        <p className="screen-note">Currencies are shown separately. No conversion is applied.</p>
+        <div style={{ marginTop: 8 }}><CostSummary rows={detail.costs} /></div>
+      </section>}
 
-      <div className="sec"><span>Your unit cost · read only</span></div>
-      <p className="screen-note">Currencies are shown separately. No conversion is applied.</p>
-      <div style={{ marginTop: 8 }}><CostSummary rows={detail.costs} /></div>
+      {area === "work" && <section className="project-workspace-area">
+        <div className="project-area-head">
+          <div><span className="eyebrow">Execution</span><h2>Project work</h2></div>
+          {detail.canManageObjectives && <button className="btn btn-sm" onClick={() => goAssign({ projectId: detail.id })}>Add project work</button>}
+        </div>
+        <p className="screen-note">Non-private project work across participating units. Open any item for its full evidence and review history.</p>
+        {detail.work.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
+        {detail.work.length === 0 && <div className="card small">No project work has been recorded yet.</div>}
+        {unattached.length > 0 && <p className="context-note">{unattached.length} item{unattached.length === 1 ? "" : "s"} are not attached to an objective. Attach work where an objective relationship is meaningful; do not force a link for administrative work.</p>}
+      </section>}
 
-      <div className="sec"><span>Communication</span></div>
-      <div className="project-collaboration-grid">
-        <button className="project-room-entry" onClick={() => openRoom?.(detail.id, { object_type: "project", object_id: detail.id, label: detail.name })}>
-          <span><strong>Project Room</strong><small>Discussion, replies and linked work stay with this project.</small></span>
-          <b aria-hidden="true">Open →</b>
-        </button>
-        <button className="project-room-entry" onClick={() => scheduleMeeting?.({ scope:"project", projectId:detail.id })}>
-          <span><strong>Project meeting</strong><small>Schedule a Zoom-backed meeting and keep its operational record here.</small></span>
-          <b aria-hidden="true">Schedule →</b>
-        </button>
-      </div>
+      {area === "objectives" && <section className="project-workspace-area">
+        <div className="project-area-head">
+          <div><span className="eyebrow">Outcome</span><h2>Objectives</h2></div>
+          {detail.canManageObjectives && <button className="btn btn-sm" onClick={() => setSheet({ type: "objective", value: null })}>Add objective</button>}
+        </div>
+        {detail.objectives.map((objective) => {
+          const work = detail.work.filter((item) => item.objective_id === objective.id);
+          const tasks = work.filter((item) => item.kind === "task");
+          const completed = tasks.filter((item) => ["completed", "self_certified"].includes(item.status)).length;
+          return <div className="card project-objective-card" key={objective.id}>
+            <div className="eyebrow">{objective.ref} · {objective.units?.name || "Unit not recorded"}</div>
+            <div className="row-t" style={{ marginTop: 4 }}>{objective.name}</div>
+            {objective.statement && <div className="row-note">{objective.statement}</div>}
+            {objective.measure && <div className="row-note">Measure: {objective.measure}</div>}
+            <div style={{ marginTop: 8 }}><Pill tone={objectiveTone(objective.status)}>{objectiveStatus(objective.status)}</Pill></div>
+            <div className="row-note">{completed} of {tasks.length} project tasks completed</div>
+            {objective.target_value !== null && <div className="row-note">Target: {objective.target_value} {objective.target_unit || ""}{objective.achieved_value !== null ? ` · Result: ${objective.achieved_value} ${objective.target_unit || ""}` : " · No result recorded"}</div>}
+            {objective.closed_note && <div className="row-note">Close note: {objective.closed_note}</div>}
+            {objective.unit_id === me.unit_id && <div style={{ display: "flex", gap: 7, marginTop: 10, flexWrap: "wrap" }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "objective", value: objective })}>Edit objective</button>
+              <button className="btn btn-sm" onClick={() => goAssign({ projectId: detail.id, objectiveId: objective.id, phaseId: objective.phase_id })}>Add work</button>
+            </div>}
+            {work.length > 0 && <details className="project-objective-work"><summary>{work.length} linked work item{work.length === 1 ? "" : "s"}</summary><div>{work.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}</div></details>}
+          </div>;
+        })}
+        {detail.objectives.length === 0 && <div className="card small">No objectives have been recorded for this project.</div>}
+      </section>}
 
-      <ManagerProjectClose
-        me={me}
-        project={detail}
-        objectives={detail.objectives}
-        work={detail.work}
-        costs={detail.costs}
-        onRefresh={async () => { await loadDetail(detail.id); await loadList(); }}
-      />
+      {area === "collaboration" && <section className="project-workspace-area">
+        <div className="project-area-head"><div><span className="eyebrow">Coordination</span><h2>Collaboration</h2></div></div>
+        <p className="screen-note">Use the Project Room for contextual communication and meetings for decisions/actions that need an attributable record.</p>
+        <div className="project-collaboration-grid">
+          <button className="project-room-entry" onClick={() => openRoom?.(detail.id, { object_type: "project", object_id: detail.id, label: detail.name })}>
+            <span><strong>Project Room</strong><small>Discussion, replies and linked work stay with this project.</small></span>
+            <b aria-hidden="true">Open →</b>
+          </button>
+          <button className="project-room-entry" onClick={() => scheduleMeeting?.({ scope:"project", projectId:detail.id })}>
+            <span><strong>Project meeting</strong><small>Schedule a meeting for the right project audience and keep its operational record here.</small></span>
+            <b aria-hidden="true">Schedule →</b>
+          </button>
+        </div>
+      </section>}
+
+      {area === "close" && <section className="project-workspace-area">
+        <div className="project-area-head"><div><span className="eyebrow">Record</span><h2>Close & record</h2></div></div>
+        <ManagerProjectClose
+          me={me}
+          project={detail}
+          objectives={detail.objectives}
+          work={detail.work}
+          costs={detail.costs}
+          onRefresh={async () => { await loadDetail(detail.id); await loadList(); }}
+        />
+      </section>}
 
       {sheet?.type === "objective" && <ObjectiveSheet value={sheet.value} busy={busy} onClose={() => setSheet(null)} onSave={saveObjective} />}
       {sheet?.type === "objective-saved" && <Sheet onClose={() => setSheet(null)}><div className="h2">Objective saved</div><p className="screen-note">The next step is to assign work through the existing work flow.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => goAssign({ projectId: sheet.projectId, objectiveId: sheet.objectiveId })}>Add work under this objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
@@ -315,7 +358,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>
     {canCreate && <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => setSheet({ type: "project" })}>Create project</button>}
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
-    {loadingList && <div className="spin">Loading projects...</div>}
+    {loadingList && <LoadingState label="Loading projects…" />}
     {!loadingList && <><div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
     {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
       <div className="eyebrow">{project.role === "lead" ? "Lead unit" : "Participating unit"}</div>

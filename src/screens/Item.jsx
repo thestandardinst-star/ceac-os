@@ -551,7 +551,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         {managerSubmissionBlocked && <div className="hint">Manager self-certification is waiting on the database migration. This work will not enter your review queue.</div>}
         {!gated && checks.length > 0 && !allDone && <div className="hint">Finish the checklist to send it in</div>}
         {!blocker && (
-          <button className="btn btn-ghost work-secondary-action" style={{ marginTop: 10 }} onClick={() => setSheet("waiting")} disabled={gated}>
+          <button className="btn btn-ghost work-secondary-action" style={{ marginTop: 10 }} onClick={() => setSheet("waiting")}>
             I am waiting on someone</button>)}
       </>)}
 

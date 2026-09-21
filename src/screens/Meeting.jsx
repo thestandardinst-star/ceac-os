@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { statusPill } from "../components/bits";
 import VoiceInput from "../components/VoiceInput";
+import { humanError } from "../lib/productLanguage";
 
 function whenLabel(value) {
   return new Date(value).toLocaleString("en-GB", {
@@ -28,7 +29,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
     try {
       const [meetingResult, recordResult, linkResult, participantResult] = await Promise.all([
         supabase.from("meeting_sessions")
-          .select("id,org_id,scope,unit_id,project_id,title,agenda,starts_at,ends_at,provider,provider_meeting_id,join_url,location,status,created_by,units(name),projects(name)")
+          .select("id,org_id,scope,unit_id,project_id,title,agenda,starts_at,ends_at,provider,provider_meeting_id,join_url,location,status,created_by,units(name),projects(name,lead_unit_id,project_units(unit_id))")
           .eq("id", meetingId).single(),
         supabase.from("meeting_records")
           .select("id,kind,body,author_id,created_at,profiles!meeting_records_author_id_fkey(full_name)")
@@ -49,13 +50,25 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       setLinks(linkResult.data || []);
       setParticipants(participantResult.data || []);
     } catch (err) {
-      setError(err.message || "Meeting could not be opened.");
+      setError(humanError(err, "Meeting could not be opened."));
     } finally {
       setLoading(false);
     }
   }
 
-  const canManage = Boolean(me?.is_admin || me?.is_exec || me?.role === "manager");
+  const myParticipant = participants.find((row) => row.profile_id === me.id);
+  const managerUnitIds = (me.memberships || []).filter((row) => row.role === "manager").map((row) => row.unit_id);
+  const projectUnitIds = meeting?.projects
+    ? [meeting.projects.lead_unit_id, ...(meeting.projects.project_units || []).map((row) => row.unit_id)].filter(Boolean)
+    : [];
+  const managesContext = Boolean(
+    meeting && (
+      (meeting.scope === "unit" && managerUnitIds.includes(meeting.unit_id))
+      || (meeting.scope === "project" && projectUnitIds.some((id) => managerUnitIds.includes(id)))
+    )
+  );
+  const canManage = Boolean(me?.is_admin || me?.is_exec || myParticipant?.role === "organiser" || managesContext);
+  const canContribute = Boolean(me?.is_admin || me?.is_exec || myParticipant);
   const decisions = useMemo(() => records.filter((row) => row.kind === "decision"), [records]);
   const notes = useMemo(() => records.filter((row) => row.kind === "note"), [records]);
 
@@ -75,7 +88,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       setNote("");
       await load();
     } catch (err) {
-      setError(err.message || "Meeting record could not be saved.");
+      setError(humanError(err, "Meeting record could not be saved."));
     } finally {
       setBusy(false);
     }
@@ -147,7 +160,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
         <p>{row.body}</p>
       </article>)}
 
-      <div className="meeting-record-form">
+      {canContribute && <div className="meeting-record-form">
         {canManage && <div className="meeting-record-kind">
           <button className={recordKind === "note" ? "on" : ""} onClick={() => setRecordKind("note")}>Note</button>
           <button className={recordKind === "decision" ? "on" : ""} onClick={() => setRecordKind("decision")}>Decision</button>
@@ -157,7 +170,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
           <VoiceInput compact label={recordKind === "decision" ? "Speak decision" : "Speak note"} onResult={(text) => setNote((current) => current ? current + " " + text : text)} />
         </div>
         <button className="btn" disabled={busy || !note.trim()} onClick={addRecord}>{busy ? "Saving..." : recordKind === "decision" ? "Record decision" : "Add note"}</button>
-      </div>
+      </div>}
     </section>
 
     <section className="meeting-panel">

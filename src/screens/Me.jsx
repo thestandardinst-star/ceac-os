@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Sheet } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
+import { humanError } from "../lib/productLanguage";
 
 export default function Me({ me, openGoal }) {
   const [profile, setProfile] = useState(me);
@@ -101,7 +102,7 @@ export default function Me({ me, openGoal }) {
       if (error) throw error;
       setSheet(null); setKind("annual"); setStartDate(""); setEndDate(""); setReason("");
       await load();
-    } catch (error) { alert(error.message); }
+    } catch (error) { setMessage(humanError(error, "CEAC could not save that change.")); }
     finally { setBusy(false); }
   }
 
@@ -118,7 +119,7 @@ export default function Me({ me, openGoal }) {
       setSheet(null); setGoalTitle(""); setGoalDate("");
       await load();
       if (openGoal && data) openGoal(data.id);
-    } catch (error) { alert(error.message); }
+    } catch (error) { setMessage(humanError(error, "CEAC could not save that change.")); }
     finally { setBusy(false); }
   }
 
@@ -135,7 +136,7 @@ export default function Me({ me, openGoal }) {
       if (error) throw error;
       setSheet(null); setRemindTitle(""); setRemindAt("");
       await load();
-    } catch (error) { alert(error.message); }
+    } catch (error) { setMessage(humanError(error, "CEAC could not save that change.")); }
     finally { setBusy(false); }
   }
 
@@ -181,7 +182,7 @@ export default function Me({ me, openGoal }) {
       if (error) throw error;
       setMessage("Saved. This change is recorded in your profile history.");
       await load();
-    } catch (error) { setMessage(error.message || "Your details could not be saved."); }
+    } catch (error) { setMessage(humanError(error, "Your details could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -190,7 +191,7 @@ export default function Me({ me, openGoal }) {
   }
 
   return <div className="body staff-me">
-    {message && !sheet && <div className="flag flag-brick" style={{ marginTop: 12 }}>{message}</div>}
+    {message && !sheet && <ProductNotice tone={message.startsWith("Saved") ? "success" : "error"} title={message.startsWith("Saved") ? "Saved" : "Could not complete that"}>{message}</ProductNotice>}
     <div className="staff-page-intro">
       <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1">{profile.preferred_name || profile.full_name}</h1>
@@ -297,9 +298,9 @@ export default function Me({ me, openGoal }) {
       {[["annual","Annual"],["sick","Sick"],["bereavement","Bereavement"],["maternity","Maternity"],["other","Other"]].map(([key, label]) => <button key={key} className="opt" onClick={() => setKind(key)}>
         <span className={`rd ${kind === key ? "on" : ""}`} /> {label}
       </button>)}
-      <input className="field" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
-      <input className="field" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
-      <textarea className="field" rows={2} placeholder="A short reason (optional)" value={reason} onChange={(event) => setReason(event.target.value)} />
+      <FieldGroup label="Leave starts"><input className="field" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Leave ends"><input className="field" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Reason" hint="Optional. Keep it brief."><textarea className="field" rows={2} placeholder="A short reason" value={reason} onChange={(event) => setReason(event.target.value)} /></FieldGroup>
       {startDate && endDate && <div className="small" style={{ marginTop: 8 }}>That is {daysBetween(startDate, endDate)} day{daysBetween(startDate, endDate) === 1 ? "" : "s"}.</div>}
       <button className="btn" style={{ marginTop: 14 }} onClick={requestLeave} disabled={busy || !startDate || !endDate}>{busy ? "Sending..." : "Send request"}</button>
     </Sheet>}
@@ -307,17 +308,16 @@ export default function Me({ me, openGoal }) {
     {sheet === "goal" && <Sheet onClose={() => setSheet(null)}>
       <div className="h2">Add a personal goal</div>
       <p className="screen-note">Only you see this. Add steps inside the goal after creating it.</p>
-      <input className="field" placeholder="What are you aiming for?" value={goalTitle} onChange={(event) => setGoalTitle(event.target.value)} />
-      <label className="field-label">Target date (optional)</label>
-      <input className="field" type="date" value={goalDate} onChange={(event) => setGoalDate(event.target.value)} />
+      <FieldGroup label="Goal"><input className="field" placeholder="What are you aiming for?" value={goalTitle} onChange={(event) => setGoalTitle(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Target date" hint="Optional."><input className="field" type="date" value={goalDate} onChange={(event) => setGoalDate(event.target.value)} /></FieldGroup>
       <button className="btn" style={{ marginTop: 14 }} onClick={createGoal} disabled={busy || !goalTitle.trim()}>{busy ? "Saving..." : "Add goal"}</button>
     </Sheet>}
 
     {sheet === "remind" && <Sheet onClose={() => setSheet(null)}>
       <div className="h2">Add a reminder</div>
       <p className="screen-note">Only you see this reminder.</p>
-      <input className="field" placeholder="What to remind you of" value={remindTitle} onChange={(event) => setRemindTitle(event.target.value)} />
-      <input className="field" type="datetime-local" value={remindAt} onChange={(event) => setRemindAt(event.target.value)} />
+      <FieldGroup label="Reminder"><input className="field" placeholder="What to remind you of" value={remindTitle} onChange={(event) => setRemindTitle(event.target.value)} /></FieldGroup>
+      <FieldGroup label="When"><input className="field" type="datetime-local" value={remindAt} onChange={(event) => setRemindAt(event.target.value)} /></FieldGroup>
       <button className="btn" style={{ marginTop: 14 }} onClick={createReminder} disabled={busy || !remindTitle.trim() || !remindAt}>{busy ? "Saving..." : "Set reminder"}</button>
     </Sheet>}
 
@@ -343,10 +343,10 @@ export default function Me({ me, openGoal }) {
       <textarea id="profile-address" className="field" rows="3" value={profileForm.address_text} onChange={(event) => setProfileForm((value) => ({ ...value, address_text: event.target.value }))} />
 
       <div className="sec"><span>Social handles</span></div>
-      <input className="field" placeholder="Instagram" value={profileForm.instagram} onChange={(event) => setProfileForm((value) => ({ ...value, instagram: event.target.value }))} />
-      <input className="field" placeholder="LinkedIn" value={profileForm.linkedin} onChange={(event) => setProfileForm((value) => ({ ...value, linkedin: event.target.value }))} />
+      <FieldGroup label="Instagram"><input className="field" placeholder="Username or profile link" value={profileForm.instagram} onChange={(event) => setProfileForm((value) => ({ ...value, instagram: event.target.value }))} /></FieldGroup>
+      <FieldGroup label="LinkedIn"><input className="field" placeholder="Profile link" value={profileForm.linkedin} onChange={(event) => setProfileForm((value) => ({ ...value, linkedin: event.target.value }))} /></FieldGroup>
 
-      {message && <div className="flag flag-amber" style={{ marginTop: 12 }}>{message}</div>}
+      {message && <ProductNotice tone={message.startsWith("Saved") ? "success" : "attention"} title={message.startsWith("Saved") ? "Saved" : "Could not save"}>{message}</ProductNotice>}
       <button className="btn" style={{ marginTop: 14 }} onClick={saveProfile} disabled={busy}>{busy ? "Saving..." : "Save personal details"}</button>
     </Sheet>}
   </div>;

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -82,7 +83,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           .select("profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name)")
           .eq("unit_id", me.unit_id),
         supabase.from("submissions")
-          .select("id, note, submitted_at, profiles!submissions_profile_id_fkey(full_name), work_items!inner(id, ref, title, unit_id, status, due_at), submission_files(url)")
+          .select("id, note, submitted_at, profiles!submissions_profile_id_fkey(full_name), work_items!inner(id, ref, title, kind, purpose, expected_outcome, unit_id, status, due_at), submission_files(url)")
           .eq("work_items.unit_id", me.unit_id).eq("work_items.status", "in_review")
           .neq("profile_id", me.id)
           .order("submitted_at", { ascending: true }),
@@ -259,14 +260,15 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       }).filter((project) => project.atRisk.length > 0 || project.closesThisWeek || project.openDeliverables.length > 0 || project.objectivesWithoutActiveWork.length > 0));
     } catch (err) {
       setLoadFailed(true);
-      setError(err.message || "Manager Home could not be loaded.");
+      setError(humanError(err, "Manager Home could not be loaded."));
     } finally {
       setLoading(false);
     }
   }
 
-  async function openReturn(submission) {
+  async function openReview(submission) {
     setError(null);
+    setComment("");
     setReturnItems([]);
     setSelectedReturnItems([]);
     const result = await supabase.from("checklist_items")
@@ -278,7 +280,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       return;
     }
     setReturnItems(result.data || []);
-    setSheet({ type: "work", item: submission, decision: "returned" });
+    setSheet({ type: "work-review", item: submission, decision: null });
   }
 
   function toggleReturnItem(id) {
@@ -307,7 +309,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (approveError) throw approveError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The review could not be saved."); }
+    } catch (err) { setError(humanError(err, "The review could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -320,7 +322,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       }).eq("id", request.id);
       if (updateError) throw updateError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The leave decision could not be saved."); }
+    } catch (err) { setError(humanError(err, "The leave decision could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -332,7 +334,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (responseError) throw responseError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The blocker response could not be saved."); }
+    } catch (err) { setError(humanError(err, "The blocker response could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -344,7 +346,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (resolveError) throw resolveError;
       await load();
-    } catch (err) { setError(err.message || "The blocker could not be resolved."); }
+    } catch (err) { setError(humanError(err, "The blocker could not be resolved.")); }
     finally { setBusy(false); }
   }
 
@@ -379,8 +381,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <div><strong>{projects.length}</strong><span>Projects attention</span></div>
         </div>
       </section>
-      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
-      {loading && <div className="spin">Loading Manager Home...</div>}
+      {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
+      {loading && <LoadingState label="Loading Manager Home…" />}
 
       {!loading && !loadFailed && <div className="home-dashboard">
       <section className="home-panel home-panel-priority" aria-labelledby="manager-waiting-heading">
@@ -398,9 +400,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
           {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
           <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => openReturn(submission)}>Return</button>
-            <button className="btn btn-sm" onClick={() => setSheet({ type: "work", item: submission, decision: "completed" })}>Approve</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open full work</button>
+            <button className="btn btn-sm" onClick={() => openReview(submission)}>Review</button>
           </div>
         </div>
       ))}
@@ -428,74 +429,9 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       ))}
       </section>
 
-      <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Team pulse</div><h2 id="manager-team-heading">Your team today</h2></div>
-      </div>
-      <div className="home-subhead">Availability</div>
-      <div className="home-stat-grid">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
-        <button className="home-stat" onClick={() => setDrill({ zone: "team", title: "Not started today", people: true, rows: team.notStarted })}><b>{team.notStarted.length}</b><span>Not started</span></button>
-      </div>
-      <div className="home-subhead home-subhead-spaced">Work movement today</div>
-      <div className="home-stat-grid">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
-        <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
-      </div>
-      {drill?.zone === "team" && <div className="home-drill">
-        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-        {drill.people && (drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
-          <div className="row-t">{person.name}</div>
-          <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
-        </button>) : <div className="home-quiet">No people in this group.</div>)}
-        {!drill.people && (drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work in this group.</div>)}
-      </div>}
-      </section>
-
-      <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Open blockers</div><h2 id="manager-stuck-heading">Waiting both ways</h2></div>
-          <span className="home-count">{blockers.length}</span>
-        </div>
-        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
-        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
-          <div className="home-subhead">{group.label}</div>
-          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
-              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
-              <div className="row-t">{blocker.work_items.title}</div>
-              <div className="row-m">{blocker.direction === "incoming"
-                ? blocker.state === "acknowledged"
-                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
-                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
-                : blocker.state === "acknowledged"
-                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
-                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
-              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
-              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
-                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
-                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
-                </>}
-                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
-              </div>
-            </div>)}
-        </div>)}
-      </section>
-
-      <section className="home-panel" aria-labelledby="manager-own-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Personal focus</div><h2 id="manager-own-heading">Your own work</h2></div>
-        <span className="home-count">{mine.length}</span>
-      </div>
-      {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone={ownTone(item)} />) : <div className="home-quiet">No due, overdue, returned or waiting work.</div>}
-      </section>
-
       <section className="home-panel home-panel-projects" aria-labelledby="manager-projects-heading">
       <div className="home-section-head">
-        <div><div className="home-kicker">Delivery</div><h2 id="manager-projects-heading">Projects needing attention</h2></div>
+        <div><div className="home-kicker">Delivery risk</div><h2 id="manager-projects-heading">Projects needing attention</h2></div>
         <span className="home-count home-count-attention">{projects.length}</span>
       </div>
       {projects.length ? projects.map((project) => (
@@ -524,9 +460,66 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       </div>}
       </section>
 
+      <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Delivery risk</div><h2 id="manager-stuck-heading">Dependencies needing attention</h2></div>
+          <span className="home-count">{blockers.length}</span>
+        </div>
+        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
+        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
+          <div className="home-subhead">{group.label}</div>
+          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
+              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
+              <div className="row-t">{blocker.work_items.title}</div>
+              <div className="row-m">{blocker.direction === "incoming"
+                ? blocker.state === "acknowledged"
+                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
+                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
+                : blocker.state === "acknowledged"
+                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
+                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
+              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
+              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
+                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
+                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
+                </>}
+                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
+              </div>
+            </div>)}
+        </div>)}
+      </section>
+
+      <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
+      <div className="home-section-head">
+        <div><div className="home-kicker">Today</div><h2 id="manager-team-heading">Team context</h2></div>
+      </div>
+      <p className="home-context-note">Availability is context, not a performance measure.</p>
+      <div className="home-subhead">Availability</div>
+      <div className="home-stat-grid home-stat-grid-two">
+        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
+        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
+      </div>
+      <div className="home-subhead home-subhead-spaced">Work movement today</div>
+      <div className="home-stat-grid">
+        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
+        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
+        <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
+      </div>
+      {drill?.zone === "team" && <div className="home-drill">
+        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
+        {drill.people && (drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
+          <div className="row-t">{person.name}</div>
+          <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
+        </button>) : <div className="home-quiet">No people in this group.</div>)}
+        {!drill.people && (drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work in this group.</div>)}
+      </div>}
+      </section>
+
       <section className="home-panel home-panel-week" aria-labelledby="manager-week-heading">
       <div className="home-section-head">
-        <div><div className="home-kicker">Current week</div><h2 id="manager-week-heading">This week / upcoming</h2></div>
+        <div><div className="home-kicker">Today & next</div><h2 id="manager-week-heading">Coming up</h2></div>
       </div>
       <div className="home-stat-grid">
         <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "week", title: "Tasks due this week", rows: week.due })}><b>{week.due.length}</b><span>Due this week</span></button>
@@ -552,6 +545,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
       </div>}
+      </section>
+
+      <section className="home-panel" aria-labelledby="manager-own-heading">
+      <div className="home-section-head">
+        <div><div className="home-kicker">Personal focus</div><h2 id="manager-own-heading">Your own work</h2></div>
+        <span className="home-count">{mine.length}</span>
+      </div>
+      {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone={ownTone(item)} />) : <div className="home-quiet">No due, overdue, returned or waiting work.</div>}
       </section>
 
       {incomingRequests.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="manager-requests-heading">
@@ -593,23 +594,42 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         </button>)}
       </section>}
 
-      {sheet?.type === "work" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
-        <div className="h2">{sheet.decision === "completed" ? "Approve this work" : "Return this work"}</div>
-        <p className="screen-note">{sheet.decision === "completed" ? "The approval is added to the submission history." : "Explain exactly what needs changing. Select any checklist points that must be done again."}</p>
-        {sheet.decision === "returned" && returnItems.length > 0 && <>
-          <div className="sec" style={{ marginTop: 14 }}><span>Checklist points to redo</span></div>
-          <div className="card" style={{ padding: "2px 15px" }}>
+      {sheet?.type === "work-review" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
+        <div className="eyebrow">Evidence-first review</div>
+        <div className="h2" style={{ marginTop: 5 }}>{sheet.item.work_items.title}</div>
+        <p className="screen-note">{sheet.item.work_items.ref} · {sheet.item.profiles?.full_name || "Team member"} · submitted {new Date(sheet.item.submitted_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+        {sheet.item.work_items.purpose && <div className="review-evidence-block"><span>Why this work matters</span><strong>{sheet.item.work_items.purpose}</strong></div>}
+        {sheet.item.work_items.expected_outcome && <div className="review-evidence-block"><span>Expected result</span><strong>{sheet.item.work_items.expected_outcome}</strong></div>}
+        {sheet.item.note && <div className="review-evidence-block"><span>Submission note</span><strong>{sheet.item.note}</strong></div>}
+        {sheet.item.submission_files?.length > 0 && <div className="review-evidence-links">
+          {sheet.item.submission_files.map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer">Open submitted evidence ↗</a>)}
+        </div>}
+        {returnItems.length > 0 && <div className="review-checklist-summary">
+          <span>Checklist</span>
+          {returnItems.map((item) => <div key={item.id}>{item.label}</div>)}
+        </div>}
+        {!sheet.decision && <div className="review-decision-row">
+          <button className="btn btn-ghost" onClick={() => setSheet((current) => ({ ...current, decision: "returned" }))}>Return for correction</button>
+          <button className="btn" onClick={() => setSheet((current) => ({ ...current, decision: "completed" }))}>Approve</button>
+        </div>}
+        {sheet.decision === "returned" && <>
+          <div className="sec" style={{ marginTop: 14 }}><span>What needs changing</span></div>
+          {returnItems.length > 0 && <div className="card" style={{ padding: "2px 15px" }}>
             {returnItems.map((item) => (
               <button key={item.id} className={"ck " + (selectedReturnItems.includes(item.id) ? "done" : "")} onClick={() => toggleReturnItem(item.id)}>
                 <span className={"box " + (selectedReturnItems.includes(item.id) ? "on" : "")} />
                 <span className="ck-l">{item.label}</span>
               </button>
             ))}
-          </div>
-          <div className="hint">Leave these unselected if the correction is not tied to a checklist point.</div>
+          </div>}
+          <AssistiveTextarea className="field" rows={3} placeholder="Explain exactly what needs changing" value={comment} onChange={(event) => setComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => decideWork(sheet.item, "returned")}>{busy ? "Saving..." : "Return work"}</button>
         </>}
-        <AssistiveTextarea className="field" rows={3} placeholder={sheet.decision === "completed" ? "Note (optional)" : "What needs changing"} value={comment} onChange={(event) => setComment(event.target.value)} />
-        <button className="btn" style={{ marginTop: 14 }} disabled={busy || (sheet.decision === "returned" && !comment.trim())} onClick={() => decideWork(sheet.item, sheet.decision)}>{busy ? "Saving..." : sheet.decision === "completed" ? "Approve" : "Return"}</button>
+        {sheet.decision === "completed" && <>
+          <AssistiveTextarea className="field" rows={3} placeholder="Approval note (optional)" value={comment} onChange={(event) => setComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => decideWork(sheet.item, "completed")}>{busy ? "Saving..." : "Confirm approval"}</button>
+        </>}
+        {sheet.decision && <button className="text-action" style={{ marginTop: 12 }} onClick={() => { setComment(""); setSelectedReturnItems([]); setSheet((current) => ({ ...current, decision: null })); }}>Choose another decision</button>}
       </Sheet>}
       {sheet?.type === "leave" && <Sheet onClose={() => { setSheet(null); setComment(""); }}>
         <div className="h2">{sheet.decision === "declined" ? "Decline leave" : Number(sheet.item.days) > leaveLimit ? "Escalate leave" : "Approve leave"}</div>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel, isOverdue } from "../lib/time";
-import { Pill, statusPill } from "../components/bits";
+import { Pill, statusPill, ProductNotice, LoadingState, FieldGroup } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function requireResult(result, label) {
   if (result.error) throw new Error(`${label}: ${result.error.message}`);
@@ -108,7 +109,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
       } else {
         setObjectives([]); setObjectiveTasks([]);
       }
-    } catch (err) { setError(err.message || "This person could not be loaded."); }
+    } catch (err) { setError(humanError(err, "This person could not be loaded.")); }
   }
 
   async function addFeedback() {
@@ -119,11 +120,11 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
       });
       if (insertError) throw insertError;
       setNote(""); await load();
-    } catch (err) { setError(err.message || "The feedback could not be saved."); }
+    } catch (err) { setError(humanError(err, "The feedback could not be saved.")); }
     finally { setBusy(false); }
   }
 
-  if (!person) return <div className="body manager-person-detail"><button className="back" onClick={back}>← Team</button>{error ? <div className="flag flag-brick"><h4>Could not open person detail</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+  if (!person) return <div className="body manager-person-detail"><button className="back" onClick={back}>← Team</button>{error ? <ProductNotice tone="error" title="Could not open person detail">{error}</ProductNotice> : <LoadingState label="Loading person…" />}</div>;
 
   const periodStart = new Date(); periodStart.setDate(periodStart.getDate() - periodDays);
   const current = items.filter((item) => !["completed", "self_certified", "cancelled"].includes(item.status));
@@ -138,7 +139,11 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
   const completedWithDue = completed.filter((item) => item.due_at);
   const onTime = completedWithDue.filter((item) => new Date(item.completed_at) <= new Date(item.due_at));
   const reviewed = completed.filter((item) => item.first_time_approved !== null);
-  const approvedFirstTime = reviewed.filter((item) => item.first_time_approved === true);
+  const needsSupport = new Set([
+    ...currentGroups.waiting_on,
+    ...currentGroups.returned,
+    ...currentGroups.overdue,
+  ].map((item) => item.id)).size;
   const filters = [["active", "Active"], ["waiting_on", "Waiting"], ["returned", "Returned"], ["overdue", "Overdue"], ["in_review", "Awaiting review"]];
 
   return <div className="body manager-person-detail">
@@ -148,7 +153,13 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     <p className="screen-note">{person.profiles?.job_title || person.role}{subTeams.length ? ` · ${subTeams.join(", ")}` : ""}</p>
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
 
-    <div id="current-work" className="sec"><span>Current work</span><span>{current.length}</span></div>
+    <div className="person-orientation-grid" aria-label="Current operational context">
+      <div><strong>{current.length}</strong><span>current responsibilities</span></div>
+      <div className={needsSupport ? "attention" : ""}><strong>{needsSupport}</strong><span>need support or follow-up</span></div>
+      <div><strong>{completed.length}</strong><span>recent completed outcomes</span></div>
+    </div>
+
+    <div id="current-work" className="sec"><span>Current responsibilities</span><span>{current.length}</span></div>
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
       {filters.map(([key, label]) => <button key={key} className={"pill " + (currentFilter === key ? "p-green" : "p-grey")} onClick={() => setCurrentFilter(key)}>{label} {currentGroups[key].length}</button>)}
     </div>
@@ -157,20 +168,20 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
       {currentGroups[currentFilter].length === 0 && <div className="card small">No work in this group.</div>}
     </div>
 
-    <div id="completed" className="sec"><span>Selected period</span><select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))} style={{ color: "var(--ink-soft)" }}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></div>
-    <div className="metric-grid">
-      <button className="metric" onClick={() => setShowCompleted((value) => !value)}><b>{completed.length}</b><span>completed work</span></button>
+    <div id="completed" className="sec"><span>Recent outcomes</span><select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value))} style={{ color: "var(--ink-soft)" }}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></select></div>
+    <div className="metric-grid person-outcome-grid">
+      <button className="metric" onClick={() => setShowCompleted((value) => !value)}><b>{completed.length}</b><span>completed outcomes</span></button>
       <button className="metric" onClick={() => setShowCompleted(true)}><b>{onTime.length} of {completedWithDue.length}</b><span>completed on time where a due date exists</span></button>
-      <button className="metric" onClick={() => setShowReviewed((value) => !value)}><b>{approvedFirstTime.length} of {reviewed.length}</b><span>approved first time</span></button>
+      <button className="metric" onClick={() => setShowReviewed((value) => !value)}><b>{reviewed.length}</b><span>reviewed outcomes</span><small>Open review history</small></button>
     </div>
     {showCompleted && <div style={{ marginTop: 10 }}>{completed.length ? completed.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="card small">No completed work in this period.</div>}</div>}
-    {showReviewed && <div style={{ marginTop: 10 }}>{reviewed.length ? reviewed.map((item) => <button key={item.id} className="row" onClick={() => openItem(item.id)}><div className="row-t">{item.title}</div><div className="row-m">{item.first_time_approved ? "Approved first time" : "Returned before approval"}</div></button>) : <div className="card small">No reviewed work in this period.</div>}</div>}
+    {showReviewed && <div style={{ marginTop: 10 }}>{reviewed.length ? reviewed.map((item) => <button key={item.id} className="row" onClick={() => openItem(item.id)}><div className="row-t">{item.title}</div><div className="row-m">{item.first_time_approved ? "Approved without a return" : "Returned for correction before final approval"}</div></button>) : <div className="card small">No reviewed work in this period.</div>}</div>}
 
     <div id="submissions" className="sec"><span>Submissions in selected period</span><span>{submissions.length}</span></div>
     {submissions.map((submission) => <button key={submission.id} className="row" onClick={() => openItem(submission.work_items.id)}><div className="row-t">{submission.work_items.title}</div><div className="row-m">{submission.work_items.ref} · submitted {dateOnly(submission.submitted_at)}</div>{submission.note && <div className="row-note">{submission.note}</div>}</button>)}
     {submissions.length === 0 && <div className="card small">No submissions in this period.</div>}
 
-    <div className="sec"><span>Objectives connected to this work</span><span>{objectives.length}</span></div>
+    <div className="sec"><span>Projects & objectives</span><span>{objectives.length}</span></div>
     {objectives.map((objective) => {
       const tasks = objectiveTasks.filter((task) => task.objective_id === objective.id);
       const done = tasks.filter((task) => ["completed", "self_certified"].includes(task.status)).length;
@@ -187,18 +198,18 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     })}
     {objectives.length === 0 && <div className="card small">No objective is connected to this person’s work.</div>}
 
-    <div id="sessions" className="sec"><span>Attendance and activity records</span><span>{sessions.length}</span></div>
-    <p className="screen-note">These records show when a work session was opened. They do not measure productivity.</p>
+    <div id="sessions" className="sec"><span>Activity context</span><span>{sessions.length}</span></div>
+    <p className="screen-note">Work sessions are operational context only. They do not measure productivity or determine the quality of this person’s work.</p>
     <div style={{ marginTop: 8 }}>
       {sessions.map((session) => <div key={session.id} className="row"><div className="row-t">{new Date(session.started_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div><div className="row-m">Started {new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })} · {durationLabel(session)} · {session.place}</div>{session.end_reason && <div className="row-note">Ended: {session.end_reason}</div>}</div>)}
       {sessions.length === 0 && <div className="card small">No session records in this period.</div>}
     </div>
 
-    <div className="sec"><span>Feedback</span><span>{feedback.length}</span></div>
+    <div className="sec"><span>Visible feedback</span><span>{feedback.length}</span></div>
     <p className="screen-note">Feedback saved here is visible to this staff member, you, and authorised Administration & HR users. There are no private manager notes.</p>
     {feedback.map((entry) => <div key={entry.id} className="row"><div className="row-t">{entry.profiles?.full_name || "Manager"}</div><div className="row-m">{dateOnly(entry.created_at)}</div><div className="row-note">{entry.note}</div></div>)}
     {feedback.length === 0 && <div className="card small">No feedback has been recorded.</div>}
-    <textarea className="field" rows={3} placeholder="Write factual, visible feedback" value={note} onChange={(event) => setNote(event.target.value)} />
+    <FieldGroup label="Feedback visible to this staff member" hint="Keep it factual and tied to work, support or an agreed development point."><textarea className="field" rows={3} placeholder="Write factual, visible feedback" value={note} onChange={(event) => setNote(event.target.value)} /></FieldGroup>
     <button className="btn wide-auto" style={{ marginTop: 10 }} onClick={addFeedback} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Save visible feedback"}</button>
   </div>;
 }

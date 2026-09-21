@@ -2699,3 +2699,154 @@ textarea{width:100%}
   .assign-screen>.split{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr)}
   .assign-screen .main-col,.assign-screen .side-col{padding:20px}
 }
+
+
+/* Product refinement: intent-led assignment and evidence-first manager review */
+.assign-intent-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+.assign-intent{
+  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);
+  text-align:left;display:grid;gap:3px;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease
+}
+.assign-intent strong{font-size:13.5px;color:var(--ink);font-weight:650}
+.assign-intent span{font-size:11.5px;color:var(--ink-faint);line-height:1.35}
+.assign-intent.on{border-color:rgba(17,140,131,.45);background:var(--green-soft);box-shadow:0 0 0 1px rgba(17,140,131,.06)}
+.assign-intent.on strong{color:var(--green)}
+.assign-system-type{margin:9px 1px 4px;font-size:11.5px;color:var(--ink-faint)}
+.review-evidence-block{display:grid;gap:4px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.review-evidence-block span,.review-checklist-summary>span{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);font-weight:650}
+.review-evidence-block strong{font-size:13.5px;line-height:1.45;font-weight:550;color:var(--ink)}
+.review-evidence-links{display:grid;gap:6px;margin:12px 0}
+.review-evidence-links a{font-size:13px;color:var(--green);font-weight:600;text-decoration:underline}
+.review-checklist-summary{display:grid;gap:6px;padding:12px 0}
+.review-checklist-summary>div{font-size:12.5px;color:var(--ink-soft)}
+.review-decision-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.home-context-note{font-size:11.5px;color:var(--ink-faint);margin:2px 0 10px}
+.home-stat-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:700px){.assign-intent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.review-decision-row{grid-template-columns:1fr}}
+
+
+/* Product refinement: Room unread, mentions and history */
+.room-load-older{
+  display:block;margin:4px auto 14px;padding:7px 12px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);color:var(--ink-soft);font-size:11.5px;font-weight:600
+}
+.room-unread-divider{display:flex;align-items:center;gap:8px;margin:15px 0 10px;color:var(--green);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.room-unread-divider:before,.room-unread-divider:after{content:"";height:1px;flex:1;background:rgba(17,140,131,.28)}
+.room-message-mentions{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.room-message-mentions span{padding:2px 6px;border-radius:999px;background:rgba(17,140,131,.10);color:var(--green);font-size:10.5px;font-weight:650}
+.room-new-messages{
+  position:sticky;z-index:5;bottom:92px;margin:-46px auto 10px;display:block;
+  padding:8px 12px;border-radius:999px;background:var(--manager-shell,#17232D);color:#fff;
+  box-shadow:0 8px 24px rgba(23,35,45,.18);font-size:11.5px;font-weight:650
+}
+
+
+/* Product refinement: Manager person orientation */
+.person-orientation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0 4px}
+.person-orientation-grid>div{padding:12px;border:1px solid var(--manager-line,var(--line));border-radius:12px;background:#fff}
+.person-orientation-grid strong{display:block;font-size:20px;letter-spacing:-.03em}
+.person-orientation-grid span{display:block;margin-top:5px;font-size:10.5px;line-height:1.3;color:var(--ink-faint)}
+.person-orientation-grid>div.attention{background:var(--amber-soft);border-color:rgba(154,104,21,.18)}
+.person-outcome-grid .metric small{display:block;margin-top:4px;color:var(--ink-faint);font-size:10px;font-weight:500}
+@media(max-width:430px){.person-orientation-grid{grid-template-columns:1fr 1fr}.person-orientation-grid>div:last-child{grid-column:1 / -1}}
+
+
+/* Product refinement: Project workspace */
+.project-workspace-nav{display:flex;gap:6px;overflow-x:auto;margin:18px 0 8px;padding-bottom:4px;scrollbar-width:none}
+.project-workspace-nav::-webkit-scrollbar{display:none}
+.project-workspace-nav button{flex:none;padding:8px 11px;border:1px solid var(--manager-line,var(--line));border-radius:999px;background:#fff;color:var(--ink-soft);font-size:11.5px;font-weight:650}
+.project-workspace-nav button.on{background:var(--manager-shell,#17232D);border-color:var(--manager-shell,#17232D);color:#fff}
+.project-workspace-area{padding-top:8px}
+.project-overview-grid{display:grid;gap:10px}
+.project-overview-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.project-overview-summary>div{min-width:0}
+.project-overview-summary strong{display:block;font-size:20px;letter-spacing:-.03em}
+.project-overview-summary span{display:block;margin-top:4px;color:var(--ink-faint);font-size:10.5px}
+.project-area-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:16px 0 12px}
+.project-area-head h2{font-size:20px;letter-spacing:-.025em}
+.project-objective-card{margin-bottom:10px}
+.project-objective-work{margin-top:11px}
+.project-objective-work summary{cursor:pointer;color:var(--green);font-size:11.5px;font-weight:650}
+.project-objective-work>div{margin-top:9px}
+@media(min-width:820px){.project-overview-grid{grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr)}}
+@media(max-width:430px){.project-area-head{flex-direction:column}.project-overview-summary{grid-template-columns:1fr 1fr}.project-overview-summary>div:last-child{grid-column:1 / -1}}
+
+
+/* Product refinement: quieter Staff Home context */
+.home-panel-secondary{padding:0;overflow:hidden}
+.home-secondary-summary{
+  list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;cursor:pointer
+}
+.home-secondary-summary::-webkit-details-marker{display:none}
+.home-secondary-summary span{display:grid;gap:2px}
+.home-secondary-summary small{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700}
+.home-secondary-summary strong{font-size:15px;color:var(--ink)}
+.home-secondary-summary b{min-width:28px;text-align:center;padding:4px 7px;border-radius:999px;background:var(--paper-2,#f4f5f5);font-size:11px;color:var(--ink-soft)}
+.home-panel-secondary[open] .home-secondary-summary{border-bottom:1px solid var(--line-soft)}
+.home-secondary-body{padding:4px 16px 16px}
+
+
+/* Shared product primitives */
+.field-group{display:grid;gap:6px;margin-top:10px}
+.field-label{font-size:11.5px;font-weight:650;color:var(--ink-soft)}
+.field-hint{font-size:10.5px;line-height:1.35;color:var(--ink-faint)}
+.product-notice{display:grid;gap:4px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:12px;line-height:1.4}
+.product-notice strong{font-size:12.5px}
+.product-notice-info{background:var(--green-soft)}
+.product-notice-success{background:var(--green-soft);border-color:rgba(17,140,131,.18)}
+.product-notice-attention{background:var(--amber-soft);border-color:rgba(154,104,21,.16)}
+.product-notice-error{background:var(--brick-soft);border-color:rgba(162,64,49,.18)}
+.empty-state{display:grid;gap:5px;padding:18px;border:1px dashed var(--line);border-radius:12px;background:var(--card);text-align:left}
+.empty-state.compact{padding:12px}
+.empty-state strong{font-size:13.5px}
+.empty-state span{font-size:11.5px;line-height:1.4;color:var(--ink-faint)}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:20px 0 10px}
+.section-header>div:first-child{display:grid;gap:3px}
+.section-header>div:first-child>span{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-faint);font-weight:700}
+.section-header h2{font-size:18px;line-height:1.15;letter-spacing:-.02em}
+.section-header-actions{display:flex;align-items:center;gap:8px}
+.section-header-actions>b{min-width:26px;padding:4px 7px;border-radius:999px;background:var(--paper-2,#f4f5f5);text-align:center;font-size:10.5px;color:var(--ink-soft)}
+
+
+/* Product refinement: evidence-first reports */
+.report-analysis-toggle{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:20px 0 8px;padding:12px 13px;border:1px solid var(--manager-line,var(--line));
+  border-radius:12px;background:var(--card)
+}
+.report-analysis-toggle>div{display:grid;gap:3px}
+.report-analysis-toggle strong{font-size:13px}
+.report-analysis-toggle span{font-size:10.5px;line-height:1.35;color:var(--ink-faint)}
+.report-analysis{padding-bottom:4px}
+@media(max-width:430px){
+  .report-analysis-toggle{align-items:flex-start;flex-direction:column}
+}
+
+.loading-state{display:flex;align-items:center;gap:8px;padding:14px 2px;color:var(--ink-faint);font-size:12px}
+.loading-state-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(17,140,131,.28);animation:ceacPulse 1.4s infinite}
+@keyframes ceacPulse{0%{box-shadow:0 0 0 0 rgba(17,140,131,.28)}70%{box-shadow:0 0 0 8px rgba(17,140,131,0)}100%{box-shadow:0 0 0 0 rgba(17,140,131,0)}}
+@media(prefers-reduced-motion:reduce){.loading-state-dot{animation:none}}
+
+
+/* Product refinement: scalable Work and compact Finance */
+.work-scale-tools{display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:8px;margin:12px 0}
+.finance-section{margin-top:14px;border:1px solid var(--manager-line,var(--line));border-radius:12px;background:var(--card);overflow:hidden}
+.finance-section>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;cursor:pointer;font-size:13px;font-weight:650}
+.finance-section>summary::-webkit-details-marker{display:none}
+.finance-section>summary b{min-width:26px;padding:4px 7px;border-radius:999px;background:var(--paper-2,#f4f5f5);text-align:center;font-size:10.5px;color:var(--ink-soft)}
+.finance-section[open]>summary{border-bottom:1px solid var(--line-soft)}
+.finance-section-body{padding:4px 14px 14px}
+.finance-request-amount{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px}
+@media(max-width:430px){
+  .work-scale-tools{grid-template-columns:1fr}
+  .finance-request-amount{grid-template-columns:1fr 110px}
+}
+
+
+/* Product refinement: Calendar meeting cues */
+.manager-calendar-event{display:grid;gap:2px}
+.manager-calendar-event small{display:block;font-size:9.5px;line-height:1.25;color:var(--ink-faint);font-weight:500}
+.manager-calendar-event.is-meeting{border-left:3px solid var(--green);padding-left:7px}
+.manager-calendar-event.is-cancelled{opacity:.62;text-decoration:line-through}

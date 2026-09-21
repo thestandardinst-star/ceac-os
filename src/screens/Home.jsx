@@ -3,7 +3,8 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
-import { Icon, Sheet, statusPill } from "../components/bits";
+import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -151,7 +152,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const mentionRows = requireResult(mentionResult, "Room mentions");
       if (mentionRows.length) {
         const messageResult = await supabase.from("room_messages")
-          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,project_id,units(name),projects(name))")
+          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,sub_team_id,project_id,units(name),sub_teams(name),projects(name))")
           .in("id", mentionRows.map((row) => row.message_id));
         const messageRows = requireResult(messageResult, "Room mention messages");
         const byId = new Map(messageRows.map((row) => [row.id,row]));
@@ -180,7 +181,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         && new Date(request.decided_at) >= recentStart).slice(0, 2));
     } catch (err) {
       setLoadFailed(true);
-      setError(err.message || "Home could not be loaded.");
+      setError(humanError(err, "Home could not be loaded."));
     } finally {
       setLoading(false);
     }
@@ -267,7 +268,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const { error: followError } = await supabase.rpc("follow_up_work_review", { p_work_item_id: itemId });
       if (followError) throw followError;
       await load();
-    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    } catch (err) { setError(humanError(err, "The follow-up could not be sent.")); }
     finally { setBusy(false); }
   }
 
@@ -277,7 +278,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const { error: followError } = await supabase.rpc("follow_up_blocker", { p_blocker_id: blockerId });
       if (followError) throw followError;
       await load();
-    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    } catch (err) { setError(humanError(err, "The follow-up could not be sent.")); }
     finally { setBusy(false); }
   }
 
@@ -288,14 +289,14 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const current = await startWork(me.org_id, me.id, place, place === "elsewhere" ? sessionWorkItem : null);
       setSession(current); setAsk(false); setSessionWorkItem("");
     }
-    catch (err) { setError(err.message || "Work could not be started."); }
+    catch (err) { setError(humanError(err, "Work could not be started.")); }
     finally { setBusy(false); }
   }
   async function stop() {
     if (!session) return;
     setBusy(true); setError(null);
     try { await endWork(session.id); setSession(null); }
-    catch (err) { setError(err.message || "Work could not be ended."); }
+    catch (err) { setError(humanError(err, "Work could not be ended.")); }
     finally { setBusy(false); }
   }
   async function continueRecoveredSession() {
@@ -304,7 +305,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     try {
       const current = await reconcileWorkSession(session.id, "continue");
       setSession(current);
-    } catch (err) { setError(err.message || "The work session could not be confirmed."); }
+    } catch (err) { setError(humanError(err, "The work session could not be confirmed.")); }
     finally { setBusy(false); }
   }
   async function closeRecoveredSession() {
@@ -313,7 +314,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     try {
       await reconcileWorkSession(session.id, "close", new Date(recoveryEndedAt).toISOString(), recoveryNote.trim() || null);
       setSession(null); setRecoveryOpen(false); setRecoveryEndedAt(""); setRecoveryNote("");
-    } catch (err) { setError(err.message || "The work session could not be reconciled."); }
+    } catch (err) { setError(humanError(err, "The work session could not be reconciled.")); }
     finally { setBusy(false); }
   }
 
@@ -381,18 +382,19 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       </div>
     </div>}
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>{loadFailed ? "Home could not finish loading" : "Could not complete that"}</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
-    {loading && <div className="spin">Loading Home...</div>}
+    {error && <ProductNotice tone="error" title={loadFailed ? "Home could not finish loading" : "Could not complete that"} action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
+    {loading && <LoadingState label="Loading Home…" />}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
       {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Recent movement</div><h2 id="staff-changed-heading">What changed</h2></div></div>
-        {roomMentions.map((message) => {
+        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">Updates</h2></div></div>
+        {roomMentions.slice(0, 3).map((message) => {
           const room = message.rooms;
-          const roomName = room?.kind === "project" ? room.projects?.name : room?.units?.name;
+          const roomName = room?.kind === "project" ? room.projects?.name : room?.kind === "sub_team" ? room.sub_teams?.name : room?.units?.name;
           return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
             kind: room?.kind,
             unitId: room?.unit_id,
+            subTeamId: room?.sub_team_id,
             projectId: room?.project_id,
           })}>
             <div className="row-t">{message.profiles?.full_name || "A teammate"} mentioned you</div>
@@ -400,13 +402,13 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
             <div className="row-note">{message.body}</div>
           </button>;
         })}
-        {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
+        {feedback.slice(0, 2).map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
           <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
           <div className="row-note">{note.note}</div>
         </div>)}
         {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
-        {leaveUpdates.map((request) => <div key={`leave-update-${request.id}`} className="row">
+        {leaveUpdates.slice(0, 2).map((request) => <div key={`leave-update-${request.id}`} className="row">
           <div className="row-t">Your leave request was {request.status}</div>
           <div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>
           {request.decision_note && <div className="row-note">{request.decision_note}</div>}
@@ -504,23 +506,30 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         </div>)}
       </section>}
 
-      {announcements.length > 0 && <section className="home-panel home-panel-announcement" aria-labelledby="staff-announcements-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">From CEAC</div><h2 id="staff-announcements-heading">Announcements</h2></div>
-          <button className="text-action" onClick={openAnnouncements}>See all</button>
+      {announcements.length > 0 && <details className="home-panel home-panel-secondary">
+        <summary className="home-secondary-summary">
+          <span><small>From CEAC</small><strong>Announcements</strong></span>
+          <b>{announcements.length}</b>
+        </summary>
+        <div className="home-secondary-body">
+          {announcements.slice(0, 2).map((announcement) => {
+            const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
+            return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
+              <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
+              <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
+              {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
+            </button>;
+          })}
+          <button className="text-action" onClick={openAnnouncements}>See all announcements</button>
         </div>
-        {announcements.map((announcement) => {
-          const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
-          return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
-            <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
-            <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
-            {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
-          </button>;
-        })}
-      </section>}
+      </details>}
 
-      <section className="home-panel home-panel-week" aria-labelledby="staff-week-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Your factual record</div><h2 id="staff-week-heading">This week</h2></div></div>
+      <details className="home-panel home-panel-week home-panel-secondary">
+        <summary className="home-secondary-summary">
+          <span><small>Your factual record</small><strong>This week</strong></span>
+          <b>{completedThisWeek.length}</b>
+        </summary>
+        <div className="home-secondary-body">
         <div className="home-stat-grid">
           <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
           <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
@@ -529,7 +538,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         {drill && <div className="home-drill"><div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
           {drillRows.length ? drillRows.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No work in this group.</div>}
         </div>}
-      </section>
+        </div>
+      </details>
     </div>}
 
     {ask && <Sheet onClose={() => setAsk(false)}>
