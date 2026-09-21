@@ -70,13 +70,14 @@ function CostSummary({ rows, emptyText = "No project cost has been recorded." })
   </div>);
 }
 
-export default function ManagerProjects({ me, initialProjectId = null, openItem, goAssign, openRoom, back }) {
+export default function ManagerProjects({ me, initialProjectId = null, openItem, goAssign, openRoom, openMeeting, back }) {
   const [projects, setProjects] = useState([]);
   const [selectedId, setSelectedId] = useState(initialProjectId);
   const [detail, setDetail] = useState(null);
   const [canCreate, setCanCreate] = useState(false);
   const [units, setUnits] = useState([]);
   const [sheet, setSheet] = useState(null);
+  const [meetingForm, setMeetingForm] = useState({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
   const [busy, setBusy] = useState(false);
   const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState(null);
@@ -84,6 +85,33 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   useEffect(() => { loadList(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
+
+  async function createProjectMeeting() {
+    if (!detail?.id || !meetingForm.title.trim() || !meetingForm.starts_at) return;
+    setBusy(true); setError(null);
+    try {
+      const result = await supabase.from("meeting_sessions").insert({
+        org_id: me.org_id,
+        scope: "project",
+        project_id: detail.id,
+        title: meetingForm.title.trim(),
+        agenda: meetingForm.agenda.trim() || null,
+        starts_at: new Date(meetingForm.starts_at).toISOString(),
+        ends_at: meetingForm.ends_at ? new Date(meetingForm.ends_at).toISOString() : null,
+        provider: "zoom",
+        join_url: meetingForm.join_url.trim() || null,
+        created_by: me.id,
+      }).select("id").single();
+      if (result.error) throw result.error;
+      setMeetingForm({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
+      setSheet(null);
+      openMeeting?.(result.data.id);
+    } catch (err) {
+      setError(err.message || "Project meeting could not be scheduled.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function loadList() {
     setLoadingList(true);
@@ -280,10 +308,16 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       <div style={{ marginTop: 8 }}><CostSummary rows={detail.costs} /></div>
 
       <div className="sec"><span>Communication</span></div>
-      <button className="project-room-entry" onClick={() => openRoom?.(detail.id, { object_type: "project", object_id: detail.id, label: detail.name })}>
-        <span><strong>Project Room</strong><small>Discussion, replies and linked work stay with this project.</small></span>
-        <b aria-hidden="true">Open →</b>
-      </button>
+      <div className="project-collaboration-grid">
+        <button className="project-room-entry" onClick={() => openRoom?.(detail.id, { object_type: "project", object_id: detail.id, label: detail.name })}>
+          <span><strong>Project Room</strong><small>Discussion, replies and linked work stay with this project.</small></span>
+          <b aria-hidden="true">Open →</b>
+        </button>
+        <button className="project-room-entry" onClick={() => setSheet({ type: "meeting" })}>
+          <span><strong>Project meeting</strong><small>Schedule a Zoom-backed meeting and keep its operational record here.</small></span>
+          <b aria-hidden="true">Schedule →</b>
+        </button>
+      </div>
 
       <ManagerProjectClose
         me={me}
@@ -294,6 +328,17 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         onRefresh={async () => { await loadDetail(detail.id); await loadList(); }}
       />
 
+      {sheet?.type === "meeting" && <Sheet onClose={() => setSheet(null)}>
+        <div className="eyebrow">Project meeting</div>
+        <div className="h2" style={{ marginTop: 5 }}>Schedule for {detail.name}</div>
+        <p className="screen-note">CEAC keeps the agenda, notes, decisions and resulting work. Zoom remains the video provider.</p>
+        <input className="field" placeholder="Meeting title" value={meetingForm.title} onChange={(e) => setMeetingForm((v) => ({ ...v, title: e.target.value }))} />
+        <label className="small">Starts<input className="field" type="datetime-local" value={meetingForm.starts_at} onChange={(e) => setMeetingForm((v) => ({ ...v, starts_at: e.target.value }))} /></label>
+        <label className="small">Ends (optional)<input className="field" type="datetime-local" value={meetingForm.ends_at} onChange={(e) => setMeetingForm((v) => ({ ...v, ends_at: e.target.value }))} /></label>
+        <input className="field" type="url" placeholder="Zoom join link (optional)" value={meetingForm.join_url} onChange={(e) => setMeetingForm((v) => ({ ...v, join_url: e.target.value }))} />
+        <textarea className="field" rows={4} placeholder="Agenda (optional)" value={meetingForm.agenda} onChange={(e) => setMeetingForm((v) => ({ ...v, agenda: e.target.value }))} />
+        <button className="btn" disabled={busy || !meetingForm.title.trim() || !meetingForm.starts_at} onClick={createProjectMeeting}>{busy ? "Scheduling..." : "Schedule meeting"}</button>
+      </Sheet>}
       {sheet?.type === "objective" && <ObjectiveSheet value={sheet.value} busy={busy} onClose={() => setSheet(null)} onSave={saveObjective} />}
       {sheet?.type === "objective-saved" && <Sheet onClose={() => setSheet(null)}><div className="h2">Objective saved</div><p className="screen-note">The next step is to assign work through the existing work flow.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => goAssign({ projectId: sheet.projectId, objectiveId: sheet.objectiveId })}>Add work under this objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
       {sheet?.type === "created" && <Sheet onClose={() => setSheet(null)}><div className="eyebrow">Step 2 of 3</div><div className="h2">Add objectives</div><p className="screen-note">The project basics are saved. Add objectives next, then assign work under them.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => setSheet({ type: "objective", value: null })}>Add first objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
