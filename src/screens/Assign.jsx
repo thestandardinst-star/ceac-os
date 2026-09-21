@@ -13,7 +13,7 @@ const WORK_KINDS = [
   ["deliverable", "Deliverable", "A finished output that must be produced and shown.", true],
 ];
 
-export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "" }) {
+export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "", initialMeetingId = "", initialKind = "", initialMeetingTitle = "", initialMeetingOn = "", initialMeetingNote = "" }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [approvedLeave, setApprovedLeave] = useState([]);
@@ -61,7 +61,11 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     setObjective(initialObjectiveId);
     setPhase(initialPhaseId);
     setSubTeam(initialSubTeamId);
-  }, [initialProjectId, initialObjectiveId, initialPhaseId, initialSubTeamId]);
+    if (initialKind) setKind(initialKind);
+    if (initialMeetingTitle) setMeetingTitle(initialMeetingTitle);
+    if (initialMeetingOn) setMeetingOn(initialMeetingOn);
+    if (initialMeetingNote) setMeetingNote(initialMeetingNote);
+  }, [initialProjectId, initialObjectiveId, initialPhaseId, initialSubTeamId, initialKind, initialMeetingTitle, initialMeetingOn, initialMeetingNote]);
   useEffect(() => { loadProjectContext(); }, [project]);
 
   async function load() {
@@ -145,6 +149,18 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     setVoiceHint("Heard that" + (bits.length ? ", and picked up " + bits.join(" and ") : "") + ". Check it before you send.");
   }
 
+  async function linkMeeting(workId) {
+    if (!initialMeetingId || !workId) return;
+    const relation = kind === "meeting_outcome" ? "outcome" : "action";
+    const result = await supabase.from("meeting_work_links").insert({
+      meeting_id: initialMeetingId,
+      work_item_id: workId,
+      relation,
+      linked_by: me.id,
+    });
+    if (result.error) throw new Error(`Meeting link: ${result.error.message}`);
+  }
+
   async function create() {
     setBusy(true); setErr(null);
     try {
@@ -175,6 +191,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (deliverableError) throw deliverableError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
         setDeliverableEvidenceRequired(true); setKind("task"); setVoiceHint(null);
@@ -206,6 +223,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (meetingError) throw meetingError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
         setMeetingTitle(""); setMeetingOn(new Date().toISOString().slice(0, 10)); setMeetingNote("");
@@ -234,6 +252,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (decisionError) throw decisionError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
         setDecisionQuestion(""); setKind("task"); setVoiceHint(null);
@@ -263,6 +282,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (requestError) throw requestError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
         setRequestResponsibleUnit(""); setKind("task"); setVoiceHint(null);
@@ -293,6 +313,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (caseError) throw caseError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setExpectedOutcome(""); setAssignee(""); setDue("");
         setCaseOpenedOn(new Date().toISOString().slice(0, 10)); setCaseTargetOn("");
@@ -332,6 +353,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         if (routineError) throw routineError;
         const createdResult = await supabase.from("work_items").select("ref").eq("id", workId).single();
         if (createdResult.error) throw createdResult.error;
+        await linkMeeting(workId);
         setDone(createdResult.data.ref);
         setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
         setKind("task"); setAssignee(""); setDue(""); setSteps([""]); setNoStepsNeeded(false);
@@ -360,6 +382,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         p_steps: clean,
       });
       if (taskError) throw taskError;
+      await linkMeeting(created.id);
       setDone(created.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
       setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null);
