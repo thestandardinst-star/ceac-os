@@ -16,6 +16,8 @@ architecture amendment and supersedes conflicting older text. Then read
 the panel spec for the surface you are touching **before** writing code,
 not after.
 
+**For any Staff/Manager visual, navigation, responsive, PWA, Rooms or meeting-experience work, also read `docs/architecture/CEAC_OS_Product_Experience_Collaboration_PWA_Amendment_2026-09-21.md`. For visual implementation, read `docs/architecture/CEAC_OS_Design_System_v1.md`. These are binding for the current redesign phase and supersede older panel text where they explicitly conflict on experience or navigation.**
+
 Both previous agents skipped this and built from memory. The result was a
 screen asking a church administrator to paste GPS coordinates, and a
 manager panel missing most of its function. Every hour spent rebuilding
