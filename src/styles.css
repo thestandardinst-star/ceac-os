@@ -2132,3 +2132,131 @@ textarea{width:100%}
 .executive-change-card span{color:var(--office-soft);font-size:11px}
 .executive-change-card p{grid-column:1/-1;color:var(--office-ink);font-size:12.5px;line-height:1.5}
 .executive-change-card small{grid-column:1/-1;color:var(--office-faint);font-size:10px}
+
+/* ==========================================================================
+   Contextual Rooms — operational communication, not generic consumer chat
+   ========================================================================== */
+.team-room-entry,.project-room-entry,.work-room-entry{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;
+  margin-top:14px;padding:14px 15px;border:1px solid #D3E4E1;border-radius:14px;
+  background:linear-gradient(145deg,#FBFDFC,#F0F7F5);text-align:left;color:#17232D
+}
+.team-room-entry>span,.project-room-entry>span,.work-room-entry>span{display:flex;flex-direction:column;min-width:0}
+.team-room-entry strong,.project-room-entry strong,.work-room-entry strong{font-size:12.5px}
+.team-room-entry small,.project-room-entry small,.work-room-entry small{
+  margin-top:4px;color:#64747E;font-size:10.5px;line-height:1.4
+}
+.team-room-entry>b,.project-room-entry>b,.work-room-entry>b{flex:none;color:#118C83;font-size:12px;font-weight:650}
+.manager-room-entry{max-width:520px}
+.work-room-entry{margin:14px 0 0}
+
+/* Room is an overlay working surface, so bottom role navigation is hidden. */
+.room-screen{
+  position:relative;display:flex!important;flex-direction:column;min-height:100vh;min-height:100dvh;
+  max-width:900px!important;margin:0 auto!important;padding:0!important;background:#F3F6F7!important
+}
+.room-head{
+  position:sticky;top:0;z-index:5;display:grid;grid-template-columns:40px minmax(0,1fr) 18px;
+  align-items:center;gap:10px;min-height:72px;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  color:#F6FAFB;background:
+    radial-gradient(circle at 86% 10%,rgba(37,181,169,.18),transparent 25%),
+    linear-gradient(145deg,#17232D,#20333E);
+  border-bottom:1px solid rgba(255,255,255,.07)
+}
+.room-back{
+  display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.07);
+  color:#DCE6EA;font-size:18px
+}
+.room-head-copy{min-width:0}
+.room-head-copy span{display:block;color:#79D3CB;font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase}
+.room-head-copy h1{
+  margin-top:3px;color:#F7FAFB;font-size:15px;font-weight:650;line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.room-live-dot{
+  width:8px;height:8px;border-radius:50%;background:#59CABB;box-shadow:0 0 0 5px rgba(89,202,187,.10)
+}
+.room-context-note{
+  margin:12px 14px 0;padding:10px 12px;border:1px solid #DDE5E8;border-radius:11px;background:#F8FAFA;
+  color:#65757F;font-size:10.5px;line-height:1.45
+}
+.room-error{margin:12px 14px 0}
+.room-error .btn{margin-top:9px}
+.room-feed{
+  flex:1;min-height:0;padding:14px 14px 138px;overflow-y:auto;overscroll-behavior:contain
+}
+.room-empty{
+  margin:42px auto 0;max-width:420px;padding:28px 22px;border:1px dashed #CEDADD;border-radius:16px;
+  background:#F8FAFA;text-align:center
+}
+.room-empty strong{display:block;font-size:13.5px;color:#1B2932}
+.room-empty span{display:block;margin-top:6px;color:#72818A;font-size:11.5px;line-height:1.5}
+.room-day{display:flex;align-items:center;justify-content:center;margin:18px 0 10px}
+.room-day span{
+  padding:4px 8px;border-radius:999px;background:#E8EDEF;color:#7B8991;font-size:9px;font-weight:650;letter-spacing:.02em
+}
+.room-message{
+  width:min(86%,610px);margin:0 0 10px;padding:11px 12px;border:1px solid #DEE5E8;border-radius:13px 13px 13px 4px;
+  background:#fff;box-shadow:0 4px 16px rgba(25,40,50,.025)
+}
+.room-message.mine{
+  margin-left:auto;border-color:#CDE3DF;border-radius:13px 13px 4px 13px;background:#F0F8F6
+}
+.room-message-meta{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.room-message-meta strong{color:#52636D;font-size:9.5px;font-weight:700}
+.room-message-meta time{color:#98A4AA;font-size:8.5px}
+.room-message p{margin-top:5px;color:#1E2B34;font-size:12.5px;line-height:1.52;white-space:pre-wrap;overflow-wrap:anywhere}
+.room-reply-context{
+  display:flex;flex-direction:column;margin-top:8px;padding:8px 9px;border-left:3px solid #89BDB7;border-radius:0 8px 8px 0;
+  background:rgba(229,244,242,.62)
+}
+.room-reply-context strong{font-size:9px;color:#59716F}
+.room-reply-context span{
+  display:-webkit-box;margin-top:3px;color:#6F7F87;font-size:10px;line-height:1.35;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden
+}
+.room-ref-list{display:grid;gap:6px;margin-top:9px}
+.room-ref-list button{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:8px 9px;
+  border:1px solid #D7E3E5;border-radius:9px;background:#FAFCFC;text-align:left
+}
+.room-ref-list span{color:#7A8991;font-size:8.5px;text-transform:uppercase;letter-spacing:.06em}
+.room-ref-list strong{min-width:0;color:#41545E;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room-reply-action{
+  margin-top:8px;color:#74858E;font-size:9.5px;font-weight:650
+}
+.room-composer{
+  position:fixed;left:0;right:0;bottom:0;z-index:6;max-width:900px;margin:0 auto;
+  padding:9px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #D9E2E5;
+  background:rgba(250,252,252,.97);box-shadow:0 -12px 32px rgba(25,40,50,.07);backdrop-filter:blur(18px)
+}
+.room-composer-reply,.room-composer-context{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px;padding:7px 9px;
+  border-radius:9px;background:#EEF3F4;color:#64747D;font-size:9.5px
+}
+.room-composer-reply button{font-size:17px;line-height:1;color:#7C8B93}
+.room-composer-context{justify-content:flex-start}
+.room-composer-context strong{min-width:0;color:#42555F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room-composer-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}
+.room-composer textarea{
+  width:100%;min-height:46px;max-height:130px;padding:12px 13px;resize:vertical;border:1px solid #D7E1E4;border-radius:12px;
+  background:#fff;color:#17232D;font:inherit;font-size:16px;line-height:1.4;outline:0
+}
+.room-composer textarea:focus{border-color:#66BBB4;box-shadow:0 0 0 4px rgba(17,140,131,.09)}
+.room-send{
+  min-width:68px;height:46px;padding:0 13px;border-radius:11px;background:#118C83;color:#fff;font-size:11.5px;font-weight:700
+}
+.room-send:disabled{background:#DDE5E7;color:#93A0A7}
+.room-composer>small{display:block;margin:6px 2px 0;color:#94A0A7;font-size:8.5px}
+
+@media (min-width:820px){
+  .room-screen{
+    min-height:100vh;max-height:100vh!important;border-left:1px solid #E0E7E9;border-right:1px solid #E0E7E9
+  }
+  .room-head{min-height:78px;padding:16px 20px}
+  .room-context-note{margin-left:20px;margin-right:20px}
+  .room-feed{padding:18px 20px 146px}
+  .room-composer{left:252px;max-width:900px}
+  .manager-app .room-composer{left:258px}
+  .office-app .room-composer,.executive-app .room-composer{left:264px}
+}
