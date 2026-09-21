@@ -229,7 +229,7 @@ end
 $private_note_isolation$;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
 
-do $
+do $$
 begin
   begin
     insert into public.pending_invitations(org_id,email,full_name,unit_id,role,invited_by,expires_at)
