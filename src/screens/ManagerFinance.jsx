@@ -68,8 +68,8 @@ export default function ManagerFinance({me,openProject}){
   committed[row.currency]=Number(row.committed_minor||0);
   if(budgetCurrencies.has(row.currency)) remaining[row.currency]=Number(row.remaining_minor||0);
  });
- if(loading)return <div className="body"><div className="spin">Loading finance...</div></div>;
- return <div className="body">
+ if(loading)return <div className="body manager-finance"><div className="spin">Loading finance...</div></div>;
+ return <div className="body manager-finance">
   <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Your unit's budget, spending, commitments, transfers and finance requests. Managers can request funds here; recorded Finance entries remain read-only.</p></div>
   <button className="btn wide-auto" style={{marginTop:16}} onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button>
   {error&&<div className="flag flag-brick"><h4>Could not complete that</h4>{error}</div>}
