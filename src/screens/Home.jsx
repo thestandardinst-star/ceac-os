@@ -3,7 +3,7 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
-import { Icon, Sheet, statusPill } from "../components/bits";
+import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
@@ -382,8 +382,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       </div>
     </div>}
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>{loadFailed ? "Home could not finish loading" : "Could not complete that"}</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
-    {loading && <div className="spin">Loading Home...</div>}
+    {error && <ProductNotice tone="error" title={loadFailed ? "Home could not finish loading" : "Could not complete that"} action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
+    {loading && <LoadingState label="Loading Home…" />}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
       {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
