@@ -156,7 +156,9 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
-    await go(page, "Record");
+    await go(page, "Me");
+    await page.getByRole("button", { name: /My work history/ }).click();
+    await expect(page.getByRole("heading", { name: "My work history" })).toBeVisible();
     await expect(page.getByText(title, { exact: true })).toBeVisible();
     await go(page, "Home");
     const endWork = page.getByRole("button", { name: "End work" });
