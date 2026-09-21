@@ -269,34 +269,34 @@ test("Assistive voice controls are real interaction affordances and proposals re
 
 test("Typed work can be created and reaches the Staff work surface", async ({ browser }) => {
   const created = [
-    { kind: "Routine", title: "Acceptance routine", button: "Create routine", fields: [] },
-    { kind: "Case", title: "Acceptance case", button: "Open case", fields: [] },
-    { kind: "Request", title: "Acceptance request", button: "Send request", fields: ["requestUnit"] },
-    { kind: "Decision", title: "Acceptance decision", button: "Ask for decision", fields: ["decision"] },
-    { kind: "Meeting outcome", title: "Acceptance meeting outcome", button: "Record meeting outcome", fields: ["meeting"] },
-    { kind: "Deliverable", title: "Acceptance deliverable", button: "Give deliverable", fields: ["deliverable"] },
+    { kind: "Routine", intent: "Set repeating work", title: "Acceptance routine", button: "Create routine" },
+    { kind: "Case", intent: "Track an ongoing matter", title: "Acceptance case", button: "Open case" },
+    { kind: "Request", intent: "Ask for something", title: "Acceptance request", button: "Send request" },
+    { kind: "Decision", intent: "Get a decision", title: "Acceptance decision", button: "Ask for decision" },
+    { kind: "Meeting outcome", intent: "Follow up from a meeting", title: "Acceptance meeting outcome", button: "Record meeting outcome" },
+    { kind: "Deliverable", intent: "Get a finished output", title: "Acceptance deliverable", button: "Give deliverable" },
   ];
 
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
   await page.getByRole("button", { name: "Give out work" }).click();
 
   for (const item of created) {
-    await page.locator("select.field").first().selectOption({ label: item.kind });
+    await page.getByRole("radio", { name: new RegExp(item.intent) }).click();
 
-    if (item.kind === "Routine") await page.getByPlaceholder("What repeats?").fill(item.title);
-    if (item.kind === "Case") await page.getByPlaceholder("What matter needs to stay open?").fill(item.title);
-    if (item.kind === "Request") await page.getByPlaceholder("What do you need?").fill(item.title);
+    if (item.kind === "Routine") await page.getByLabel("Repeating responsibility").fill(item.title);
+    if (item.kind === "Case") await page.getByLabel("Matter to track").fill(item.title);
+    if (item.kind === "Request") await page.getByLabel("What you need").fill(item.title);
     if (item.kind === "Decision") {
-      await page.getByPlaceholder("What decision is needed?").fill(item.title);
-      await page.getByPlaceholder("Decision question").fill("Acceptance decision question");
+      await page.getByLabel("Decision needed").fill(item.title);
+      await page.getByLabel("Decision question").fill("Acceptance decision question");
     }
     if (item.kind === "Meeting outcome") {
-      await page.getByPlaceholder("What was agreed?").fill(item.title);
-      await page.getByPlaceholder("Meeting title").fill("Acceptance meeting");
+      await page.getByLabel("Commitment agreed").fill(item.title);
+      await page.getByLabel("Meeting title").fill("Acceptance meeting");
     }
     if (item.kind === "Deliverable") {
-      await page.getByPlaceholder("What must be produced?").fill(item.title);
-      await page.getByPlaceholder("Describe exactly what must be delivered").fill("Acceptance finished deliverable");
+      await page.getByLabel("Output to produce").fill(item.title);
+      await page.getByLabel("Finished output").fill("Acceptance finished deliverable");
     }
 
     if (item.kind === "Request") {
