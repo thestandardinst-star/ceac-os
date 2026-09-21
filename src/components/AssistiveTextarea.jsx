@@ -15,9 +15,10 @@ export default function AssistiveTextarea({
     onChange?.({ target: { value: next } });
   }
 
-  return <div className={"assistive-field textarea " + className}>
+  return <div className="assistive-field textarea">
     <textarea
       {...props}
+      className={className}
       disabled={disabled}
       value={value}
       onChange={onChange}
