@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Pill, Sheet } from "../components/bits";
 
@@ -566,8 +567,8 @@ export default function ManagerReports({ me, openItem }) {
       {displayObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
 
       <div className="sec"><span>Manager's summary</span></div>
-      <textarea className="field" rows={4} disabled={viewingFrozen} placeholder="What should leadership understand about this period?" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
-      <textarea className="field" rows={3} disabled={viewingFrozen} placeholder="Challenges or context to explain (optional)" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} />
+      <AssistiveTextarea className="field" rows={4} disabled={viewingFrozen} placeholder="What should leadership understand about this period?" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} />
+      <AssistiveTextarea className="field" rows={3} disabled={viewingFrozen} placeholder="Challenges or context to explain (optional)" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} />
 
       <div className="sec"><span>Report record</span></div>
       {!matchingPeriod && <div className="flag flag-amber"><h4>No matching reporting period is open</h4>Administration must open this {mode === "project" ? "project" : mode} period before you can save or submit. The factual preview above remains available.</div>}
@@ -606,7 +607,7 @@ export default function ManagerReports({ me, openItem }) {
     {sheet === "correct" && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="h2">Open a correction</div>
       <p className="screen-note">The submitted version will stay unchanged. A new draft version will be created with your reason recorded.</p>
-      <textarea className="field" rows={3} placeholder="Why is a correction needed?" value={correctionReason} onChange={(event) => setCorrectionReason(event.target.value)} />
+      <AssistiveTextarea className="field" rows={3} placeholder="Why is a correction needed?" value={correctionReason} onChange={(event) => setCorrectionReason(event.target.value)} />
       <button className="btn" style={{ marginTop: 14 }} disabled={busy || !correctionReason.trim()} onClick={startCorrection}>{busy ? "Opening..." : "Create correction draft"}</button>
     </Sheet>}
   </div>;
