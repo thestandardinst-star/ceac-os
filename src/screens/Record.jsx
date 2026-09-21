@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { humanError } from "../lib/productLanguage";
 import { Sheet } from "../components/bits";
 
 function accraDateKey(value) {
@@ -150,7 +151,7 @@ export default function Record({ me, openItem }) {
       if (correctionError) throw correctionError;
       setCorrectionSession(null); setCorrectedEnd(""); setCorrectionNote("");
       await load();
-    } catch (err) { setError(err.message || "The session could not be corrected."); }
+    } catch (err) { setError(humanError(err, "The session could not be corrected.")); }
     finally { setBusy(false); }
   }
 
@@ -185,7 +186,7 @@ export default function Record({ me, openItem }) {
       <div className="record-summary-grid">
         <div><strong>{record.completed}</strong><span>finished outputs</span></div>
         <div><strong>{record.onTime}<small> / {record.dueCompleted}</small></strong><span>on time where dated</span></div>
-        <div><strong>{record.firstTime}<small> / {record.reviewedCompleted}</small></strong><span>approved first time</span></div>
+        <div><strong>{feedback.length}</strong><span>visible feedback notes</span></div>
       </div>
 
       {firstHighlight ? <div className="highlight-stack">
@@ -195,7 +196,6 @@ export default function Record({ me, openItem }) {
           {item.expected_outcome && <p>{item.expected_outcome}</p>}
           <div className="highlight-facts">
             {item.due_at && <span>{new Date(item.completed_at) <= new Date(item.due_at) ? "Completed on time" : "Completed after due date"}</span>}
-            {item.first_time_approved === true && <span>Approved first time</span>}
           </div>
         </button>)}
       </div> : <div className="quiet-empty compact">
