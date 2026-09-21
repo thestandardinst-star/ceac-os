@@ -3293,3 +3293,15 @@ button.office-config-card:active{background:#EEF5F4}
 .executive-intelligence-head strong{display:block;margin-top:3px;font-size:14px}
 .executive-intelligence-head small{font-size:9.5px;color:var(--ink-faint)}
 @media(max-width:700px){.executive-intelligence-grid{grid-template-columns:1fr}}
+
+
+/* Personal workspace + work history period */
+.personal-history-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:14px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;text-align:left}
+.personal-history-entry span{min-width:0}
+.personal-history-entry strong{display:block;font-size:13px}
+.personal-history-entry small{display:block;margin-top:3px;font-size:10.5px;color:var(--ink-faint);line-height:1.35}
+.personal-history-entry>b{color:var(--ink-faint);font-weight:500}
+.record-period-control{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;margin-top:14px}
+.record-period-control>button{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink-soft)}
+.record-period-selects{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px}
+.record-period-selects select{min-width:0;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:12px}
