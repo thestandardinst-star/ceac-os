@@ -2260,3 +2260,89 @@ textarea{width:100%}
   .manager-app .room-composer{left:258px}
   .office-app .room-composer,.executive-app .room-composer{left:264px}
 }
+
+/* ==========================================================================
+   Meeting workspace — before / during / after operating flow
+   ========================================================================== */
+.meeting-screen{
+  max-width:900px!important;margin:0 auto!important;padding-top:14px!important
+}
+.meeting-back{margin-bottom:10px}
+.meeting-hero{
+  position:relative;padding:22px;border-radius:20px;color:#F7FAFB;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(35,174,162,.20),transparent 28%),
+    linear-gradient(150deg,#17232D,#21343F);
+  box-shadow:0 16px 42px rgba(24,38,47,.12)
+}
+.meeting-hero .eyebrow{color:#6CD1C8}
+.meeting-hero h1{margin-top:7px;font-size:clamp(26px,6vw,34px);line-height:1.06;letter-spacing:-.035em}
+.meeting-time{margin-top:12px;color:#B4C1C8;font-size:11.5px;line-height:1.45}
+.meeting-status-row{display:flex;align-items:center;gap:8px;margin-top:12px}
+.meeting-status-row>span:last-child{color:#91A3AD;font-size:10px}
+.meeting-location{margin-top:10px;color:#AEBCC4;font-size:10.5px}
+.meeting-join{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;margin-top:17px;padding:0 15px;
+  border-radius:11px;background:#159A90;color:#fff;font-size:11.5px;font-weight:700;
+  box-shadow:0 10px 26px rgba(4,25,30,.18)
+}
+.meeting-panel{
+  margin-top:14px;padding:17px;border:1px solid #DDE5E8;border-radius:16px;background:#fff;
+  box-shadow:0 8px 24px rgba(28,43,53,.03)
+}
+.meeting-section-head{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px
+}
+.meeting-section-head>div{min-width:0}
+.meeting-section-head span{
+  color:#82919B;font-size:9px;font-weight:700;letter-spacing:.10em;text-transform:uppercase
+}
+.meeting-section-head h2{margin-top:3px;color:#17232D;font-size:18px;letter-spacing:-.025em}
+.meeting-section-head small{color:#91A0A8;font-size:9.5px;text-align:right}
+.meeting-agenda{color:#3E4F59;font-size:12.5px;line-height:1.65;white-space:pre-wrap}
+.meeting-record{
+  padding:12px 0;border-top:1px solid #E8EDF0
+}
+.meeting-record:first-of-type{border-top:0}
+.meeting-record-decision{padding-left:11px;border-left:3px solid #B48735}
+.meeting-record-meta{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.meeting-record-meta strong{color:#51626C;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em}
+.meeting-record-decision .meeting-record-meta strong{color:#8B651D}
+.meeting-record-meta span{color:#98A3A9;font-size:8.8px;text-align:right}
+.meeting-record p{margin-top:5px;color:#24323B;font-size:12.5px;line-height:1.55;white-space:pre-wrap}
+.meeting-record-form{
+  margin-top:14px;padding-top:14px;border-top:1px solid #E8EDF0
+}
+.meeting-record-kind{
+  display:inline-flex;gap:3px;margin-bottom:8px;padding:3px;border-radius:10px;background:#EEF2F3
+}
+.meeting-record-kind button{
+  min-height:30px;padding:0 10px;border-radius:8px;color:#687780;font-size:10px;font-weight:650
+}
+.meeting-record-kind button.on{background:#fff;color:#17232D;box-shadow:0 1px 3px rgba(25,40,50,.08)}
+.meeting-record-form textarea{
+  width:100%;min-height:90px;padding:12px 13px;border:1px solid #D7E1E4;border-radius:12px;
+  background:#FBFCFC;color:#17232D;font:inherit;font-size:16px;line-height:1.5;resize:vertical;outline:0
+}
+.meeting-record-form textarea:focus{border-color:#66BBB4;box-shadow:0 0 0 4px rgba(17,140,131,.09)}
+.meeting-record-form .btn{width:auto;margin-top:9px}
+.meeting-work-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  padding:12px 0;border-top:1px solid #E8EDF0;text-align:left
+}
+.meeting-work-row>span{display:flex;flex-direction:column;min-width:0}
+.meeting-work-row strong{font-size:12.5px;color:#20303A}
+.meeting-work-row small{margin-top:4px;color:#82919B;font-size:9.5px}
+.meeting-action-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.meeting-action-buttons .btn{width:auto}
+.meeting-project-link{
+  width:100%;margin-top:14px;padding:12px 14px;border:1px solid #D8E4E2;border-radius:12px;
+  background:#F3F8F7;color:#0D766F;font-size:11.5px;font-weight:650;text-align:left
+}
+.meeting-provider-note{
+  display:flex;flex-direction:column;margin:16px 0 26px;padding:13px 14px;border:1px solid #E1E7E9;border-radius:12px;
+  background:#F7F9FA
+}
+.meeting-provider-note strong{font-size:10.5px;color:#52636D}
+.meeting-provider-note span{margin-top:4px;color:#7B8A92;font-size:9.5px;line-height:1.5}
+.manager-calendar-create{margin-top:14px}
