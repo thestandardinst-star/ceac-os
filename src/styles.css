@@ -3283,3 +3283,13 @@ button.office-config-card:active{background:#EEF5F4}
 .report-status-links button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border-radius:8px;background:#F6F8F8;text-align:left}
 .report-status-links span{font-size:10.5px;color:var(--ink-soft)}
 .report-status-links b{font-size:10.5px}
+
+
+/* Executive strategic intelligence */
+.executive-intelligence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.executive-intelligence-card{display:grid;gap:13px;padding:16px;border:1px solid #DCE4E7;border-radius:14px;background:#fff}
+.executive-intelligence-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.executive-intelligence-head span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.executive-intelligence-head strong{display:block;margin-top:3px;font-size:14px}
+.executive-intelligence-head small{font-size:9.5px;color:var(--ink-faint)}
+@media(max-width:700px){.executive-intelligence-grid{grid-template-columns:1fr}}
