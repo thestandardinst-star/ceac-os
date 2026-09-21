@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Pill, Sheet } from "../components/bits";
+import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 const pad = (value) => String(value).padStart(2, "0");
@@ -476,7 +476,7 @@ export default function ManagerReports({ me, openItem }) {
 
   function printReport() { window.print(); }
 
-  if (loading) return <div className="body manager-reports"><div className="spin">Preparing reports...</div></div>;
+  if (loading) return <div className="body manager-reports"><LoadingState label="Preparing reports…" /></div>;
 
   return <div className="body manager-reports report-print">
     <div className="print-only report-print-brand">
@@ -489,8 +489,8 @@ export default function ManagerReports({ me, openItem }) {
       <p className="screen-note">Built from work, submissions, projects and attendance already recorded in CEAC OS. Submitted versions keep the figures they were filed with.</p>
     </div>
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete reporting</h4>{error}</div>}
-    {notice && <div className="flag flag-green" style={{ marginTop: 14 }}>{notice}</div>}
+    {error && <ProductNotice tone="error" title="Could not complete reporting">{error}</ProductNotice>}
+    {notice && <ProductNotice tone="success" title="Report updated">{notice}</ProductNotice>}
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
       {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
