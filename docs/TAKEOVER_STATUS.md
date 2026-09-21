@@ -14,9 +14,9 @@
 
 **Main commit inspected:** `bfbcebad33c680a953ce01acc63a49a0f1cce3a0`
 
-**Branch position after adding this document:** 266 commits ahead, 0 behind `main`
+**Branch position before this document-only checkpoint:** 265 commits ahead, 0 behind `main`
 
-**PR size after adding this document:** 112 changed files, 19,559 additions, 1,391 deletions
+**PR size before this document-only checkpoint:** 111 changed files, 19,399 additions, 1,391 deletions
 
 **Supabase project:** `efjljhftsesssumtshvp`
 
@@ -125,7 +125,7 @@ Only evidence obtained in this pass or a current-head automated check is listed 
 
 ### Oversized PR
 
-PR #4 contains 266 commits and 112 changed files after this document-only checkpoint. Merge conflict, review-fatigue, and rollback-diagnosis risk are materially higher than for a focused PR. Do not add unrelated features to it.
+PR #4 contains more than 265 commits and 112 changed files including this checkpoint. Merge conflict, review-fatigue, and rollback-diagnosis risk are materially higher than for a focused PR. Do not add unrelated features to it.
 
 ### Shared files
 
