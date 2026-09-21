@@ -439,7 +439,7 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
 
-do $
+do $$
 begin
   begin
     perform public.create_pending_invitation(
