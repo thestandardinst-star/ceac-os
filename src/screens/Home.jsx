@@ -301,7 +301,8 @@ export default function Home({ me, session, setSession, openItem, openWork, open
   const primaryNextItem = nextMoveItems[0] || activeWork[0] || dueSoon[0] || null;
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  return <div className="body">
+  return <div className="body staff-home">
+    <section className="staff-command-surface">
     <header className="staff-home-intro">
       <div className="staff-home-context">
         <span>{me.unit_name}</span>
@@ -342,6 +343,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
         <span><strong>My space</strong><small>Goals, leave, personal</small></span>
       </button>
     </nav>
+    </section>
 
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
@@ -371,7 +373,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
         </div>)}
       </section>}
 
-      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse"}`} aria-labelledby="staff-next-heading">
+      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse home-panel-empty"}`} aria-labelledby="staff-next-heading">
         <div className="home-section-head">
           <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Your next move</h2></div>
           {attention > 0 && <span className="home-count home-count-attention">{attention}</span>}
