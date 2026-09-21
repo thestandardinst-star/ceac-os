@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { Pill, Sheet, statusPill } from "../components/bits";
 import ManagerProjectClose from "./ManagerProjectClose";
+import { humanError } from "../lib/productLanguage";
 
 const OBJECTIVE_STATUSES = [
   ["on_track", "On track"],
@@ -129,7 +130,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           costs: costRows(budgets.filter((row) => row.project_id === project.id), spend.filter((row) => row.project_id === project.id)),
         };
       }));
-    } catch (err) { setError(err.message || "Projects could not be loaded."); }
+    } catch (err) { setError(humanError(err, "Projects could not be loaded.")); }
     finally { setLoadingList(false); }
   }
 
@@ -169,7 +170,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         canManageProject: projectResult.data.lead_unit_id === me.unit_id,
         canManageObjectives: participants.some((row) => row.unit_id === me.unit_id) || projectResult.data.lead_unit_id === me.unit_id,
       });
-    } catch (err) { setError(err.message || "Project detail could not be loaded."); }
+    } catch (err) { setError(humanError(err, "Project detail could not be loaded.")); }
   }
 
   async function createProject(form) {
@@ -187,7 +188,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       setSelectedId(projectId);
       setSheet({ type: "created", projectId });
       await loadList();
-    } catch (err) { setError(err.message || "The project could not be created."); }
+    } catch (err) { setError(humanError(err, "The project could not be created.")); }
     finally { setBusy(false); }
   }
 
@@ -218,7 +219,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       if (result.error) throw result.error;
       await loadDetail(detail.id); await loadList();
       setSheet({ type: "objective-saved", objectiveId: result.data.id, projectId: detail.id });
-    } catch (err) { setError(err.message || "The objective could not be saved."); }
+    } catch (err) { setError(humanError(err, "The objective could not be saved.")); }
     finally { setBusy(false); }
   }
 
