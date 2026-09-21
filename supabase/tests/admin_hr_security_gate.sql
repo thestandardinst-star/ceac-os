@@ -78,7 +78,7 @@ returns integer
 language sql
 as $$ select 1 $$;
 
-do $
+do $gate$
 declare v_oid oid:='public.security_gate_default_probe()'::regprocedure::oid;
 begin
   if has_function_privilege('anon',v_oid,'EXECUTE')
@@ -93,7 +93,8 @@ begin
      ) then
     raise exception 'Security gate failure: newly created public functions still receive broad EXECUTE by default.';
   end if;
-end $;
+end
+$gate$;
 
 drop function public.security_gate_default_probe();
 
