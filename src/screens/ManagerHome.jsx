@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
@@ -381,8 +381,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <div><strong>{projects.length}</strong><span>Projects attention</span></div>
         </div>
       </section>
-      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
-      {loading && <div className="spin">Loading Manager Home...</div>}
+      {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
+      {loading && <LoadingState label="Loading Manager Home…" />}
 
       {!loading && !loadFailed && <div className="home-dashboard">
       <section className="home-panel home-panel-priority" aria-labelledby="manager-waiting-heading">
