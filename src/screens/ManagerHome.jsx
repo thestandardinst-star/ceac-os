@@ -36,7 +36,7 @@ function ActionRow({ item, openItem, tone = "neutral" }) {
   );
 }
 
-export default function ManagerHome({ me, openItem, openProject, openPerson, goAssign }) {
+export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign }) {
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -44,6 +44,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const [mine, setMine] = useState([]);
   const [projects, setProjects] = useState([]);
   const [upcomingProjects, setUpcomingProjects] = useState([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState([]);
   const [week, setWeek] = useState({ due: [], completed: [], overdue: [] });
   const [recentMovement, setRecentMovement] = useState([]);
   const [routines, setRoutines] = useState([]);
@@ -76,7 +77,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       const recentSince = new Date(today); recentSince.setDate(recentSince.getDate() - 7);
       const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult,
         settingResult, sessionResult, weekResult, projectUnitResult, activeProjectResult,
-        todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult, followupAlertResult] = await Promise.all([
+        todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult, followupAlertResult, meetingResult] = await Promise.all([
         supabase.from("unit_memberships")
           .select("profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name)")
           .eq("unit_id", me.unit_id),
@@ -127,6 +128,13 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           .is("resolved_at", null)
           .in("kind", ["review_followup","blocker_followup"])
           .order("last_seen_at", { ascending: false }),
+        supabase.from("meeting_sessions")
+          .select("id,title,starts_at,ends_at,provider,status,scope,unit_id,project_id,projects(name)")
+          .gte("starts_at", today.toISOString())
+          .lt("starts_at", new Date(today.getTime() + 14 * 86400000).toISOString())
+          .neq("status", "cancelled")
+          .order("starts_at", { ascending: true })
+          .limit(8),
       ]);
 
       const members = requireResult(memberResult, "Team").filter((member) => member.profile_id !== me.id);
@@ -144,6 +152,7 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
       setSubmissions([...latestSubmissionByWork.values()]
         .sort((left, right) => new Date(left.submitted_at) - new Date(right.submitted_at)));
       setFollowupAlerts(requireResult(followupAlertResult, "Follow-ups"));
+      setUpcomingMeetings(requireResult(meetingResult, "Upcoming meetings"));
       setLeave(requireResult(leaveResult, "Leave requests").filter((request) => memberIds.has(request.profile_id)));
       const blockerMap = new Map();
       requireResult(incomingBlockerResult, "Blockers waiting on your unit")
@@ -523,6 +532,14 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
         <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "week", title: "Tasks due this week", rows: week.due })}><b>{week.due.length}</b><span>Due this week</span></button>
         <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "week", title: "Tasks completed this week", rows: week.completed })}><b>{week.completed.length}</b><span>Completed</span></button>
         <button className="home-stat home-tone-danger" onClick={() => setDrill({ zone: "week", title: "Tasks overdue", rows: week.overdue })}><b>{week.overdue.length}</b><span>Overdue</span></button>
+      </div>
+      <div className="home-upcoming">
+        <div className="home-subhead">Meetings in the next 14 days</div>
+        {upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting) => <button key={meeting.id} className="home-date-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
+          <span><strong>{meeting.title}</strong><small>{meeting.scope === "project" && meeting.projects?.name ? meeting.projects.name : meeting.scope === "unit" ? me.unit_name : "CEAC"}</small></span>
+          <time dateTime={meeting.starts_at}>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</time>
+        </button>) : <div className="home-quiet">No meeting invitations are recorded in the next 14 days.</div>}
+        {scheduleMeeting && <button className="text-action" style={{marginTop:10}} onClick={() => scheduleMeeting({scope:"unit",unitId:me.unit_id,unitName:me.unit_name})}>Schedule meeting</button>}
       </div>
       {upcomingProjects.length > 0 && <div className="home-upcoming">
         <div className="home-subhead">Project dates in the next 14 days</div>
