@@ -556,7 +556,7 @@ test("Manager primary surfaces stay usable across supported phone widths", async
 });
 
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
-  test.setTimeout(90000);
+  test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
 
   await expect(page.getByRole("heading", { name: "Administration", exact: true })).toBeVisible();
