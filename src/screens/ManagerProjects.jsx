@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { Pill, Sheet, statusPill } from "../components/bits";
+import { Pill, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import ManagerProjectClose from "./ManagerProjectClose";
 import { humanError } from "../lib/productLanguage";
 
@@ -231,7 +231,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   }
 
   if (selectedId) {
-    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <div className="flag flag-brick"><h4>Could not open project</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <ProductNotice tone="error" title="Could not open project">{error}</ProductNotice> : <LoadingState label="Loading project…" />}</div>;
     const team = [...new Set(detail.work.map((item) => item.profiles?.full_name).filter(Boolean))];
     const unattached = detail.work.filter((item) => !item.objective_id);
     return <div className="body manager-projects">
@@ -358,7 +358,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>
     {canCreate && <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => setSheet({ type: "project" })}>Create project</button>}
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
-    {loadingList && <div className="spin">Loading projects...</div>}
+    {loadingList && <LoadingState label="Loading projects…" />}
     {!loadingList && <><div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
     {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
       <div className="eyebrow">{project.role === "lead" ? "Lead unit" : "Participating unit"}</div>
