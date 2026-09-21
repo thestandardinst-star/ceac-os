@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 export function Pill({ tone, children }) {
   return <span className={"pill p-" + tone}>{children}</span>;
 }
@@ -69,10 +69,24 @@ export function Tabs({ tab, setTab, isManager, isExec = false }) {
   </>);
 }
 export function Sheet({ children, onClose }) {
+  const dialogRef = useRef(null);
   useEffect(() => {
-    function onKeyDown(event) { if (event.key === "Escape") onClose?.(); }
+    const previousFocus = document.activeElement;
+    dialogRef.current?.focus();
+    function onKeyDown(event) {
+      if (event.key === "Escape") { onClose?.(); return; }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = [...dialogRef.current.querySelectorAll("button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex='-1'])")];
+      if (!focusable.length) { event.preventDefault(); return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("keydown", onKeyDown); previousFocus?.focus?.(); };
   }, [onClose]);
-  return (<><div className="sheet-bg" onClick={onClose} /><div className="sheet" role="dialog" aria-modal="true">{children}</div></>);
+  return (<><div className="sheet-bg" onClick={onClose} /><div ref={dialogRef} className="sheet" role="dialog" aria-modal="true" tabIndex={-1}>
+    <button className="sheet-close" aria-label="Close dialog" onClick={onClose}>×</button>{children}
+  </div></>);
 }
