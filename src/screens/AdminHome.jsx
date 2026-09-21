@@ -37,9 +37,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       const now = Date.now();
       const weekAgo = new Date(now - 7 * 864e5).toISOString();
       const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
       const todayStr = new Date().toISOString().slice(0, 10);
 
-      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, objs, period, subs, memberships, meetingRows] = await Promise.all([
+      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, projectCloses, objs, period, subs, memberships, meetingRows] = await Promise.all([
         must(supabase.from("units").select("id,name").order("name"), "Units"),
         must(supabase.from("unit_memberships").select("unit_id,profile_id,profiles(id,full_name,email)").eq("role","manager"), "Unit heads"),
         must(supabase.from("completed_outputs").select("unit_id").gte("completed_at", weekAgo), "Completed outputs"),
@@ -64,7 +65,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         must(supabase.from("work_sessions").select("profile_id,ended_at,started_at").gte("started_at",dayStart.toISOString()), "Today's sessions"),
         must(supabase.from("work_sessions").select("profile_id,started_at").gte("started_at",weekAgo), "Recent sessions"),
         must(supabase.from("leave_requests").select("profile_id").eq("status","approved").lte("start_date",todayStr).gte("end_date",todayStr), "Today's leave"),
-        must(supabase.from("projects").select("id,name,status,lead_unit_id,ends_on,updated_at"), "Projects"),
+        must(supabase.from("projects").select("id,name,status,lead_unit_id,ends_on"), "Projects"),
+        must(supabase.from("project_closes")
+          .select("project_id,submitted_at")
+          .eq("scope","overall").eq("status","submitted")
+          .gte("submitted_at",monthStart.toISOString()), "Project closes"),
         must(supabase.from("objectives").select("id,name,status,unit_id,project_id"), "Objectives"),
         must(supabase.from("report_periods").select("id,label").eq("status","open").order("starts_on",{ascending:false}).limit(1).maybeSingle(), "Open reporting period"),
         must(supabase.from("submissions").select("profile_id,submitted_at").gte("submitted_at",weekAgo), "Recent submissions"),
@@ -107,10 +112,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         headcount: (staff || []).length,
       });
 
-      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+      const closedProjectIds = new Set((projectCloses || []).map((row) => row.project_id));
       setDelivery({
         active: (projs || []).filter((project) => project.status === "active").length,
-        closedThisMonth: (projs || []).filter((project) => project.status === "closed" && project.updated_at && new Date(project.updated_at) >= monthStart).length,
+        closedThisMonth: (projs || []).filter((project) => project.status === "closed" && closedProjectIds.has(project.id)).length,
         onTrack: (objs || []).filter((objective) => objective.status === "on_track" || objective.status === "met").length,
         objectives: (objs || []).length,
       });
