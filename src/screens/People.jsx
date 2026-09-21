@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState } from "../components/bits";
+import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
@@ -121,9 +121,18 @@ export default function People({ me, openItem }) {
     return <div className="body">
       <button className="back" onClick={() => { setPerson(null); setDrill(null); }}>← All people</button>
       {error && <div className="flag flag-brick" style={{ marginTop: 12 }}>{error}</div>}
-      <div className="eyebrow">{person.unit_name || "No unit"}{person.role === "manager" ? " · Unit head" : ""}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>{person.full_name}</h1>
-      <p className="screen-note">{person.job_title || "No job title recorded"}</p>
+      <section className="person-identity-header">
+        <Avatar name={person.full_name} size="lg" />
+        <div className="person-identity-copy">
+          <div className="eyebrow">{person.unit_name || "No unit"}{person.role === "manager" ? " · Unit head" : ""}</div>
+          <h1 className="h1">{person.full_name}</h1>
+          <p className="screen-note">{person.job_title || "No job title recorded"}</p>
+        </div>
+        <div className="person-identity-state">
+          <span>{person.active ? "Active" : "Inactive"}</span>
+          {person.on_leave_now && <b>On approved leave</b>}
+        </div>
+      </section>
       {person.on_leave_now && <div className="flag flag-amber"><h4>On leave today</h4>Currently away on approved leave.</div>}
       {!person.active && <div className="flag flag-brick"><h4>Not active</h4>This person is marked inactive and cannot sign in.</div>}
 
@@ -164,8 +173,10 @@ export default function People({ me, openItem }) {
           </div>
 
           <div className="sec"><span>Leave</span></div>
-          <div className="card" style={{ padding: "4px 15px" }}>
-            <Line l="Annual taken" v={leavePolicy ? taken + " of " + entitlement + " configured days" : taken + " days recorded · entitlement not configured"} />
+          <div className="card person-leave-card">
+            {leavePolicy
+              ? <ProgressMeter value={taken} max={entitlement} label="Annual leave used" detail={taken + " of " + entitlement + " configured days"} />
+              : <Line l="Annual taken" v={taken + " days recorded · entitlement not configured"} />}
             <Line l="Sick taken" v={Number(person.balance?.sick_taken || 0) + " days recorded"} />
           </div>
           <button className="row" style={{ marginTop: 8 }} onClick={() => setDrill({ label: "Leave history", kind: "leave", rows: person.leave })}>
@@ -250,17 +261,19 @@ export default function People({ me, openItem }) {
     <div className="sec"><span>{shown.length} {shown.length === 1 ? "person" : "people"}</span><span>{groups.length} {groups.length === 1 ? "unit" : "units"}</span></div>
     {groups.map((group) => <div key={group.name}>
       <div className="sec" style={{ marginBottom: 6 }}><span style={{ color: "var(--ink)" }}>{group.name}</span><span>{group.people.length}</span></div>
-      {group.people.map((p) => <button key={p.id} className="row" disabled={detailLoading} onClick={() => openPerson(p)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-          <div className="row-t">{p.full_name}</div>
-          {p.on_leave_now && <span className="pill p-amber">On leave</span>}
-          {!p.active && <span className="pill p-grey">Inactive</span>}
+      {group.people.map((p) => <button key={p.id} className="people-directory-row" disabled={detailLoading} onClick={() => openPerson(p)}>
+        <Avatar name={p.full_name} size="md" />
+        <div className="people-directory-main">
+          <div className="people-directory-name"><strong>{p.full_name}</strong>{p.on_leave_now && <span className="pill p-amber">On leave</span>}{!p.active && <span className="pill p-grey">Inactive</span>}</div>
+          <span>{rankLabel(p)}{p.job_title ? " · " + p.job_title : ""}</span>
+          <small>{p.unit_name || "No unit assigned"}</small>
         </div>
-        <div className="row-m">{rankLabel(p)}{p.job_title ? " · " + p.job_title : ""}</div>
-        <div className="row-m" style={{ marginTop: 4 }}>
-          {p.done_count || 0} finished · {p.open_count || 0} open
-          {p.quiet && <span style={{ color: "var(--amber)" }}> · nothing submitted in 14 days</span>}
+        <div className="people-directory-context">
+          {p.quiet
+            ? <><strong>Review context</strong><span>No submission recorded in 14 days</span></>
+            : <><strong>{p.open_count || 0} open</strong><span>{p.done_count || 0} finished on record</span></>}
         </div>
+        <b className="people-directory-arrow" aria-hidden="true">→</b>
       </button>)}
     </div>)}
     {shown.length === 0 && <EmptyState title="Nobody matches">Try a different filter or search term.</EmptyState>}
