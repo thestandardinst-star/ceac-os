@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Icon, Sheet, statusPill } from "../components/bits";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -45,13 +45,15 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem, openAnnouncements }) {
+export default function Home({ me, session, setSession, openItem, openMeeting, openRoom, openWork, openMe, openAnnouncements }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState([]);
+  const [roomMentions, setRoomMentions] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
   const [upcomingLeave, setUpcomingLeave] = useState([]);
   const [leaveUpdates, setLeaveUpdates] = useState([]);
@@ -107,6 +109,10 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         supabase.from("ministry_events")
           .select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled,ministry_event_units(unit_id,note)")
           .lte("starts_at", rangeEnd.toISOString()).order("starts_at"),
+        supabase.from("meeting_sessions")
+          .select("id,title,scope,unit_id,project_id,starts_at,ends_at,provider,join_url,status,projects(name),units(name)")
+          .gte("starts_at", rangeStart.toISOString()).lte("starts_at", rangeEnd.toISOString())
+          .neq("status","cancelled").order("starts_at"),
         supabase.from("unit_memberships")
           .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name,birthday)")
           .eq("unit_id", me.unit_id),
@@ -125,9 +131,13 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         supabase.from("blocker_followups")
           .select("id,blocker_id,sequence,created_at")
           .eq("actor_id", me.id).order("created_at", { ascending: false }),
+        supabase.from("room_mentions")
+          .select("id,message_id,created_at")
+          .eq("profile_id", me.id).gte("created_at", recentStart.toISOString())
+          .order("created_at", { ascending: false }).limit(5),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, meetingResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult, mentionResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
@@ -137,6 +147,16 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
       setReviewFollowups(requireResult(reviewFollowupResult, "Review follow-ups"));
       setMyBlockers(requireResult(blockerResult, "Dependencies"));
       setBlockerFollowups(requireResult(blockerFollowupResult, "Dependency follow-ups"));
+      const mentionRows = requireResult(mentionResult, "Room mentions");
+      if (mentionRows.length) {
+        const messageResult = await supabase.from("room_messages")
+          .select("id,room_id,body,created_at,author_id,profiles!room_messages_author_id_fkey(full_name),rooms(id,kind,unit_id,project_id,units(name),projects(name))")
+          .in("id", mentionRows.map((row) => row.message_id));
+        const messageRows = requireResult(messageResult, "Room mention messages");
+        const byId = new Map(messageRows.map((row) => [row.id,row]));
+        setRoomMentions(mentionRows.map((row) => byId.get(row.message_id)).filter(Boolean));
+      } else setRoomMentions([]);
+
       const events = requireResult(eventResult, "Coming events").filter((event) => {
         const stillCurrent = new Date(event.ends_at || event.starts_at) >= rangeStart;
         const relevant = event.scope === "church" || event.unit_id === me.unit_id
@@ -144,6 +164,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         return stillCurrent && relevant;
       });
       setCalendarEvents(events.slice(0, 4));
+      setUpcomingMeetings(requireResult(meetingResult, "Meetings").slice(0, 4));
       const birthdayEnd = new Date(rangeStart); birthdayEnd.setDate(birthdayEnd.getDate() + 7);
       setBirthdays(requireResult(memberResult, "Birthdays")
         .map((member) => member.profiles).filter((profile) => profile?.birthday)
@@ -298,27 +319,57 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const drillRows = drill?.rows || [];
+  const primaryNextItem = nextMoveItems[0] || activeWork[0] || dueSoon[0] || null;
+  const nextMeeting = upcomingMeetings[0] || null;
+  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  return <div className="body">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">{me.unit_name} · {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>{greeting}, {me.full_name.split(" ")[0]}</h1>
-      <p className="screen-note">See what changed, then choose your next move. Work already sent for review sits separately so it does not look like your failure.</p>
-    </div>
+  return <div className="body staff-home">
+    <section className="staff-command-surface">
+    <header className="staff-home-intro">
+      <div className="staff-home-context">
+        <span>{me.unit_name}</span>
+        <time>{todayLabel}</time>
+      </div>
+      <h1 className="h1">{greeting}, {me.full_name.split(" ")[0]}</h1>
+      <p className="screen-note">Your work, updates and next steps in one place.</p>
+    </header>
 
-    <div className={`sess home-session ${session ? "live" : ""}`} style={{ marginTop: 18 }}>
-      <div>
-        <div className="s-l">{session
-          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) + ", " + (session.place === "office" ? "at the office" : "elsewhere")
-          : "Not working"}</div>
-        <div className="s-v">{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Start to send work in"}</div>
+    <section className={`staff-work-status ${session ? "live" : ""} ${staleSession ? "needs-review" : ""}`} aria-label="Work session">
+      <div className="staff-work-status-icon"><Icon name="work" size={20} /></div>
+      <div className="staff-work-status-copy">
+        <span>{session
+          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" })
+          : "Work session"}</span>
+        <strong>{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Not working"}</strong>
+        {session && !staleSession && <small>{session.place === "office" ? "At the office" : "Working off-site"}</small>}
+        {!session && <small>Start when you begin CEAC work.</small>}
       </div>
       {session
         ? staleSession
-          ? <button className="btn btn-ghost btn-sm" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review session</button>
-          : <button className="btn btn-ghost btn-sm" onClick={stop} disabled={busy}>End work</button>
-        : <button className="btn btn-sm" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
-    </div>
+          ? <button className="btn btn-ghost btn-sm staff-status-action" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review</button>
+          : <button className="btn btn-ghost btn-sm staff-status-action" onClick={stop} disabled={busy}>End work</button>
+        : <button className="btn btn-sm staff-status-action" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
+    </section>
+
+    <nav className="staff-quick-actions" aria-label="Quick actions">
+      {nextMeeting && <button className="staff-quick-action primary" onClick={() => openMeeting?.(nextMeeting.id)}>
+        <span className="staff-quick-icon"><Icon name="calendar" size={17} /></span>
+        <span><strong>Next meeting</strong><small>{nextMeeting.title}</small></span>
+      </button>}
+      {!nextMeeting && primaryNextItem && <button className="staff-quick-action primary" onClick={() => openItem(primaryNextItem.id)}>
+        <span className="staff-quick-icon"><Icon name="work" size={17} /></span>
+        <span><strong>Open next</strong><small>{primaryNextItem.title}</small></span>
+      </button>}
+      <button className="staff-quick-action" onClick={openWork}>
+        <span className="staff-quick-icon"><Icon name="record" size={17} /></span>
+        <span><strong>My work</strong><small>See all work</small></span>
+      </button>
+      <button className="staff-quick-action" onClick={openMe}>
+        <span className="staff-quick-icon"><Icon name="me" size={17} /></span>
+        <span><strong>My space</strong><small>Goals, leave, personal</small></span>
+      </button>
+    </nav>
+    </section>
 
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
@@ -333,8 +384,21 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
     {loading && <div className="spin">Loading Home...</div>}
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
-      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">What changed</h2></div></div>
+      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
+        <div className="home-section-head"><div><div className="home-kicker">Recent movement</div><h2 id="staff-changed-heading">What changed</h2></div></div>
+        {roomMentions.map((message) => {
+          const room = message.rooms;
+          const roomName = room?.kind === "project" ? room.projects?.name : room?.units?.name;
+          return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
+            kind: room?.kind,
+            unitId: room?.unit_id,
+            projectId: room?.project_id,
+          })}>
+            <div className="row-t">{message.profiles?.full_name || "A teammate"} mentioned you</div>
+            <div className="row-m">{roomName || "Room"} · {new Date(message.created_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
+            <div className="row-note">{message.body}</div>
+          </button>;
+        })}
         {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
           <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
@@ -348,7 +412,7 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         </div>)}
       </section>}
 
-      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse"}`} aria-labelledby="staff-next-heading">
+      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse home-panel-empty"}`} aria-labelledby="staff-next-heading">
         <div className="home-section-head">
           <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Your next move</h2></div>
           {attention > 0 && <span className="home-count home-count-attention">{attention}</span>}
@@ -417,9 +481,14 @@ export default function Home({ me, session, setSession, openItem, openAnnounceme
         })}
       </section>}
 
-      {(dueSoon.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
+      {(dueSoon.length > 0 || upcomingMeetings.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
         {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
+        {upcomingMeetings.map((meeting) => <button key={meeting.id} className="row home-work-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
+          <div className="row-t">{meeting.title}</div>
+          <div className="row-m">{new Date(meeting.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })} · {meeting.provider === "zoom" ? "Zoom" : "Meeting"}</div>
+          <div className="row-note">{meeting.scope === "project" ? meeting.projects?.name : meeting.scope === "unit" ? meeting.units?.name : "CEAC"}</div>
+        </button>)}
         {calendarEvents.map((event) => <button key={event.id} className="row home-work-row" onClick={() => setEventDetail(event)}>
           <div className="row-t">{event.cancelled ? "Cancelled · " : ""}{event.title}</div>
           <div className="row-m">{new Date(event.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", hour: event.all_day ? undefined : "2-digit", minute: event.all_day ? undefined : "2-digit" })}{event.location ? ` · ${event.location}` : ""}</div>

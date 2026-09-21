@@ -44,7 +44,7 @@ function PersonRow({ person, openPerson }) {
   </div>;
 }
 
-export default function Team({ me, openPerson, goAssign }) {
+export default function Team({ me, openPerson, goAssign, openRoom }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [members, setMembers] = useState({});
@@ -252,11 +252,15 @@ export default function Team({ me, openPerson, goAssign }) {
   const unassignedPeople = people.filter((person) => !(members[person.profile_id] || []).length);
 
   return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
+    <div className="body manager-team">
+      <div className="manager-page-intro">
         <div className="eyebrow">{me.unit_name}</div>
         <h1 className="h1" style={{ marginTop: 6 }}>Your team</h1>
         <p className="screen-note">Presence and work are shown side by side as facts. They are not a judgement about a person.</p>
+        {openRoom && <button className="team-room-entry manager-room-entry" onClick={openRoom}>
+          <span><strong>Unit Room</strong><small>Coordinate with the unit without leaving CEAC OS</small></span>
+          <b aria-hidden="true">→</b>
+        </button>}
       </div>
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
       {loading && <div className="spin">Loading your team...</div>}

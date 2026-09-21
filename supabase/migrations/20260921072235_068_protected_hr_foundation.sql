@@ -80,9 +80,6 @@ grant select,insert,update on hr_private.documents to service_role;
 grant select,insert on hr_private.audit_events to service_role;
 grant execute on function hr_private.reject_audit_mutation() to service_role;
 
--- Create the protected document bucket now, but deliberately add no browser
--- object policies yet. Admin/Staff access will be introduced later through
--- explicit, tested rules rather than broad Storage access.
 insert into storage.buckets(id,name,public)
 values('ceac-hr-private','ceac-hr-private',false)
 on conflict(id) do update

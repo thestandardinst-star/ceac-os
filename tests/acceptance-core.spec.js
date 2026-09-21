@@ -4,6 +4,28 @@ const rolePassword = process.env.ROLE_FIXTURE_PASSWORD;
 
 test.describe.configure({ mode: "serial" });
 
+test("Authentication shell matches the PWA responsive contract", async ({ browser }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 900 }]) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+    await expect(page.getByPlaceholder("Work email")).toBeVisible();
+    await expect(page.getByPlaceholder("Password")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    if (viewport.width >= 901) {
+      await expect(page.getByText("Know what matters.")).toBeVisible();
+      await expect(page.getByText("Today", { exact: true })).toBeVisible();
+      await expect(page.getByText("Pulse", { exact: true })).toBeVisible();
+      await expect(page.getByText("Insight", { exact: true })).toBeVisible();
+    } else {
+      await expect(page.getByText("CEAC OS", { exact: true }).first()).toBeVisible();
+    }
+    await context.close();
+  }
+});
+
 async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   const context = await browser.newContext({
     viewport,
@@ -323,6 +345,114 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
     await expect(page.locator(".body")).toBeVisible();
     await go(page, "Me");
     await expect(page.locator(".body")).toBeVisible();
+    await context.close();
+  }
+});
+
+
+test("Staff PWA layout has no page-level horizontal overflow at supported phone widths", async ({ browser }) => {
+  test.setTimeout(90000);
+  const widths = [320, 360, 375, 390, 414, 430];
+  const destinations = ["Home", "Work", "Team", "Record", "Me"];
+
+  for (const width of widths) {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width, height: 844 });
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        await page.locator(".tabs").getByRole("button", { name: destination, exact: true }).click();
+      }
+      await expect(page.locator(".body")).toBeVisible();
+      const overflow = await page.evaluate(() => ({
+        document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        body: document.body.scrollWidth - document.body.clientWidth,
+      }));
+      expect(overflow.document, `${destination} overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+      expect(overflow.body, `${destination} body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+    }
+    await context.close();
+  }
+});
+
+
+test("Unit Rooms carry attributable communication between Manager and Staff", async ({ browser }) => {
+  const message = "Room acceptance — confirm Sunday setup";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
+    await page.getByPlaceholder("Message your unit").fill(message);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(page.getByText(message, { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page.getByText(message, { exact: true })).toBeVisible();
+    await context.close();
+  }
+});
+
+test("A Manager can schedule a Unit meeting and Staff can open its operational record", async ({ browser }) => {
+  const title = "Acceptance unit meeting";
+  const tomorrow = new Date(Date.now() + 86400000);
+  const pad = (value) => String(value).padStart(2, "0");
+  const localValue = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}T10:30`;
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: /Calendar/ }).click();
+    await page.getByRole("button", { name: "Schedule meeting" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByPlaceholder("Meeting title").fill(title);
+    await dialog.locator('input[type="datetime-local"]').first().fill(localValue);
+    await dialog.getByPlaceholder("Zoom join link (optional)").fill("https://zoom.us/j/123456789");
+    await dialog.getByPlaceholder("Agenda (optional)").fill("Review current work and record actions.");
+    await dialog.getByRole("button", { name: "Schedule meeting" }).click();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Join Zoom/ })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    const meetingRow = page.locator(".home-meeting-row").filter({ hasText: title });
+    await expect(meetingRow).toBeVisible();
+    await meetingRow.click();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
+    await expect(page.getByText("Notes & decisions", { exact: true })).toBeVisible();
+    await context.close();
+  }
+});
+
+test("Role shells stay within the phone viewport", async ({ browser }) => {
+  const roles = [
+    ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects"]],
+    ["admin@ceac.local.test", ["Home", "People", "Attendance", "Reports"]],
+    ["exec@ceac.local.test", ["Home", "Announcements", "Me"]],
+  ];
+
+  for (const [email, destinations] of roles) {
+    const { context, page } = await openAs(browser, email, { width: 390, height: 844 });
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
+        if (await direct.count()) await direct.click();
+        else {
+          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
+          await more.click();
+          await page.getByRole("menuitem", { name: destination, exact: true }).click();
+        }
+      }
+      await expect(page.locator(".body")).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow, `${email} / ${destination} overflowed the phone viewport`).toBeLessThanOrEqual(1);
+    }
     await context.close();
   }
 });

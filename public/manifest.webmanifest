@@ -1,9 +1,9 @@
 {
-  "name": "CEAC",
+  "name": "CEAC OS",
   "short_name": "CEAC",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F2F3EF",
-  "theme_color": "#F2F3EF",
+  "background_color": "#18232D",
+  "theme_color": "#18232D",
   "icons": []
 }

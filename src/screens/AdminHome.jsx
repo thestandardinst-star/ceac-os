@@ -3,7 +3,7 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet } from "../components/bits";
 
-export default function AdminHome({ me, openItem, openSettings, openUnits }) {
+export default function AdminHome({ me, openItem, openMeeting, openSettings, openUnits }) {
   const [units, setUnits] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -14,6 +14,9 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
   const [delivery, setDelivery] = useState({ active: 0, closedThisMonth: 0, onTrack: 0, objectives: 0 });
   const [reporting, setReporting] = useState(null);
   const [watch, setWatch] = useState([]);
+  const [meetings, setMeetings] = useState([]);
+  const [meetingSheet, setMeetingSheet] = useState(false);
+  const [meetingForm, setMeetingForm] = useState({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
   const [inviting, setInviting] = useState(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,7 +40,7 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
       const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
       const todayStr = new Date().toISOString().slice(0, 10);
 
-      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, objs, period, subs, memberships] = await Promise.all([
+      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, objs, period, subs, memberships, meetingRows] = await Promise.all([
         must(supabase.from("units").select("id,name").order("name"), "Units"),
         must(supabase.from("unit_memberships").select("unit_id,profile_id,profiles(id,full_name,email)").eq("role","manager"), "Unit heads"),
         must(supabase.from("completed_outputs").select("unit_id").gte("completed_at", weekAgo), "Completed outputs"),
@@ -67,6 +70,11 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
         must(supabase.from("report_periods").select("id,label").eq("status","open").order("starts_on",{ascending:false}).limit(1).maybeSingle(), "Open reporting period"),
         must(supabase.from("submissions").select("profile_id,submitted_at").gte("submitted_at",weekAgo), "Recent submissions"),
         must(supabase.from("unit_memberships").select("profile_id,unit_id"), "Memberships"),
+        must(supabase.from("meeting_sessions")
+          .select("id,title,scope,starts_at,ends_at,provider,status,units(name),projects(name)")
+          .gte("starts_at",new Date().toISOString())
+          .lte("starts_at",new Date(now + 14*864e5).toISOString())
+          .neq("status","cancelled").order("starts_at").limit(6), "Upcoming meetings"),
       ]);
 
       const headByUnit = {};
@@ -154,9 +162,34 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
         k:"o"+objective.id, who:objective.name, why:"objective at risk",
       }));
       setWatch(rules.slice(0,12));
+      setMeetings(meetingRows || []);
     } catch (error) {
       setLoadError(error.message || "Administration could not load.");
     }
+  }
+
+  async function scheduleOrganisationMeeting() {
+    if (!meetingForm.title.trim() || !meetingForm.starts_at) return;
+    setBusy(true); setMsg(null);
+    try {
+      const result = await supabase.from("meeting_sessions").insert({
+        org_id: me.org_id,
+        scope: "organisation",
+        title: meetingForm.title.trim(),
+        agenda: meetingForm.agenda.trim() || null,
+        starts_at: new Date(meetingForm.starts_at).toISOString(),
+        ends_at: meetingForm.ends_at ? new Date(meetingForm.ends_at).toISOString() : null,
+        provider: "zoom",
+        join_url: meetingForm.join_url.trim() || null,
+        created_by: me.id,
+      }).select("id").single();
+      if (result.error) throw result.error;
+      setMeetingSheet(false);
+      setMeetingForm({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
+      await load();
+      openMeeting?.(result.data.id);
+    } catch (error) { setMsg(error.message || "The meeting could not be scheduled."); }
+    finally { setBusy(false); }
   }
 
   async function sendInvite() {
@@ -184,13 +217,33 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
   }
 
   const withoutHead = units.filter((unit) => !unit.head).length;
+  const adminDate = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const adminAttention = alerts.length + leaveQueue.length + withoutHead + (reporting?.missing?.length || 0);
 
-  return <div className="body">
-    <div style={{ paddingTop:26 }}>
-      <div className="eyebrow">Administration &amp; HR</div>
-      <h1 className="h1" style={{ marginTop:6 }}>{new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</h1>
-      <p className="screen-note">The whole church at a glance. Individual work stays with the responsible unit unless it genuinely needs Administration.</p>
-    </div>
+  return <div className="body admin-home">
+    <section className="admin-command-surface">
+      <div className="admin-command-context"><span>Administration &amp; HR</span><time>{adminDate}</time></div>
+      <div className="eyebrow">Organisation operations</div>
+      <h1 className="h1">Administration</h1>
+      <p className="screen-note">Organisation-wide exceptions, staffing, reporting and administrative action — without pulling unit-level work into HR unnecessarily.</p>
+      <div className="admin-command-stats" aria-label="Administration overview">
+        <div><strong>{adminAttention}</strong><span>Need attention</span></div>
+        <div><strong>{units.length}</strong><span>Units</span></div>
+        <div><strong>{today.headcount}</strong><span>People on record</span></div>
+      </div>
+    </section>
+
+    <section className="office-meeting-strip">
+      <div className="office-meeting-strip-head">
+        <div><span>Next 14 days</span><strong>Meetings</strong></div>
+        <button className="btn btn-sm" onClick={() => setMeetingSheet(true)}>Schedule</button>
+      </div>
+      {meetings.length === 0 ? <div className="office-meeting-empty">No organisation, unit or project meetings are currently visible here.</div>
+        : meetings.slice(0,3).map((meeting) => <button className="office-meeting-row" key={meeting.id} onClick={() => openMeeting?.(meeting.id)}>
+          <span><strong>{meeting.title}</strong><small>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</small></span>
+          <b aria-hidden="true">→</b>
+        </button>)}
+    </section>
 
     {loadError && <div className="flag flag-brick" style={{marginTop:14}}><h4>Administration could not finish loading</h4>{loadError}<button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={load}>Try again</button></div>}
     {msg && !inviting && <div className="flag flag-amber" style={{marginTop:14}}>{msg}</div>}
@@ -289,6 +342,18 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
         </div>)}
       </div>
     </div>
+
+    {meetingSheet && <Sheet onClose={() => setMeetingSheet(false)}>
+      <div className="eyebrow">Organisation meeting</div>
+      <div className="h2" style={{ marginTop: 5 }}>Schedule meeting</div>
+      <p className="screen-note">This creates an organisation-visible meeting workspace. Zoom remains the video provider.</p>
+      <input className="field" placeholder="Meeting title" value={meetingForm.title} onChange={(e) => setMeetingForm((v) => ({ ...v, title:e.target.value }))} />
+      <label className="small">Starts<input className="field" type="datetime-local" value={meetingForm.starts_at} onChange={(e) => setMeetingForm((v) => ({ ...v, starts_at:e.target.value }))} /></label>
+      <label className="small">Ends (optional)<input className="field" type="datetime-local" value={meetingForm.ends_at} onChange={(e) => setMeetingForm((v) => ({ ...v, ends_at:e.target.value }))} /></label>
+      <input className="field" type="url" placeholder="Zoom join link (optional)" value={meetingForm.join_url} onChange={(e) => setMeetingForm((v) => ({ ...v, join_url:e.target.value }))} />
+      <textarea className="field" rows={4} placeholder="Agenda (optional)" value={meetingForm.agenda} onChange={(e) => setMeetingForm((v) => ({ ...v, agenda:e.target.value }))} />
+      <button className="btn" disabled={busy || !meetingForm.title.trim() || !meetingForm.starts_at} onClick={scheduleOrganisationMeeting}>{busy ? "Scheduling..." : "Schedule meeting"}</button>
+    </Sheet>}
 
     {inviting && <Sheet onClose={()=>{setInviting(null);setMsg(null);}}>
       <div className="h2">Invite someone to {inviting.name}</div>

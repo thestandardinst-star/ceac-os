@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import AuthFrame from "../components/AuthFrame";
 
 export default function AccountPassword({ mode, onDone }) {
   const [ready, setReady] = useState(false);
@@ -56,35 +57,37 @@ export default function AccountPassword({ mode, onDone }) {
     setTimeout(() => onDone?.(), 350);
   }
 
-  if (!ready) return <div className="spin">Opening your secure link...</div>;
 
-  return <div className="signin-wrap">
-    <div className="eyebrow">CEAC</div>
-    <h1 className="h1" style={{ marginTop: 6 }}>{mode === "activate" ? "Set your password" : "Choose a new password"}</h1>
-    <p className="screen-note">
-      {mode === "activate"
-        ? "Your invitation has been verified. Set the password you will use to sign in from now on."
-        : "Your recovery link has been verified. Choose a new password for your CEAC account."}
-    </p>
+  if (!ready) return <div className="auth-boot"><span className="auth-boot-mark">CEAC</span><span>Opening your secure link…</span></div>;
 
-    {!hasSession ? <div className="flag flag-brick" style={{ marginTop: 22 }}>
-      <h4>This link is no longer active</h4>
-      Open the newest CEAC email link. If it has expired, request another recovery link from the sign-in page.
-    </div> : <>
-      <div style={{ marginTop: 26 }}>
-        <input className="field" type="password" autoComplete="new-password"
-          placeholder="New password · at least 12 characters"
+  const title = mode === "activate" ? "Create your password" : "Choose a new password";
+  const description = mode === "activate"
+    ? "Your invitation has been verified. Set the password you will use for CEAC OS."
+    : "Your recovery link has been verified. Choose a new password for your CEAC account.";
+
+  return <AuthFrame eyebrow={mode === "activate" ? "Account activation" : "Secure recovery"} title={title} description={description}>
+    {!hasSession ? <div className="auth-message error">
+      <strong>This link is no longer active.</strong>
+      <span>Open the newest CEAC email link. If it has expired, request another recovery link from the sign-in page.</span>
+    </div> : <div className="auth-form">
+      <label className="auth-field">
+        <span>New password</span>
+        <input type="password" autoComplete="new-password" placeholder="At least 12 characters"
           value={password} onChange={(event) => setPassword(event.target.value)} />
-        <input className="field" type="password" autoComplete="new-password"
-          placeholder="Confirm password"
+      </label>
+      <label className="auth-field">
+        <span>Confirm password</span>
+        <input type="password" autoComplete="new-password" placeholder="Enter it again"
           value={confirm} onChange={(event) => setConfirm(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && save()} />
-      </div>
-      {message && <div className={`flag ${message.includes("ready") || message.includes("changed") ? "flag-green" : "flag-brick"}`} style={{ marginTop: 14 }}>{message}</div>}
-      <button className="btn" style={{ marginTop: 18 }} onClick={save}
-        disabled={busy || !password || !confirm}>
-        {busy ? "Saving..." : mode === "activate" ? "Finish account setup" : "Save new password"}
+      </label>
+      <div className="auth-password-rule">Use at least 12 characters.</div>
+      {message && <div className={`auth-message ${message.includes("ready") || message.includes("changed") ? "success" : "error"}`}>{message}</div>}
+      <button className="auth-primary" onClick={save} disabled={busy || !password || !confirm}>
+        <span>{busy ? "Saving..." : mode === "activate" ? "Finish account setup" : "Save new password"}</span>
+        {!busy && <span aria-hidden="true">→</span>}
       </button>
-    </>}
-  </div>;
+    </div>}
+  </AuthFrame>;
+
 }

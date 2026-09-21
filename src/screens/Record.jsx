@@ -165,8 +165,9 @@ export default function Record({ me, openItem }) {
 
   return <div className="body staff-record">
     <div className="staff-page-intro">
+      <div className="eyebrow">Your evidence</div>
       <h1 className="h1">My record</h1>
-      <p className="screen-note">Evidence from work you actually did. Private work and personal goals are not counted here.</p>
+      <p className="screen-note">A factual history of completed work, feedback and activity. Private work and personal goals stay outside this record.</p>
       <input className="field month-field" type="month" aria-label="Record month" value={month} onChange={(event) => setMonth(event.target.value)} />
     </div>
 
