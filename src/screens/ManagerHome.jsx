@@ -3,6 +3,7 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -259,7 +260,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       }).filter((project) => project.atRisk.length > 0 || project.closesThisWeek || project.openDeliverables.length > 0 || project.objectivesWithoutActiveWork.length > 0));
     } catch (err) {
       setLoadFailed(true);
-      setError(err.message || "Manager Home could not be loaded.");
+      setError(humanError(err, "Manager Home could not be loaded."));
     } finally {
       setLoading(false);
     }
@@ -308,7 +309,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (approveError) throw approveError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The review could not be saved."); }
+    } catch (err) { setError(humanError(err, "The review could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -321,7 +322,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       }).eq("id", request.id);
       if (updateError) throw updateError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The leave decision could not be saved."); }
+    } catch (err) { setError(humanError(err, "The leave decision could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -333,7 +334,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (responseError) throw responseError;
       setSheet(null); setComment(""); await load();
-    } catch (err) { setError(err.message || "The blocker response could not be saved."); }
+    } catch (err) { setError(humanError(err, "The blocker response could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -345,7 +346,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       });
       if (resolveError) throw resolveError;
       await load();
-    } catch (err) { setError(err.message || "The blocker could not be resolved."); }
+    } catch (err) { setError(humanError(err, "The blocker could not be resolved.")); }
     finally { setBusy(false); }
   }
 
