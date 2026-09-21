@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test";
 
 const rolePassword = process.env.ROLE_FIXTURE_PASSWORD;
 
+test.describe.configure({ mode: "serial" });
+
 async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   const context = await browser.newContext({
     viewport,
@@ -130,6 +132,9 @@ test("Staff and Manager complete the real work loop, including return and approv
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
     await go(page, "Record");
     await expect(page.getByText(title, { exact: true })).toBeVisible();
+    await go(page, "Home");
+    const endWork = page.getByRole("button", { name: "End work" });
+    if (await endWork.count()) await endWork.click();
     await context.close();
   }
 });
@@ -178,6 +183,10 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await go(page, "Work");
     await page.getByText(title, { exact: true }).click();
     await expect(page.getByText(/Waiting on Test Unit A/)).toHaveCount(0);
+    await page.getByRole("button", { name: "← Back" }).click();
+    await go(page, "Home");
+    const endWork = page.getByRole("button", { name: "End work" });
+    if (await endWork.count()) await endWork.click();
     await context.close();
   }
 });
@@ -192,7 +201,7 @@ test("Staff personal details persist and private work stays out of another staff
     await page.getByRole("button", { name: "Edit" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("Preferred name").fill("Staff Preferred");
-    await dialog.getByLabel("Phone").fill("+233200000001");
+    await dialog.getByLabel("Phone", { exact: true }).fill("+233200000001");
     await dialog.getByPlaceholder("Contact name").fill("Emergency Fixture");
     await dialog.getByLabel("Address or ordinary contact information").fill("Fixture address");
     await dialog.getByRole("button", { name: "Save personal details" }).click();
@@ -287,6 +296,8 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await expect(page.locator(".tabs")).toBeVisible();
+    const activeEnd = page.getByRole("button", { name: "End work" });
+    if (await activeEnd.count()) await activeEnd.click();
     await page.getByRole("button", { name: "Start work", exact: true }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeFocused();
