@@ -224,7 +224,7 @@ export default function App() {
     if (tab === "people" && isAdmin) return <People me={me} openItem={openItem} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
-    return <MeScreen me={me} openGoal={setGoalId} />;
+    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
   }
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
