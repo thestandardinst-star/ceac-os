@@ -357,7 +357,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
 
     {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
       {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">What changed</h2></div></div>
+        <div className="home-section-head"><div><div className="home-kicker">Recent movement</div><h2 id="staff-changed-heading">What changed</h2></div></div>
         {feedback.map((note) => <div key={note.id} className="row home-feedback-row">
           <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
           <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
