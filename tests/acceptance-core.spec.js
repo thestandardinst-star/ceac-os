@@ -563,6 +563,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Need your action", { exact: true })).toBeVisible();
   await expect(page.getByText("Reporting gaps", { exact: true })).toBeVisible();
   await expect(page.getByText("Delivery risks", { exact: true })).toBeVisible();
+  await expect(page.getByText("Administration could not finish loading", { exact: true })).toHaveCount(0);
 
   await go(page, "Units");
   await expect(page.getByRole("heading", { name: "Units", exact: true })).toBeVisible();
@@ -591,6 +592,18 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Awaiting CEAC policy", { exact: true }).first()).toBeVisible();
   await expect(page.getByPlaceholder("Not configured").first()).toHaveValue("");
+  await page.getByLabel("Annual leave days").fill("20");
+  await page.getByLabel("Sick leave days").fill("10");
+  await page.getByLabel("Maximum carry-over").fill("4");
+  await page.getByLabel("Manager approval limit").fill("3");
+  await page.getByRole("button", { name: "Confirm leave policy", exact: true }).click();
+  await expect(page.getByText("Leave policy confirmed", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Annual leave days")).toHaveValue("20");
+  await expect(page.getByLabel("Sick leave days")).toHaveValue("10");
+  await expect(page.getByLabel("Maximum carry-over")).toHaveValue("4");
+  await expect(page.getByLabel("Manager approval limit")).toHaveValue("3");
+  await expect(page.getByRole("button", { name: /Office location/ }).first()).toBeVisible();
 
   await context.close();
 });
@@ -618,8 +631,23 @@ test("Administration primary surfaces stay within supported phone widths", async
       }
 
       await expect(page.locator(".body")).toBeVisible();
-      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-      expect(overflow, `Administration / ${destination} overflowed at ${width}px`).toBeLessThanOrEqual(1);
+      const geometry = await page.evaluate(() => {
+        const app = document.querySelector(".office-app")?.getBoundingClientRect();
+        const body = document.querySelector(".office-app .body")?.getBoundingClientRect();
+        return {
+          overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          viewport: window.innerWidth,
+          appLeft: app?.left ?? null,
+          appRight: app?.right ?? null,
+          bodyLeft: body?.left ?? null,
+          bodyRight: body?.right ?? null,
+        };
+      });
+      expect(geometry.overflow, `Administration / ${destination} overflowed at ${width}px`).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.appLeft ?? 0), `Administration shell left a gap at ${width}px`).toBeLessThanOrEqual(1);
+      expect(Math.abs((geometry.appRight ?? geometry.viewport) - geometry.viewport), `Administration shell left a right-side gap at ${width}px`).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.bodyLeft ?? 0), `Administration body left a gap at ${width}px`).toBeLessThanOrEqual(1);
+      expect(Math.abs((geometry.bodyRight ?? geometry.viewport) - geometry.viewport), `Administration body left a right-side gap at ${width}px`).toBeLessThanOrEqual(1);
     }
     await context.close();
   }
