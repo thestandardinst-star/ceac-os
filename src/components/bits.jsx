@@ -45,6 +45,37 @@ export function MobileTopBar({ me, roleLabel = "Staff", onProfile }) {
 export function Pill({ tone, children }) {
   return <span className={"pill p-" + tone}>{children}</span>;
 }
+
+export function FieldGroup({ label, hint, children, className = "" }) {
+  return <label className={`field-group ${className}`.trim()}>
+    <span className="field-label">{label}</span>
+    {children}
+    {hint && <span className="field-hint">{hint}</span>}
+  </label>;
+}
+
+export function ProductNotice({ tone = "info", title, children, action = null }) {
+  return <div className={`product-notice product-notice-${tone}`} role={tone === "error" ? "alert" : "status"}>
+    {title && <strong>{title}</strong>}
+    {children && <span>{children}</span>}
+    {action}
+  </div>;
+}
+
+export function EmptyState({ title, children, action = null, compact = false }) {
+  return <div className={`empty-state ${compact ? "compact" : ""}`}>
+    <strong>{title}</strong>
+    {children && <span>{children}</span>}
+    {action}
+  </div>;
+}
+
+export function SectionHeader({ eyebrow, title, count, action = null }) {
+  return <div className="section-header">
+    <div>{eyebrow && <span>{eyebrow}</span>}<h2>{title}</h2></div>
+    <div className="section-header-actions">{count !== undefined && count !== null && <b>{count}</b>}{action}</div>
+  </div>;
+}
 export function statusPill(status) {
   if (status === "in_progress") return <Pill tone="green">In progress</Pill>;
   if (status === "in_review") return <Pill tone="amber">In review</Pill>;
