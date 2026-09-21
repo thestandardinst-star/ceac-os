@@ -603,6 +603,16 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByLabel("Sick leave days")).toHaveValue("10");
   await expect(page.getByLabel("Maximum carry-over")).toHaveValue("4");
   await expect(page.getByLabel("Manager approval limit")).toHaveValue("3");
+
+  const attentionRule = page.locator(".office-threshold-row").filter({ hasText: "active work has not moved for" });
+  const attentionInput = attentionRule.locator("input");
+  await attentionInput.fill("9");
+  await attentionRule.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Attention rule updated", { exact: true })).toBeVisible();
+  await page.reload();
+  const reloadedRule = page.locator(".office-threshold-row").filter({ hasText: "active work has not moved for" });
+  await expect(reloadedRule.locator("input")).toHaveValue("9");
+
   await expect(page.getByRole("button", { name: /Office location/ }).first()).toBeVisible();
 
   await context.close();
