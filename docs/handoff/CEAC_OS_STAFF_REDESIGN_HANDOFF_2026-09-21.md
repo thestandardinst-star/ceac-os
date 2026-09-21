@@ -119,6 +119,10 @@ No migration was created.
 
 Rooms and Zoom/meeting-provider implementation remain future packages and were not represented as fake/incomplete UI.
 
+## Preview status
+
+A fresh branch update was pushed after the Staff redesign validation to request a new Vercel preview deployment. This does not change application behaviour.
+
 ## Validation rule
 
 Do not merge this package until:
