@@ -14,6 +14,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
   const [meeting, setMeeting] = useState(null);
   const [records, setRecords] = useState([]);
   const [links, setLinks] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [note, setNote] = useState("");
   const [recordKind, setRecordKind] = useState("note");
   const [busy, setBusy] = useState(false);
@@ -25,7 +26,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
   async function load() {
     setLoading(true); setError(null);
     try {
-      const [meetingResult, recordResult, linkResult] = await Promise.all([
+      const [meetingResult, recordResult, linkResult, participantResult] = await Promise.all([
         supabase.from("meeting_sessions")
           .select("id,org_id,scope,unit_id,project_id,title,agenda,starts_at,ends_at,provider,provider_meeting_id,join_url,location,status,created_by,units(name),projects(name)")
           .eq("id", meetingId).single(),
@@ -35,13 +36,18 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
         supabase.from("meeting_work_links")
           .select("meeting_id,work_item_id,relation,linked_at,work_items(id,ref,title,status,due_at,project_id)")
           .eq("meeting_id", meetingId).order("linked_at", { ascending: false }),
+        supabase.from("meeting_participants")
+          .select("profile_id,role,source_type,profiles!meeting_participants_profile_id_fkey(full_name)")
+          .eq("meeting_id", meetingId).order("created_at", { ascending: true }),
       ]);
       if (meetingResult.error) throw meetingResult.error;
       if (recordResult.error) throw recordResult.error;
       if (linkResult.error) throw linkResult.error;
+      if (participantResult.error) throw participantResult.error;
       setMeeting(meetingResult.data);
       setRecords(recordResult.data || []);
       setLinks(linkResult.data || []);
+      setParticipants(participantResult.data || []);
     } catch (err) {
       setError(err.message || "Meeting could not be opened.");
     } finally {
@@ -121,6 +127,10 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
     <section className="meeting-panel">
       <div className="meeting-section-head"><div><span>Before</span><h2>Agenda</h2></div></div>
       {meeting.agenda ? <p className="meeting-agenda">{meeting.agenda}</p> : <div className="quiet-empty compact"><strong>No agenda recorded</strong><span>The meeting can still proceed; this is simply not on the record yet.</span></div>}
+      {participants.length > 0 && <div className="meeting-participant-summary">
+        <span>{participants.length === 1 && participants[0].profile_id === me.id ? "You are invited" : `${participants.length} participant${participants.length === 1 ? "" : "s"} visible to you`}</span>
+        {participants.length > 1 && <div>{participants.slice(0,8).map((participant) => <b key={participant.profile_id}>{participant.profiles?.full_name || "CEAC member"}</b>)}</div>}
+      </div>}
     </section>
 
     <section className="meeting-panel">
