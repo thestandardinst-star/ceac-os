@@ -127,7 +127,7 @@ export function statusPill(status) {
 }
 function tabItems(isManager = false) {
   if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
-  return [["home","Home"],["work","Work"],["team","Team"],["record","Record"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["me","Me"]];
 }
 
 function desktopGroups({ isAdmin, isExec, isManager }) {
@@ -157,7 +157,7 @@ export function AppTopBar({ me, roleLabel, tab, onProfile }) {
     units:"Units", people:"People", attendance:"Attendance & leave", reporting:"Reports",
     finance:"Finance", cost:"Cost", announcements:"Announcements", settings:"Settings",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
-    "manager-finance":"Finance", "manager-reports":"Reports", record:"Record", me:"Me",
+    "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
   };
   const section = titleMap[tab] || "Workspace";
   const initial = (me?.full_name || "C").trim().charAt(0).toUpperCase();
