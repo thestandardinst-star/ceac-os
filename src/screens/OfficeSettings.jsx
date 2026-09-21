@@ -177,10 +177,13 @@ export default function OfficeSettings({ me }) {
       const value = Number(row.value);
       if (!Number.isFinite(value) || value < 0) throw new Error("Enter a valid non-negative number.");
       const result = await supabase.from("thresholds")
-        .update({ value })
+        .update({ value, updated_by: me.id, updated_at: new Date().toISOString() })
         .eq("org_id", me.org_id)
-        .eq("name", row.name);
+        .eq("name", row.name)
+        .select("name,value,updated_by,updated_at")
+        .single();
       if (result.error) throw result.error;
+      if (!result.data || Number(result.data.value) !== value) throw new Error("The attention rule was not persisted.");
       await load();
       setMessage({ tone: "success", title: "Attention rule updated", body: `${row.label} ${value} ${row.unit_label}.` });
     } catch (error) {
