@@ -73,7 +73,7 @@ end $$;
 
 -- Every signed-in callable definer RPC must visibly bind itself to the caller
 -- directly or through an approved authority/visibility helper.
-do $
+do $rpc_authority$
 declare n integer;
 begin
   select count(*) into n
@@ -92,7 +92,8 @@ begin
   if n<>0 then
     raise exception 'Security gate failure: % authenticated SECURITY DEFINER RPC(s) lack an approved actor/authority binding.',n;
   end if;
-end $;
+end
+$rpc_authority$;
 
 -- Migration 067 changes default privileges. Prove a new function is not
 -- silently exposed to signed-in or anonymous users.
@@ -151,7 +152,7 @@ begin
 end $$;
 
 -- Protected HR foundation must remain outside the browser-exposed public schema.
-do $
+do $hr_schema$
 begin
   if not exists(select 1 from pg_namespace where nspname='hr_private') then
     raise exception 'Security gate failure: hr_private schema is missing.';
@@ -168,9 +169,10 @@ begin
      or has_table_privilege('authenticated','hr_private.audit_events','SELECT') then
     raise exception 'Security gate failure: protected HR tables are directly readable by browser roles.';
   end if;
-end $;
+end
+$hr_schema$;
 
-do $
+do $hr_bucket$
 declare v_public boolean;
 begin
   select public into v_public
@@ -183,12 +185,13 @@ begin
   if v_public then
     raise exception 'Security gate failure: ceac-hr-private bucket is public.';
   end if;
-end $;
+end
+$hr_bucket$;
 
 -- Foundation stage deliberately has no direct browser Storage policy for the
 -- protected HR bucket. Later access must update this assertion with explicit
 -- role/path tests in the same PR.
-do $
+do $hr_storage_policy$
 declare n integer;
 begin
   select count(*) into n
@@ -202,9 +205,10 @@ begin
   if n<>0 then
     raise exception 'Security gate failure: direct browser policy exists for ceac-hr-private before explicit HR document-access review.';
   end if;
-end $;
+end
+$hr_storage_policy$;
 
-do $
+do $hr_audit_trigger$
 begin
   if not exists(
     select 1
@@ -218,7 +222,8 @@ begin
   ) then
     raise exception 'Security gate failure: HR audit immutability trigger is missing.';
   end if;
-end $;
+end
+$hr_audit_trigger$;
 
 -- ---------------------------------------------------------------------------
 -- Role matrix using the local fixture organisation
