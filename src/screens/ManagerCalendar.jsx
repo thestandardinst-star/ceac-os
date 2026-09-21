@@ -101,19 +101,19 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   return <div className="body manager-calendar">
     <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Project dates, task deadlines, approved team leave and the ministry calendar in one place.</p></div>
     {error&&<div className="flag flag-brick"><h4>Could not load the calendar</h4>{error}</div>}
-    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:14}}>
+    <div className="manager-calendar-controls">
       <button className={"btn btn-sm "+(view==="month"?"":"btn-ghost")} onClick={()=>setView("month")}>Month</button>
       <button className={"btn btn-sm "+(view==="week"?"":"btn-ghost")} onClick={()=>setView("week")}>Week</button>
-      {FILTERS.map(([k,l])=><button key={k} className="btn btn-ghost btn-sm" style={{fontWeight:filter===k?700:400}} onClick={()=>setFilter(k)}>{l}</button>)}
+      {FILTERS.map(([k,l])=><button key={k} className={"btn btn-ghost btn-sm "+(filter===k?"on":"")} onClick={()=>setFilter(k)}>{l}</button>)}
     </div>
-    <div className="sec"><button onClick={()=>move(-1)}>←</button><span>{heading}</span><button onClick={()=>move(1)}>→</button></div>
-    {loading?<div className="spin">Loading calendar...</div>:<div style={{display:"grid",gridTemplateColumns:"repeat(7,minmax(0,1fr))",gap:6}}>
-      {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className="card" style={{minHeight:view==="month"?110:180,padding:10,opacity:muted ? 0.55 : 1}}>
-        <div className="small" style={{fontWeight:700}}>{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        {dayEvents.map(e=><button key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null} style={{display:"block",width:"100%",textAlign:"left",marginTop:7,fontSize:11.5,lineHeight:1.3}}>{e.title}</button>)}
+    <div className="manager-calendar-period"><button aria-label="Previous period" onClick={()=>move(-1)}>←</button><strong>{heading}</strong><button aria-label="Next period" onClick={()=>move(1)}>→</button></div>
+    {loading?<div className="spin">Loading calendar...</div>:<div className={`manager-calendar-grid manager-calendar-${view}`}>
+      {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className={`manager-calendar-day ${dayEvents.length?"has-events":"is-empty"} ${muted?"is-muted":""}`}>
+        <div className="manager-calendar-date">{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
+        <div className="manager-calendar-events">{dayEvents.map(e=><button className="manager-calendar-event" key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}>{e.title}</button>)}</div>
       </div>})}
     </div>}
-    {filter==="activities"&&visible.length===0&&<div className="card small" style={{marginTop:12}}>No ministry or unit activity is recorded for this period.</div>}
+    {!loading&&visible.length===0&&<div className="card small manager-calendar-empty">No events are recorded for this view and period.</div>}
     {selectedLeave&&<Sheet onClose={()=>setSelectedLeave(null)}>
       <div className="eyebrow">Approved leave</div>
       <div className="h2" style={{marginTop:5}}>{selectedLeave.full_name}</div>
