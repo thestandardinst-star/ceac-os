@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -180,7 +181,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         && new Date(request.decided_at) >= recentStart).slice(0, 2));
     } catch (err) {
       setLoadFailed(true);
-      setError(err.message || "Home could not be loaded.");
+      setError(humanError(err, "Home could not be loaded."));
     } finally {
       setLoading(false);
     }
@@ -267,7 +268,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const { error: followError } = await supabase.rpc("follow_up_work_review", { p_work_item_id: itemId });
       if (followError) throw followError;
       await load();
-    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    } catch (err) { setError(humanError(err, "The follow-up could not be sent.")); }
     finally { setBusy(false); }
   }
 
@@ -277,7 +278,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const { error: followError } = await supabase.rpc("follow_up_blocker", { p_blocker_id: blockerId });
       if (followError) throw followError;
       await load();
-    } catch (err) { setError(err.message || "The follow-up could not be sent."); }
+    } catch (err) { setError(humanError(err, "The follow-up could not be sent.")); }
     finally { setBusy(false); }
   }
 
@@ -288,14 +289,14 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       const current = await startWork(me.org_id, me.id, place, place === "elsewhere" ? sessionWorkItem : null);
       setSession(current); setAsk(false); setSessionWorkItem("");
     }
-    catch (err) { setError(err.message || "Work could not be started."); }
+    catch (err) { setError(humanError(err, "Work could not be started.")); }
     finally { setBusy(false); }
   }
   async function stop() {
     if (!session) return;
     setBusy(true); setError(null);
     try { await endWork(session.id); setSession(null); }
-    catch (err) { setError(err.message || "Work could not be ended."); }
+    catch (err) { setError(humanError(err, "Work could not be ended.")); }
     finally { setBusy(false); }
   }
   async function continueRecoveredSession() {
@@ -304,7 +305,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     try {
       const current = await reconcileWorkSession(session.id, "continue");
       setSession(current);
-    } catch (err) { setError(err.message || "The work session could not be confirmed."); }
+    } catch (err) { setError(humanError(err, "The work session could not be confirmed.")); }
     finally { setBusy(false); }
   }
   async function closeRecoveredSession() {
@@ -313,7 +314,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     try {
       await reconcileWorkSession(session.id, "close", new Date(recoveryEndedAt).toISOString(), recoveryNote.trim() || null);
       setSession(null); setRecoveryOpen(false); setRecoveryEndedAt(""); setRecoveryNote("");
-    } catch (err) { setError(err.message || "The work session could not be reconciled."); }
+    } catch (err) { setError(humanError(err, "The work session could not be reconciled.")); }
     finally { setBusy(false); }
   }
 
