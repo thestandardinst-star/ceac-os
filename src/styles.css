@@ -2373,3 +2373,27 @@ textarea{width:100%}
   .project-collaboration-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .office-meeting-strip{max-width:920px;margin-top:18px}
 }
+
+/* Room mentions: explicit, low-noise communication signals */
+.room-composer-tools{display:flex;gap:6px;margin-bottom:7px}
+.room-composer-tools button{
+  min-height:30px;padding:0 9px;border:1px solid #DCE4E7;border-radius:9px;background:#fff;
+  color:#687780;font-size:9.5px;font-weight:650
+}
+.room-composer-tools button.on{border-color:#B9D9D5;background:#EAF6F4;color:#0E776F}
+.room-composer-tools button:disabled{opacity:.45}
+.room-mention-picker{
+  display:grid;gap:3px;max-height:170px;margin-bottom:7px;padding:6px;border:1px solid #DCE4E7;
+  border-radius:11px;background:#fff;overflow-y:auto
+}
+.room-mention-picker button{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px;padding:7px 9px;
+  border-radius:8px;color:#52636D;font-size:10.5px;text-align:left
+}
+.room-mention-picker button.on{background:#EDF7F5;color:#0E776F}
+.room-mention-picker b{font-weight:700}
+.room-mention-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.room-mention-chips button{
+  padding:5px 8px;border-radius:999px;background:#EAF6F4;color:#0E776F;font-size:9px;font-weight:650
+}
+.home-room-mention{border-left:3px solid #118C83!important}
