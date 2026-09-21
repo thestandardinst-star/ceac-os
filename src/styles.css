@@ -2985,3 +2985,67 @@ button.office-config-card:active{background:#EEF5F4}
 @media(max-width:560px){
   .admin-page-title-row,.admin-unit-title-row{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Product Intelligence shell foundation — 21 Sep 2026 */
+.app-workspace{display:flex;flex:1;min-width:0;min-height:100vh;min-height:100dvh;flex-direction:column}
+.app-content{display:flex;flex:1;min-width:0;flex-direction:column}
+.desktop-topbar{display:none}
+.side .brand{display:flex;align-items:center;gap:11px}
+.side .brand-mark{
+  display:grid!important;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(145deg,#30B5A9,#0D7F77);color:#fff!important;
+  font-size:15px!important;font-weight:760!important;margin:0!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25),0 8px 20px rgba(4,20,26,.16)
+}
+.side .brand-copy{display:flex!important;flex-direction:column;min-width:0;margin:0!important}
+.side .brand-copy strong{font-size:14px;line-height:1.1;color:inherit}
+.side .brand-copy small{margin-top:3px;font-size:10.5px;line-height:1.2;color:var(--ink-faint);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-unit-switch{width:calc(100% - 24px);margin:0 12px 18px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font-size:12px}
+.side-nav-group{display:grid;gap:3px;margin-top:14px}
+.side-nav-group:first-child{margin-top:0}
+.side-nav-label{padding:0 20px 5px;font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint)}
+.side .who{display:flex;flex-direction:column;gap:2px}
+.side .who span{font-weight:600}
+.side .who small{font-size:10px;color:var(--ink-faint)}
+.mobile-more-head{padding:7px 9px 9px;border-bottom:1px solid var(--line-soft)}
+.mobile-more-head strong{display:block;font-size:13px}
+.mobile-more-head span{display:block;margin-top:2px;font-size:10.5px;color:var(--ink-faint)}
+.mobile-more-group{display:grid;gap:2px;padding-top:5px}
+.mobile-more-label{padding:5px 10px 3px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.mobile-more-item.on{background:var(--green-soft);color:var(--green)}
+
+@media (max-width:819px){
+  .app,.app-workspace,.app-content{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+  .app-content>.body{width:100%;max-width:100%;min-width:0}
+  .desktop-topbar{display:none}
+}
+
+@media (min-width:820px){
+  .app-workspace{background:var(--paper)}
+  .desktop-topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    position:sticky;top:0;z-index:8;min-height:66px;padding:0 34px;
+    border-bottom:1px solid var(--line-soft);background:rgba(255,255,255,.93);backdrop-filter:blur(16px)
+  }
+  .desktop-topbar-context{display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;color:var(--ink-faint)}
+  .desktop-topbar-context b{font-weight:400;color:#B6BDB8}
+  .desktop-topbar-context strong{color:var(--ink);font-size:12.5px}
+  .desktop-topbar-actions{display:flex;align-items:center;gap:10px}
+  .desktop-profile{display:flex;align-items:center;gap:9px;min-width:0;padding:6px 8px;border-radius:10px;text-align:left}
+  .desktop-profile:hover{background:var(--paper)}
+  .desktop-profile-avatar{display:grid;place-items:center;width:31px;height:31px;border-radius:50%;background:var(--green-soft);color:var(--green);font-size:11px;font-weight:750}
+  .desktop-profile-copy{display:flex;flex-direction:column;min-width:0}
+  .desktop-profile-copy strong{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
+  .desktop-profile-copy small{max-width:170px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;color:var(--ink-faint)}
+  .app-content{min-height:calc(100dvh - 66px)}
+  .side nav{display:grid!important;gap:0!important}
+  .side-nav-label{padding-left:12px;padding-right:12px;color:#748690}
+  .office-app .side .brand,.executive-app .side .brand{padding:0 12px 20px}
+  .office-app .side .brand-copy small,.executive-app .side .brand-copy small{color:#9DABB4}
+  .office-app .side .who small,.executive-app .side .who small{color:#71838E}
+  .office-app .desktop-topbar,.executive-app .desktop-topbar{
+    padding-left:48px;padding-right:48px;background:rgba(248,250,250,.94);border-bottom-color:#E2E8EA
+  }
+  .office-app .app-workspace,.executive-app .app-workspace{background:var(--office-workspace)}
+}
