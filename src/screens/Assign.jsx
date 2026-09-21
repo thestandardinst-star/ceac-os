@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
-import { parseTask } from "../lib/parseTask";
+import { parseWorkInput } from "../lib/parseTask";
 
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
@@ -53,6 +53,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
+  const [voiceProposal, setVoiceProposal] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
@@ -135,18 +136,28 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   }
 
   function handleVoice(text) {
-    const parsed = parseTask(text, people);
-    setTitle(parsed.title || text);
-    if (parsed.due_at) {
-      const d = new Date(parsed.due_at);
-      const pad = (n) => String(n).padStart(2, "0");
-      setDue(d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()));
+    setVoiceProposal(parseWorkInput(text, { people, projects, subTeams }));
+    setVoiceHint(null);
+  }
+
+  function applyVoiceProposal(proposal, wordingOnly = false) {
+    if (!proposal) return;
+    setTitle(wordingOnly ? proposal.transcript : (proposal.title || proposal.transcript));
+    if (!wordingOnly) {
+      if (proposal.kind && WORK_KINDS.some(([value]) => value === proposal.kind)) setKind(proposal.kind);
+      if (proposal.assignee_id) setAssignee(proposal.assignee_id);
+      if (proposal.project_id) setProject(proposal.project_id);
+      if (proposal.sub_team_id) setSubTeam(proposal.sub_team_id);
+      if (proposal.due_at) {
+        const d = new Date(proposal.due_at);
+        const pad = (n) => String(n).padStart(2, "0");
+        setDue(d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()));
+      }
     }
-    if (parsed.assignee_id) setAssignee(parsed.assignee_id);
-    const bits = [];
-    if (parsed.due_at) bits.push("a date");
-    if (parsed.assignee_id) bits.push("who it is for");
-    setVoiceHint("Heard that" + (bits.length ? ", and picked up " + bits.join(" and ") : "") + ". Check it before you send.");
+    setVoiceHint(wordingOnly
+      ? "Transcript added. Complete the work details before sending."
+      : "CEAC applied what it could resolve. Review every field before sending.");
+    setVoiceProposal(null);
   }
 
   async function linkMeeting(workId) {
@@ -385,7 +396,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       await linkMeeting(created.id);
       setDone(created.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
-      setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null);
+      setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null); setVoiceProposal(null);
     } catch (e) { setErr(e.message || "Something went wrong. Nothing was sent."); }
     finally { setBusy(false); }
   }
@@ -409,7 +420,20 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       <h1 className="h1">Give out work</h1>
       <p className="screen-note">Describe what needs to happen and what result you expect.</p>
 
-      <VoiceInput onResult={handleVoice} label="Say what needs doing" />
+      <VoiceInput onResult={handleVoice} label="Speak your instruction" />
+      {voiceProposal && <div className="voice-proposal">
+        <div className="voice-proposal-head"><span>CEAC heard</span><strong>{voiceProposal.transcript}</strong></div>
+        <div className="voice-proposal-facts">
+          <span>Type <b>{WORK_KINDS.find(([value]) => value === voiceProposal.kind)?.[1] || "Task"}</b></span>
+          {voiceProposal.resolved.map((row) => <span key={row.type + row.id}>{row.type.replaceAll("_"," ")} <b>{row.label}</b></span>)}
+          {voiceProposal.due_at && <span>Due <b>{new Date(voiceProposal.due_at).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</b></span>}
+        </div>
+        <p>Nothing has been created yet. Apply the proposal, then check the form.</p>
+        <div className="voice-proposal-actions">
+          <button className="btn btn-ghost btn-sm" onClick={() => applyVoiceProposal(voiceProposal, true)}>Use wording only</button>
+          <button className="btn btn-sm" onClick={() => applyVoiceProposal(voiceProposal)}>Apply proposal</button>
+        </div>
+      </div>}
       {voiceHint && <div className="flag flag-green" style={{ marginTop: 10 }}>{voiceHint}</div>}
       {err && <div className="flag flag-brick" style={{ marginTop: 10 }}>{err}</div>}
 
