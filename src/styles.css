@@ -1860,3 +1860,60 @@ textarea{width:100%}
   .manager-command-stats strong{font-size:19px}
   .manager-command-stats span{font-size:9px}
 }
+
+/* Manager operational pages */
+.manager-projects,.manager-calendar,.manager-finance,.manager-reports,.manager-team,.manager-person-detail{
+  color:var(--manager-ink)
+}
+.manager-projects>div:first-child:not(.spin),
+.manager-calendar>div:first-child:not(.spin),
+.manager-finance>div:first-child:not(.spin),
+.manager-reports>div:first-of-type:not(.print-only),
+.manager-team>.manager-page-intro{
+  padding-top:30px!important
+}
+.manager-projects .h1,.manager-calendar .h1,.manager-finance .h1,.manager-reports .h1,.manager-team .h1{
+  font-size:clamp(29px,6vw,35px)
+}
+.manager-projects .sec,.manager-calendar .sec,.manager-finance .sec,.manager-reports .sec,.manager-team .sec,.manager-person-detail .sec{
+  padding-top:2px;border-top:0
+}
+.manager-projects .row,.manager-finance .row,.manager-reports .row,.manager-team .row,.manager-person-detail .row{
+  border-color:var(--manager-line-soft)
+}
+.manager-projects .card,.manager-finance .card,.manager-reports .card,.manager-team .card,.manager-person-detail .card{
+  border-radius:14px
+}
+.manager-finance .metric-grid,.manager-reports .metric-grid,.manager-person-detail .metric-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px
+}
+.manager-finance .metric,.manager-reports .metric,.manager-person-detail .metric{
+  min-height:92px;padding:15px;border-radius:14px
+}
+.manager-finance .metric b,.manager-reports .metric b,.manager-person-detail .metric b{
+  font-size:22px;letter-spacing:-.03em
+}
+.manager-finance .metric span,.manager-reports .metric span,.manager-person-detail .metric span{
+  color:var(--manager-soft);font-size:10.5px;line-height:1.25
+}
+.manager-team>.card{margin-top:12px}
+.manager-team .split{gap:18px}
+.manager-person-detail>.back,.manager-projects>.back{margin-top:18px}
+.manager-person-detail .metric-grid{margin-top:8px}
+.manager-reports svg{color:var(--manager-brand)}
+.manager-reports .report-print-brand{display:none}
+
+/* Manager page actions should not become giant banners */
+.manager-projects .wide-auto,.manager-finance .wide-auto,.manager-team .wide-auto{
+  width:auto;display:inline-flex;align-items:center;justify-content:center
+}
+
+@media (min-width:820px){
+  .manager-projects,.manager-calendar,.manager-finance,.manager-reports,.manager-team,.manager-person-detail{
+    max-width:1180px!important
+  }
+  .manager-finance .metric-grid,.manager-reports .metric-grid,.manager-person-detail .metric-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))
+  }
+  .manager-team .split{gap:28px}
+}
