@@ -392,7 +392,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
 test("Staff PWA layout has no page-level horizontal overflow at supported phone widths", async ({ browser }) => {
   test.setTimeout(90000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Record", "Me"];
+  const destinations = ["Home", "Work", "Team", "Me"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width, height: 844 });
@@ -407,6 +407,17 @@ test("Staff PWA layout has no page-level horizontal overflow at supported phone 
       }));
       expect(overflow.document, `${destination} overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
       expect(overflow.body, `${destination} body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+
+      if (destination === "Me") {
+        await page.getByRole("button", { name: /My work history/ }).click();
+        await expect(page.getByRole("heading", { name: "My work history" })).toBeVisible();
+        const historyOverflow = await page.evaluate(() => ({
+          document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          body: document.body.scrollWidth - document.body.clientWidth,
+        }));
+        expect(historyOverflow.document, `My work history overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+        expect(historyOverflow.body, `My work history body overflowed the ${width}px viewport`).toBeLessThanOrEqual(1);
+      }
     }
     await context.close();
   }
