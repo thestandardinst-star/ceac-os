@@ -3155,3 +3155,42 @@ button.office-config-card:active{background:#EEF5F4}
   .attendance-person-row small{grid-column:2;max-width:none;text-align:left}
   .attendance-unit-context-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Leadership reporting workspace */
+.reporting-page-intro{padding-top:26px}
+.report-leadership-overview{display:grid;gap:16px;margin-top:18px;padding:18px;border:1px solid #DCE4E7;border-radius:16px;background:#fff}
+.report-period-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.report-period-title>div span{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
+.report-period-title>div strong{display:block;margin-top:3px;font-size:17px}
+.report-period-title small{font-size:10px;color:var(--ink-faint)}
+.report-leadership-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.report-leadership-facts>div{padding:10px;border-radius:10px;background:#F6F8F8}
+.report-leadership-facts b{display:block;font-size:19px;line-height:1}
+.report-leadership-facts span{display:block;margin-top:5px;font-size:10px;color:var(--ink-soft)}
+.report-unit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.report-unit-card{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.report-unit-card-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.report-unit-card-head>div{min-width:0}
+.report-unit-card-head strong{display:block;font-size:13.5px}
+.report-unit-card-head span{display:block;margin-top:3px;font-size:10px;color:var(--ink-faint)}
+.report-unit-card p{font-size:11.5px;line-height:1.45;color:var(--ink-soft)}
+.report-unit-card>small{font-size:10.5px;color:var(--ink-faint)}
+.report-challenge{padding:9px 10px;border-radius:9px;background:var(--amber-soft)}
+.report-challenge strong{display:block;font-size:10px;color:var(--amber)}
+.report-challenge span{display:block;margin-top:3px;font-size:10.5px;line-height:1.4;color:#7B5A17}
+.report-outstanding-section{margin-top:24px}
+.report-outstanding-grid{display:grid;gap:7px}
+.report-outstanding-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.report-outstanding-row strong{display:block;font-size:12.5px}
+.report-outstanding-row span:not(.pill){display:block;margin-top:2px;font-size:10.5px;color:var(--ink-faint)}
+.report-period-card{display:grid;gap:12px;margin-bottom:9px;padding:15px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.report-period-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.report-period-card-head>div span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.report-period-card-head>div strong{display:block;margin-top:3px;font-size:14px}
+.report-period-card-head>div small{display:block;margin-top:3px;font-size:10px;color:var(--ink-faint)}
+.report-period-actions{display:flex;gap:7px;flex-wrap:wrap}
+@media(max-width:700px){
+  .report-unit-grid{grid-template-columns:1fr}
+  .report-leadership-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
