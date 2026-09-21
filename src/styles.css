@@ -1917,3 +1917,44 @@ textarea{width:100%}
   }
   .manager-team .split{gap:28px}
 }
+
+/* Manager Calendar — list-first on phone, full calendar on desktop */
+.manager-calendar-controls{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.manager-calendar-controls .btn{width:auto}
+.manager-calendar-controls .btn-ghost.on{
+  background:var(--manager-shell);border-color:var(--manager-shell);color:#fff
+}
+.manager-calendar-period{
+  display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:10px;
+  margin:22px 0 10px
+}
+.manager-calendar-period button{
+  display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--manager-line);border-radius:10px;background:#fff
+}
+.manager-calendar-period strong{text-align:center;font-size:12.5px;letter-spacing:-.01em}
+.manager-calendar-grid{display:grid;gap:8px}
+.manager-calendar-day{
+  min-width:0;border:1px solid var(--manager-line);border-radius:13px;background:#fff;padding:11px 12px
+}
+.manager-calendar-day.is-muted{opacity:.5}
+.manager-calendar-date{font-size:10.5px;font-weight:700;color:var(--manager-faint);text-transform:uppercase;letter-spacing:.05em}
+.manager-calendar-events{display:grid;gap:6px;margin-top:7px}
+.manager-calendar-event{
+  width:100%;padding:8px 9px;border-radius:9px;background:#F3F6F7;color:var(--manager-ink);
+  font-size:11px;line-height:1.35;text-align:left
+}
+.manager-calendar-event:active{background:#EAF1F2}
+.manager-calendar-empty{margin-top:12px}
+@media (max-width:819px){
+  .manager-calendar-grid{grid-template-columns:1fr}
+  .manager-calendar-day.is-empty{display:none}
+  .manager-calendar-day{padding:12px 13px}
+  .manager-calendar-date{font-size:10px}
+  .manager-calendar-events{margin-top:8px}
+}
+@media (min-width:820px){
+  .manager-calendar-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+  .manager-calendar-day{min-height:112px;padding:10px}
+  .manager-calendar-week .manager-calendar-day{min-height:180px}
+  .manager-calendar-event{padding:5px 6px;background:#F5F7F8;font-size:10.5px}
+}
