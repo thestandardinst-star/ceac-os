@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { Pill, Sheet, statusPill } from "../components/bits";
@@ -338,7 +339,7 @@ function ProjectSheet({ units, busy, onClose, onCreate }) {
   return <Sheet onClose={onClose}>
     <div className="eyebrow">Step 1 of 3</div><div className="h2">Project basics</div>
     <input className="field" placeholder="Project name" value={name} onChange={(event) => setName(event.target.value)} />
-    <textarea className="field" rows={3} placeholder="Purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} />
+    <AssistiveTextarea className="field" rows={3} placeholder="Purpose" value={purpose} onChange={(event) => setPurpose(event.target.value)} />
     <input className="field" type="date" value={startsOn} onChange={(event) => setStartsOn(event.target.value)} />
     <input className="field" type="date" value={endsOn} min={startsOn || undefined} onChange={(event) => setEndsOn(event.target.value)} />
     <div className="sec" style={{ marginTop: 18 }}><span>Participating units</span></div>
@@ -361,14 +362,14 @@ function ObjectiveSheet({ value, busy, onClose, onSave }) {
     <div className="eyebrow">Step 2 of 3</div><div className="h2">{value ? "Edit objective" : "Add objective"}</div>
     {value ? <div className="card small">Reference: {ref}</div> : <div className="card small">A reference will be assigned automatically when you save.</div>}
     <input className="field" placeholder="Objective name" value={name} onChange={(event) => setName(event.target.value)} />
-    <textarea className="field" rows={3} placeholder="What should change or be achieved?" value={statement} onChange={(event) => setStatement(event.target.value)} />
+    <AssistiveTextarea className="field" rows={3} placeholder="What should change or be achieved?" value={statement} onChange={(event) => setStatement(event.target.value)} />
     <input className="field" placeholder="How will you know? (optional)" value={measure} onChange={(event) => setMeasure(event.target.value)} />
     <select className="field" value={status} onChange={(event) => setStatus(event.target.value)}>{OBJECTIVE_STATUSES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select>
     <p className="small" style={{ marginTop: 12 }}>Numeric target and result are optional. Descriptive objectives do not need them.</p>
     <input className="field" type="number" step="any" placeholder="Target value (optional)" value={targetValue} onChange={(event) => setTargetValue(event.target.value)} />
     <input className="field" placeholder="Target unit (optional)" value={targetUnit} onChange={(event) => setTargetUnit(event.target.value)} />
     <input className="field" type="number" step="any" placeholder="Result value (optional)" value={achievedValue} onChange={(event) => setAchievedValue(event.target.value)} />
-    {["met", "partly_met", "not_met"].includes(status) && <textarea className="field" rows={3} placeholder="Outcome note" value={closedNote} onChange={(event) => setClosedNote(event.target.value)} />}
+    {["met", "partly_met", "not_met"].includes(status) && <AssistiveTextarea className="field" rows={3} placeholder="Outcome note" value={closedNote} onChange={(event) => setClosedNote(event.target.value)} />}
     <button className="btn" style={{ marginTop: 14 }} disabled={busy || !name.trim() || (targetValue !== "" && !targetUnit.trim()) || (achievedValue !== "" && targetValue === "")} onClick={() => onSave({ id: value?.id, ref, name, statement, measure, status, targetValue, targetUnit, achievedValue, closedNote })}>{busy ? "Saving..." : value ? "Save objective" : "Save and add work"}</button>
   </Sheet>;
 }
