@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Sheet } from "../components/bits";
 
-export default function ExecutiveHome({ me, openMeeting }) {
+export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
   const [x, setX] = useState({ doneWeek: 0, donePreviousWeek: 0, objectives: 0, objectiveAttention: 0, projects: 0, blocked: 0, review: 0 });
   const [loading, setLoading] = useState(true);
   const [meetings, setMeetings] = useState([]);
-  const [meetingSheet, setMeetingSheet] = useState(false);
-  const [meetingForm, setMeetingForm] = useState({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => { load(); }, [me.org_id]);
@@ -53,33 +49,6 @@ export default function ExecutiveHome({ me, openMeeting }) {
     }
   }
 
-  async function scheduleOrganisationMeeting() {
-    if (!meetingForm.title.trim() || !meetingForm.starts_at) return;
-    setBusy(true); setError(null);
-    try {
-      const result = await supabase.from("meeting_sessions").insert({
-        org_id: me.org_id,
-        scope: "organisation",
-        title: meetingForm.title.trim(),
-        agenda: meetingForm.agenda.trim() || null,
-        starts_at: new Date(meetingForm.starts_at).toISOString(),
-        ends_at: meetingForm.ends_at ? new Date(meetingForm.ends_at).toISOString() : null,
-        provider: "zoom",
-        join_url: meetingForm.join_url.trim() || null,
-        created_by: me.id,
-      }).select("id").single();
-      if (result.error) throw result.error;
-      setMeetingSheet(false);
-      setMeetingForm({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
-      await load();
-      openMeeting?.(result.data.id);
-    } catch (err) {
-      setError(err.message || "The meeting could not be scheduled.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const executiveDate = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   return <div className="body executive-home">
@@ -98,7 +67,7 @@ export default function ExecutiveHome({ me, openMeeting }) {
     <section className="office-meeting-strip executive-meeting-strip">
       <div className="office-meeting-strip-head">
         <div><span>Next 14 days</span><strong>Meetings</strong></div>
-        <button className="btn btn-sm" onClick={() => setMeetingSheet(true)}>Schedule</button>
+        <button className="btn btn-sm" onClick={() => scheduleMeeting?.({ scope:"organisation", organisation:true })}>Schedule</button>
       </div>
       {meetings.length === 0 ? <div className="office-meeting-empty">No upcoming meetings are visible in the current record.</div>
         : meetings.slice(0,3).map((meeting) => <button className="office-meeting-row" key={meeting.id} onClick={() => openMeeting?.(meeting.id)}>
@@ -146,18 +115,6 @@ export default function ExecutiveHome({ me, openMeeting }) {
         <div className="row-m">Objective status is recorded explicitly; this does not infer why an objective is in that state.</div>
       </div>
     </>}
-
-    {meetingSheet && <Sheet onClose={() => setMeetingSheet(false)}>
-      <div className="eyebrow">Organisation meeting</div>
-      <div className="h2" style={{ marginTop: 5 }}>Schedule meeting</div>
-      <p className="screen-note">This creates a CEAC meeting workspace around your Zoom join link.</p>
-      <input className="field" placeholder="Meeting title" value={meetingForm.title} onChange={(e) => setMeetingForm((v) => ({ ...v, title:e.target.value }))} />
-      <label className="small">Starts<input className="field" type="datetime-local" value={meetingForm.starts_at} onChange={(e) => setMeetingForm((v) => ({ ...v, starts_at:e.target.value }))} /></label>
-      <label className="small">Ends (optional)<input className="field" type="datetime-local" value={meetingForm.ends_at} onChange={(e) => setMeetingForm((v) => ({ ...v, ends_at:e.target.value }))} /></label>
-      <input className="field" type="url" placeholder="Zoom join link (optional)" value={meetingForm.join_url} onChange={(e) => setMeetingForm((v) => ({ ...v, join_url:e.target.value }))} />
-      <textarea className="field" rows={4} placeholder="Agenda (optional)" value={meetingForm.agenda} onChange={(e) => setMeetingForm((v) => ({ ...v, agenda:e.target.value }))} />
-      <button className="btn" disabled={busy || !meetingForm.title.trim() || !meetingForm.starts_at} onClick={scheduleOrganisationMeeting}>{busy ? "Scheduling..." : "Schedule meeting"}</button>
-    </Sheet>}
 
     <p className="screen-note">The figures above come from recorded CEAC work. Finished output uses the canonical Task/Deliverable completion contract.</p>
   </div>;
