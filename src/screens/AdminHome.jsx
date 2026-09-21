@@ -51,7 +51,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
           .or("for_profile_id.eq."+me.id+",and(for_unit_id.is.null,for_profile_id.is.null)")
           .order("first_seen_at",{ascending:false}).limit(30), "Administration alerts"),
         must(supabase.from("blockers")
-          .select("id,party_text,since,state,party_unit_id,work_items(id,title,unit_id),profiles(full_name),units(name)")
+          .select("id,party_text,since,state,party_unit_id,work_items(id,title,unit_id),claimant:profiles!blockers_claimed_by_fkey(full_name),units(name)")
           .neq("state","resolved").limit(20), "Cross-unit blockers"),
         must(supabase.from("leave_requests")
           .select("id,kind,start_date,end_date,days,status,profiles(full_name)")
@@ -257,7 +257,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       {deliveryRisk === 0 && <EmptyState compact title="No current delivery exceptions">Rule-based silence, at-risk objectives and cross-unit blockers will appear here.</EmptyState>}
       {watch.map((row) => <div key={row.k} className="admin-evidence-row"><strong>{row.who}</strong><span>{row.why}</span></div>)}
       {blockers.map((blocker) => <button key={blocker.id} className="admin-evidence-row admin-action-button" onClick={() => blocker.work_items && openItem(blocker.work_items.id)}>
-        <div><strong>{blocker.work_items?.title || "—"}</strong><span>{blocker.profiles?.full_name || ""} waiting on {blocker.units?.name || blocker.party_text}</span></div>
+        <div><strong>{blocker.work_items?.title || "—"}</strong><span>{blocker.claimant?.full_name || ""} waiting on {blocker.units?.name || blocker.party_text}</span></div>
         <b aria-hidden="true">→</b>
       </button>)}
     </section>
