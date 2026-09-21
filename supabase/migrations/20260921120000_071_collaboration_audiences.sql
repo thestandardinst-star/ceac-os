@@ -528,7 +528,14 @@ begin
       or exists(
         select 1 from public.projects p
         where p.id=p_project_id
-          and p.lead_unit_id in (select public.app_managed_units())
+          and (
+            p.lead_unit_id in (select public.app_managed_units())
+            or exists(
+              select 1 from public.project_units pu
+              where pu.project_id=p.id
+                and pu.unit_id in (select public.app_managed_units())
+            )
+          )
       )
     ) then
       raise exception 'You cannot schedule for that project.' using errcode='42501';
