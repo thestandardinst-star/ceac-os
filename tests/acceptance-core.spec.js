@@ -490,6 +490,38 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
   }
 });
 
+test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
+  test.setTimeout(120000);
+  const widths = [320, 360, 375, 390, 414, 430];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Finance", "Reports"];
+
+  for (const width of widths) {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
+    for (const destination of destinations) {
+      if (destination !== "Home") {
+        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
+        if (await direct.count()) await direct.click();
+        else {
+          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
+          await more.click();
+          await page.getByRole("menuitem", { name: destination, exact: true }).click();
+        }
+      } else {
+        const home = page.locator(".tabs").getByRole("button", { name: "Home", exact: true });
+        if (await home.count()) await home.click();
+      }
+      await expect(page.locator(".body")).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        bodyWidth: document.querySelector(".body")?.getBoundingClientRect().width || 0,
+      }));
+      expect(dimensions.overflow, `Manager / ${destination} overflowed at ${width}px`).toBeLessThanOrEqual(1);
+      expect(dimensions.bodyWidth, `Manager / ${destination} collapsed at ${width}px`).toBeGreaterThan(250);
+    }
+    await context.close();
+  }
+});
+
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [
     ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects"]],
