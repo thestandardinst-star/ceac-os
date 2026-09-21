@@ -2750,3 +2750,24 @@ textarea{width:100%}
 .person-orientation-grid>div.attention{background:var(--amber-soft);border-color:rgba(154,104,21,.18)}
 .person-outcome-grid .metric small{display:block;margin-top:4px;color:var(--ink-faint);font-size:10px;font-weight:500}
 @media(max-width:430px){.person-orientation-grid{grid-template-columns:1fr 1fr}.person-orientation-grid>div:last-child{grid-column:1 / -1}}
+
+
+/* Product refinement: Project workspace */
+.project-workspace-nav{display:flex;gap:6px;overflow-x:auto;margin:18px 0 8px;padding-bottom:4px;scrollbar-width:none}
+.project-workspace-nav::-webkit-scrollbar{display:none}
+.project-workspace-nav button{flex:none;padding:8px 11px;border:1px solid var(--manager-line,var(--line));border-radius:999px;background:#fff;color:var(--ink-soft);font-size:11.5px;font-weight:650}
+.project-workspace-nav button.on{background:var(--manager-shell,#17232D);border-color:var(--manager-shell,#17232D);color:#fff}
+.project-workspace-area{padding-top:8px}
+.project-overview-grid{display:grid;gap:10px}
+.project-overview-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.project-overview-summary>div{min-width:0}
+.project-overview-summary strong{display:block;font-size:20px;letter-spacing:-.03em}
+.project-overview-summary span{display:block;margin-top:4px;color:var(--ink-faint);font-size:10.5px}
+.project-area-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:16px 0 12px}
+.project-area-head h2{font-size:20px;letter-spacing:-.025em}
+.project-objective-card{margin-bottom:10px}
+.project-objective-work{margin-top:11px}
+.project-objective-work summary{cursor:pointer;color:var(--green);font-size:11.5px;font-weight:650}
+.project-objective-work>div{margin-top:9px}
+@media(min-width:820px){.project-overview-grid{grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr)}}
+@media(max-width:430px){.project-area-head{flex-direction:column}.project-overview-summary{grid-template-columns:1fr 1fr}.project-overview-summary>div:last-child{grid-column:1 / -1}}
