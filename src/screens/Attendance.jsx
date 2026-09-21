@@ -105,7 +105,7 @@ export default function Attendance({ me }) {
       <div style={{ paddingTop: 26 }}>
         <div className="eyebrow">Factual administration</div>
     <h1 className="h1">Attendance &amp; leave</h1>
-        <p className="screen-note">Across the whole church. Hours are a record of activity, not a basis for pay.</p>
+        <p className="screen-note">Across the whole church. Hours are a record of activity, not a basis for pay or a performance judgement.</p>
       </div>
 
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
@@ -116,6 +116,9 @@ export default function Attendance({ me }) {
             color: tab === k ? "#fff" : "var(--ink-soft)", fontWeight: tab === k ? 600 : 400,
           }}>{label}</button>))}
       </div>
+
+      {!leavePolicyConfigured && (
+        <ProductNotice tone="attention" title="Leave policy not configured">Entitlement, carry-over and leave-balance totals stay unavailable until Administration confirms CEAC's leave policy in Settings.</ProductNotice>)}
 
       {!office && (
         <div className="flag flag-amber">
