@@ -2843,3 +2843,10 @@ textarea{width:100%}
   .work-scale-tools{grid-template-columns:1fr}
   .finance-request-amount{grid-template-columns:1fr 110px}
 }
+
+
+/* Product refinement: Calendar meeting cues */
+.manager-calendar-event{display:grid;gap:2px}
+.manager-calendar-event small{display:block;font-size:9.5px;line-height:1.25;color:var(--ink-faint);font-weight:500}
+.manager-calendar-event.is-meeting{border-left:3px solid var(--green);padding-left:7px}
+.manager-calendar-event.is-cancelled{opacity:.62;text-decoration:line-through}
