@@ -176,14 +176,13 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
-    await page.getByRole("button", { name: "Start work", exact: true }).click();
-    const startDialog = page.getByRole("dialog");
-    await startDialog.getByRole("button", { name: "At the office" }).click();
-    await startDialog.getByRole("button", { name: "Start work", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Start work", exact: true })).toBeVisible();
 
     await go(page, "Work");
     await page.getByText(title, { exact: true }).click();
-    await page.getByRole("button", { name: "I am waiting on someone" }).click();
+    const waitingAction = page.getByRole("button", { name: "I am waiting on someone" });
+    await expect(waitingAction).toBeEnabled();
+    await waitingAction.click();
     const blockerDialog = page.getByRole("dialog");
     await blockerDialog.getByPlaceholder("What you need, and from whom").fill("Manager confirmation");
     await blockerDialog.getByRole("button", { name: "Test Unit A" }).click();
@@ -211,8 +210,6 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await expect(page.getByText(/Waiting on Test Unit A/)).toHaveCount(0);
     await page.getByRole("button", { name: "← Back" }).click();
     await go(page, "Home");
-    const endWork = page.getByRole("button", { name: "End work" });
-    if (await endWork.count()) await endWork.click();
     await context.close();
   }
 });
