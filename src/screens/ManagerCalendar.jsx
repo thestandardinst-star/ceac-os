@@ -39,7 +39,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").eq("status","approved"),
       supabase.from("ministry_events").select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled"),
       supabase.from("ministry_event_units").select("event_id,unit_id,note").eq("unit_id",me.unit_id),
-      supabase.from("meeting_sessions").select("id,title,scope,unit_id,project_id,starts_at,ends_at,status,provider,join_url").order("starts_at")
+      supabase.from("meeting_sessions").select("id,title,scope,unit_id,project_id,starts_at,ends_at,status,provider,join_url,meeting_participants(profile_id,role)").order("starts_at")
     ]);
     const firstError=[projects.error,work.error,members.error,leave.error,ministry.error,ministryNeeds.error,meetings.error].find(Boolean);
     if(firstError){ setError(humanError(firstError,"Calendar could not be loaded.")); setLoading(false); return; }
@@ -89,12 +89,17 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       }
     });
     (meetings.data||[]).forEach((meeting)=>{
+      const participantCount=(meeting.meeting_participants||[]).length;
+      const scopeLabel=meeting.scope==="project"?"Project":meeting.scope==="unit"?"Unit":"Organisation";
+      const providerLabel=meeting.provider==="zoom"?"Zoom":"External";
       out.push({
         id:`meeting-${meeting.id}`,
         type:"meetings",
         date:accraDateKey(meeting.starts_at),
-        title:`${meeting.status==="cancelled"?"Cancelled · ":""}${meeting.title}`,
+        title:meeting.title,
         meetingId:meeting.id,
+        meetingStatus:meeting.status,
+        meta:`${scopeLabel} meeting · ${participantCount} participant${participantCount===1?"":"s"} · ${providerLabel}`,
       });
     });
     setEvents(out); setLoading(false);
