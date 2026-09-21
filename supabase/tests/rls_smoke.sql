@@ -17,6 +17,22 @@ insert into public.projects(
   '31000000-0000-4000-8000-000000000002'
 );
 
+insert into public.meeting_sessions(
+  id,org_id,scope,unit_id,title,agenda,starts_at,ends_at,provider,join_url,created_by
+) values(
+  '4a000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000010',
+  'unit',
+  '20000000-0000-4000-8000-000000000011',
+  'Unit Meeting Security Fixture',
+  'RLS acceptance only',
+  now()+interval '1 day',
+  now()+interval '1 day 1 hour',
+  'zoom',
+  'https://zoom.us/j/123456789',
+  '31000000-0000-4000-8000-000000000002'
+);
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
 
@@ -95,7 +111,42 @@ begin
   end;
 end $$;
 
-do $$
+do $meeting_staff$
+declare
+  v_meeting uuid:='4a000000-0000-4000-8000-000000000001'::uuid;
+  v_count integer;
+begin
+  -- Same-unit Staff may see the meeting and add a factual note.
+  insert into public.meeting_records(meeting_id,org_id,kind,body,author_id)
+  values(
+    v_meeting,
+    '10000000-0000-4000-8000-000000000010',
+    'note',
+    'Staff factual meeting note',
+    '31000000-0000-4000-8000-000000000001'
+  );
+
+  select count(*) into v_count from public.meeting_sessions where id=v_meeting;
+  if v_count<>1 then
+    raise exception 'Meeting RLS failure: same-unit Staff cannot read their Unit meeting.';
+  end if;
+
+  begin
+    insert into public.meeting_records(meeting_id,org_id,kind,body,author_id)
+    values(
+      v_meeting,
+      '10000000-0000-4000-8000-000000000010',
+      'decision',
+      'Staff forged decision',
+      '31000000-0000-4000-8000-000000000001'
+    );
+    raise exception 'Meeting RLS failure: Staff recorded a Manager-level decision.';
+  exception when insufficient_privilege then null;
+  end;
+end
+$meeting_staff$;
+
+do $
 begin
   begin
     insert into public.pending_invitations(org_id,email,full_name,unit_id,role,invited_by,expires_at)
@@ -113,6 +164,19 @@ end $$;
 reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000005',true);
+
+do $meeting_other_unit$
+declare
+  v_count integer;
+begin
+  select count(*) into v_count
+  from public.meeting_sessions
+  where id='4a000000-0000-4000-8000-000000000001'::uuid;
+  if v_count<>0 then
+    raise exception 'Meeting RLS failure: unrelated-unit Staff can read another Unit meeting.';
+  end if;
+end
+$meeting_other_unit$;
 
 do $rooms_other_unit$
 declare
@@ -144,7 +208,26 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
 
-do $$
+do $meeting_manager$
+declare
+  v_meeting uuid:='4a000000-0000-4000-8000-000000000001'::uuid;
+begin
+  update public.meeting_sessions
+  set agenda='Updated by the Unit Head'
+  where id=v_meeting;
+
+  insert into public.meeting_records(meeting_id,org_id,kind,body,author_id)
+  values(
+    v_meeting,
+    '10000000-0000-4000-8000-000000000010',
+    'decision',
+    'Manager decision recorded',
+    '31000000-0000-4000-8000-000000000002'
+  );
+end
+$meeting_manager$;
+
+do $
 begin
   begin
     perform public.create_pending_invitation(
