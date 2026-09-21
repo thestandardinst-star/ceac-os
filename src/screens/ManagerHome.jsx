@@ -347,15 +347,28 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
   const ownTone = (item) => item.status === "returned" || isOverdue(item.due_at)
     ? "danger"
     : item.status === "waiting_on" ? "attention" : "info";
+  const managerHour = new Date().getHours();
+  const managerGreeting = managerHour < 12 ? "Good morning" : managerHour < 17 ? "Good afternoon" : "Good evening";
+  const managerDate = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <div className="eyebrow">{me.unit_name}</div>
-        <h1 className="h1" style={{ marginTop: 6 }}>{new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</h1>
-        <p className="screen-note">Start with anything waiting for your decision, then check your team and your own work.</p>
-      </div>
-      <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={goAssign}>Give out work</button>
+    <div className="body manager-home">
+      <section className="manager-command-surface">
+        <div className="manager-command-head">
+          <div>
+            <div className="manager-command-context"><span>{me.unit_name}</span><time>{managerDate}</time></div>
+            <div className="eyebrow">Unit command</div>
+            <h1 className="h1">{managerGreeting}, {me.full_name.split(" ")[0]}</h1>
+            <p className="screen-note">Decisions first. Then check team movement, delivery and dependencies.</p>
+          </div>
+          <button className="btn manager-command-action" onClick={goAssign}>Give out work</button>
+        </div>
+        <div className="manager-command-stats" aria-label="Current manager attention">
+          <div><strong>{waitingCount}</strong><span>Need decision</span></div>
+          <div><strong>{blockers.length}</strong><span>Open blockers</span></div>
+          <div><strong>{projects.length}</strong><span>Projects attention</span></div>
+        </div>
+      </section>
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}{loadFailed && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>}</div>}
       {loading && <div className="spin">Loading Manager Home...</div>}
 
