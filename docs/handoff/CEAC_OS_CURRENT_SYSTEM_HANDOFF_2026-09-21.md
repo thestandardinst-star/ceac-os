@@ -1,11 +1,11 @@
 # CEAC OS — Current System Handoff & Admin/HR Build Baseline
 
-**Checkpoint:** 2026-09-21  
-**Repository:** `thestandardinst-star/ceac-os`  
-**Reviewed main baseline:** `be21d49853edda1814e48bd77f3b54b462cd7cc4`  
-**Continuation branch:** `chatgpt/admin-hr-completion-2026-09-21`  
-**Live Supabase project:** `efjljhftsesssumtshvp`  
-**Live migration range:** through `meeting_participant_authority` (072)  
+**Checkpoint:** 2026-09-21
+**Repository:** `thestandardinst-star/ceac-os`
+**Reviewed main baseline:** `be21d49853edda1814e48bd77f3b54b462cd7cc4`
+**Continuation branch:** `chatgpt/admin-hr-completion-2026-09-21`
+**Live Supabase project:** `efjljhftsesssumtshvp`
+**Live migration range:** through `meeting_participant_authority` (072)
 **Owner-facing URL:** https://ceac-os-git.vercel.app
 
 ## 1. What is now established
@@ -82,7 +82,7 @@ Current protected-data principles:
 
 Migration 072 adds participant-aware Meeting authority and is live.
 
-Reviewed authenticated SECURITY DEFINER surface: **73**.  
+Reviewed authenticated SECURITY DEFINER surface: **73**.
 Anonymous SECURITY DEFINER execution: **0**.
 
 ## 3. Current release state
