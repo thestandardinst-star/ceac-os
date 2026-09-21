@@ -2724,3 +2724,19 @@ textarea{width:100%}
 .home-stat-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(min-width:700px){.assign-intent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:430px){.review-decision-row{grid-template-columns:1fr}}
+
+
+/* Product refinement: Room unread, mentions and history */
+.room-load-older{
+  display:block;margin:4px auto 14px;padding:7px 12px;border:1px solid var(--line);
+  border-radius:999px;background:var(--card);color:var(--ink-soft);font-size:11.5px;font-weight:600
+}
+.room-unread-divider{display:flex;align-items:center;gap:8px;margin:15px 0 10px;color:var(--green);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.room-unread-divider:before,.room-unread-divider:after{content:"";height:1px;flex:1;background:rgba(17,140,131,.28)}
+.room-message-mentions{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.room-message-mentions span{padding:2px 6px;border-radius:999px;background:rgba(17,140,131,.10);color:var(--green);font-size:10.5px;font-weight:650}
+.room-new-messages{
+  position:sticky;z-index:5;bottom:92px;margin:-46px auto 10px;display:block;
+  padding:8px 12px;border-radius:999px;background:var(--manager-shell,#17232D);color:#fff;
+  box-shadow:0 8px 24px rgba(23,35,45,.18);font-size:11.5px;font-weight:650
+}
