@@ -231,7 +231,7 @@ export default function Attendance({ me }) {
         <div className="card" style={{ padding: "4px 15px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", fontSize: 13.5 }}>
             <span style={{ color: "var(--ink-soft)" }}>Total annual entitlement</span>
-            <span style={{ fontWeight: 500 }}>{liability} days</span>
+            <span style={{ fontWeight: 500 }}>{liability === null ? "Not configured" : `${liability} days`}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "11px 0", borderTop: "1px solid var(--line-soft)", fontSize: 13.5 }}>
             <span style={{ color: "var(--ink-soft)" }}>Approved and still to come</span>
