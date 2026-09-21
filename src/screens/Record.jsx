@@ -37,6 +37,19 @@ export default function Record({ me, openItem }) {
 
   useEffect(() => { load(); }, [me.id, month]);
 
+  function changeMonth(delta) {
+    const [year, monthNumber] = month.split("-").map(Number);
+    const next = new Date(year, monthNumber - 1 + delta, 1);
+    setMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`);
+  }
+
+  function setMonthPart(part, value) {
+    const [year, monthNumber] = month.split("-").map(Number);
+    const nextYear = part === "year" ? Number(value) : year;
+    const nextMonth = part === "month" ? Number(value) : monthNumber;
+    setMonth(`${nextYear}-${String(nextMonth).padStart(2, "0")}`);
+  }
+
   async function load() {
     setError(null);
     setRecord(null);
@@ -167,9 +180,20 @@ export default function Record({ me, openItem }) {
   return <div className="body staff-record">
     <div className="staff-page-intro">
       <div className="eyebrow">Your evidence</div>
-      <h1 className="h1">My record</h1>
-      <p className="screen-note">A factual history of completed work, feedback and activity. Private work and personal goals stay outside this record.</p>
-      <input className="field month-field" type="month" aria-label="Record month" value={month} onChange={(event) => setMonth(event.target.value)} />
+      <h1 className="h1">My work history</h1>
+      <p className="screen-note">Completed CEAC work, feedback and recorded activity from the period you choose. Private work and personal goals remain outside this history.</p>
+      <div className="record-period-control" aria-label="Work history period">
+        <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}>←</button>
+        <div className="record-period-selects">
+          <select aria-label="History month" value={monthNumber} onChange={(event) => setMonthPart("month",event.target.value)}>
+            {Array.from({length:12},(_,index)=>index+1).map((value)=><option key={value} value={value}>{new Date(2020,value-1,1).toLocaleDateString("en-GB",{month:"long"})}</option>)}
+          </select>
+          <select aria-label="History year" value={year} onChange={(event) => setMonthPart("year",event.target.value)}>
+            {Array.from({length:7},(_,index)=>new Date().getFullYear()-5+index).map((value)=><option key={value} value={value}>{value}</option>)}
+          </select>
+        </div>
+        <button type="button" aria-label="Next month" onClick={() => changeMonth(1)}>→</button>
+      </div>
     </div>
 
     <div className="staff-segment" role="tablist" aria-label="Record view">
