@@ -149,50 +149,61 @@ export default function Room({
 
   async function loadParticipants(currentRoom) {
     try {
+      let profileIds = [];
+
       if (currentRoom.kind === "sub_team") {
         const [membersResult, teamResult, managersResult] = await Promise.all([
           supabase.from("sub_team_members")
-            .select("profile_id,profiles!sub_team_members_profile_id_fkey(id,full_name,active)")
+            .select("profile_id")
             .eq("sub_team_id", currentRoom.sub_team_id),
-          supabase.from("sub_teams").select("lead_id,profiles!sub_teams_lead_id_fkey(id,full_name,active)")
+          supabase.from("sub_teams")
+            .select("lead_id")
             .eq("id", currentRoom.sub_team_id).single(),
           supabase.from("unit_memberships")
-            .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name,active)")
+            .select("profile_id")
             .eq("unit_id", currentRoom.unit_id).eq("role", "manager"),
         ]);
         if (membersResult.error) throw membersResult.error;
         if (teamResult.error) throw teamResult.error;
         if (managersResult.error) throw managersResult.error;
-        const rows = [
-          ...(membersResult.data || []).map((row) => row.profiles),
-          teamResult.data?.profiles,
-          ...(managersResult.data || []).map((row) => row.profiles),
-        ].filter((row) => row?.active && row.id !== me.id);
-        setParticipants(uniqueById(rows));
-        return;
+
+        profileIds = [
+          ...(membersResult.data || []).map((row) => row.profile_id),
+          teamResult.data?.lead_id,
+          ...(managersResult.data || []).map((row) => row.profile_id),
+        ].filter(Boolean);
+      } else {
+        let unitIds = [];
+        if (currentRoom.kind === "unit") unitIds = [currentRoom.unit_id];
+        if (currentRoom.kind === "project") {
+          const projectResult = await supabase.from("projects")
+            .select("lead_unit_id,project_units(unit_id)").eq("id", currentRoom.project_id).single();
+          if (projectResult.error) throw projectResult.error;
+          unitIds = [...new Set([
+            projectResult.data.lead_unit_id,
+            ...(projectResult.data.project_units || []).map((row) => row.unit_id),
+          ].filter(Boolean))];
+        }
+        if (!unitIds.length) { setParticipants([]); return; }
+
+        const memberResult = await supabase.from("unit_memberships")
+          .select("profile_id")
+          .in("unit_id", unitIds);
+        if (memberResult.error) throw memberResult.error;
+        profileIds = (memberResult.data || []).map((row) => row.profile_id);
       }
 
-      let unitIds = [];
-      if (currentRoom.kind === "unit") unitIds = [currentRoom.unit_id];
-      if (currentRoom.kind === "project") {
-        const projectResult = await supabase.from("projects")
-          .select("lead_unit_id,project_units(unit_id)").eq("id", currentRoom.project_id).single();
-        if (projectResult.error) throw projectResult.error;
-        unitIds = [...new Set([
-          projectResult.data.lead_unit_id,
-          ...(projectResult.data.project_units || []).map((row) => row.unit_id),
-        ].filter(Boolean))];
-      }
-      if (!unitIds.length) { setParticipants([]); return; }
+      const uniqueIds = [...new Set(profileIds)].filter((id) => id && id !== me.id);
+      if (!uniqueIds.length) { setParticipants([]); return; }
 
-      const memberResult = await supabase.from("unit_memberships")
-        .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name,active)")
-        .in("unit_id", unitIds);
-      if (memberResult.error) throw memberResult.error;
-      setParticipants(uniqueById((memberResult.data || [])
-        .map((row) => row.profiles)
-        .filter((row) => row?.active && row.id !== me.id)));
-    } catch {
+      const profileResult = await supabase.from("profiles")
+        .select("id,full_name,active")
+        .in("id", uniqueIds)
+        .eq("active", true);
+      if (profileResult.error) throw profileResult.error;
+      setParticipants(uniqueById(profileResult.data || []));
+    } catch (err) {
+      console.warn("Room participants unavailable", err?.message || err);
       setParticipants([]);
     }
   }
