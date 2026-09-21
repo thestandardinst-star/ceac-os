@@ -3049,3 +3049,30 @@ button.office-config-card:active{background:#EEF5F4}
   }
   .office-app .app-workspace,.executive-app .app-workspace{background:var(--office-workspace)}
 }
+
+
+/* Shared intelligence primitives */
+.avatar{display:inline-grid;place-items:center;flex:none;border-radius:50%;overflow:hidden;background:#E8F3F1;color:#11756E;font-weight:750;letter-spacing:-.02em}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-sm{width:28px;height:28px;font-size:10px}
+.avatar-md{width:38px;height:38px;font-size:12px}
+.avatar-lg{width:54px;height:54px;font-size:16px}
+.status-distribution{display:grid;gap:10px}
+.status-distribution-track{display:flex;width:100%;height:9px;border-radius:999px;overflow:hidden;background:#E8EDEF}
+.status-distribution-segment{height:100%;min-width:2px}
+.status-distribution-empty{width:100%;background:#E8EDEF}
+.status-distribution-segment.tone-success,.status-distribution-legend i.tone-success{background:#2F7358}
+.status-distribution-segment.tone-attention,.status-distribution-legend i.tone-attention{background:#B07B22}
+.status-distribution-segment.tone-danger,.status-distribution-legend i.tone-danger{background:#A04935}
+.status-distribution-segment.tone-info,.status-distribution-legend i.tone-info{background:#547489}
+.status-distribution-segment.tone-neutral,.status-distribution-legend i.tone-neutral{background:#AAB5BA}
+.status-distribution-legend{display:flex;flex-wrap:wrap;gap:8px 14px}
+.status-distribution-legend>span{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:10.5px}
+.status-distribution-legend i{display:inline-block;width:7px;height:7px;border-radius:50%}
+.status-distribution-legend b{font-size:10.5px;color:var(--ink);font-weight:700}
+.progress-meter{display:grid;gap:7px}
+.progress-meter-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.progress-meter-head strong{font-size:12.5px}
+.progress-meter-head span{font-size:10.5px;color:var(--ink-faint)}
+.progress-meter-track{height:8px;border-radius:999px;overflow:hidden;background:#E8EDEF}
+.progress-meter-track span{display:block;height:100%;border-radius:999px;background:var(--green)}
