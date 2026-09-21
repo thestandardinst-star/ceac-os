@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
@@ -551,7 +552,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       <label className="label" htmlFor="recovery-ended-at">Actual end time</label>
       <input id="recovery-ended-at" className="field" type="datetime-local" value={recoveryEndedAt} onChange={(event) => setRecoveryEndedAt(event.target.value)} />
       <label className="label" htmlFor="recovery-note">Correction note (optional)</label>
-      <textarea id="recovery-note" className="field" rows={3} value={recoveryNote} onChange={(event) => setRecoveryNote(event.target.value)} placeholder="Anything useful about this correction" />
+      <AssistiveTextarea id="recovery-note" className="field" rows={3} value={recoveryNote} onChange={(event) => setRecoveryNote(event.target.value)} placeholder="Anything useful about this correction" />
       <button className="btn" style={{ marginTop: 14 }} onClick={closeRecoveredSession} disabled={busy || !recoveryEndedAt}>{busy ? "Saving..." : "Close and record correction"}</button>
     </Sheet>}
     {eventDetail && <Sheet onClose={() => setEventDetail(null)}>
