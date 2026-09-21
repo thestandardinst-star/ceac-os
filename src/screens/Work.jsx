@@ -17,8 +17,11 @@ const STATUS_FILTERS = [
 ];
 
 export default function Work({ me, isManager = false, openItem }) {
-  const [mode, setMode] = useState("assigned");
-  const [statusFilter, setStatusFilter] = useState("active");
+  const viewKey = `ceac-work-view:${me.id}`;
+  let savedView = null;
+  try { savedView = JSON.parse(sessionStorage.getItem(viewKey) || "null"); } catch { savedView = null; }
+  const [mode, setMode] = useState(savedView?.mode || "assigned");
+  const [statusFilter, setStatusFilter] = useState(savedView?.statusFilter || "active");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -37,6 +40,9 @@ export default function Work({ me, isManager = false, openItem }) {
 
   useEffect(() => { load(); }, [mode, statusFilter, me.id, isManager]);
   useEffect(() => { loadProjects(); }, [me.id, me.unit_id]);
+  useEffect(() => {
+    sessionStorage.setItem(viewKey, JSON.stringify({ mode, statusFilter }));
+  }, [viewKey, mode, statusFilter]);
 
   async function load() {
     setLoading(true);
