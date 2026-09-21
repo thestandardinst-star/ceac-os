@@ -184,13 +184,21 @@ export default function AdminHome({ me, openItem, openSettings, openUnits }) {
   }
 
   const withoutHead = units.filter((unit) => !unit.head).length;
+  const adminDate = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const adminAttention = alerts.length + leaveQueue.length + withoutHead + (reporting?.missing?.length || 0);
 
-  return <div className="body">
-    <div style={{ paddingTop:26 }}>
-      <div className="eyebrow">Administration &amp; HR</div>
-      <h1 className="h1" style={{ marginTop:6 }}>{new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</h1>
-      <p className="screen-note">The whole church at a glance. Individual work stays with the responsible unit unless it genuinely needs Administration.</p>
-    </div>
+  return <div className="body admin-home">
+    <section className="admin-command-surface">
+      <div className="admin-command-context"><span>Administration &amp; HR</span><time>{adminDate}</time></div>
+      <div className="eyebrow">Organisation operations</div>
+      <h1 className="h1">Administration</h1>
+      <p className="screen-note">Organisation-wide exceptions, staffing, reporting and administrative action — without pulling unit-level work into HR unnecessarily.</p>
+      <div className="admin-command-stats" aria-label="Administration overview">
+        <div><strong>{adminAttention}</strong><span>Need attention</span></div>
+        <div><strong>{units.length}</strong><span>Units</span></div>
+        <div><strong>{today.headcount}</strong><span>People on record</span></div>
+      </div>
+    </section>
 
     {loadError && <div className="flag flag-brick" style={{marginTop:14}}><h4>Administration could not finish loading</h4>{loadError}<button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={load}>Try again</button></div>}
     {msg && !inviting && <div className="flag flag-amber" style={{marginTop:14}}>{msg}</div>}
