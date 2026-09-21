@@ -2953,3 +2953,15 @@ textarea{width:100%}
   .admin-action-row{align-items:flex-start;flex-wrap:wrap}
   .office-policy-grid,.office-config-status{grid-template-columns:1fr}
 }
+
+.office-threshold-list{display:grid;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.office-threshold-row{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:10px;align-items:center;padding:11px 12px;border-top:1px solid var(--line-soft);background:#fff}
+.office-threshold-row:first-child{border-top:0}
+.office-threshold-row>div{display:grid;gap:2px}
+.office-threshold-row strong{font-size:12.5px;line-height:1.35}
+.office-threshold-row span{font-size:10.5px;color:var(--ink-faint)}
+.office-threshold-row .field{margin:0}
+@media(max-width:560px){
+  .office-threshold-row{grid-template-columns:minmax(0,1fr) 90px}
+  .office-threshold-row .btn{grid-column:1/-1;justify-self:start}
+}
