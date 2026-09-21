@@ -14,14 +14,14 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "me") return <svg {...props}><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>;
   return <svg {...props}><circle cx="12" cy="12" r="2" /></svg>;
 }
-export function MobileTopBar({ me }) {
+export function MobileTopBar({ me, roleLabel = "Staff" }) {
   const initial = (me?.full_name || "C").trim().charAt(0).toUpperCase();
   return <header className="mobile-topbar" aria-label="CEAC OS">
     <div className="mobile-topbar-brand">
       <span className="mobile-topbar-mark" aria-hidden="true">C</span>
       <span className="mobile-topbar-copy">
         <strong>CEAC OS</strong>
-        <small>{me?.unit_name || "Airport City"}</small>
+        <small>{me?.unit_name || "Airport City"} · {roleLabel}</small>
       </span>
     </div>
     <div className="mobile-topbar-person" aria-label={me?.full_name || "Signed in user"}>
