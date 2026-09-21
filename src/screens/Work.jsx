@@ -146,8 +146,9 @@ export default function Work({ me, isManager = false, openItem }) {
 
   return <div className="body staff-work">
     <div className="staff-page-intro">
+      <div className="eyebrow">{me.unit_name}</div>
       <h1 className="h1">My work</h1>
-      <p className="screen-note">See what was assigned, record work you already agreed to carry, or keep private work for yourself.</p>
+      <p className="screen-note">Everything you are carrying, organised by where it came from and what needs to happen next.</p>
     </div>
 
     <div className="staff-segment" role="tablist" aria-label="Work source">
