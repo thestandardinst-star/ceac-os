@@ -31,7 +31,7 @@ import Announcements from "./screens/Announcements";
 import Room from "./screens/Room";
 import Meeting from "./screens/Meeting";
 import MeetingScheduler from "./components/MeetingScheduler";
-import { MobileTopBar, Tabs, SideNav } from "./components/bits";
+import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./components/bits";
 import AuthFrame from "./components/AuthFrame";
 
 function routeFromLocation() {
@@ -228,37 +228,43 @@ export default function App() {
   }
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
+  const roleLabel = isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff";
 
   return (
     <div className={`app ${appModeClass}`}>
-      <MobileTopBar me={me} roleLabel={isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff"} onProfile={() => go("me")} />
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
-      {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
-        <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
-          {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
-            {membership.unit_name || "Unit"} · {membership.role === "manager" ? "Manager" : "Staff"}
-          </option>)}
-        </select>
-      </div>}
-      {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} openRoom={openRoom} back={closeUrlOverlay} />
-        : assigning ? <Assign me={me}
-            initialProjectId={assigning.projectId}
-            initialObjectiveId={assigning.objectiveId}
-            initialPhaseId={assigning.phaseId}
-            initialSubTeamId={assigning.subTeamId}
-            initialMeetingId={assigning.meetingId}
-            initialKind={assigning.kind}
-            initialMeetingTitle={assigning.meetingTitle}
-            initialMeetingOn={assigning.meetingOn}
-            initialMeetingNote={assigning.meetingNote}
-            back={() => setAssigning(null)} />
-        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={openItem} goAssign={startAssignment} openMeeting={openMeeting} scheduleMeeting={startMeeting} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference })} back={closeUrlOverlay} />
-        : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
-        : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={openItem} openProject={openProject} back={() => setPerson(null)} />
-        : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={openItem} openProject={openProject} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} onRoomChange={openRoom} />
-        : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); openMeeting(id); }} />
-        : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} />
-        : pageForTab()}
-      {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} />}
+      <div className="app-workspace">
+        <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} />
+        <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} />
+        {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
+          <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
+            {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
+              {membership.unit_name || "Unit"} · {membership.role === "manager" ? "Manager" : "Staff"}
+            </option>)}
+          </select>
+        </div>}
+        <main className="app-content">
+          {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} openRoom={openRoom} back={closeUrlOverlay} />
+            : assigning ? <Assign me={me}
+                initialProjectId={assigning.projectId}
+                initialObjectiveId={assigning.objectiveId}
+                initialPhaseId={assigning.phaseId}
+                initialSubTeamId={assigning.subTeamId}
+                initialMeetingId={assigning.meetingId}
+                initialKind={assigning.kind}
+                initialMeetingTitle={assigning.meetingTitle}
+                initialMeetingOn={assigning.meetingOn}
+                initialMeetingNote={assigning.meetingNote}
+                back={() => setAssigning(null)} />
+            : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={openItem} goAssign={startAssignment} openMeeting={openMeeting} scheduleMeeting={startMeeting} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference })} back={closeUrlOverlay} />
+            : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
+            : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={openItem} openProject={openProject} back={() => setPerson(null)} />
+            : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={openItem} openProject={openProject} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} onRoomChange={openRoom} />
+            : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); openMeeting(id); }} />
+            : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} />
+            : pageForTab()}
+        </main>
+        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} />}
+      </div>
     </div>);
 }
