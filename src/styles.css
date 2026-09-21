@@ -3275,3 +3275,11 @@ button.office-config-card:active{background:#EEF5F4}
 .manager-finance-position-facts b{display:block;font-size:11.5px;overflow-wrap:anywhere}
 .manager-finance-position-facts span{display:block;margin-top:4px;font-size:9.5px;color:var(--ink-soft)}
 @media(max-width:700px){.manager-finance-position-grid{grid-template-columns:1fr}}
+
+
+/* Manager report evidence distributions */
+.report-status-composition{display:grid;gap:12px}
+.report-status-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.report-status-links button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border-radius:8px;background:#F6F8F8;text-align:left}
+.report-status-links span{font-size:10.5px;color:var(--ink-soft)}
+.report-status-links b{font-size:10.5px}
