@@ -70,7 +70,7 @@ function CostSummary({ rows, emptyText = "No project cost has been recorded." })
   </div>);
 }
 
-export default function ManagerProjects({ me, initialProjectId = null, openItem, goAssign, back }) {
+export default function ManagerProjects({ me, initialProjectId = null, openItem, goAssign, openRoom, back }) {
   const [projects, setProjects] = useState([]);
   const [selectedId, setSelectedId] = useState(initialProjectId);
   const [detail, setDetail] = useState(null);
@@ -279,8 +279,11 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       <p className="screen-note">Currencies are shown separately. No conversion is applied.</p>
       <div style={{ marginTop: 8 }}><CostSummary rows={detail.costs} /></div>
 
-      <div className="sec"><span>Discussion</span></div>
-      <div className="card small">Project discussion is pending a project-scoped message model. Nothing entered here is stored locally.</div>
+      <div className="sec"><span>Communication</span></div>
+      <button className="project-room-entry" onClick={() => openRoom?.(detail.id, { object_type: "project", object_id: detail.id, label: detail.name })}>
+        <span><strong>Project Room</strong><small>Discussion, replies and linked work stay with this project.</small></span>
+        <b aria-hidden="true">Open →</b>
+      </button>
 
       <ManagerProjectClose
         me={me}
