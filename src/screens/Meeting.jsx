@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { statusPill } from "../components/bits";
+import VoiceInput from "../components/VoiceInput";
 
 function whenLabel(value) {
   return new Date(value).toLocaleString("en-GB", {
@@ -141,7 +142,10 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
           <button className={recordKind === "note" ? "on" : ""} onClick={() => setRecordKind("note")}>Note</button>
           <button className={recordKind === "decision" ? "on" : ""} onClick={() => setRecordKind("decision")}>Decision</button>
         </div>}
-        <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={recordKind === "decision" ? "Record the decision exactly as agreed" : "Add a factual meeting note"} />
+        <div className="assistive-field textarea">
+          <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={recordKind === "decision" ? "Record the decision exactly as agreed" : "Add a factual meeting note"} />
+          <VoiceInput compact label={recordKind === "decision" ? "Speak decision" : "Speak note"} onResult={(text) => setNote((current) => current ? current + " " + text : text)} />
+        </div>
         <button className="btn" disabled={busy || !note.trim()} onClick={addRecord}>{busy ? "Saving..." : recordKind === "decision" ? "Record decision" : "Add note"}</button>
       </div>
     </section>
