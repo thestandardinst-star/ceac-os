@@ -164,7 +164,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <MobileTopBar me={me} roleLabel={isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff"} />
+      <MobileTopBar me={me} roleLabel={isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff"} onProfile={() => go("me")} />
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
