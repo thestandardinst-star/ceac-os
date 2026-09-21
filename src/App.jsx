@@ -29,6 +29,7 @@ import ManagerFinance from "./screens/ManagerFinance";
 import ManagerReports from "./screens/ManagerReports";
 import Announcements from "./screens/Announcements";
 import { Tabs, SideNav } from "./components/bits";
+import AuthFrame from "./components/AuthFrame";
 
 export default function App() {
   const [me, setMe] = useState(null);
@@ -90,13 +91,11 @@ export default function App() {
     />;
   }
 
-  if (!ready) return <div className="spin">Loading...</div>;
-  if (bootError && !me) return <div className="signin-wrap">
-    <div className="eyebrow">CEAC</div>
-    <h1 className="h1" style={{ marginTop: 6 }}>Could not load your account</h1>
-    <div className="flag flag-brick" style={{ marginTop: 18 }}>{bootError}</div>
-    <button className="btn" style={{ marginTop: 18 }} onClick={boot}>Try again</button>
-  </div>;
+  if (!ready) return <div className="auth-boot"><span className="auth-boot-mark">CEAC</span><span>Opening your workspace…</span></div>;
+  if (bootError && !me) return <AuthFrame eyebrow="Connection problem" title="Could not load your account" description="CEAC OS could not finish opening your secure workspace.">
+    <div className="auth-message error">{bootError}</div>
+    <button className="auth-primary" onClick={boot}><span>Try again</span><span aria-hidden="true">→</span></button>
+  </AuthFrame>;
   if (!me) return <SignIn />;
 
   const isAdmin = Boolean(me.is_admin);
