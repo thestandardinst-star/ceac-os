@@ -324,20 +324,23 @@ export default function Me({ me, openGoal }) {
     {sheet === "profile" && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="h2">Edit personal details</div>
       <p className="screen-note">Official employment details remain read-only. Emergency contact and address details are visible only to you and Administration.</p>
-      <label className="field-label">Preferred name</label>
-      <input className="field" value={profileForm.preferred_name} onChange={(event) => setProfileForm((value) => ({ ...value, preferred_name: event.target.value }))} />
-      <label className="field-label">Phone</label>
-      <input className="field" type="tel" value={profileForm.phone} onChange={(event) => setProfileForm((value) => ({ ...value, phone: event.target.value }))} />
-      <label className="field-label">Birthday</label>
-      <input className="field" type="date" value={profileForm.birthday} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setProfileForm((value) => ({ ...value, birthday: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-preferred-name">Preferred name</label>
+      <input id="profile-preferred-name" className="field" value={profileForm.preferred_name} onChange={(event) => setProfileForm((value) => ({ ...value, preferred_name: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-phone">Phone</label>
+      <input id="profile-phone" className="field" type="tel" value={profileForm.phone} onChange={(event) => setProfileForm((value) => ({ ...value, phone: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-birthday">Birthday</label>
+      <input id="profile-birthday" className="field" type="date" value={profileForm.birthday} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setProfileForm((value) => ({ ...value, birthday: event.target.value }))} />
 
       <div className="sec"><span>Emergency contact</span></div>
-      <input className="field" placeholder="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
-      <input className="field" type="tel" placeholder="Contact phone" value={profileForm.emergency_contact_phone} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_phone: event.target.value }))} />
-      <input className="field" placeholder="Relationship" value={profileForm.emergency_contact_relationship} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_relationship: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-emergency-name">Contact name</label>
+      <input id="profile-emergency-name" className="field" placeholder="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-emergency-phone">Contact phone</label>
+      <input id="profile-emergency-phone" className="field" type="tel" placeholder="Contact phone" value={profileForm.emergency_contact_phone} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_phone: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-emergency-relationship">Relationship</label>
+      <input id="profile-emergency-relationship" className="field" placeholder="Relationship" value={profileForm.emergency_contact_relationship} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_relationship: event.target.value }))} />
 
-      <label className="field-label">Address or ordinary contact information</label>
-      <textarea className="field" rows="3" value={profileForm.address_text} onChange={(event) => setProfileForm((value) => ({ ...value, address_text: event.target.value }))} />
+      <label className="field-label" htmlFor="profile-address">Address or ordinary contact information</label>
+      <textarea id="profile-address" className="field" rows="3" value={profileForm.address_text} onChange={(event) => setProfileForm((value) => ({ ...value, address_text: event.target.value }))} />
 
       <div className="sec"><span>Social handles</span></div>
       <input className="field" placeholder="Instagram" value={profileForm.instagram} onChange={(event) => setProfileForm((value) => ({ ...value, instagram: event.target.value }))} />

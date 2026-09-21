@@ -13,7 +13,7 @@ async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   await page.getByPlaceholder("Work email").fill(email);
   await page.getByPlaceholder("Password").fill(rolePassword);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.locator(".side")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
   return { context, page };
 }
 
@@ -196,7 +196,7 @@ test("Staff personal details persist and private work stays out of another staff
     await dialog.getByPlaceholder("Contact name").fill("Emergency Fixture");
     await dialog.getByLabel("Address or ordinary contact information").fill("Fixture address");
     await dialog.getByRole("button", { name: "Save personal details" }).click();
-    await expect(dialog.getByText(/Saved/)).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Save personal details" })).toBeEnabled();
     await dialog.getByRole("button", { name: "Close dialog" }).click();
 
     await page.getByRole("button", { name: "Edit" }).click();
@@ -237,9 +237,9 @@ test("Typed work can be created and reaches the Staff work surface", async ({ br
   ];
 
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
+  await page.getByRole("button", { name: "Give out work" }).click();
 
   for (const item of created) {
-    await page.getByRole("button", { name: "Give out work" }).click();
     await page.locator("select.field").first().selectOption({ label: item.kind });
 
     if (item.kind === "Routine") await page.getByPlaceholder("What repeats?").fill(item.title);

@@ -130,7 +130,18 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
 
       const members = requireResult(memberResult, "Team").filter((member) => member.profile_id !== me.id);
       const memberIds = new Set(members.map((member) => member.profile_id));
-      setSubmissions(requireResult(submissionResult, "Submissions"));
+      const submissionRows = requireResult(submissionResult, "Submissions");
+      const latestSubmissionByWork = new Map();
+      submissionRows.forEach((submission) => {
+        const workId = submission.work_items?.id;
+        if (!workId) return;
+        const existing = latestSubmissionByWork.get(workId);
+        if (!existing || new Date(submission.submitted_at) > new Date(existing.submitted_at)) {
+          latestSubmissionByWork.set(workId, submission);
+        }
+      });
+      setSubmissions([...latestSubmissionByWork.values()]
+        .sort((left, right) => new Date(left.submitted_at) - new Date(right.submitted_at)));
       setFollowupAlerts(requireResult(followupAlertResult, "Follow-ups"));
       setLeave(requireResult(leaveResult, "Leave requests").filter((request) => memberIds.has(request.profile_id)));
       const blockerMap = new Map();
