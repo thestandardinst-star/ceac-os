@@ -16,7 +16,7 @@ architecture amendment and supersedes conflicting older text. Then read
 the panel spec for the surface you are touching **before** writing code,
 not after.
 
-**For any Staff/Manager visual, navigation, responsive, PWA, Rooms or meeting-experience work, also read `docs/architecture/CEAC_OS_Product_Experience_Collaboration_PWA_Amendment_2026-09-21.md`. For visual implementation, read `docs/architecture/CEAC_OS_Design_System_v1.md`. These are binding for the current redesign phase and supersede older panel text where they explicitly conflict on experience or navigation.**
+**For any Staff/Manager visual, navigation, responsive, PWA, Rooms or meeting-experience work, also read `docs/architecture/CEAC_OS_Product_Experience_Collaboration_PWA_Amendment_2026-09-21.md`. For visual implementation, read `docs/architecture/CEAC_OS_Design_System_v1.md`. For voice, assistive AI, Rooms 2.0, sub-team communication, meeting audiences or Calendar interaction, also read `docs/architecture/CEAC_OS_Assistive_Input_Collaboration_Amendment_2026-09-21.md`. These are binding and later amendments supersede older text only where they explicitly conflict.**
 
 Both previous agents skipped this and built from memory. The result was a
 screen asking a church administrator to paste GPS coordinates, and a
@@ -59,10 +59,13 @@ those came from not reading a file that was already there.
    read.** A known connector bug silently truncates long files and
    commits the damage.
 
-8. **No generative AI in CEAC OS.** Do not add Claude, OpenAI, another
-   LLM, AI summaries, AI task breakdown, or an inference dependency.
-   Intelligence is deterministic: context, rules, templates, recurrence,
-   calculations, prefill and exception detection.
+8. **AI is assistive only.** The approved 21 September Assistive Input &
+   Collaboration amendment supersedes the earlier blanket no-AI rule.
+   Server-side inference may be used for transcription, structured extraction
+   and user-reviewed drafting. It may not score/rank people, make HR/finance/
+   access decisions, approve work, or silently write consequential records.
+   Never expose provider credentials in the browser. Core operation must still
+   work when inference is unavailable.
 
 9. **The seven work kinds are behaviours, not labels.** Keep one shared
    Work Engine, but implement the type-specific contracts in the approved
