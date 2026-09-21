@@ -139,7 +139,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      {isStaff && <MobileTopBar me={me} />}
+      {(isStaff || isUnitManager) && <MobileTopBar me={me} roleLabel={isUnitManager ? "Manager" : "Staff"} />}
       <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
       {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
         <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
