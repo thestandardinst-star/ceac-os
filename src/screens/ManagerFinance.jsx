@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Sheet, FieldGroup, ProductNotice, LoadingState } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice, LoadingState, ProgressMeter, EmptyState, SectionHeader } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 const money=(minor,cur)=>`${cur} ${(Number(minor||0)/100).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -76,9 +76,28 @@ export default function ManagerFinance({me,openProject}){
   <button className="btn wide-auto" style={{marginTop:16}} onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button>
   {error&&<ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
   {notice&&<ProductNotice tone="success" title="Finance request updated">{notice}</ProductNotice>}
-  <div className="sec"><span>Unit position</span><span>{year}</span></div>
-  <div className="metric-grid"><MoneyLines title="Planned" values={planned} empty="No unit budget recorded" onOpen={(currency)=>setDrill({kind:"planned",currency,title:`Planned · ${currency}`})}/><MoneyLines title="Recorded spend" values={recorded} empty="No unit spend recorded" onOpen={(currency)=>setDrill({kind:"spend",currency,title:`Recorded spend · ${currency}`})}/><MoneyLines title="Approved, not yet spent" values={committed} empty="No approved requests waiting to be spent" onOpen={(currency)=>setDrill({kind:"committed",currency,title:`Approved, not yet spent · ${currency}`})}/><MoneyLines title="Remaining" values={remaining} empty="No comparable budget recorded" onOpen={(currency)=>setDrill({kind:"remaining",currency,title:`Remaining · ${currency}`})}/></div>
-  {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="small">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
+  <SectionHeader eyebrow={String(year)} title="Unit financial position" />
+  <div className="manager-finance-position-grid">
+    {positions.length===0&&<EmptyState compact title="No finance position recorded">Budgets, spend and approved requests will build this view automatically.</EmptyState>}
+    {positions.map(row=>{
+      const hasBudget=budgetCurrencies.has(row.currency);
+      const plannedValue=hasBudget?Number(row.budget_minor||0):null;
+      const spentValue=Number(row.spent_minor||0);
+      const committedValue=Number(row.committed_minor||0);
+      const remainingValue=hasBudget?Number(row.remaining_minor||0):null;
+      return <article className="manager-finance-position-card" key={row.currency}>
+        <div className="manager-finance-position-head"><div><span>Currency</span><strong>{row.currency}</strong></div><small>{hasBudget?"Budget recorded":"No budget recorded"}</small></div>
+        <div className="manager-finance-position-facts">
+          <button onClick={()=>setDrill({kind:"planned",currency:row.currency,title:`Planned · ${row.currency}`})}><b>{plannedValue===null?"—":money(plannedValue,row.currency)}</b><span>planned</span></button>
+          <button onClick={()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})}><b>{money(spentValue,row.currency)}</b><span>recorded spend</span></button>
+          <button onClick={()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})}><b>{money(committedValue,row.currency)}</b><span>committed</span></button>
+          <button onClick={()=>setDrill({kind:"remaining",currency:row.currency,title:`Remaining · ${row.currency}`})}><b>{remainingValue===null?"—":money(remainingValue,row.currency)}</b><span>remaining</span></button>
+        </div>
+        {hasBudget&&<ProgressMeter value={spentValue+committedValue} max={plannedValue} label="Spent + approved commitments" detail={money(spentValue+committedValue,row.currency)+" of "+money(plannedValue,row.currency)} />}
+      </article>;
+    })}
+  </div>
+  {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="screen-note">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
   {drill&&<div style={{marginTop:10}}>
    <div className="sec"><span>{drill.title}</span></div>
    {(drill.kind==="planned"||drill.kind==="remaining")&&budgets.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"b-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} budget</div><div className="row-m">{x.project_id?"Project budget":"Unit budget"} · {year}</div>{x.note&&<div className="row-note">{x.note}</div>}</div>)}
