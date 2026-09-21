@@ -45,13 +45,14 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem, openWork, openMe, openAnnouncements }) {
+export default function Home({ me, session, setSession, openItem, openMeeting, openWork, openMe, openAnnouncements }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
   const [upcomingLeave, setUpcomingLeave] = useState([]);
   const [leaveUpdates, setLeaveUpdates] = useState([]);
@@ -107,6 +108,10 @@ export default function Home({ me, session, setSession, openItem, openWork, open
         supabase.from("ministry_events")
           .select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled,ministry_event_units(unit_id,note)")
           .lte("starts_at", rangeEnd.toISOString()).order("starts_at"),
+        supabase.from("meeting_sessions")
+          .select("id,title,scope,unit_id,project_id,starts_at,ends_at,provider,join_url,status,projects(name),units(name)")
+          .gte("starts_at", rangeStart.toISOString()).lte("starts_at", rangeEnd.toISOString())
+          .neq("status","cancelled").order("starts_at"),
         supabase.from("unit_memberships")
           .select("profile_id,profiles!unit_memberships_profile_id_fkey(id,full_name,birthday)")
           .eq("unit_id", me.unit_id),
@@ -127,7 +132,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
           .eq("actor_id", me.id).order("created_at", { ascending: false }),
       ];
 
-      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult] = await Promise.all(requests);
+      const [itemResult, completedResult, alertResult, feedbackResult, announcementResult, eventResult, meetingResult, memberResult, leaveResult, submissionResult, reviewFollowupResult, blockerResult, blockerFollowupResult] = await Promise.all(requests);
       setItems(requireResult(itemResult, "Your work"));
       setCompletedThisWeek(requireResult(completedResult, "Completed work"));
       setAlerts(requireResult(alertResult, "Alerts"));
@@ -144,6 +149,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
         return stillCurrent && relevant;
       });
       setCalendarEvents(events.slice(0, 4));
+      setUpcomingMeetings(requireResult(meetingResult, "Meetings").slice(0, 4));
       const birthdayEnd = new Date(rangeStart); birthdayEnd.setDate(birthdayEnd.getDate() + 7);
       setBirthdays(requireResult(memberResult, "Birthdays")
         .map((member) => member.profiles).filter((profile) => profile?.birthday)
@@ -299,6 +305,7 @@ export default function Home({ me, session, setSession, openItem, openWork, open
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const drillRows = drill?.rows || [];
   const primaryNextItem = nextMoveItems[0] || activeWork[0] || dueSoon[0] || null;
+  const nextMeeting = upcomingMeetings[0] || null;
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   return <div className="body staff-home">
@@ -330,7 +337,11 @@ export default function Home({ me, session, setSession, openItem, openWork, open
     </section>
 
     <nav className="staff-quick-actions" aria-label="Quick actions">
-      {primaryNextItem && <button className="staff-quick-action primary" onClick={() => openItem(primaryNextItem.id)}>
+      {nextMeeting && <button className="staff-quick-action primary" onClick={() => openMeeting?.(nextMeeting.id)}>
+        <span className="staff-quick-icon"><Icon name="calendar" size={17} /></span>
+        <span><strong>Next meeting</strong><small>{nextMeeting.title}</small></span>
+      </button>}
+      {!nextMeeting && primaryNextItem && <button className="staff-quick-action primary" onClick={() => openItem(primaryNextItem.id)}>
         <span className="staff-quick-icon"><Icon name="work" size={17} /></span>
         <span><strong>Open next</strong><small>{primaryNextItem.title}</small></span>
       </button>}
@@ -442,9 +453,14 @@ export default function Home({ me, session, setSession, openItem, openWork, open
         })}
       </section>}
 
-      {(dueSoon.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
+      {(dueSoon.length > 0 || upcomingMeetings.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
         {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
+        {upcomingMeetings.map((meeting) => <button key={meeting.id} className="row home-work-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
+          <div className="row-t">{meeting.title}</div>
+          <div className="row-m">{new Date(meeting.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })} · {meeting.provider === "zoom" ? "Zoom" : "Meeting"}</div>
+          <div className="row-note">{meeting.scope === "project" ? meeting.projects?.name : meeting.scope === "unit" ? meeting.units?.name : "CEAC"}</div>
+        </button>)}
         {calendarEvents.map((event) => <button key={event.id} className="row home-work-row" onClick={() => setEventDetail(event)}>
           <div className="row-t">{event.cancelled ? "Cancelled · " : ""}{event.title}</div>
           <div className="row-m">{new Date(event.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", hour: event.all_day ? undefined : "2-digit", minute: event.all_day ? undefined : "2-digit" })}{event.location ? ` · ${event.location}` : ""}</div>
