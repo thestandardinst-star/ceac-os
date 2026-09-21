@@ -21,7 +21,7 @@ insert into public.project_units(project_id,unit_id,role)
 values(
   '49000000-0000-4000-8000-000000000001',
   '20000000-0000-4000-8000-000000000012',
-  'participant'
+  'participating'
 );
 
 insert into public.meeting_sessions(
