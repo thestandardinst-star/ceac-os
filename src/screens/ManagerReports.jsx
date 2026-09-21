@@ -132,6 +132,7 @@ export default function ManagerReports({ me, openItem }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
 
   useEffect(() => { loadBase(); }, [me.id, me.unit_id]);
 
@@ -491,7 +492,7 @@ export default function ManagerReports({ me, openItem }) {
     {notice && <div className="flag flag-green" style={{ marginTop: 14 }}>{notice}</div>}
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
-      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>{label}</button>)}
+      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
     </div>
 
     {mode !== "project" && kindPeriods.length > 0 && <select className="field" value={matchingPeriod?.id || ""} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
@@ -545,18 +546,37 @@ export default function ManagerReports({ me, openItem }) {
         {drill.rows.length === 0 && <div className="card small">No supporting rows are attached to this figure.</div>}
       </div>}
 
-      <div className="sec"><span>Completed work trend</span></div>
-      <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
+      <div className="report-analysis-toggle">
+        <div>
+          <strong>Patterns & activity</strong>
+          <span>Open only when a visual pattern helps explain the evidence above.</span>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</button>
+      </div>
 
-      <div className="sec"><span>Completed by project</span></div>
-      {displayProjects.length ? <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} /> : <div className="card small">No completed project work is recorded in this view.</div>}
+      {showAnalysis && <div className="report-analysis">
+        {displayDaily.some((point) => point.value > 0) && <>
+          <div className="sec"><span>Completed work trend</span></div>
+          <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
+        </>}
 
-      <div className="sec"><span>Current work composition</span></div>
-      <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-      <p className="small" style={{ marginTop: 8 }}>This is the current status of visible work in this report scope. It is separate from the completed-work figures for the selected period.</p>
+        {displayProjects.length > 1 && <>
+          <div className="sec"><span>Completed by project</span></div>
+          <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+        </>}
 
-      <div className="sec"><span>Attendance activity</span></div>
-      <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
+        {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
+          <div className="sec"><span>Current work composition</span></div>
+          <Donut rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+          <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
+        </>}
+
+        {displayAttendance.some((day) => day.value > 0) && <>
+          <div className="sec"><span>Attendance activity</span></div>
+          <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
+          <p className="small" style={{ marginTop: 8 }}>Attendance is operational context, not a performance measure.</p>
+        </>}
+      </div>}
 
       <div className="sec"><span>Objectives</span><span>{displayObjectives.length}</span></div>
       {displayObjectives.map((objective) => <div className="row" key={objective.id}>
