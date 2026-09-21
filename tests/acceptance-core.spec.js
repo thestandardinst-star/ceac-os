@@ -47,9 +47,9 @@ async function go(page, name) {
 
 async function assignTask(page, title, step = null) {
   await page.getByRole("button", { name: "Give out work" }).click();
-  await page.getByPlaceholder("What needs doing").fill(title);
-  await page.getByPlaceholder("Why this matters — who it is for, what happens if it is late").fill("Acceptance test purpose");
-  await page.getByPlaceholder("Describe the finished result").fill("Acceptance test finished result");
+  await page.getByLabel("Work to complete").fill(title);
+  await page.getByLabel("Why this matters").fill("Acceptance test purpose");
+  await page.getByLabel("Finished result").fill("Acceptance test finished result");
   if (step) await page.getByPlaceholder("Step 1").fill(step);
   else await page.getByLabel(/No steps needed/).check();
   const assignee = page.locator("select.field").filter({ has: page.locator("option", { hasText: "Staff Fixture" }) });
