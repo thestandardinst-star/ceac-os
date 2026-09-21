@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function ExecutiveHome({ me }) {
-  const [x, setX] = useState({ done: 0, objectives: 0, projects: 0, working: 0, blocked: 0, review: 0 });
+  const [x, setX] = useState({ doneWeek: 0, donePreviousWeek: 0, objectives: 0, objectiveAttention: 0, projects: 0, blocked: 0, review: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,15 +20,20 @@ export default function ExecutiveHome({ me }) {
     setLoading(true);
     setError(null);
     try {
-      const [done, objectives, projects, working, blocked, review] = await Promise.all([
-        count("completed_outputs"),
+      const now = new Date();
+      const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+      const previousMonday = new Date(monday); previousMonday.setUTCDate(previousMonday.getUTCDate() - 7);
+      const [doneWeek, donePreviousWeek, objectives, objectiveAttention, projects, blocked, review] = await Promise.all([
+        count("work_items", (query) => query.in("kind", ["task", "deliverable"]).in("status", ["completed", "self_certified"]).gte("completed_at", monday.toISOString())),
+        count("work_items", (query) => query.in("kind", ["task", "deliverable"]).in("status", ["completed", "self_certified"]).gte("completed_at", previousMonday.toISOString()).lt("completed_at", monday.toISOString())),
         count("objectives"),
+        count("objectives", (query) => query.in("status", ["at_risk", "not_met"])),
         count("projects", (query) => query.eq("status", "active")),
-        count("work_sessions", (query) => query.is("ended_at", null)),
         count("blockers", (query) => query.neq("state", "resolved")),
         count("work_items", (query) => query.eq("status", "in_review")),
       ]);
-      setX({ done, objectives, projects, working, blocked, review });
+      setX({ doneWeek, donePreviousWeek, objectives, objectiveAttention, projects, blocked, review });
     } catch (loadError) {
       setError(loadError.message || "The ministry overview could not load.");
     } finally {
@@ -46,8 +51,8 @@ export default function ExecutiveHome({ me }) {
       <p className="screen-note">Objectives, delivery and ministry-level exceptions. Administration authoring stays with Administration &amp; HR.</p>
       {!loading && !error && <div className="executive-command-stats" aria-label="Ministry pulse">
         <div><strong>{x.projects}</strong><span>Active projects</span></div>
+        <div><strong>{x.objectiveAttention}</strong><span>Objectives attention</span></div>
         <div><strong>{x.blocked}</strong><span>Open blockers</span></div>
-        <div><strong>{x.review}</strong><span>In review</span></div>
       </div>}
     </section>
 
@@ -58,14 +63,25 @@ export default function ExecutiveHome({ me }) {
     </div>}
 
     {loading ? <div className="card" style={{ marginTop: 14 }}>Loading the record…</div> : !error && <>
+      <div className="sec"><span>Change over time</span><span>This week vs last week</span></div>
+      <div className="executive-change-card">
+        <div><strong>{x.doneWeek}</strong><span>Task/Deliverable outputs completed this week</span></div>
+        <p>{x.doneWeek === x.donePreviousWeek
+          ? `Same completed-output count as last week (${x.donePreviousWeek}).`
+          : x.doneWeek > x.donePreviousWeek
+            ? `${x.doneWeek - x.donePreviousWeek} more completed output${x.doneWeek - x.donePreviousWeek === 1 ? "" : "s"} than last week (${x.donePreviousWeek}).`
+            : `${x.donePreviousWeek - x.doneWeek} fewer completed output${x.donePreviousWeek - x.doneWeek === 1 ? "" : "s"} than last week (${x.donePreviousWeek}).`}</p>
+        <small>This is a factual volume comparison, not a performance score.</small>
+      </div>
+
       <div className="sec"><span>The record</span></div>
       <div className="metric-grid">
-        <div className="metric"><b>{x.done}</b><span>Task/Deliverable outputs finished</span></div>
-        <div className="metric"><b>{x.objectives}</b><span>objectives</span></div>
+        <div className="metric"><b>{x.doneWeek}</b><span>completed outputs this week</span></div>
+        <div className="metric"><b>{x.objectiveAttention}</b><span>objectives at risk / not met</span></div>
+        <div className="metric"><b>{x.objectives}</b><span>objectives recorded</span></div>
         <div className="metric"><b>{x.projects}</b><span>active projects</span></div>
-        <div className="metric"><b>{x.working}</b><span>working now</span></div>
       </div>
-      <div className="sec"><span>Exceptions</span><span>{x.review + x.blocked}</span></div>
+      <div className="sec"><span>Exceptions</span><span>{x.review + x.blocked + x.objectiveAttention}</span></div>
       <div className="row">
         <div className="row-t">{x.review} in review</div>
         <div className="row-m">These remain with the authorised manager unless escalated by rule.</div>
@@ -73,6 +89,10 @@ export default function ExecutiveHome({ me }) {
       <div className="row">
         <div className="row-t">{x.blocked} unresolved hold-ups</div>
         <div className="row-m">The count is factual; open the underlying work before drawing a conclusion.</div>
+      </div>
+      <div className="row">
+        <div className="row-t">{x.objectiveAttention} objectives at risk or not met</div>
+        <div className="row-m">Objective status is recorded explicitly; this does not infer why an objective is in that state.</div>
       </div>
     </>}
 
