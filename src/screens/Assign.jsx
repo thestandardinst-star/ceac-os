@@ -14,6 +14,16 @@ const WORK_KINDS = [
   ["deliverable", "Deliverable", "A finished output that must be produced and shown.", true],
 ];
 
+const WORK_INTENTS = [
+  ["task", "Get something done", "A specific action someone should complete."],
+  ["deliverable", "Get a finished output", "A file, document, production or other output that must be shown."],
+  ["request", "Ask for something", "Another person or unit should provide, arrange or resolve something."],
+  ["routine", "Set repeating work", "Responsibility that happens again on a schedule."],
+  ["decision", "Get a decision", "Someone needs to make and record a choice."],
+  ["case", "Track an ongoing matter", "Keep a matter open while actions and follow-ups happen."],
+  ["meeting_outcome", "Follow up from a meeting", "Turn an agreed meeting action into accountable work."],
+];
+
 export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "", initialMeetingId = "", initialKind = "", initialMeetingTitle = "", initialMeetingOn = "", initialMeetingNote = "" }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
@@ -445,11 +455,20 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
 
       <div className="split" style={{ marginTop: 10 }}>
         <div className="main-col">
-          <div className="sec"><span>What needs doing</span></div>
-          <select className="field" value={kind} onChange={(e) => setKind(e.target.value)}>
-            {WORK_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-          <div className="hint">{WORK_KINDS.find(([value]) => value === kind)?.[2]}</div>
+          <div className="sec"><span>What are you trying to do?</span></div>
+          <div className="assign-intent-grid" role="radiogroup" aria-label="Work intention">
+            {WORK_INTENTS.map(([value, label, description]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={kind === value}
+              className={`assign-intent ${kind === value ? "on" : ""}`}
+              onClick={() => setKind(value)}>
+              <strong>{label}</strong>
+              <span>{description}</span>
+            </button>)}
+          </div>
+          <div className="assign-system-type">CEAC will record this as <strong>{WORK_KINDS.find(([value]) => value === kind)?.[1]}</strong>.</div>
           {!WORK_KINDS.find(([value]) => value === kind)?.[3] && <div className="flag flag-amber" style={{ marginTop: 10 }}>
             <h4>{WORK_KINDS.find(([value]) => value === kind)?.[1]} is not connected yet</h4>
             Its approved behaviour is not connected to this screen yet. CEAC OS will not save it with Task behaviour.

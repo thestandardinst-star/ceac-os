@@ -2699,3 +2699,28 @@ textarea{width:100%}
   .assign-screen>.split{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr)}
   .assign-screen .main-col,.assign-screen .side-col{padding:20px}
 }
+
+
+/* Product refinement: intent-led assignment and evidence-first manager review */
+.assign-intent-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+.assign-intent{
+  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--card);
+  text-align:left;display:grid;gap:3px;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease
+}
+.assign-intent strong{font-size:13.5px;color:var(--ink);font-weight:650}
+.assign-intent span{font-size:11.5px;color:var(--ink-faint);line-height:1.35}
+.assign-intent.on{border-color:rgba(17,140,131,.45);background:var(--green-soft);box-shadow:0 0 0 1px rgba(17,140,131,.06)}
+.assign-intent.on strong{color:var(--green)}
+.assign-system-type{margin:9px 1px 4px;font-size:11.5px;color:var(--ink-faint)}
+.review-evidence-block{display:grid;gap:4px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.review-evidence-block span,.review-checklist-summary>span{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);font-weight:650}
+.review-evidence-block strong{font-size:13.5px;line-height:1.45;font-weight:550;color:var(--ink)}
+.review-evidence-links{display:grid;gap:6px;margin:12px 0}
+.review-evidence-links a{font-size:13px;color:var(--green);font-weight:600;text-decoration:underline}
+.review-checklist-summary{display:grid;gap:6px;padding:12px 0}
+.review-checklist-summary>div{font-size:12.5px;color:var(--ink-soft)}
+.review-decision-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.home-context-note{font-size:11.5px;color:var(--ink-faint);margin:2px 0 10px}
+.home-stat-grid-two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:700px){.assign-intent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:430px){.review-decision-row{grid-template-columns:1fr}}

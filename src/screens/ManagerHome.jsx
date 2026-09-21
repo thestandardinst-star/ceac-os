@@ -82,7 +82,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           .select("profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name)")
           .eq("unit_id", me.unit_id),
         supabase.from("submissions")
-          .select("id, note, submitted_at, profiles!submissions_profile_id_fkey(full_name), work_items!inner(id, ref, title, unit_id, status, due_at), submission_files(url)")
+          .select("id, note, submitted_at, profiles!submissions_profile_id_fkey(full_name), work_items!inner(id, ref, title, kind, purpose, expected_outcome, unit_id, status, due_at), submission_files(url)")
           .eq("work_items.unit_id", me.unit_id).eq("work_items.status", "in_review")
           .neq("profile_id", me.id)
           .order("submitted_at", { ascending: true }),
@@ -265,8 +265,9 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     }
   }
 
-  async function openReturn(submission) {
+  async function openReview(submission) {
     setError(null);
+    setComment("");
     setReturnItems([]);
     setSelectedReturnItems([]);
     const result = await supabase.from("checklist_items")
@@ -278,7 +279,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       return;
     }
     setReturnItems(result.data || []);
-    setSheet({ type: "work", item: submission, decision: "returned" });
+    setSheet({ type: "work-review", item: submission, decision: null });
   }
 
   function toggleReturnItem(id) {
@@ -398,9 +399,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
           {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
           <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => openReturn(submission)}>Return</button>
-            <button className="btn btn-sm" onClick={() => setSheet({ type: "work", item: submission, decision: "completed" })}>Approve</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open full work</button>
+            <button className="btn btn-sm" onClick={() => openReview(submission)}>Review</button>
           </div>
         </div>
       ))}
@@ -430,13 +430,13 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
 
       <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
       <div className="home-section-head">
-        <div><div className="home-kicker">Team pulse</div><h2 id="manager-team-heading">Your team today</h2></div>
+        <div><div className="home-kicker">Today</div><h2 id="manager-team-heading">Team context</h2></div>
       </div>
+      <p className="home-context-note">Availability is context, not a performance measure.</p>
       <div className="home-subhead">Availability</div>
-      <div className="home-stat-grid">
+      <div className="home-stat-grid home-stat-grid-two">
         <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
         <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
-        <button className="home-stat" onClick={() => setDrill({ zone: "team", title: "Not started today", people: true, rows: team.notStarted })}><b>{team.notStarted.length}</b><span>Not started</span></button>
       </div>
       <div className="home-subhead home-subhead-spaced">Work movement today</div>
       <div className="home-stat-grid">
@@ -593,23 +593,42 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         </button>)}
       </section>}
 
-      {sheet?.type === "work" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
-        <div className="h2">{sheet.decision === "completed" ? "Approve this work" : "Return this work"}</div>
-        <p className="screen-note">{sheet.decision === "completed" ? "The approval is added to the submission history." : "Explain exactly what needs changing. Select any checklist points that must be done again."}</p>
-        {sheet.decision === "returned" && returnItems.length > 0 && <>
-          <div className="sec" style={{ marginTop: 14 }}><span>Checklist points to redo</span></div>
-          <div className="card" style={{ padding: "2px 15px" }}>
+      {sheet?.type === "work-review" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
+        <div className="eyebrow">Evidence-first review</div>
+        <div className="h2" style={{ marginTop: 5 }}>{sheet.item.work_items.title}</div>
+        <p className="screen-note">{sheet.item.work_items.ref} · {sheet.item.profiles?.full_name || "Team member"} · submitted {new Date(sheet.item.submitted_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+        {sheet.item.work_items.purpose && <div className="review-evidence-block"><span>Why this work matters</span><strong>{sheet.item.work_items.purpose}</strong></div>}
+        {sheet.item.work_items.expected_outcome && <div className="review-evidence-block"><span>Expected result</span><strong>{sheet.item.work_items.expected_outcome}</strong></div>}
+        {sheet.item.note && <div className="review-evidence-block"><span>Submission note</span><strong>{sheet.item.note}</strong></div>}
+        {sheet.item.submission_files?.length > 0 && <div className="review-evidence-links">
+          {sheet.item.submission_files.map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer">Open submitted evidence ↗</a>)}
+        </div>}
+        {returnItems.length > 0 && <div className="review-checklist-summary">
+          <span>Checklist</span>
+          {returnItems.map((item) => <div key={item.id}>{item.label}</div>)}
+        </div>}
+        {!sheet.decision && <div className="review-decision-row">
+          <button className="btn btn-ghost" onClick={() => setSheet((current) => ({ ...current, decision: "returned" }))}>Return for correction</button>
+          <button className="btn" onClick={() => setSheet((current) => ({ ...current, decision: "completed" }))}>Approve</button>
+        </div>}
+        {sheet.decision === "returned" && <>
+          <div className="sec" style={{ marginTop: 14 }}><span>What needs changing</span></div>
+          {returnItems.length > 0 && <div className="card" style={{ padding: "2px 15px" }}>
             {returnItems.map((item) => (
               <button key={item.id} className={"ck " + (selectedReturnItems.includes(item.id) ? "done" : "")} onClick={() => toggleReturnItem(item.id)}>
                 <span className={"box " + (selectedReturnItems.includes(item.id) ? "on" : "")} />
                 <span className="ck-l">{item.label}</span>
               </button>
             ))}
-          </div>
-          <div className="hint">Leave these unselected if the correction is not tied to a checklist point.</div>
+          </div>}
+          <AssistiveTextarea className="field" rows={3} placeholder="Explain exactly what needs changing" value={comment} onChange={(event) => setComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => decideWork(sheet.item, "returned")}>{busy ? "Saving..." : "Return work"}</button>
         </>}
-        <AssistiveTextarea className="field" rows={3} placeholder={sheet.decision === "completed" ? "Note (optional)" : "What needs changing"} value={comment} onChange={(event) => setComment(event.target.value)} />
-        <button className="btn" style={{ marginTop: 14 }} disabled={busy || (sheet.decision === "returned" && !comment.trim())} onClick={() => decideWork(sheet.item, sheet.decision)}>{busy ? "Saving..." : sheet.decision === "completed" ? "Approve" : "Return"}</button>
+        {sheet.decision === "completed" && <>
+          <AssistiveTextarea className="field" rows={3} placeholder="Approval note (optional)" value={comment} onChange={(event) => setComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => decideWork(sheet.item, "completed")}>{busy ? "Saving..." : "Confirm approval"}</button>
+        </>}
+        {sheet.decision && <button className="text-action" style={{ marginTop: 12 }} onClick={() => { setComment(""); setSelectedReturnItems([]); setSheet((current) => ({ ...current, decision: null })); }}>Choose another decision</button>}
       </Sheet>}
       {sheet?.type === "leave" && <Sheet onClose={() => { setSheet(null); setComment(""); }}>
         <div className="h2">{sheet.decision === "declined" ? "Decline leave" : Number(sheet.item.days) > leaveLimit ? "Escalate leave" : "Approve leave"}</div>
