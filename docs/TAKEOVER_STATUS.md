@@ -1,19 +1,32 @@
 # CEAC OS — Takeover Status
 
-**Checkpoint time:** 2026-09-21 05:51 UTC  
-**Active builder:** Codex  
-**Repository:** `thestandardinst-star/ceac-os`  
-**Working branch:** `codex/manager-home-my-work-foundation`  
-**Pull request:** #4 — open, mergeable, not a draft, not merged  
-**Feature commit inspected:** `5bc20d606e6b9d5f99ee3eb11219c9a5defa955c`  
-**Main commit inspected:** `bfbcebad33c680a953ce01acc63a49a0f1cce3a0`  
-**Branch position:** 265 commits ahead, 0 behind `main`  
-**PR size:** 111 changed files, 19,399 additions, 1,391 deletions  
-**Supabase project:** `efjljhftsesssumtshvp`  
-**Live migration range:** 001–066  
-**Repository migration range:** 001–066  
-**Next migration number:** 067, if a later verified requirement needs one  
-**Owner-facing URL:** <https://ceac-os-git.vercel.app>  
+**Checkpoint time:** 2026-09-21 05:51 UTC
+
+**Active builder:** Codex
+
+**Repository:** `thestandardinst-star/ceac-os`
+
+**Working branch:** `codex/manager-home-my-work-foundation`
+
+**Pull request:** #4 — open, mergeable, not a draft, not merged
+
+**Feature commit inspected:** `5bc20d606e6b9d5f99ee3eb11219c9a5defa955c`
+
+**Main commit inspected:** `bfbcebad33c680a953ce01acc63a49a0f1cce3a0`
+
+**Branch position after adding this document:** 266 commits ahead, 0 behind `main`
+
+**PR size after adding this document:** 112 changed files, 19,559 additions, 1,391 deletions
+
+**Supabase project:** `efjljhftsesssumtshvp`
+
+**Live migration range:** 001–066
+
+**Repository migration range:** 001–066
+
+**Next migration number:** 067, if a later verified requirement needs one
+
+**Owner-facing URL:** <https://ceac-os-git.vercel.app>
 
 Future agents must read this document before changing CEAC OS. Claude may review or contribute later, but Codex is the active builder at this checkpoint.
 
@@ -112,7 +125,7 @@ Only evidence obtained in this pass or a current-head automated check is listed 
 
 ### Oversized PR
 
-PR #4 contains 265 commits and 111 changed files. Merge conflict, review-fatigue, and rollback-diagnosis risk are materially higher than for a focused PR. Do not add unrelated features to it.
+PR #4 contains 266 commits and 112 changed files after this document-only checkpoint. Merge conflict, review-fatigue, and rollback-diagnosis risk are materially higher than for a focused PR. Do not add unrelated features to it.
 
 ### Shared files
 
@@ -157,4 +170,3 @@ Remaining blockers:
 7. Add/enforce appropriate `main` branch protection and required checks, subject to owner approval.
 
 After those pass, the safe next phase is a checkpoint report asking the owner whether to merge PR #4. Broad Administration & HR work begins only after that merge decision and a fresh branch from current `main`.
-
