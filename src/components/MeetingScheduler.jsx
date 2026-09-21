@@ -77,7 +77,10 @@ export default function MeetingScheduler({
 
       const manageableProjects = privileged
         ? projectResult.data || []
-        : (projectResult.data || []).filter((row) => managedUnitIds.includes(row.lead_unit_id));
+        : (projectResult.data || []).filter((row) =>
+            managedUnitIds.includes(row.lead_unit_id)
+            || (row.project_units || []).some((unit) => managedUnitIds.includes(unit.unit_id))
+          );
       setProjects(manageableProjects);
     } catch (err) {
       setError(err.message || "Meeting options could not be loaded.");
