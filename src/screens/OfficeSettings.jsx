@@ -20,14 +20,18 @@ export default function OfficeSettings({ me }) {
   const [sickDays, setSickDays] = useState("");
   const [carryOver, setCarryOver] = useState("");
   const [managerLimit, setManagerLimit] = useState("");
+  const [thresholds, setThresholds] = useState([]);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setMessage(null);
-    const [officeResult, leaveResult] = await Promise.all([
+    const [officeResult, leaveResult, thresholdResult, inviteResult] = await Promise.all([
       supabase.from("office_locations").select("*").eq("is_primary", true).limit(1).maybeSingle(),
       supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle(),
+      supabase.from("thresholds").select("name,label,value,unit_label").neq("name","pay_change_pct").order("label"),
+      supabase.from("pending_invitations").select("id,email,full_name,unit_id,invited_at,expires_at,units(name)").is("resolved_at",null).gt("expires_at",new Date().toISOString()).order("invited_at",{ascending:false}),
     ]);
 
     if (officeResult.error) {
@@ -36,6 +40,14 @@ export default function OfficeSettings({ me }) {
     }
     if (leaveResult.error) {
       setMessage({ tone: "error", title: "Leave settings could not load", body: humanError(leaveResult.error) });
+      return;
+    }
+    if (thresholdResult.error) {
+      setMessage({ tone: "error", title: "Attention rules could not load", body: humanError(thresholdResult.error) });
+      return;
+    }
+    if (inviteResult.error) {
+      setMessage({ tone: "error", title: "People & access status could not load", body: humanError(inviteResult.error) });
       return;
     }
 
@@ -47,6 +59,9 @@ export default function OfficeSettings({ me }) {
       setLng(String(o.lng));
       setRadius(o.radius_meters);
     }
+
+    setThresholds((thresholdResult.data || []).map((row) => ({ ...row, value: String(row.value ?? "") })));
+    setPendingInvitations(inviteResult.data || []);
 
     const policy = leaveResult.data;
     const configured = Boolean(policy?.updated_by);
@@ -147,6 +162,26 @@ export default function OfficeSettings({ me }) {
     }
   }
 
+  async function saveThreshold(row) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const value = Number(row.value);
+      if (!Number.isFinite(value) || value < 0) throw new Error("Enter a valid non-negative number.");
+      const result = await supabase.from("thresholds")
+        .update({ value })
+        .eq("org_id", me.org_id)
+        .eq("name", row.name);
+      if (result.error) throw result.error;
+      await load();
+      setMessage({ tone: "success", title: "Attention rule updated", body: `${row.label} ${value} ${row.unit_label}.` });
+    } catch (error) {
+      setMessage({ tone: "error", title: "Attention rule was not saved", body: humanError(error) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const mapSrc = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}&z=17&output=embed` : null;
 
   return <div className="body office-settings">
@@ -197,6 +232,27 @@ export default function OfficeSettings({ me }) {
         <button className="btn" onClick={saveLeave} disabled={saving}>
           {saving ? "Saving…" : leaveConfigured ? "Update confirmed leave policy" : "Confirm leave policy"}
         </button>
+      </section>
+
+      <section className="office-settings-card office-settings-wide">
+        <SectionHeader eyebrow="Quiet by default" title="When to tell Administration" />
+        <p className="screen-note">These are deterministic rules already used by CEAC OS. Changing a value changes when an item becomes visible; it does not change the underlying work or create a score.</p>
+        <div className="office-threshold-list">
+          {thresholds.map((row) => <div key={row.name} className="office-threshold-row">
+            <div><strong>{row.label}</strong><span>{row.unit_label}</span></div>
+            <input aria-label={row.label} className="field" type="number" min="0" step={row.unit_label === "%" ? "1" : "1"} value={row.value} onChange={(event) => setThresholds((current) => current.map((item) => item.name === row.name ? { ...item, value:event.target.value } : item))} />
+            <button className="btn btn-ghost btn-sm" disabled={saving} onClick={() => saveThreshold(row)}>Save</button>
+          </div>)}
+        </div>
+      </section>
+
+      <section className="office-settings-card office-settings-wide">
+        <SectionHeader eyebrow="People & access" title="Pending invitations" count={pendingInvitations.length} />
+        <p className="screen-note">New accounts always activate as Staff. Administration assigns official authority only after activation.</p>
+        {pendingInvitations.length === 0 && <div className="card small">No active invitations are waiting.</div>}
+        {pendingInvitations.map((invite) => <div key={invite.id} className="admin-evidence-row">
+          <div><strong>{invite.full_name || invite.email}</strong><span>{invite.email} · {invite.units?.name || "Unit"} · expires {dateOnly(invite.expires_at)}</span></div>
+        </div>)}
       </section>
 
       <section className="office-settings-card office-settings-wide">
