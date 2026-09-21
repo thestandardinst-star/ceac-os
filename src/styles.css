@@ -2740,3 +2740,13 @@ textarea{width:100%}
   padding:8px 12px;border-radius:999px;background:var(--manager-shell,#17232D);color:#fff;
   box-shadow:0 8px 24px rgba(23,35,45,.18);font-size:11.5px;font-weight:650
 }
+
+
+/* Product refinement: Manager person orientation */
+.person-orientation-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0 4px}
+.person-orientation-grid>div{padding:12px;border:1px solid var(--manager-line,var(--line));border-radius:12px;background:#fff}
+.person-orientation-grid strong{display:block;font-size:20px;letter-spacing:-.03em}
+.person-orientation-grid span{display:block;margin-top:5px;font-size:10.5px;line-height:1.3;color:var(--ink-faint)}
+.person-orientation-grid>div.attention{background:var(--amber-soft);border-color:rgba(154,104,21,.18)}
+.person-outcome-grid .metric small{display:block;margin-top:4px;color:var(--ink-faint);font-size:10px;font-weight:500}
+@media(max-width:430px){.person-orientation-grid{grid-template-columns:1fr 1fr}.person-orientation-grid>div:last-child{grid-column:1 / -1}}
