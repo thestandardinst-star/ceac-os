@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel, isOverdue } from "../lib/time";
 import { Pill, statusPill } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 function requireResult(result, label) {
   if (result.error) throw new Error(`${label}: ${result.error.message}`);
@@ -108,7 +109,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
       } else {
         setObjectives([]); setObjectiveTasks([]);
       }
-    } catch (err) { setError(err.message || "This person could not be loaded."); }
+    } catch (err) { setError(humanError(err, "This person could not be loaded.")); }
   }
 
   async function addFeedback() {
@@ -119,7 +120,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
       });
       if (insertError) throw insertError;
       setNote(""); await load();
-    } catch (err) { setError(err.message || "The feedback could not be saved."); }
+    } catch (err) { setError(humanError(err, "The feedback could not be saved.")); }
     finally { setBusy(false); }
   }
 
