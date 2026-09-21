@@ -1,250 +1,226 @@
-# CEAC OS — Takeover Status
+# CEAC OS — Current Build / Security Baseline
 
-**Checkpoint time:** 2026-09-21
-
-**Active builder:** ChatGPT / Codex-compatible workflow
-
-**Repository:** `thestandardinst-star/ceac-os`
-
-**Working branch:** `codex/manager-home-my-work-foundation`
-
-**Pull request:** #4 — open, mergeable, not a draft, not merged
-
-**Feature/test head fully accepted:** `fe156f10e11ff91fc5f20861ed0593a376b6627b`
-
-**Base main inspected:** `bfbcebad33c680a953ce01acc63a49a0f1cce3a0`
-
-**Supabase project:** `efjljhftsesssumtshvp`
-
-**Live migration range:** 001–066
-
-**Repository migration range:** 001–066
-
-**Next migration number:** 067, only if a later verified requirement needs one
-
+**Checkpoint:** 21 September 2026  
+**Repository:** `thestandardinst-star/ceac-os`  
+**Stable branch:** `main`  
+**Active development branch:** `codex/admin-hr-completion`  
+**Supabase project:** `efjljhftsesssumtshvp`  
 **Owner-facing URL:** <https://ceac-os-git.vercel.app>
 
-This document is the handover baseline. Future ChatGPT, Codex, or Claude sessions should read it before changing CEAC OS.
+This file is the current handoff baseline for ChatGPT, Codex, Claude, or a human developer. Read it before changing CEAC OS.
 
-## Final safety-phase result
+## Current main
 
-The takeover / verification / acceptance task is complete.
+Latest secured main checkpoint at the time of this document:
 
-PR #4 now has automated coverage for the important Staff and Manager operating loop and all configured GitHub safety gates pass on the accepted feature head.
+`f1d9cd35895cb6dc582c6859a8bcfd59c6b99332`
 
-The exact feature head:
+PRs completed during takeover:
 
-- builds successfully;
-- replays the full database from 001 through 066 successfully;
-- passes invited-account security checks;
-- passes role/RLS checks;
-- passes the original role-routing browser tests;
-- passes the new end-to-end acceptance browser tests;
-- receives a successful Vercel deployment status.
+- PR #4 — Staff / Manager operating surface and acceptance baseline — merged.
+- PR #5 — Admin & HR security gate — merged.
+- PR #6 — protected HR foundation — merged.
+- PR #7 — frontend dependency and CI security hardening — merged.
 
-No merge, production alias change, destructive database action, branch deletion, or production data mutation was performed during this safety phase.
+Vercel reported successful deployment for the latest merged main.
 
-## Acceptance coverage added
+## Live database
 
-`tests/acceptance-core.spec.js` now verifies the exact PR code against a clean local Supabase database and isolated fixture accounts.
+Logical migration baseline: **001–068**.
 
-### Staff + Manager work loop — PASS
+The two latest live security migrations are:
 
-Verified end to end:
+- 067 — Admin & HR security gate;
+- 068 — protected HR foundation.
 
-1. Manager gives work to Staff.
-2. Staff sees the work and its purpose/finished outcome.
-3. Staff starts a work session.
-4. Staff completes the checklist.
-5. Staff sends the work for review.
-6. Manager returns it with a correction.
-7. Staff sees the return reason and resubmits.
-8. Manager approves it.
-9. The completed work appears in the Staff Record.
+A clean local Supabase database replays the full migration history successfully.
 
-A real defect found by this test was fixed: after a returned item was resubmitted, Manager Home could show more than one review row for the same work item because historical submissions were all joined to the item's current `in_review` state. Manager Home now keeps only the latest submission for each work item in the active review queue while preserving submission history elsewhere.
+## Staff / Manager acceptance baseline
 
-### Blocker / Waiting on — PASS
+The accepted browser tests cover:
 
-Verified:
+- Manager assigns work;
+- Staff receives and completes it;
+- Staff submits;
+- Manager returns it;
+- Staff corrects and resubmits;
+- Manager approves;
+- completed work appears in Staff Record;
+- blockers can be raised, acknowledged and resolved;
+- personal details persist;
+- private work is isolated;
+- typed work creation is covered;
+- mobile Staff rendering is covered;
+- Administration and Group Pastor shared-route regressions are smoke-tested.
 
-- Staff raises a blocker;
-- the manager sees it;
-- the manager acknowledges it;
-- the blocker is resolved;
-- the Staff item no longer shows the blocker after resolution.
+The original duplicate Manager review-row defect discovered by these tests was fixed.
 
-### Personal details — PASS
+## Database security baseline
 
-Verified:
+### RLS / role separation
 
-- editable Staff personal details save;
-- the values persist when reopened;
-- emergency/address details remain in the dedicated private personal-details store.
+- public application tables use RLS;
+- anonymous users cannot execute public SECURITY DEFINER functions;
+- privileged functions have fixed search paths;
+- signed-in privileged RPCs must show an approved actor / authority / visibility binding;
+- Staff cannot self-promote;
+- official Unit Head assignment remains Administration-controlled;
+- Staff/Manager/Executive do not inherit protected HR-private access merely from navigation or seniority;
+- private Staff work remains owner-only.
 
-The edit form's visible labels are now properly connected to their controls for keyboard/accessibility tooling.
+### Cross-organisation protection
 
-### Private work — PASS
+`app_threshold(...)` now rejects signed-in attempts to read another organisation's threshold configuration.
 
-Verified through the browser that private work created by one Staff fixture is not shown to another Staff fixture.
+### Future RPC defaults
 
-Live database policy inspection also confirms that `profile_personal_details` can be read only by the profile owner or Administration within the organisation:
+PostgreSQL default function privileges were hardened.
 
-`profile_id = auth.uid() OR app_is_admin()`.
+New public functions are not automatically executable by PUBLIC, `anon`, or `authenticated`. Any future browser-callable RPC must grant EXECUTE deliberately in its migration.
 
-Earlier live RLS checks also confirmed cross-unit profile/membership isolation and non-vacuous private-work isolation.
+## Protected HR foundation
 
-### Typed work — PASS
+Protected employee data must not be added to `public.profiles`.
 
-Browser acceptance covers creation of:
+A non-browser-exposed schema now exists:
 
-- Task;
-- Routine;
-- Case;
-- Request;
-- Decision;
-- Meeting outcome;
-- Deliverable.
+`hr_private`
 
-The Task path is exercised through the complete review loop. Other work types are checked for correct creation and arrival on the relevant Staff work surface where applicable.
+Browser roles have no schema usage or direct table access.
 
-### Mobile / accessibility — PASS for the covered acceptance scope
+Initial protected structures:
 
-Verified at a 390 × 844 Staff viewport:
+- `hr_private.documents` — protected HR document metadata;
+- `hr_private.audit_events` — append-only sensitive HR/security history.
 
-- no horizontal page overflow;
-- mobile navigation is present;
-- sheets receive focus;
-- Escape closes a sheet.
+The audit ledger rejects UPDATE and DELETE.
 
-The shared Sheet component also traps keyboard focus, restores prior focus when closed, and exposes a close control.
+### Protected files
 
-### Administration regression — PASS for current smoke scope
+Private Supabase Storage bucket:
 
-Authenticated Administration fixture successfully opens:
+`ceac-hr-private`
 
-- Home;
-- Units;
-- People;
-- Attendance;
-- Cost;
-- Reporting;
-- Settings.
+Current condition:
 
-The tested screens load without the app's visible database-error banner.
+- private;
+- no direct browser Storage policy;
+- no public object access.
 
-This is a regression gate only. It does not mean the broader Administration & HR product phase is complete.
+Document access must be introduced later through explicit, tested Staff/Admin/Executive rules rather than opening the bucket broadly.
 
-### Group Pastor regression — PASS for current smoke scope
+## HR/pay data that must remain out of ordinary profiles
 
-Authenticated Executive fixture successfully opens the existing Group Pastor Home, Announcements, and Me surfaces without a route/shared-component regression.
+Do not place the following in `public.profiles`:
 
-This is a regression gate only. It does not mean the final Group Pastor product phase is complete.
+- Ghana Card / national ID;
+- SSNIT or tax identifiers;
+- bank/payment details;
+- salary/payroll records;
+- payslips;
+- protected contracts/documents.
 
-## Automated gates
+The permanent Admin/HR security gate fails if protected HR fields are added to the ordinary profile model.
 
-On `fe156f10e11ff91fc5f20861ed0593a376b6627b`:
+## Security gates
 
-| Gate | Result |
-|---|---|
-| Build | PASS |
-| Migration Replay | PASS |
-| Account Security / invited account lifecycle | PASS |
-| Role + RLS quality gate | PASS |
-| Original role-routing Playwright tests | PASS |
-| New core acceptance Playwright tests | PASS — 9/9 total browser tests passed |
-| Vercel deployment status | PASS |
+The repository currently enforces through GitHub Actions:
 
-The accepted feature head is reported by GitHub as mergeable and clean.
+- application build;
+- `npm audit --audit-level=high`;
+- migration replay;
+- invited-account lifecycle;
+- SQL RLS smoke tests;
+- Admin/HR security gate;
+- role-routing / browser smoke tests.
 
-## Vercel / stable URL
+The Supabase CLI used by security workflows is pinned instead of resolving `latest`, reducing CI failures caused by external rate limits.
 
-The owner-facing address remains:
+## Frontend dependency baseline
 
-<https://ceac-os-git.vercel.app>
+Resolved secured toolchain:
 
-It was previously verified as reachable and authenticated against the CEAC Supabase project. It currently represents the stable `main` deployment because PR #4 has deliberately not been merged or promoted.
+- Vite 8.3.0;
+- @vitejs/plugin-react 6.1.1;
+- Node >=22.12 <23.
 
-The exact PR head also received a successful Vercel deployment status.
+The earlier high-severity dependency audit finding from the old Vite/esbuild chain is no longer present in the resolved lockfile.
 
-The PR preview itself is protected by Vercel Authentication. The connected Vercel tooling available during this takeover did not have permission to bypass that protection and returned 403. The protection was not weakened.
+The CI build now fails on high or critical npm audit findings.
 
-To avoid turning that into an untested assumption, the exact PR source was instead exercised end to end in the existing GitHub quality-gate environment against a clean replayed Supabase database. This tests the same application code without touching live CEAC records.
+Dependabot monitoring is enabled for npm and GitHub Actions dependency updates.
 
-No Vercel alias or production deployment was changed.
+## Live security verification
 
-## Supabase state
+After migrations 067–068, live Supabase verification confirmed:
 
-- Live project: `efjljhftsesssumtshvp`
-- Live migrations: 001–066
-- Repository migrations: 001–066
-- All configured migration replay checks pass.
-- Public application tables are RLS-protected.
-- No anonymous/PUBLIC execution exposure on the reviewed SECURITY DEFINER surface was found in the prior takeover audit.
+- `hr_private` exists;
+- `anon` cannot use it;
+- `authenticated` cannot use it;
+- protected HR tables have RLS enabled;
+- `ceac-hr-private` is private;
+- no browser policy currently targets that bucket;
+- HR audit immutability trigger exists;
+- anonymous SECURITY DEFINER execution count is zero;
+- authenticated SECURITY DEFINER functions without an approved actor/authority binding: zero.
 
-### Security items to carry forward
+## Supabase advisor findings that are intentional
 
-These are production-hardening items, not reasons to rewrite the accepted Staff/Manager tranche:
+The security advisor still reports:
 
-1. Supabase's advisor reports leaked-password protection disabled. The connected Supabase tools do not expose the Auth setting needed to change this safely from this session. Enable it before external CEAC production rollout.
-2. Supabase currently reports 68 SECURITY DEFINER functions executable by authenticated users. Many are intentional application RPCs with internal authority checks. Treat this as a least-privilege review item before final handover rather than bulk-revoking functions and breaking the application.
-3. The GitHub repository has no enforced ruleset/branch-protection configuration visible from the connected tooling. Add required-check protection before the repository becomes a multi-contributor production workflow.
+1. RLS-with-no-policy on the two reference-counter tables and the two `hr_private` tables. This is intentional: the counter tables are RPC-only and the HR-private tables are deliberately inaccessible directly.
+2. Authenticated SECURITY DEFINER functions. These are intentional application RPCs / RLS helpers and are now structurally checked by the Admin/HR security gate.
 
-## Risks that remain
+Do not bulk-revoke them merely to clear the advisor.
 
-### PR size
+## Account-level controls that still require owner console access
 
-PR #4 is very large. Do not add the next Administration & HR feature phase to this branch.
+These are not code/database gaps, but the current connectors cannot change them.
 
-### Protected preview
+### Supabase leaked-password protection
 
-The Vercel preview remains intentionally protected. Current connected Vercel access cannot interact with it directly. GitHub/Vercel reports the exact candidate deployment successful; exact-source acceptance is covered locally in CI.
+Supabase Auth still reports leaked-password protection disabled.
 
-### Production hardening
+Enable it in the Supabase Auth password-security settings before real CEAC user rollout.
 
-Leaked-password protection, final least-privilege review, repository branch protection, backup/restore handover, and final CEAC production ownership are still future handover tasks.
+### GitHub main-branch protection
 
-These do not make the current Staff/Manager code untested; they mean CEAC OS is not yet at final external-production handover.
+The repository currently exposes no GitHub ruleset through the connected integration.
 
-## Rollback
+Before multiple builders are allowed to work independently against production, configure `main` so changes require a pull request and the relevant green checks.
 
-- Base main before PR #4: `bfbcebad33c680a953ce01acc63a49a0f1cce3a0`
-- Fully accepted feature/test head: `fe156f10e11ff91fc5f20861ed0593a376b6627b`
-- Stable owner-facing deployment remains <https://ceac-os-git.vercel.app> and has not been repointed during this safety phase.
+The connected GitHub integration used here does not have permission to create/read branch-protection rules, so this cannot be truthfully marked complete from this session.
 
-Use normal reviewed revert/rollback operations. Do not rewrite shared history or delete migrations.
+## What is deliberately not built yet
 
-## Merge-readiness classification
+Security foundation does not equal the Admin/HR product build.
 
-**PR #4: READY FOR OWNER MERGE DECISION.**
+Still to be designed/implemented on top of this foundation:
 
-This means the Staff/Manager tranche has passed the required code, migration, role, privacy, browser and regression gates for merge consideration.
+- salary structure;
+- statutory rate/version model;
+- allowances and deductions;
+- payroll runs and immutable corrections;
+- protected employee identifiers;
+- protected document upload/download policies;
+- contract expiry workflows;
+- appraisal/review cycles;
+- detailed Admin/HR screens;
+- final Group Pastor drilldown rules for protected HR/pay information;
+- payroll practice environment.
 
-It does **not** mean CEAC OS as a whole is production-handover complete.
+Those features must extend the security tests in the same PR that introduces their access.
 
-The safety prompt explicitly prohibited merging automatically, so PR #4 remains open.
+## Next development step
 
-## Exact next phase
+The secure code/database foundation is now ready for the Administration & HR product phase.
 
-After the owner approves the merge decision:
+Before adding any protected HR capability:
 
-1. Merge PR #4.
-2. Confirm the stable Vercel URL has deployed the merged `main`.
-3. Re-run a short post-merge smoke check.
-4. Create a fresh branch from updated `main`.
-5. Begin the Administration & HR completion phase.
-6. Complete Group Pastor after Administration produces reliable organisation-level data.
-7. Finish whole-system onboarding, handover, production security/ownership, and only then Cloudflare migration planning.
+1. define exactly who may read/write it;
+2. add database/RPC rules first;
+3. extend `supabase/tests/admin_hr_security_gate.sql`;
+4. then build the UI;
+5. run the full gate before merge.
 
-Claude may return later to review or contribute. Claude should work from this recorded baseline rather than from the earlier file-ownership assumptions.
-
-
-## Post-merge Administration & HR branch
-
-PR #4 was merged into `main` at `36d8c6d7f0e2f428f5b80845f306c5a6dc85291c`.
-
-The clean continuation branch is:
-
-`codex/admin-hr-completion`
-
-The first task on this branch is the Administration & HR security gate. No protected HR feature work should begin until migration 067 and `supabase/tests/admin_hr_security_gate.sql` pass the repository safety gates.
+Claude may return later as reviewer/contributor. Work from this baseline, not from the older file-ownership notes or pre-067 architecture assumptions.
