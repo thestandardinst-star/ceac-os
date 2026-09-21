@@ -252,8 +252,8 @@ export default function Team({ me, openPerson, goAssign }) {
   const unassignedPeople = people.filter((person) => !(members[person.profile_id] || []).length);
 
   return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
+    <div className="body manager-team">
+      <div className="manager-page-intro">
         <div className="eyebrow">{me.unit_name}</div>
         <h1 className="h1" style={{ marginTop: 6 }}>Your team</h1>
         <p className="screen-note">Presence and work are shown side by side as facts. They are not a judgement about a person.</p>
