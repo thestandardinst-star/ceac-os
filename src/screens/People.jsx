@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { statusPill } from "../components/bits";
+import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
 
@@ -14,6 +15,8 @@ function avgStartLabel(minutes) {
 export default function People({ me, openItem }) {
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [searchText, setSearchText] = useState("");
+  const [leavePolicy, setLeavePolicy] = useState(null);
   const [person, setPerson] = useState(null);
   const [drill, setDrill] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,13 +28,22 @@ export default function People({ me, openItem }) {
   async function load() {
     setLoading(true);
     setError(null);
-    const { data, error: loadError } = await supabase.rpc("admin_people_summary");
-    if (loadError) {
-      setError(loadError.message || "The People record could not load.");
+    const [peopleResult, leaveResult] = await Promise.all([
+      supabase.rpc("admin_people_summary"),
+      supabase.from("leave_settings").select("annual_days,sick_days,max_carryover,updated_by,updated_at").eq("org_id", me.org_id).maybeSingle(),
+    ]);
+    if (peopleResult.error) {
+      setError(humanError(peopleResult.error, "The People record could not load."));
       setLoading(false);
       return;
     }
-    setRows(Array.isArray(data) ? data : []);
+    if (leaveResult.error) {
+      setError(humanError(leaveResult.error, "Leave policy status could not load."));
+      setLoading(false);
+      return;
+    }
+    setRows(Array.isArray(peopleResult.data) ? peopleResult.data : []);
+    setLeavePolicy(leaveResult.data?.updated_by ? leaveResult.data : null);
     setLoading(false);
   }
 
@@ -42,7 +54,7 @@ export default function People({ me, openItem }) {
     const { data, error: detailError } = await supabase.rpc("admin_person_detail", { p_profile_id: summary.id });
     setDetailLoading(false);
     if (detailError) {
-      setError(detailError.message || "That employee record could not load.");
+      setError(humanError(detailError, "That employee record could not load."));
       return;
     }
     const work = Array.isArray(data?.work) ? data.work.map((item) => ({
@@ -59,7 +71,6 @@ export default function People({ me, openItem }) {
       assigned: done.filter((item) => item.origin === "assigned"),
       self: done.filter((item) => item.origin === "self_created"),
       onTime: done.filter((item) => item.due_at && item.completed_at && new Date(item.completed_at) <= new Date(item.due_at)),
-      firstTime: done.filter((item) => item.first_time_approved === true),
       openWork: work.filter((item) => !["completed","self_certified","cancelled"].includes(item.status)),
       sessions,
       leave,
@@ -71,7 +82,7 @@ export default function People({ me, openItem }) {
     });
   }
 
-  if (loading) return <div className="body"><div className="spin">Loading the people...</div></div>;
+  if (loading) return <div className="body"><LoadingState label="Loading People…" /></div>;
 
   if (person && drill) {
     return <div className="body">
@@ -99,8 +110,8 @@ export default function People({ me, openItem }) {
   }
 
   if (person) {
-    const entitlement = 15 + Number(person.balance?.carryover_from_last_year || 0);
     const taken = Number(person.balance?.annual_taken || 0);
+    const entitlement = leavePolicy ? Number(leavePolicy.annual_days || 0) + Number(person.balance?.carryover_from_last_year || 0) : null;
     const Fig = ({ n, label, kind, list }) => <button className="metric" style={{ textAlign: "left", width: "100%" }}
       onClick={() => setDrill({ label, kind, rows: list })}><b>{n}</b><span>{label}</span></button>;
     const Line = ({ l, v }) => <div style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderTop: "1px solid var(--line-soft)", fontSize: 13.5 }}>
@@ -123,20 +134,20 @@ export default function People({ me, openItem }) {
           <div className="metric-grid">
             <Fig n={person.assigned.length} label="finished — given to them" kind="work" list={person.assigned} />
             <Fig n={person.self.length} label="finished — added themselves" kind="work" list={person.self} />
-            <Fig n={person.onTime.length} label="on time" kind="work" list={person.onTime} />
-            <Fig n={person.firstTime.length} label="approved first time" kind="work" list={person.firstTime} />
+            <Fig n={person.onTime.length} label="completed on time" kind="work" list={person.onTime} />
+            <Fig n={person.done.length} label="completed outcomes" kind="work" list={person.done} />
           </div>
           <button className="row" style={{ marginTop: 10 }} onClick={() => setDrill({ label: "Open work", kind: "work", rows: person.openWork })}>
             <div className="row-t">{person.openWork.length} open job{person.openWork.length === 1 ? "" : "s"}</div>
             <div className="row-m">Press to see them</div>
           </button>
 
-          <div className="sec"><span>Attendance</span></div>
+          <div className="sec"><span>Activity context</span></div>
           <div className="metric-grid">
-            <Fig n={person.days_this_month || 0} label="days this month" kind="sessions" list={person.sessions} />
-            <div className="metric"><b>{avgStartLabel(person.avg_start_minutes)}</b><span>average start</span></div>
+            <Fig n={person.days_this_month || 0} label="days with a recorded session this month" kind="sessions" list={person.sessions} />
+            <div className="metric"><b>{avgStartLabel(person.avg_start_minutes)}</b><span>average recorded start</span></div>
           </div>
-          <p className="small" style={{ marginTop: 8, lineHeight: 1.5 }}>A record of activity, not a basis for pay. Location is recorded once when they tap Start work, not during the day.</p>
+          <p className="small" style={{ marginTop: 8, lineHeight: 1.5 }}>These are factual work-session records only. They are not a productivity measure and are never a basis for pay.</p>
         </div>
 
         <div className="side-col">
@@ -154,27 +165,38 @@ export default function People({ me, openItem }) {
 
           <div className="sec"><span>Leave</span></div>
           <div className="card" style={{ padding: "4px 15px" }}>
-            <Line l="Annual taken" v={taken + " of " + entitlement + " days"} />
-            <Line l="Sick taken" v={Number(person.balance?.sick_taken || 0) + " days"} />
+            <Line l="Annual taken" v={leavePolicy ? taken + " of " + entitlement + " configured days" : taken + " days recorded · entitlement not configured"} />
+            <Line l="Sick taken" v={Number(person.balance?.sick_taken || 0) + " days recorded"} />
           </div>
           <button className="row" style={{ marginTop: 8 }} onClick={() => setDrill({ label: "Leave history", kind: "leave", rows: person.leave })}>
             <div className="row-t">{person.leave.length} request{person.leave.length === 1 ? "" : "s"} on record</div>
             <div className="row-m">Press to see them</div>
           </button>
 
-          <div className="sec"><span>Protected HR boundary</span></div>
-          <div className="card small" style={{ lineHeight: 1.55 }}>Documents, pay, payslips, appraisals, welfare and training require the protected HR storage/workflow. This ordinary employee record does not pretend they are present.</div>
+          <div className="sec"><span>Protected HR</span></div>
+          <div className="protected-hr-shell">
+            <div><span>Salary & payroll</span><strong>Awaiting CEAC salary structure</strong></div>
+            <div><span>Identifiers & bank details</span><strong>Protected storage ready · fields not yet confirmed</strong></div>
+            <div><span>Contracts & documents</span><strong>Protected storage ready · access rules not yet configured</strong></div>
+            <div><span>Payslips</span><strong>Available after payroll is configured</strong></div>
+          </div>
+          <p className="screen-note">These records are deliberately not stored in the ordinary employee profile. CEAC policy must be confirmed before protected fields or payroll calculations are introduced.</p>
         </div>
       </div>
     </div>;
   }
 
-  const shown = rows.filter((p) =>
-    filter === "all" ? true :
-    filter === "active" ? p.active :
-    filter === "on_leave" ? p.on_leave_now :
-    filter === "quiet" ? p.quiet :
-    filter === "no_unit" ? !p.unit_id : true);
+  const cleanSearch = searchText.trim().toLowerCase();
+  const shown = rows.filter((p) => {
+    const matchesFilter =
+      filter === "all" ? true :
+      filter === "active" ? p.active :
+      filter === "on_leave" ? p.on_leave_now :
+      filter === "quiet" ? p.quiet :
+      filter === "no_unit" ? !p.unit_id : true;
+    const matchesSearch = !cleanSearch || [p.full_name,p.email,p.job_title,p.unit_name].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanSearch));
+    return matchesFilter && matchesSearch;
+  });
 
   function rank(p) {
     if (p.is_exec) return 0;
@@ -208,11 +230,16 @@ export default function People({ me, openItem }) {
 
   return <div className="body">
     <div style={{ paddingTop: 26 }}>
+      <div className="eyebrow">Employee record</div>
       <h1 className="h1">People</h1>
-      <p className="screen-note">Organisation summaries are calculated in the database; detailed work/session/leave rows load only when you open one employee.</p>
+      <p className="screen-note">One factual employee record for identity, employment, work, leave and activity context. Protected HR remains behind a separate security boundary.</p>
     </div>
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}>{error}<button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={load}>Try again</button></div>}
-    {detailLoading && <div className="card small" style={{ marginTop: 14 }}>Opening employee record…</div>}
+    {error && <ProductNotice tone="error" title="People could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
+    {detailLoading && <LoadingState label="Opening employee record…" />}
+    {!leavePolicy && <ProductNotice tone="attention" title="Leave policy not configured">People records show leave actually taken, but CEAC OS will not calculate entitlement or remaining leave until Administration confirms the policy.</ProductNotice>}
+    <div className="people-search-row">
+      <FieldGroup label="Find a person"><input className="field" type="search" placeholder="Name, email, job title or unit" value={searchText} onChange={(event) => setSearchText(event.target.value)} /></FieldGroup>
+    </div>
     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
       {FILTERS.map(([key, label]) => <button key={key} onClick={() => setFilter(key)} style={{
         fontSize: 12.5, padding: "6px 12px", borderRadius: 20, border: "1px solid var(--line)",
@@ -236,6 +263,6 @@ export default function People({ me, openItem }) {
         </div>
       </button>)}
     </div>)}
-    {shown.length === 0 && <div className="empty"><h3>Nobody matches</h3><p>Try a different filter.</p></div>}
+    {shown.length === 0 && <EmptyState title="Nobody matches">Try a different filter or search term.</EmptyState>}
   </div>;
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
-import { Sheet } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits }) {
   const [units, setUnits] = useState([]);
@@ -36,9 +37,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       const now = Date.now();
       const weekAgo = new Date(now - 7 * 864e5).toISOString();
       const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
       const todayStr = new Date().toISOString().slice(0, 10);
 
-      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, objs, period, subs, memberships, meetingRows] = await Promise.all([
+      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, projectCloses, objs, period, subs, memberships, meetingRows] = await Promise.all([
         must(supabase.from("units").select("id,name").order("name"), "Units"),
         must(supabase.from("unit_memberships").select("unit_id,profile_id,profiles(id,full_name,email)").eq("role","manager"), "Unit heads"),
         must(supabase.from("completed_outputs").select("unit_id").gte("completed_at", weekAgo), "Completed outputs"),
@@ -50,10 +52,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
           .or("for_profile_id.eq."+me.id+",and(for_unit_id.is.null,for_profile_id.is.null)")
           .order("first_seen_at",{ascending:false}).limit(30), "Administration alerts"),
         must(supabase.from("blockers")
-          .select("id,party_text,since,state,party_unit_id,work_items(id,title,unit_id),profiles(full_name),units(name)")
+          .select("id,party_text,since,state,party_unit_id,work_items(id,title,unit_id),claimant:profiles!blockers_claimed_by_fkey(full_name),units(name)")
           .neq("state","resolved").limit(20), "Cross-unit blockers"),
         must(supabase.from("leave_requests")
-          .select("id,kind,start_date,end_date,days,status,profiles(full_name)")
+          .select("id,kind,start_date,end_date,days,status,requester:profiles!leave_requests_profile_id_fkey(full_name)")
           .in("status",["pending","escalated"]).order("requested_at",{ascending:false}).limit(20), "Leave queue"),
         must(supabase.from("work_items")
           .select("id,ref,title,status,due_at").eq("assignee_id",me.id)
@@ -63,7 +65,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         must(supabase.from("work_sessions").select("profile_id,ended_at,started_at").gte("started_at",dayStart.toISOString()), "Today's sessions"),
         must(supabase.from("work_sessions").select("profile_id,started_at").gte("started_at",weekAgo), "Recent sessions"),
         must(supabase.from("leave_requests").select("profile_id").eq("status","approved").lte("start_date",todayStr).gte("end_date",todayStr), "Today's leave"),
-        must(supabase.from("projects").select("id,name,status,lead_unit_id,ends_on,updated_at"), "Projects"),
+        must(supabase.from("projects").select("id,name,status,lead_unit_id,ends_on"), "Projects"),
+        must(supabase.from("project_closes")
+          .select("project_id,submitted_at")
+          .eq("scope","overall").eq("status","submitted")
+          .gte("submitted_at",monthStart.toISOString()), "Project closes"),
         must(supabase.from("objectives").select("id,name,status,unit_id,project_id"), "Objectives"),
         must(supabase.from("report_periods").select("id,label").eq("status","open").order("starts_on",{ascending:false}).limit(1).maybeSingle(), "Open reporting period"),
         must(supabase.from("submissions").select("profile_id,submitted_at").gte("submitted_at",weekAgo), "Recent submissions"),
@@ -106,10 +112,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         headcount: (staff || []).length,
       });
 
-      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+      const closedProjectIds = new Set((projectCloses || []).map((row) => row.project_id));
       setDelivery({
         active: (projs || []).filter((project) => project.status === "active").length,
-        closedThisMonth: (projs || []).filter((project) => project.status === "closed" && project.updated_at && new Date(project.updated_at) >= monthStart).length,
+        closedThisMonth: (projs || []).filter((project) => project.status === "closed" && closedProjectIds.has(project.id)).length,
         onTrack: (objs || []).filter((objective) => objective.status === "on_track" || objective.status === "met").length,
         objectives: (objs || []).length,
       });
@@ -186,7 +192,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       }).eq("id",request.id);
       if (error) throw error;
       await load();
-    } catch (error) { setMsg(error.message || "The leave decision could not be saved."); }
+    } catch (error) { setMsg(humanError(error, "The leave decision could not be saved.")); }
     finally { setBusy(false); }
   }
 
@@ -194,136 +200,140 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   const adminDate = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   const adminAttention = alerts.length + leaveQueue.length + withoutHead + (reporting?.missing?.length || 0);
 
+  const reportingGap = reporting?.missing?.length || 0;
+  const deliveryRisk = watch.length + blockers.length;
+  const needsYou = alerts.length + leaveQueue.length + withoutHead;
+
   return <div className="body admin-home">
     <section className="admin-command-surface">
       <div className="admin-command-context"><span>Administration &amp; HR</span><time>{adminDate}</time></div>
-      <div className="eyebrow">Organisation operations</div>
+      <div className="eyebrow">Organisation command surface</div>
       <h1 className="h1">Administration</h1>
-      <p className="screen-note">Organisation-wide exceptions, staffing, reporting and administrative action — without pulling unit-level work into HR unnecessarily.</p>
+      <p className="screen-note">Decisions, gaps and office-wide exceptions first. Unit-level work stays with managers unless Administration deliberately drills into it.</p>
       <div className="admin-command-stats" aria-label="Administration overview">
-        <div><strong>{adminAttention}</strong><span>Need attention</span></div>
-        <div><strong>{units.length}</strong><span>Units</span></div>
+        <div><strong>{needsYou}</strong><span>Need your action</span></div>
+        <div><strong>{reportingGap}</strong><span>Reporting gaps</span></div>
+        <div><strong>{deliveryRisk}</strong><span>Delivery risks</span></div>
         <div><strong>{today.headcount}</strong><span>People on record</span></div>
       </div>
     </section>
 
-    <section className="office-meeting-strip">
+    {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
+    {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
+
+    <section className="admin-home-section admin-home-priority">
+      <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />
+      {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
+
+      {!office && <ProductNotice tone="attention" title="Set the office location" action={<button className="btn btn-ghost btn-sm" onClick={openSettings}>Open Settings</button>}>Attendance cannot distinguish the office from another work location until this is configured.</ProductNotice>}
+
+      {withoutHead > 0 && <ProductNotice tone="attention" title={`${withoutHead} unit${withoutHead === 1 ? "" : "s"} without a head`} action={<button className="btn btn-ghost btn-sm" onClick={openUnits}>Open Units</button>}>Assign an existing unit member after their account is active. New invitations always begin as Staff.</ProductNotice>}
+
+      {leaveQueue.map((request) => <div key={request.id} className="admin-action-row">
+        <div>
+          <strong>{request.requester?.full_name || "—"} · {request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
+          <span>{request.start_date} → {request.end_date} · {request.status === "escalated" ? "Escalated by manager" : "Waiting for Administration"}</span>
+        </div>
+        <div className="admin-row-actions">
+          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => decideLeave(request, "declined")}>Decline</button>
+          <button className="btn btn-sm" disabled={busy} onClick={() => decideLeave(request, "approved")}>Approve</button>
+        </div>
+      </div>)}
+
+      {alerts.map((alert) => <button key={alert.id} className="admin-action-row admin-action-button" onClick={() => alert.subject_type === "work_item" && alert.subject_id && openItem(alert.subject_id)}>
+        <div><strong>{alert.message}</strong><span>Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day:"numeric", month:"short" })}</span></div>
+        <b aria-hidden="true">→</b>
+      </button>)}
+    </section>
+
+    <section className="admin-home-section">
+      <SectionHeader eyebrow="Reporting" title="Who is missing" count={reportingGap} />
+      {!reporting && <EmptyState compact title="No open reporting period">When Administration opens a reporting period, missing units will be named here.</EmptyState>}
+      {reporting && <div className="admin-reporting-card">
+        <div><strong>{reporting.submitted} of {reporting.total} units submitted</strong><span>{reporting.label}</span></div>
+        {reporting.missing.length > 0
+          ? <div className="admin-missing-units">{reporting.missing.map((unit) => <span key={unit.id}>{unit.name}</span>)}</div>
+          : <span className="admin-all-in">Everyone is in.</span>}
+      </div>}
+    </section>
+
+    <section className="admin-home-section">
+      <SectionHeader eyebrow="Delivery risk" title="Needs attention" count={deliveryRisk} />
+      {deliveryRisk === 0 && <EmptyState compact title="No current delivery exceptions">Rule-based silence, at-risk objectives and cross-unit blockers will appear here.</EmptyState>}
+      {watch.map((row) => <div key={row.k} className="admin-evidence-row"><strong>{row.who}</strong><span>{row.why}</span></div>)}
+      {blockers.map((blocker) => <button key={blocker.id} className="admin-evidence-row admin-action-button" onClick={() => blocker.work_items && openItem(blocker.work_items.id)}>
+        <div><strong>{blocker.work_items?.title || "—"}</strong><span>{blocker.claimant?.full_name || ""} waiting on {blocker.units?.name || blocker.party_text}</span></div>
+        <b aria-hidden="true">→</b>
+      </button>)}
+    </section>
+
+    <div className="admin-home-grid">
+      <section className="admin-home-section">
+        <SectionHeader eyebrow="Today" title="Office context" />
+        <p className="screen-note">Session and leave facts are operational context only. They do not measure output or performance.</p>
+        <div className="admin-fact-grid">
+          <div><strong>{today.working}</strong><span>working now</span></div>
+          <div><strong>{today.leave}</strong><span>on approved leave</span></div>
+          <div><strong>{today.notStarted}</strong><span>no session started</span></div>
+          <div><strong>{today.headcount}</strong><span>people on record</span></div>
+        </div>
+      </section>
+
+      <section className="admin-home-section">
+        <SectionHeader eyebrow="Delivery" title="Organisation movement" />
+        <div className="admin-fact-grid">
+          <div><strong>{delivery.active}</strong><span>active projects</span></div>
+          <div><strong>{delivery.closedThisMonth}</strong><span>closed this month</span></div>
+          <div><strong>{delivery.onTrack}</strong><span>objectives on track</span></div>
+          <div><strong>{delivery.objectives}</strong><span>objectives recorded</span></div>
+        </div>
+      </section>
+    </div>
+
+    <section className="admin-home-section">
       <div className="office-meeting-strip-head">
         <div><span>Next 14 days</span><strong>Meetings</strong></div>
         <button className="btn btn-sm" onClick={() => scheduleMeeting?.({ scope:"organisation", organisation:true })}>Schedule</button>
       </div>
-      {meetings.length === 0 ? <div className="office-meeting-empty">No organisation, unit or project meetings are currently visible here.</div>
-        : meetings.slice(0,3).map((meeting) => <button className="office-meeting-row" key={meeting.id} onClick={() => openMeeting?.(meeting.id)}>
+      {meetings.length === 0 ? <EmptyState compact title="No upcoming meetings">Organisation, unit and project meetings visible to Administration will appear here.</EmptyState>
+        : meetings.slice(0, 4).map((meeting) => <button className="office-meeting-row" key={meeting.id} onClick={() => openMeeting?.(meeting.id)}>
           <span><strong>{meeting.title}</strong><small>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</small></span>
           <b aria-hidden="true">→</b>
         </button>)}
     </section>
 
-    {loadError && <div className="flag flag-brick" style={{marginTop:14}}><h4>Administration could not finish loading</h4>{loadError}<button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={load}>Try again</button></div>}
-    {msg && !inviting && <div className="flag flag-amber" style={{marginTop:14}}>{msg}</div>}
+    {mine.length > 0 && <section className="admin-home-section">
+      <SectionHeader eyebrow="Personal" title="Your own work" count={mine.length} />
+      {mine.map((item) => <button key={item.id} className="admin-evidence-row admin-action-button" onClick={() => openItem(item.id)}>
+        <div><strong>{item.title}</strong><span>{item.ref} · {dueLabel(item.due_at)}</span></div><b aria-hidden="true">→</b>
+      </button>)}
+    </section>}
 
-    {!office && <div className="flag flag-amber" style={{marginTop:14}}>
-      <h4>Set the office location</h4>
-      Attendance cannot distinguish the office until its location is saved.
-      <button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={openSettings}>Open Settings</button>
-    </div>}
-
-    {withoutHead > 0 && <div className="flag flag-amber" style={{marginTop:14}}>
-      <h4>{withoutHead} unit{withoutHead===1?"":"s"} without a head</h4>
-      Invite the person if necessary, then open Units and assign an existing unit member as Unit Head.
-      <button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={openUnits}>Open Units</button>
-    </div>}
-
-    <div className="split" style={{marginTop:8}}>
-      <div className="main-col">
-        {leaveQueue.length>0 && <>
-          <div className="sec"><span>Leave to review</span><span>{leaveQueue.length}</span></div>
-          {leaveQueue.map((request)=><div key={request.id} className="row">
-            <div className="row-t">{request.profiles?.full_name||"—"} — {request.days} day{request.days===1?"":"s"} {request.kind}</div>
-            <div className="row-m">{request.start_date} → {request.end_date} · {request.status==="escalated"?"Sent up from a manager":"Waiting for review"}</div>
-            <div style={{display:"flex",gap:7,marginTop:10}}>
-              <button className="btn btn-ghost btn-sm" disabled={busy} onClick={()=>decideLeave(request,"declined")}>Decline</button>
-              <button className="btn btn-sm" disabled={busy} onClick={()=>decideLeave(request,"approved")}>Approve</button>
-            </div>
-          </div>)}
-        </>}
-
-        <div className="sec"><span>Needs you</span><span>{alerts.length}</span></div>
-        {alerts.length===0 && <div className="card small">Nothing needs Administration right now.</div>}
-        {alerts.map((alert)=><button key={alert.id} className="row" onClick={()=>alert.subject_type==="work_item"&&alert.subject_id&&openItem(alert.subject_id)}>
-          <div className="row-t">{alert.message}</div>
-          <div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
-        </button>)}
-
-        {reporting && <>
-          <div className="sec"><span>Reporting</span><span>{reporting.label}</span></div>
-          <div className="row"><div className="row-t">{reporting.submitted} of {reporting.total} units submitted</div>
-            <div className="row-m">{reporting.missing.length ? "Missing: "+reporting.missing.map((unit)=>unit.name).join(", ") : "Everyone is in."}</div>
-          </div>
-        </>}
-
-        <div className="sec"><span>The office today</span></div>
-        <div className="metric-grid">
-          <div className="metric"><b>{today.working}</b><span>working</span></div>
-          <div className="metric"><b>{today.leave}</b><span>on leave</span></div>
-          <div className="metric"><b>{today.notStarted}</b><span>not started</span></div>
-          <div className="metric"><b>{today.headcount}</b><span>on the books</span></div>
-        </div>
-
-        <div className="sec"><span>Delivery</span></div>
-        <div className="row">
-          <div className="row-t">{delivery.active} project{delivery.active===1?"":"s"} active · {delivery.closedThisMonth} closed this month</div>
-          <div className="row-m">{delivery.onTrack} of {delivery.objectives} objectives on track</div>
-        </div>
-
-        {watch.length>0 && <>
-          <div className="sec"><span>Watch</span><span>{watch.length}</span></div>
-          <p className="small" style={{marginBottom:6}}>Fixed factual rules. Each line says exactly why it appeared.</p>
-          {watch.map((row)=><div key={row.k} className="row"><div className="row-t">{row.who}</div><div className="row-m">{row.why}</div></div>)}
-        </>}
-
-        {blockers.length>0 && <>
-          <div className="sec"><span>Stuck between units</span><span>{blockers.length}</span></div>
-          {blockers.map((blocker)=><button key={blocker.id} className="row" onClick={()=>blocker.work_items&&openItem(blocker.work_items.id)}>
-            <div className="row-t">{blocker.work_items?.title||"—"}</div>
-            <div className="row-m">{blocker.profiles?.full_name||""} waiting on {blocker.units?.name||blocker.party_text}</div>
-          </button>)}
-        </>}
-
-        {mine.length>0 && <>
-          <div className="sec"><span>Your own work</span><span>{mine.length}</span></div>
-          {mine.map((item)=><button key={item.id} className="row" onClick={()=>openItem(item.id)}>
-            <div className="row-t">{item.title}</div><div className="row-m">{item.ref} · {dueLabel(item.due_at)}</div>
-          </button>)}
-        </>}
-      </div>
-
-      <div className="side-col">
-        <div className="sec"><span>All units</span><span>{units.length}</span></div>
-        {units.map((unit)=><div key={unit.id} className="row">
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:10}}>
-            <div className="row-t">{unit.name}</div>{unit.alerts>0&&<span className="pill p-amber">{unit.alerts}</span>}
-          </div>
+    <section className="admin-home-section">
+      <SectionHeader eyebrow="Organisation" title="Units" count={units.length} action={<button className="text-action" onClick={openUnits}>Open all units</button>} />
+      <div className="admin-unit-summary-grid">
+        {units.map((unit) => <div key={unit.id} className="admin-unit-summary">
+          <div><strong>{unit.name}</strong>{unit.alerts > 0 && <span className="pill p-amber">{unit.alerts}</span>}</div>
           {unit.head
-            ? <div className="row-m">{unit.head.full_name} · {unit.head.email}</div>
+            ? <span>{unit.head.full_name}</span>
             : unit.pending
-              ? <div className="row-m" style={{color:"var(--amber)"}}>Staff invitation sent to {unit.pending.email}. Assign Unit Head after activation.</div>
-              : <><div className="row-m" style={{color:"var(--brick)"}}>No Unit Head</div>
-                <button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={()=>{setInviting(unit);setMsg(null);}}>Invite prospective head</button></>}
-          <div className="row-m" style={{marginTop:4}}>{unit.done7} finished outputs this week
-            <button className="btn btn-ghost btn-sm" style={{marginLeft:8}} onClick={openUnits}>Open unit</button>
-          </div>
+              ? <span>Invitation sent to {unit.pending.email}</span>
+              : <span className="admin-unit-missing">No Unit Head</span>}
+          <small>{unit.done7} finished output{unit.done7 === 1 ? "" : "s"} this week</small>
+          {!unit.head && !unit.pending && <button className="text-action" onClick={() => { setInviting(unit); setMsg(null); }}>Invite prospective head</button>}
         </div>)}
       </div>
-    </div>
+    </section>
 
-    {inviting && <Sheet onClose={()=>{setInviting(null);setMsg(null);}}>
+    {inviting && <Sheet onClose={() => { setInviting(null); setMsg(null); }}>
+      <div className="eyebrow">People & access</div>
       <div className="h2">Invite someone to {inviting.name}</div>
-      <p className="screen-note">For security, every invited account begins as Staff. After they activate, Administration assigns Unit Head authority from the Units screen.</p>
-      <input className="field" placeholder="Their full name" value={name} onChange={(event)=>setName(event.target.value)} />
-      <input className="field" placeholder="Their work email" type="email" autoCapitalize="none" value={email} onChange={(event)=>setEmail(event.target.value)} />
-      {msg&&<div className="flag flag-amber" style={{marginTop:12}}>{msg}</div>}
-      <button className="btn" style={{marginTop:14}} onClick={sendInvite} disabled={busy||!name.trim()||!email.trim()}>{busy?"Sending...":"Send Staff invitation"}</button>
+      <p className="screen-note">Every invited account begins as Staff. After activation, Administration may explicitly assign Unit Head authority from Units.</p>
+      <FieldGroup label="Full name"><input className="field" value={name} onChange={(event) => setName(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Work email"><input className="field" type="email" autoCapitalize="none" value={email} onChange={(event) => setEmail(event.target.value)} /></FieldGroup>
+      {msg && <ProductNotice tone="attention" title="Invitation">{msg}</ProductNotice>}
+      <button className="btn" style={{ marginTop:14 }} onClick={sendInvite} disabled={busy || !name.trim() || !email.trim()}>{busy ? "Sending…" : "Send Staff invitation"}</button>
     </Sheet>}
   </div>;
+
 }

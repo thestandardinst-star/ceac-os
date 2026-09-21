@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
+import { FieldGroup, ProductNotice, SectionHeader } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
 export default function OfficeSettings({ me }) {
   const [office, setOffice] = useState(null);
@@ -11,35 +13,80 @@ export default function OfficeSettings({ me }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locErr, setLocErr] = useState(null);
-  const [saved, setSaved] = useState(null);
-  const [ann, setAnn] = useState(15);
-  const [sick, setSick] = useState(12);
-  const [carry, setCarry] = useState(5);
-  const [mLimit, setMLimit] = useState(5);
-  useEffect(() => { load(); }, []);
-  async function load() {
-    setSaved(null);
-    const officeResult = await supabase.from("office_locations")
-      .select("*").eq("is_primary", true).limit(1).maybeSingle();
-    if (officeResult.error) {
-      setSaved("Office settings could not load: " + officeResult.error.message);
-      return;
-    }
-    const o = officeResult.data;
-    if (o) { setOffice(o); setName(o.name); setLat(String(o.lat)); setLng(String(o.lng)); setRadius(o.radius_meters); }
+  const [message, setMessage] = useState(null);
 
-    const leaveResult = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
-    if (leaveResult.error) {
-      setSaved("Leave settings could not load: " + leaveResult.error.message);
+  const [leaveConfigured, setLeaveConfigured] = useState(false);
+  const [annualDays, setAnnualDays] = useState("");
+  const [sickDays, setSickDays] = useState("");
+  const [carryOver, setCarryOver] = useState("");
+  const [managerLimit, setManagerLimit] = useState("");
+  const [thresholds, setThresholds] = useState([]);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setMessage(null);
+    const [officeResult, leaveResult, thresholdResult, inviteResult] = await Promise.all([
+      supabase.from("office_locations").select("*").eq("is_primary", true).limit(1).maybeSingle(),
+      supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle(),
+      supabase.from("thresholds").select("name,label,value,unit_label").neq("name","pay_change_pct").order("label"),
+      supabase.from("pending_invitations").select("id,email,full_name,unit_id,invited_at,expires_at,units(name)").is("resolved_at",null).gt("expires_at",new Date().toISOString()).order("invited_at",{ascending:false}),
+    ]);
+
+    if (officeResult.error) {
+      setMessage({ tone: "error", title: "Office settings could not load", body: humanError(officeResult.error) });
       return;
     }
-    const settings = leaveResult.data;
-    if (settings) { setAnn(settings.annual_days); setSick(settings.sick_days); setCarry(settings.max_carryover); setMLimit(settings.manager_approval_limit); }
+    if (leaveResult.error) {
+      setMessage({ tone: "error", title: "Leave settings could not load", body: humanError(leaveResult.error) });
+      return;
+    }
+    if (thresholdResult.error) {
+      setMessage({ tone: "error", title: "Attention rules could not load", body: humanError(thresholdResult.error) });
+      return;
+    }
+    if (inviteResult.error) {
+      setMessage({ tone: "error", title: "People & access status could not load", body: humanError(inviteResult.error) });
+      return;
+    }
+
+    const o = officeResult.data;
+    if (o) {
+      setOffice(o);
+      setName(o.name);
+      setLat(String(o.lat));
+      setLng(String(o.lng));
+      setRadius(o.radius_meters);
+    }
+
+    setThresholds((thresholdResult.data || []).map((row) => ({ ...row, value: String(row.value ?? "") })));
+    setPendingInvitations(inviteResult.data || []);
+
+    const policy = leaveResult.data;
+    const configured = Boolean(policy?.updated_by);
+    setLeaveConfigured(configured);
+    if (configured) {
+      setAnnualDays(String(policy.annual_days ?? ""));
+      setSickDays(String(policy.sick_days ?? ""));
+      setCarryOver(String(policy.max_carryover ?? ""));
+      setManagerLimit(String(policy.manager_approval_limit ?? ""));
+    } else {
+      setAnnualDays("");
+      setSickDays("");
+      setCarryOver("");
+      setManagerLimit("");
+    }
   }
+
+  function jumpTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function pickHere() {
     setLocErr(null);
     if (!("geolocation" in navigator)) {
-      setLocErr("This device cannot report its location. Open the app on a phone inside the building.");
+      setLocErr("This device cannot report its location. Open CEAC OS on a phone inside the building.");
       return;
     }
     setLocating(true);
@@ -51,97 +98,195 @@ export default function OfficeSettings({ me }) {
       },
       () => {
         setLocating(false);
-        setLocErr("Could not read your location. Allow location access for this site, then press the button again.");
+        setLocErr("Could not read this device location. Allow location access for CEAC OS and try again.");
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   }
 
   async function saveOffice() {
-    setSaving(true); setSaved(null);
+    setSaving(true);
+    setMessage(null);
     try {
-      const lt = parseFloat(lat), ln = parseFloat(lng);
-      if (!lt || !ln) throw new Error("Enter both latitude and longitude.");
-      let result;
-      if (office) {
-        result = await supabase.from("office_locations").update({
-          name, lat: lt, lng: ln, radius_meters: radius,
-          set_by: me.id, set_at: new Date().toISOString() }).eq("id", office.id);
-      } else {
-        result = await supabase.from("office_locations").insert({
-          org_id: me.org_id, name, lat: lt, lng: ln,
-          radius_meters: radius, is_primary: true, set_by: me.id });
-      }
+      const lt = Number.parseFloat(lat);
+      const ln = Number.parseFloat(lng);
+      if (!Number.isFinite(lt) || !Number.isFinite(ln)) throw new Error("Enter both latitude and longitude.");
+
+      const payload = {
+        name: name.trim() || "CEAC main office",
+        lat: lt,
+        lng: ln,
+        radius_meters: Number(radius) || 100,
+        set_by: me.id,
+        set_at: new Date().toISOString(),
+      };
+
+      const result = office
+        ? await supabase.from("office_locations").update(payload).eq("id", office.id)
+        : await supabase.from("office_locations").insert({ ...payload, org_id: me.org_id, is_primary: true });
+
       if (result.error) throw result.error;
       await load();
-      setSaved("Office location saved.");
-    } catch (e) { setSaved(e.message); }
-    finally { setSaving(false); }
+      setMessage({ tone: "success", title: "Office location saved", body: "Attendance can now distinguish the office from other work locations." });
+    } catch (error) {
+      setMessage({ tone: "error", title: "Office location was not saved", body: humanError(error) });
+    } finally {
+      setSaving(false);
+    }
   }
+
   async function saveLeave() {
-    setSaving(true); setSaved(null);
+    setSaving(true);
+    setMessage(null);
     try {
-      const result = await supabase.from("leave_settings").update({
-        annual_days: ann, sick_days: sick, max_carryover: carry,
-        manager_approval_limit: mLimit, updated_by: me.id,
-        updated_at: new Date().toISOString() }).eq("org_id", me.org_id);
+      const annual = Number.parseInt(annualDays, 10);
+      const sick = Number.parseInt(sickDays, 10);
+      const carry = Number.parseInt(carryOver, 10);
+      const limit = Number.parseInt(managerLimit, 10);
+      if (![annual, sick, carry, limit].every(Number.isFinite)) {
+        throw new Error("Complete all four leave-rule fields before confirming the policy.");
+      }
+
+      const result = await supabase.from("leave_settings").upsert({
+        org_id: me.org_id,
+        annual_days: annual,
+        sick_days: sick,
+        max_carryover: carry,
+        manager_approval_limit: limit,
+        updated_by: me.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "org_id" })
+        .select("org_id,annual_days,sick_days,max_carryover,manager_approval_limit,updated_by")
+        .single();
+
       if (result.error) throw result.error;
+      if (!result.data?.updated_by) throw new Error("The leave policy was not persisted.");
       await load();
-      setSaved("Leave rules saved.");
-    } catch (e) { setSaved(e.message); }
-    finally { setSaving(false); }
+      setMessage({ tone: "success", title: "Leave policy confirmed", body: "CEAC OS will use these values only from this confirmation onward." });
+    } catch (error) {
+      setMessage({ tone: "error", title: "Leave policy was not saved", body: humanError(error) });
+    } finally {
+      setSaving(false);
+    }
   }
-  const mapSrc = (lat && lng) ? "https://www.google.com/maps?q=" + lat + "," + lng + "&z=17&output=embed" : null;
-  const numStyle = { marginTop: 0, width: 80, padding: 6, textAlign: "right" };
-  const rowStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--line-soft)", fontSize: 13.5 };
-  return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Settings</h1>
-        <p className="screen-note">Church-wide rules. Anyone in the office follows these.</p>
-      </div>
-      <div className="split" style={{ marginTop: 8 }}>
-        <div className="main-col">
-          <div className="sec"><span>Office location</span></div>
-          <p className="small" style={{ lineHeight: 1.5, marginBottom: 6 }}>
-            Stand inside the church building and press the button below. That is all — the app records where you are standing and treats it as the office.
-          </p>
-          <input className="field" placeholder="Name of this location" value={name} onChange={(e) => setName(e.target.value)} />
-          <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={pickHere} disabled={locating}>
-            {locating ? "Finding you..." : lat && lng ? "Use where I am standing now instead" : "Use where I am standing now"}
-          </button>
-          {locErr && <div className="flag flag-brick">{locErr}</div>}
-          {lat && lng && (
-            <div className="flag flag-green">
-              <h4>Location captured</h4>
-              Check the map below looks like the church, then save.
-            </div>)}
-          <input className="field" type="number" placeholder="How far from this point still counts as the office, in metres"
-            value={radius} onChange={(e) => setRadius(parseInt(e.target.value, 10) || 100)} />
-          <p className="small" style={{ marginTop: 6 }}>Anyone who taps Start work within this distance of the point counts as at the office. 100 metres suits most compounds.</p>
-          {mapSrc && <iframe title="Office location" src={mapSrc} style={{ width: "100%", height: 260, border: 0, borderRadius: 8, marginTop: 12 }} />}
-          <button className="btn" style={{ marginTop: 14 }} onClick={saveOffice} disabled={saving || !lat || !lng}>
-            {saving ? "Saving..." : office ? "Update office location" : "Save office location"}
-          </button>
-          {office && <div className="small" style={{ marginTop: 8 }}>Last set on {dateOnly(office.set_at)}.</div>}
+
+  async function saveThreshold(row) {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const value = Number(row.value);
+      if (!Number.isFinite(value) || value < 0) throw new Error("Enter a valid non-negative number.");
+      const result = await supabase.from("thresholds")
+        .update({ value, updated_by: me.id, updated_at: new Date().toISOString() })
+        .eq("org_id", me.org_id)
+        .eq("name", row.name)
+        .select("name,value,updated_by,updated_at")
+        .single();
+      if (result.error) throw result.error;
+      if (!result.data || Number(result.data.value) !== value) throw new Error("The attention rule was not persisted.");
+      await load();
+      setMessage({ tone: "success", title: "Attention rule updated", body: `${row.label} ${value} ${row.unit_label}.` });
+    } catch (error) {
+      setMessage({ tone: "error", title: "Attention rule was not saved", body: humanError(error) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const mapSrc = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}&z=17&output=embed` : null;
+
+  return <div className="body office-settings">
+    <div className="office-page-intro">
+      <div className="eyebrow">Control room</div>
+      <h1 className="h1">Settings</h1>
+      <p className="screen-note">Organisation rules CEAC can maintain without a developer. Unconfirmed policy stays visibly unconfigured rather than being guessed.</p>
+    </div>
+
+    {message && <ProductNotice tone={message.tone} title={message.title}>{message.body}</ProductNotice>}
+
+    <div className="office-settings-grid">
+      <section id="office-location-settings" className="office-settings-card">
+        <SectionHeader eyebrow="Attendance context" title="Office location" />
+        <p className="screen-note">This location tells CEAC OS whether a work session began at the office or elsewhere. It does not determine productivity.</p>
+        <FieldGroup label="Location name">
+          <input className="field" value={name} onChange={(event) => setName(event.target.value)} placeholder="CEAC main office" />
+        </FieldGroup>
+        <button className="btn btn-ghost" onClick={pickHere} disabled={locating}>
+          {locating ? "Finding this device…" : lat && lng ? "Use where I am standing now instead" : "Use where I am standing now"}
+        </button>
+        {locErr && <ProductNotice tone="error" title="Location unavailable">{locErr}</ProductNotice>}
+        <FieldGroup label="Office radius" hint="The distance around the saved point that still counts as the office.">
+          <div className="office-inline-field"><input className="field" type="number" min="10" value={radius} onChange={(event) => setRadius(event.target.value)} /><span>metres</span></div>
+        </FieldGroup>
+        {mapSrc && <iframe title="Office location" src={mapSrc} className="office-settings-map" />}
+        <button className="btn" onClick={saveOffice} disabled={saving || !lat || !lng}>
+          {saving ? "Saving…" : office ? "Update office location" : "Save office location"}
+        </button>
+        {office && <div className="office-setting-footnote">Last confirmed {dateOnly(office.set_at)}.</div>}
+      </section>
+
+      <section id="leave-policy-settings" className="office-settings-card">
+        <SectionHeader eyebrow="Policy" title="Leave rules" />
+        {!leaveConfigured && <ProductNotice tone="attention" title="Leave policy not configured">
+          The database contains old prototype defaults, but CEAC has not confirmed its actual leave rules. Those values are not being presented as CEAC policy.
+        </ProductNotice>}
+        {leaveConfigured && <ProductNotice tone="success" title="Leave policy configured">
+          These values were explicitly confirmed by Administration. Change them only when CEAC policy changes.
+        </ProductNotice>}
+
+        <div className="office-policy-grid">
+          <FieldGroup label="Annual leave days"><input className="field" type="number" min="0" value={annualDays} onChange={(event) => setAnnualDays(event.target.value)} placeholder="Not configured" /></FieldGroup>
+          <FieldGroup label="Sick leave days"><input className="field" type="number" min="0" value={sickDays} onChange={(event) => setSickDays(event.target.value)} placeholder="Not configured" /></FieldGroup>
+          <FieldGroup label="Maximum carry-over"><input className="field" type="number" min="0" value={carryOver} onChange={(event) => setCarryOver(event.target.value)} placeholder="Not configured" /></FieldGroup>
+          <FieldGroup label="Manager approval limit" hint="Requests above this number of days come to Administration."><input className="field" type="number" min="0" value={managerLimit} onChange={(event) => setManagerLimit(event.target.value)} placeholder="Not configured" /></FieldGroup>
         </div>
-        <div className="side-col">
-          <div className="sec"><span>Leave rules</span></div>
-          <p className="small" style={{ marginBottom: 4 }}>Applies to every staff member. The Ghana Labour Act minimum is 15 days annual leave.</p>
-          <div className="card" style={{ padding: "4px 15px" }}>
-            <label style={rowStyle}><span style={{ color: "var(--ink-soft)" }}>Annual leave days</span>
-              <input type="number" className="field" style={numStyle} value={ann} onChange={(e) => setAnn(parseInt(e.target.value, 10) || 0)} /></label>
-            <label style={rowStyle}><span style={{ color: "var(--ink-soft)" }}>Sick days</span>
-              <input type="number" className="field" style={numStyle} value={sick} onChange={(e) => setSick(parseInt(e.target.value, 10) || 0)} /></label>
-            <label style={rowStyle}><span style={{ color: "var(--ink-soft)" }}>Max carry-over</span>
-              <input type="number" className="field" style={numStyle} value={carry} onChange={(e) => setCarry(parseInt(e.target.value, 10) || 0)} /></label>
-            <label style={rowStyle}><span style={{ color: "var(--ink-soft)" }}>Manager can approve up to</span>
-              <input type="number" className="field" style={numStyle} value={mLimit} onChange={(e) => setMLimit(parseInt(e.target.value, 10) || 0)} /></label>
-          </div>
-          <p className="small" style={{ marginTop: 6 }}>Anything beyond the manager&rsquo;s limit comes to you.</p>
-          <button className="btn" style={{ marginTop: 12 }} onClick={saveLeave} disabled={saving}>
-            {saving ? "Saving..." : "Save leave rules"}</button>
+        <button className="btn" onClick={saveLeave} disabled={saving}>
+          {saving ? "Saving…" : leaveConfigured ? "Update confirmed leave policy" : "Confirm leave policy"}
+        </button>
+      </section>
+
+      <section id="attention-rule-settings" className="office-settings-card office-settings-wide">
+        <SectionHeader eyebrow="Quiet by default" title="When to tell Administration" />
+        <p className="screen-note">These are deterministic rules already used by CEAC OS. Changing a value changes when an item becomes visible; it does not change the underlying work or create a score.</p>
+        <div className="office-threshold-list">
+          {thresholds.map((row) => <div key={row.name} className="office-threshold-row">
+            <div><strong>{row.label}</strong><span>{row.unit_label}</span></div>
+            <input aria-label={row.label} className="field" type="number" min="0" step={row.unit_label === "%" ? "1" : "1"} value={row.value} onChange={(event) => setThresholds((current) => current.map((item) => item.name === row.name ? { ...item, value:event.target.value } : item))} />
+            <button className="btn btn-ghost btn-sm" disabled={saving} onClick={() => saveThreshold(row)}>Save</button>
+          </div>)}
         </div>
-      </div>
-      {saved && <div className="flag flag-green" style={{ marginTop: 16 }}>{saved}</div>}
-    </div>);
+      </section>
+
+      <section id="access-settings" className="office-settings-card office-settings-wide">
+        <SectionHeader eyebrow="People & access" title="Pending invitations" count={pendingInvitations.length} />
+        <p className="screen-note">New accounts always activate as Staff. Administration assigns official authority only after activation.</p>
+        {pendingInvitations.length === 0 && <div className="card small">No active invitations are waiting.</div>}
+        {pendingInvitations.map((invite) => <div key={invite.id} className="admin-evidence-row">
+          <div><strong>{invite.full_name || invite.email}</strong><span>{invite.email} · {invite.units?.name || "Unit"} · expires {dateOnly(invite.expires_at)}</span></div>
+        </div>)}
+      </section>
+
+      <section className="office-settings-card office-settings-wide">
+        <SectionHeader eyebrow="Administration & HR" title="Setup & configuration" />
+        <p className="screen-note">Open the settings CEAC can control here. Items that still need an approved CEAC policy remain clearly unavailable rather than pretending to be configurable.</p>
+        <div className="office-config-status">
+          <button type="button" className="office-config-card" onClick={() => jumpTo("office-location-settings")}>
+            <span>Office location</span><strong>{office ? "Configured" : "Needs setup"}</strong><small>{office ? "Review or change" : "Set up now"} ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("leave-policy-settings")}>
+            <span>Leave policy</span><strong>{leaveConfigured ? "Configured" : "Needs confirmation"}</strong><small>{leaveConfigured ? "Review or change" : "Configure now"} ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("attention-rule-settings")}>
+            <span>Attention rules</span><strong>{thresholds.length ? "Configurable" : "Needs setup"}</strong><small>Review rules ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("access-settings")}>
+            <span>People & access</span><strong>{pendingInvitations.length ? pendingInvitations.length + " invitation" + (pendingInvitations.length === 1 ? "" : "s") + " waiting" : "No invitations waiting"}</strong><small>Review access ↑</small>
+          </button>
+          <div className="office-config-card is-deferred"><span>Salary structure</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
+          <div className="office-config-card is-deferred"><span>Payroll approval chain</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
+          <div className="office-config-card is-deferred"><span>Protected HR storage</span><strong>Security foundation ready</strong><small>Protected fields are not enabled yet</small></div>
+        </div>
+      </section>
+    </div>
+  </div>;
 }

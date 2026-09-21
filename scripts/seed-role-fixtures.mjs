@@ -87,4 +87,17 @@ const capability = await service.from("capabilities").insert({
 });
 assert.equal(capability.error, null, capability.error?.message);
 
+// The Admin acceptance suite must exercise a real deterministic attention rule.
+// Production organisations receive these through their setup data; the isolated
+// local fixture needs its own row because org-scoped rows are not copied across.
+const threshold = await service.from("thresholds").upsert({
+  org_id: orgId,
+  name: "work_gone_quiet",
+  label: "active work has not moved for",
+  value: 3,
+  unit_label: "working days",
+  updated_by: users[2].id,
+}, { onConflict: "org_id,name" });
+assert.equal(threshold.error, null, threshold.error?.message);
+
 console.log("Role fixtures seeded.");
