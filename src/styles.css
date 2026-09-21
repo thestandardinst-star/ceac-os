@@ -3305,3 +3305,15 @@ button.office-config-card:active{background:#EEF5F4}
 .record-period-control>button{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink-soft)}
 .record-period-selects{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:7px}
 .record-period-selects select{min-width:0;height:40px;padding:0 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:12px}
+
+
+/* Manager Team identity cards */
+.manager-person-card{margin-bottom:8px;border:1px solid var(--line);border-radius:13px;background:#fff;overflow:hidden}
+.manager-person-main{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;width:100%;padding:12px 13px;text-align:left}
+.manager-person-identity{min-width:0}
+.manager-person-identity>strong{display:block;font-size:13px}
+.manager-person-identity>small{display:block;margin-top:2px;font-size:10.5px;color:var(--ink-faint)}
+.manager-person-identity>span{display:block;margin-top:5px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.manager-person-evidence{display:flex;flex-wrap:wrap;gap:6px 12px;padding:9px 13px;border-top:1px solid var(--line-soft);background:#FAFBFB;font-size:10.5px}
+.manager-person-evidence button{text-decoration:none!important;color:var(--ink-soft)!important}
+.manager-person-evidence button:hover{text-decoration:underline!important}
