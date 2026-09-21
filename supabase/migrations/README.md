@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **067**.
+The next migration number is **071**.
 
 
 ## 20 September backend continuation
@@ -100,3 +100,11 @@ All acceptance records for 055–059 were created inside transactions ending wit
 Repository timestamps for migrations 047–052 were reconciled to the exact live Supabase registry versions. The SQL bodies matched Supabase's stored migration statements exactly.
 
 A clean local Supabase replay workflow now rebuilds the application schema from the recovered migration history. The one documented pre-ledger live-only test helper required by immutable migration 037 is restored from `supabase/replay/legacy-live-artifacts.sql` before replay.
+
+
+### 069–070 — collaboration and meeting foundation
+
+- **069** — contextual Unit/Project Rooms with inherited access, append-only messages, object references, mentions, reads and realtime message delivery.
+- **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable notes/decisions and links back to Work Engine items.
+
+Both migrations preserve the existing Work Engine and role/security boundaries. Provider secrets are not stored in browser-readable tables.
