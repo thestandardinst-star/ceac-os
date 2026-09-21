@@ -214,6 +214,33 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
   }
 });
 
+test("Nested Work navigation survives refresh and browser Back", async ({ browser }) => {
+  const title = "Acceptance task — deep link";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test");
+    await assignTask(page, title);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test");
+    await go(page, "Work");
+    await page.getByText(title, { exact: true }).click();
+    await expect(page).toHaveURL(/(?:\?|&)item=/);
+    await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
+    await expect(page).toHaveURL(/(?:\?|&)item=/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/(?:\?|&)tab=work/);
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+    await context.close();
+  }
+});
+
 test("Staff personal details persist and private work stays out of another staff account", async ({ browser }) => {
   const privateTitle = "Private acceptance work";
 
@@ -391,6 +418,9 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
     await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
     await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page).toHaveURL(/roomKind=unit/);
+    await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
+    await page.reload();
     await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
     await page.getByPlaceholder("Message your unit").fill(message);
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -417,6 +447,9 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
     await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Fixture Video Team", exact: true }).click();
+    await expect(page).toHaveURL(/roomKind=sub_team/);
+    await expect(page.getByText("Sub-team Room", { exact: true })).toBeVisible();
+    await page.reload();
     await expect(page.getByText("Sub-team Room", { exact: true })).toBeVisible();
 
     const composer = page.getByPlaceholder("Message Fixture Video Team");
@@ -471,8 +504,11 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     if (!(await unitAudience.getAttribute("class") || "").includes("on")) await unitAudience.click();
 
     await dialog.getByRole("button", { name: "Schedule and notify" }).click();
+    await expect(page).toHaveURL(/(?:\?|&)meeting=/);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: /Join Zoom/ })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await context.close();
   }
 
