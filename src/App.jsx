@@ -138,7 +138,7 @@ export default function App() {
       ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />
       : <StaffTeam me={me} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />;
     if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={setItemId} />;
-    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} openRoom={(projectId, reference) => openRoom({ kind: "project", projectId, reference }, { type: "project", id: projectId })} />;
+    if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} openRoom={(projectId, reference) => openRoom({ kind: "project", projectId, reference }, { type: "project", id: projectId })} />;
     if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={setItemId} openProject={setProjectId} openMeeting={setMeetingId} openPerson={(id, focus) => setPerson({ id, focus })} />;
     if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={setProjectId} />;
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={setItemId} openProject={setProjectId} />;
@@ -179,7 +179,7 @@ export default function App() {
             initialMeetingOn={assigning.meetingOn}
             initialMeetingNote={assigning.meetingNote}
             back={() => setAssigning(null)} />
-        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference }, { type: "project", id })} back={() => setProjectId(null)} />
+        : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={setItemId} goAssign={startAssignment} openMeeting={setMeetingId} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference }, { type: "project", id })} back={() => setProjectId(null)} />
         : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
         : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={setItemId} openProject={setProjectId} back={() => setPerson(null)} />
         : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={setItemId} openProject={setProjectId} />
