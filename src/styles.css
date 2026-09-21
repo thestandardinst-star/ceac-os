@@ -2122,3 +2122,13 @@ textarea{width:100%}
   .admin-home .metric-grid,.executive-home .metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
   .office-app .tabs,.executive-app .tabs{display:none!important}
 }
+
+.executive-change-card{
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;align-items:center;
+  padding:16px;border:1px solid #D7E4E1;border-radius:14px;background:#FBFDFC
+}
+.executive-change-card>div{display:flex;align-items:baseline;gap:10px;grid-column:1/-1}
+.executive-change-card strong{font-size:28px;line-height:1;letter-spacing:-.04em;color:var(--office-ink)}
+.executive-change-card span{color:var(--office-soft);font-size:11px}
+.executive-change-card p{grid-column:1/-1;color:var(--office-ink);font-size:12.5px;line-height:1.5}
+.executive-change-card small{grid-column:1/-1;color:var(--office-faint);font-size:10px}
