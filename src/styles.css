@@ -3242,3 +3242,22 @@ button.office-config-card:active{background:#EEF5F4}
   .admin-unit-overview-grid{grid-template-columns:1fr}
   .admin-unit-card-status{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Meeting workspace privacy + preparation */
+.meeting-agenda-editor{display:grid;gap:9px}
+.meeting-agenda-editor textarea,.meeting-private-notes textarea,.meeting-shared-decisions textarea{
+  width:100%;min-height:110px;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);font:inherit;resize:vertical;outline:none
+}
+.meeting-agenda-editor textarea:focus,.meeting-private-notes textarea:focus,.meeting-shared-decisions textarea:focus{border-color:var(--green-mid);box-shadow:0 0 0 4px rgba(46,88,73,.08)}
+.meeting-private-notes{display:grid;gap:10px;padding:14px;border:1px solid #D6E5E1;border-radius:13px;background:#FAFDFC}
+.meeting-private-note-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.meeting-private-note-head strong{display:block;font-size:13px}
+.meeting-private-note-head span:not(.pill){display:block;margin-top:2px;font-size:10.5px;color:var(--ink-soft)}
+.meeting-shared-decisions{display:grid;gap:9px;margin-top:14px}
+.meeting-section-subhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.meeting-section-subhead strong{display:block;font-size:13px}
+.meeting-section-subhead span{display:block;margin-top:2px;font-size:10.5px;color:var(--ink-soft)}
+.meeting-section-subhead>b{display:grid;place-items:center;min-width:26px;height:26px;padding:0 8px;border-radius:999px;background:#EEF2F2;color:var(--ink-soft);font-size:10px}
+.meeting-audience-head{display:grid;gap:2px}
+.meeting-audience-head>small{font-size:9.5px;color:var(--ink-faint)}
