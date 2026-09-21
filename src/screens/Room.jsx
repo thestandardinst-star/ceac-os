@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
+import { humanError } from "../lib/productLanguage";
 
 function timeLabel(value) {
   return new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -128,7 +129,7 @@ export default function Room({
       if (!result.data) throw new Error("This Room is not available to your account.");
       await selectRoom(result.data, true);
     } catch (err) {
-      setError(err.message || "This Room could not be opened.");
+      setError(humanError(err, "This Room could not be opened."));
       setLoading(false);
     }
   }
@@ -277,7 +278,7 @@ export default function Room({
       setMessages([...(result.data || [])].reverse());
       setHasOlder((result.data || []).length === PAGE_SIZE);
     } catch (err) {
-      setError(err.message || "Room messages could not be loaded.");
+      setError(humanError(err, "Room messages could not be loaded."));
     } finally {
       setLoading(false);
     }
@@ -304,7 +305,7 @@ export default function Room({
         if (feed) feed.scrollTop += feed.scrollHeight - previousHeight;
       });
     } catch (err) {
-      setError(err.message || "Earlier Room messages could not be loaded.");
+      setError(humanError(err, "Earlier Room messages could not be loaded."));
     } finally {
       setLoadingOlder(false);
     }
@@ -372,7 +373,7 @@ export default function Room({
       setBody(""); setReplyTo(null); setMentions([]); setMentionQuery(null); setSelectedRefs([]);
       await loadMessages(room.id, false);
     } catch (err) {
-      setError(err.message || "Your message could not be sent.");
+      setError(humanError(err, "Your message could not be sent."));
     } finally {
       setSending(false);
     }
