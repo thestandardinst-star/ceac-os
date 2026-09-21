@@ -54,9 +54,11 @@ begin
   end if;
 end $$;
 
--- The accepted baseline has 68 signed-in callable SECURITY DEFINER functions.
--- Reducing this surface is allowed. Expanding it must be deliberate and this
--- gate must be reviewed/updated in the same PR.
+-- The accepted baseline had 68 signed-in callable SECURITY DEFINER functions.
+-- Migration 069 deliberately adds exactly three Room RPC/helper functions:
+-- app_can_access_room, send_room_message and mark_room_read.
+-- Reducing this surface is allowed. Any growth beyond 71 requires another
+-- explicit security-gate review in the same PR.
 do $$
 declare n integer;
 begin
@@ -66,8 +68,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>68 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew from 68 to % without security-gate review.',n;
+  if n>71 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 71-function ceiling to %.',n;
   end if;
 end $$;
 
