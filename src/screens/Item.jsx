@@ -5,7 +5,7 @@ import { Sheet, statusPill } from "../components/bits";
 
 const MANAGER_SELF_CERTIFICATION_READY = true;
 
-export default function Item({ id, me, session, isManager = false, back }) {
+export default function Item({ id, me, session, isManager = false, openRoom, back }) {
   const [item, setItem] = useState(null);
   const [checks, setChecks] = useState([]);
   const [ticks, setTicks] = useState({});
@@ -374,6 +374,15 @@ export default function Item({ id, me, session, isManager = false, back }) {
           {statusPill(item.status)}
         </div>
       </header>
+
+      {item.project_id && openRoom && <button className="work-room-entry" onClick={() => openRoom({
+        kind: "project",
+        projectId: item.project_id,
+        reference: { object_type: "work_item", object_id: item.id, label: `${item.ref} · ${item.title}` },
+      })}>
+        <span><strong>Discuss in Project Room</strong><small>Open the project conversation with this work linked.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
 
       {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
