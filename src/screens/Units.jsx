@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader, Sheet, FieldGroup } from "../components/bits";
+import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader, Sheet, FieldGroup, StatusDistribution, ProgressMeter, Avatar } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 function money(minor, currency = "GHS") {
@@ -213,13 +213,32 @@ export default function Units({ me, openItem }) {
       </nav>
 
       {area === "overview" && <section className="admin-workspace-area">
-        <div className="admin-unit-facts">
-          <div><strong>{openUnit.people.length}</strong><span>people</span></div>
-          <div><strong>{openUnit.openWork.length}</strong><span>open work</span></div>
-          <div><strong>{openUnit.completedThisMonth.length}</strong><span>completed outputs this month</span></div>
-          <div><strong>{openUnit.activeProjects.length}</strong><span>active projects</span></div>
-          <div><strong>{openUnit.objectivesOnTrack.length} / {openUnit.objectives.length}</strong><span>objectives on track / recorded</span></div>
-          <div><strong>{reportingLabel}</strong><span>{openUnit.currentPeriod?.label || "reporting"}</span></div>
+        <div className="admin-unit-overview-grid">
+          <article className="admin-unit-overview-card">
+            <span>Objectives</span>
+            <strong>{openUnit.objectives.length} recorded</strong>
+            <StatusDistribution label="Unit objective status" segments={[
+              { key:"track", label:"On track / met", value:openUnit.objectivesOnTrack.length, tone:"success" },
+              { key:"risk", label:"At risk", value:openUnit.objectives.filter((row) => row.status === "at_risk").length, tone:"attention" },
+              { key:"not-met", label:"Not met", value:openUnit.objectives.filter((row) => row.status === "not_met").length, tone:"danger" },
+              { key:"other", label:"Other", value:Math.max(0, openUnit.objectives.length - openUnit.objectivesOnTrack.length - openUnit.objectives.filter((row) => row.status === "at_risk").length - openUnit.objectives.filter((row) => row.status === "not_met").length), tone:"neutral" },
+            ]} />
+          </article>
+          <article className="admin-unit-overview-card">
+            <span>Delivery</span>
+            <strong>{openUnit.activeProjects.length} active project{openUnit.activeProjects.length === 1 ? "" : "s"}</strong>
+            <div className="admin-unit-overview-pair"><div><b>{openUnit.openWork.length}</b><small>open work</small></div><div><b>{openUnit.completedThisMonth.length}</b><small>completed this month</small></div></div>
+          </article>
+          <article className="admin-unit-overview-card">
+            <span>Reporting</span>
+            <strong>{reportingLabel}</strong>
+            <small>{openUnit.currentPeriod?.label || "No open reporting period"}</small>
+          </article>
+          <article className="admin-unit-overview-card">
+            <span>People</span>
+            <strong>{openUnit.people.length} on record</strong>
+            <small>{openUnit.head ? `Led by ${openUnit.head.profiles?.full_name || "Unit Head"}` : "No Unit Head assigned"}</small>
+          </article>
         </div>
         <SectionHeader eyebrow="Today" title="Operational context" />
         <p className="screen-note">Session and leave facts are context only. They do not measure output.</p>
@@ -232,7 +251,8 @@ export default function Units({ me, openItem }) {
 
       {area === "people" && <section className="admin-workspace-area">
         <SectionHeader eyebrow="Unit" title="People" count={openUnit.people.length} />
-        {openUnit.people.map((member) => <div key={member.profile_id} className="admin-evidence-row">
+        {openUnit.people.map((member) => <div key={member.profile_id} className="admin-unit-person-row">
+          <Avatar name={member.profiles?.full_name || "—"} size="sm" />
           <div><strong>{member.profiles?.full_name || "—"}</strong><span>{member.role === "manager" ? "Unit Head" : member.role === "sub_team_lead" ? "Sub-team lead" : "Staff"}{member.profiles?.job_title ? ` · ${member.profiles.job_title}` : ""}</span></div>
           {!member.profiles?.active && <span className="pill p-grey">Inactive</span>}
         </div>)}
@@ -313,22 +333,31 @@ export default function Units({ me, openItem }) {
     </div>
     {error && <ProductNotice tone="error" title="Units need attention" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
     <div className="admin-unit-list">
-      {units.map((unit) => <button key={unit.id} className="admin-unit-card" onClick={() => setOpenUnitId(unit.id)}>
-        <div className="admin-unit-card-head">
-          <div><strong>{unit.name}</strong><span>{unit.head ? unit.head.profiles?.full_name : "No Unit Head"}</span></div>
-          {unit.people.length === 1 && <span className="pill p-grey">Unit of one</span>}
-        </div>
-        <div className="admin-unit-card-facts">
-          <span><b>{unit.people.length}</b> people</span>
-          <span><b>{unit.openWork.length}</b> open</span>
-          <span><b>{unit.completedThisMonth.length}</b> completed this month</span>
-          <span><b>{unit.activeProjects.length}</b> active projects</span>
-        </div>
-        <div className="admin-unit-card-foot">
-          <span>{unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period"}</span>
-          <b aria-hidden="true">→</b>
-        </div>
-      </button>)}
+      {units.map((unit) => {
+        const objectiveAttention = unit.objectives.filter((row) => ["at_risk","not_met"].includes(row.status)).length;
+        const reportState = unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period";
+        return <button key={unit.id} className="admin-unit-card" onClick={() => setOpenUnitId(unit.id)}>
+          <div className="admin-unit-card-head">
+            <div><strong>{unit.name}</strong><span>{unit.head ? unit.head.profiles?.full_name : "No Unit Head"}</span></div>
+            {unit.people.length === 1 && <span className="pill p-grey">Unit of one</span>}
+          </div>
+          <div className="admin-unit-card-status">
+            <span><b>{unit.people.length}</b><small>people</small></span>
+            <span><b>{unit.activeProjects.length}</b><small>active projects</small></span>
+            <span><b>{unit.openWork.length}</b><small>open work</small></span>
+            <span><b>{objectiveAttention}</b><small>objectives needing attention</small></span>
+          </div>
+          {unit.objectives.length > 0 && <StatusDistribution label={unit.name + " objective status"} segments={[
+            { key:"track", label:"On track / met", value:unit.objectivesOnTrack.length, tone:"success" },
+            { key:"attention", label:"Attention", value:objectiveAttention, tone:"attention" },
+            { key:"other", label:"Other", value:Math.max(0,unit.objectives.length-unit.objectivesOnTrack.length-objectiveAttention), tone:"neutral" },
+          ]} />}
+          <div className="admin-unit-card-foot">
+            <span>{reportState}</span>
+            <b aria-hidden="true">→</b>
+          </div>
+        </button>;
+      })}
     </div>
     {units.length === 0 && <EmptyState title="No active units">Create an organisation unit before assigning people or work.</EmptyState>}
 
