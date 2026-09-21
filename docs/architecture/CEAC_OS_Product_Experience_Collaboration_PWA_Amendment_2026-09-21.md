@@ -367,3 +367,232 @@ After security/stabilisation baseline is confirmed:
 
 Every implementation batch must preserve existing functionality, security boundaries and authoritative records.
 
+
+
+---
+
+## 11. Universal orientation model — Today → Pulse → Insight
+
+Across all roles, CEAC OS should organise information around three human questions:
+
+### Today
+What matters now? What needs action, attention or awareness today?
+
+### Pulse
+Is my area functioning normally? What is happening across people, work, projects and dependencies?
+
+### Insight
+What is changing over time? What patterns, recurring bottlenecks or improvements are visible from recorded evidence?
+
+This model is not a requirement that every screen expose three literal tabs. It is a product-navigation and information-design principle.
+
+Role-specific examples:
+- Staff: Today dominates; Pulse is light; Insight is personal and factual.
+- Manager: Today and Pulse dominate; Insight appears through team/project trends.
+- Administration: Pulse and exceptions dominate; Insight focuses on organisation-wide operations.
+- Executive: Pulse and Insight dominate; Today is limited to major decisions/exceptions.
+
+---
+
+## 12. Staff utility principles — binding
+
+### 12.1 Contextual quick actions
+Staff should not have to hunt through menus for common next steps.
+
+Where context permits, surface actions such as:
+- Start work;
+- Continue current work;
+- Open today's next item;
+- Submit finished work;
+- Respond to returned work;
+- Ask for help / raise a dependency;
+- Follow up where the approved follow-up rule allows it;
+- Request leave;
+- Join an upcoming meeting;
+- Open the relevant Project/Unit Room once Rooms exist.
+
+Quick actions must be contextual. Do not show actions the user cannot validly perform.
+
+### 12.2 Factual progress/orientation
+Staff may see simple factual orientation such as:
+- 3 of 5 commitments completed this week;
+- 2 items awaiting review;
+- 1 returned item needs action;
+- 2 dependencies are waiting on another unit.
+
+This is not gamification, ranking, or performance scoring.
+
+### 12.3 Communication signals
+When Rooms exists, Staff Home may surface high-value communication signals such as:
+- you were mentioned;
+- a manager responded;
+- a dependency response arrived;
+- a Project Room has an important update;
+- a meeting starts soon;
+- an action was assigned from a meeting.
+
+Do not surface every Room message on Home.
+
+---
+
+## 13. Notification and Rooms discipline
+
+Rooms must not become a noise engine.
+
+### Default high-value notification triggers
+Prefer:
+- direct mention;
+- reply to the user's message where materially relevant;
+- assigned action;
+- request for decision/response;
+- dependency response;
+- meeting start/reminder;
+- important project/unit announcement.
+
+Avoid notifying for every ordinary message.
+
+Users should be able to open Rooms and read ambient conversation without every line becoming an interrupt.
+
+Room unread counts may exist, but the main Home attention layer should prioritise meaningful actions over raw unread volume.
+
+---
+
+## 14. Trend intelligence — deterministic and evidence-first
+
+CEAC OS should develop useful historical management facts from its own records.
+
+Approved examples include:
+- approval turnaround over time;
+- returned-work frequency over comparable periods;
+- recurring blockers/dependencies;
+- units that repeatedly wait on one another;
+- objectives repeatedly lacking active supporting work;
+- project end-date pressure and unfinished deliverables;
+- reporting timeliness;
+- recurring operation completion consistency;
+- changes in work completion/submission volume across comparable periods;
+- whether known exception counts are improving or worsening.
+
+Every trend must:
+1. be based on explicit recorded rows;
+2. use a clear time window;
+3. be explainable;
+4. open to supporting evidence;
+5. avoid inferring motives, competence or effort.
+
+Do not convert trends into composite employee or unit scores.
+
+---
+
+## 15. Executive change-over-time rule
+
+Executive views should not rely mainly on static totals.
+
+Where meaningful, show:
+- what changed since the previous comparable period;
+- which major exceptions are new, resolved or persistent;
+- which objectives/projects moved into or out of attention;
+- material delivery/reporting/financial changes supported by evidence.
+
+A static total may appear, but context and movement are more useful than raw accumulation.
+
+---
+
+## 16. Mobile composition is independent
+
+Responsive design does not mean shrinking the same composition.
+
+Mobile may:
+- reorder sections;
+- collapse secondary information;
+- replace desktop tables with cards/rows;
+- convert toolbars to contextual action menus;
+- use bottom navigation instead of side navigation;
+- move detail into sheets/drill-down views.
+
+The information contract remains the same, but composition may differ by form factor.
+
+**Locked rule:** mobile is a first-class product surface, not a compressed desktop screenshot.
+
+---
+
+## 17. Design System v1 — required before broad visual rollout
+
+Before the redesign is applied widely, create a design-system source of truth containing at minimum:
+
+### 17.1 Tokens
+- exact colour values;
+- typography families, weights and size scale;
+- spacing scale;
+- radius scale;
+- shadows/elevation;
+- motion durations/easing;
+- breakpoints;
+- z-index/layer rules.
+
+### 17.2 Components
+Define visual and interaction contracts for:
+- navigation;
+- buttons;
+- icon buttons;
+- cards/panels;
+- grouped rows;
+- status pills;
+- alerts;
+- metric/stat blocks;
+- progress;
+- filters/segments;
+- inputs/selects/textareas;
+- sheets/dialogs;
+- empty/loading/error states;
+- timelines/activity;
+- avatars/people rows;
+- Room/message surfaces when implemented;
+- meeting surfaces when implemented.
+
+### 17.3 States
+Every interactive component should define:
+- default;
+- hover where relevant;
+- focus-visible;
+- active/pressed;
+- disabled;
+- loading;
+- error/success where relevant.
+
+### 17.4 Icon family
+Use one consistent outline icon family across the product. The chosen implementation library should be confirmed against the existing dependency/security baseline before introduction.
+
+---
+
+## 18. Meetings — implementation boundary
+
+The product direction for meetings is locked, but provider-specific implementation details are intentionally deferred.
+
+Before implementation:
+- verify the current supported Zoom/provider SDK/API;
+- confirm desktop/mobile/PWA behaviour;
+- confirm authentication and server-side credential handling;
+- confirm participant/recording/privacy implications;
+- map provider events into CEAC records without weakening existing authority boundaries.
+
+Provider integration must remain replaceable. CEAC records, actions, decisions and meeting outcomes are the durable system of record; the external meeting provider is a transport layer.
+
+---
+
+## 19. Architecture completion statement
+
+With sections 1–18, the product-experience direction discussed on 21 September 2026 is considered locked for the current redesign phase.
+
+Implementation may refine visual detail, but must not silently change these product principles.
+
+Any later change to:
+- no-generative-AI;
+- evidence-first intelligence;
+- role-specific information density;
+- Rooms scope;
+- meeting operating model;
+- zero-horizontal-overflow/PWA-first rule;
+- no-ranking/no-scoring boundary
+
+requires an explicit architecture decision rather than an incidental code change.
