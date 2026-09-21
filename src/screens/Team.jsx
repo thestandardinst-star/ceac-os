@@ -1,79 +1,206 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
-import { Sheet } from "../components/bits";
+import { isOverdue } from "../lib/time";
+import { Pill, Sheet } from "../components/bits";
 
-export default function Team({ me }) {
-  const [subTeams, setSubTeams] = useState([]);
+function weekStart() {
+  const value = new Date();
+  value.setHours(0, 0, 0, 0);
+  value.setDate(value.getDate() - ((value.getDay() + 6) % 7));
+  return value;
+}
+
+function dayKey(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function requireResult(result, label) {
+  if (result.error) throw new Error(`${label}: ${result.error.message}`);
+  return result.data || [];
+}
+
+function CountLink({ children, onClick }) {
+  return <button onClick={(event) => { event.stopPropagation(); onClick(); }} style={{ textDecoration: "underline", color: "var(--ink-soft)" }}>{children}</button>;
+}
+
+function PersonRow({ person, openPerson }) {
+  return <div className="row">
+    <button onClick={() => openPerson(person.profile_id, "current")} style={{ width: "100%", textAlign: "left" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+        <div className="row-t">{person.profiles?.full_name || "—"}</div>
+        <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
+      </div>
+      <div className="row-m">{person.profiles?.job_title || person.role}</div>
+      {person.current.length > 0 && <div className="row-note">Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</div>}
+    </button>
+    <div className="row-note" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>Present {person.presenceDays} day{person.presenceDays === 1 ? "" : "s"}</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
+      <span>·</span><CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
+    </div>
+  </div>;
+}
+
+export default function Team({ me, openPerson, goAssign }) {
   const [people, setPeople] = useState([]);
+  const [subTeams, setSubTeams] = useState([]);
   const [members, setMembers] = useState({});
   const [pending, setPending] = useState([]);
-  const [leaveQueue, setLeaveQueue] = useState([]);
-  const [limit, setLimit] = useState(5);
+  const [resources, setResources] = useState([]);
+  const [showSetup, setShowSetup] = useState(false);
   const [sheet, setSheet] = useState(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [editName, setEditName] = useState("");
+  const [moveWorkTo, setMoveWorkTo] = useState("");
+  const [removeWorkCount, setRemoveWorkCount] = useState(0);
+  const [resourceForm, setResourceForm] = useState({ id: null, title: "", category: "reference", reference_url: "", description: "", pinned: false, sort_order: 0 });
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => { load(); }, [me.unit_id]);
+  useEffect(() => { load(); }, [me.id, me.unit_id]);
 
   async function load() {
     if (!me.unit_id) return;
-    const { data: ls } = await supabase.from("leave_settings")
-      .select("manager_approval_limit").eq("org_id", me.org_id).maybeSingle();
-    if (ls) setLimit(ls.manager_approval_limit);
-    const { data: st } = await supabase.from("sub_teams")
-      .select("id, name, code, position, lead_id, profiles:lead_id(full_name)")
-      .eq("unit_id", me.unit_id).eq("active", true).order("position");
-    setSubTeams(st || []);
-    const { data: m } = await supabase.from("unit_memberships")
-      .select("id, role, profile_id, profiles(id, full_name, email, job_title)")
-      .eq("unit_id", me.unit_id);
-    setPeople(m || []);
-    if (st && st.length) {
-      const { data: stm } = await supabase.from("sub_team_members")
-        .select("sub_team_id, profile_id").in("sub_team_id", st.map((x) => x.id));
-      const map = {};
-      (stm || []).forEach((r) => {
-        if (!map[r.profile_id]) map[r.profile_id] = [];
-        map[r.profile_id].push(r.sub_team_id);
-      });
-      setMembers(map);
-    }
-    const { data: pi } = await supabase.from("pending_invitations")
-      .select("email, full_name, invited_at").eq("unit_id", me.unit_id).is("resolved_at", null);
-    setPending(pi || []);
-    const { data: lq } = await supabase.from("leave_requests")
-      .select("id, kind, start_date, end_date, days, status, reason, profiles(full_name, id)")
-      .eq("status", "pending").order("requested_at", { ascending: false });
-    setLeaveQueue((lq || []).filter((r) => (m || []).some((mm) => mm.profile_id === (r.profiles && r.profiles.id))));
+    setLoading(true);
+    setError(null);
+    try {
+      const start = weekStart();
+      const today = dayKey();
+      const [membershipResult, subTeamResult, workResult, sessionResult,
+        submissionResult, leaveResult, pendingResult, resourceResult] = await Promise.all([
+        supabase.from("unit_memberships")
+          .select("id, role, profile_id, profiles!unit_memberships_profile_id_fkey(id, full_name, email, job_title)")
+          .eq("unit_id", me.unit_id),
+        supabase.from("sub_teams")
+          .select("id, name, code, position, lead_id, profiles!sub_teams_lead_fk(full_name)")
+          .eq("unit_id", me.unit_id).eq("active", true).order("position"),
+        supabase.from("work_items")
+          .select("id, ref, title, kind, assignee_id, status, due_at, completed_at")
+          .eq("unit_id", me.unit_id).neq("visibility", "private"),
+        supabase.from("work_sessions").select("id, profile_id, started_at")
+          .gte("started_at", start.toISOString()),
+        supabase.from("submissions").select("id, profile_id, submitted_at, work_items!inner(unit_id)")
+          .eq("work_items.unit_id", me.unit_id).gte("submitted_at", start.toISOString()),
+        supabase.from("leave_requests").select("profile_id, start_date, end_date, status")
+          .eq("status", "approved").lte("start_date", today).gte("end_date", today),
+        supabase.from("pending_invitations").select("email, full_name, invited_at")
+          .eq("unit_id", me.unit_id).is("resolved_at", null),
+        supabase.from("unit_resources").select("*").eq("unit_id", me.unit_id)
+          .order("active", { ascending: false }).order("pinned", { ascending: false }).order("sort_order").order("title"),
+      ]);
+
+      const memberships = requireResult(membershipResult, "Team members");
+      const staff = memberships.filter((membership) => membership.profile_id !== me.id);
+      const staffIds = new Set(staff.map((membership) => membership.profile_id));
+      const work = requireResult(workResult, "Team work").filter((item) => staffIds.has(item.assignee_id));
+      const sessions = requireResult(sessionResult, "Team attendance").filter((session) => staffIds.has(session.profile_id));
+      const submissions = requireResult(submissionResult, "Team submissions").filter((submission) => staffIds.has(submission.profile_id));
+      const leaveIds = new Set(requireResult(leaveResult, "Team leave").filter((request) => staffIds.has(request.profile_id)).map((request) => request.profile_id));
+
+      setPeople(staff.map((membership) => {
+        const personWork = work.filter((item) => item.assignee_id === membership.profile_id);
+        const personSessions = sessions.filter((session) => session.profile_id === membership.profile_id);
+        const presenceDays = new Set(personSessions.map((session) => dayKey(new Date(session.started_at)))).size;
+        const submitted = submissions.filter((submission) => submission.profile_id === membership.profile_id).length;
+        const current = personWork.filter((item) => !["completed", "self_certified", "cancelled"].includes(item.status));
+        return {
+          ...membership,
+          presence: leaveIds.has(membership.profile_id) ? "On leave" : personSessions.some((session) => dayKey(new Date(session.started_at)) === today) ? "Present" : "Not started",
+          presenceDays,
+          submitted,
+          completed: personWork.filter((item) => ["task", "deliverable"].includes(item.kind) && ["completed", "self_certified"].includes(item.status) && item.completed_at && new Date(item.completed_at) >= start).length,
+          overdue: current.filter((item) => isOverdue(item.due_at) && item.status !== "waiting_on").length,
+          awaiting: current.filter((item) => item.status === "in_review").length,
+          current,
+        };
+      }));
+
+      const teams = requireResult(subTeamResult, "Parts of the team");
+      setSubTeams(teams);
+      if (teams.length) {
+        const memberResult = await supabase.from("sub_team_members")
+          .select("sub_team_id, profile_id").in("sub_team_id", teams.map((team) => team.id));
+        const map = {};
+        requireResult(memberResult, "Team assignments").forEach((row) => {
+          if (!map[row.profile_id]) map[row.profile_id] = [];
+          map[row.profile_id].push(row.sub_team_id);
+        });
+        setMembers(map);
+      } else setMembers({});
+      setPending(requireResult(pendingResult, "Pending invitations"));
+      setResources(requireResult(resourceResult, "Unit resources"));
+    } catch (err) { setError(err.message || "The team could not be loaded."); }
+    finally { setLoading(false); }
   }
 
   async function addSubTeam() {
-    setBusy(true);
+    setBusy(true); setMsg(null);
     try {
-      const { error } = await supabase.from("sub_teams").insert({
+      const { error: insertError } = await supabase.from("sub_teams").insert({
         org_id: me.org_id, unit_id: me.unit_id, name: name.trim(),
-        code: (code.trim() || name.trim().slice(0, 3)).toUpperCase(),
-        position: subTeams.length + 1 });
-      if (error) throw error;
+        code: (code.trim() || name.trim().slice(0, 3)).toUpperCase(), position: subTeams.length + 1,
+      });
+      if (insertError) throw insertError;
       setSheet(null); setName(""); setCode(""); await load();
-    } catch (e) { setMsg(e.message); }
+    } catch (err) { setMsg(err.message || "That part of the team could not be added."); }
     finally { setBusy(false); }
   }
 
-  async function toggleMember(profileId, subTeamId) {
-    const has = (members[profileId] || []).includes(subTeamId);
-    if (has) await supabase.from("sub_team_members").delete().eq("sub_team_id", subTeamId).eq("profile_id", profileId);
-    else await supabase.from("sub_team_members").insert({ sub_team_id: subTeamId, profile_id: profileId });
+  async function renameSubTeam(team) {
+    if (!editName.trim()) return;
+    setBusy(true); setMsg(null);
+    try {
+      const { error: updateError } = await supabase.from("sub_teams")
+        .update({ name: editName.trim() }).eq("id", team.id).eq("unit_id", me.unit_id);
+      if (updateError) throw updateError;
+      setSheet(null); setEditName(""); await load();
+    } catch (err) { setMsg(err.message || "That part could not be renamed."); }
+    finally { setBusy(false); }
+  }
+
+  async function moveSubTeam(team, direction) {
+    const index = subTeams.findIndex((row) => row.id === team.id);
+    const other = subTeams[index + direction];
+    if (!other) return;
+    setError(null);
+    const result = await supabase.rpc("swap_sub_team_positions", {
+      p_first_id: team.id,
+      p_second_id: other.id,
+    });
+    if (result.error) { setError(result.error.message); return; }
     await load();
   }
 
-  async function setRole(membershipId, role) {
-    await supabase.from("unit_memberships").update({ role }).eq("id", membershipId);
-    await load();
+  async function openRemoveSubTeam(team) {
+    setMsg(null); setMoveWorkTo("");
+    const result = await supabase.from("work_items").select("id", { count: "exact", head: true }).eq("sub_team_id", team.id);
+    if (result.error) { setError(result.error.message); return; }
+    setRemoveWorkCount(result.count || 0);
+    setSheet({ type: "remove-subteam", team });
+  }
+
+  async function removeSubTeam(team) {
+    setBusy(true); setMsg(null);
+    try {
+      if (removeWorkCount > 0) {
+        const { error: workError } = await supabase.from("work_items")
+          .update({ sub_team_id: moveWorkTo || null })
+          .eq("sub_team_id", team.id);
+        if (workError) throw new Error(`Work could not be moved: ${workError.message}`);
+      }
+      const { error: deleteError } = await supabase.from("sub_teams").delete().eq("id", team.id).eq("unit_id", me.unit_id);
+      if (deleteError) throw deleteError;
+      setSheet(null); setMoveWorkTo(""); setRemoveWorkCount(0); await load();
+    } catch (err) { setMsg(err.message || "That part could not be removed."); }
+    finally { setBusy(false); }
   }
 
   async function invite() {
@@ -82,127 +209,185 @@ export default function Team({ me }) {
       await inviteByEmail({ orgId: me.org_id, invitedBy: me.id, email, fullName, unitId: me.unit_id, role: "staff" });
       setMsg("Sent. They appear here once they sign in.");
       setEmail(""); setFullName(""); await load();
-    } catch (e) { setMsg(e.message); }
+    } catch (err) { setMsg(err.message || "The invitation could not be sent."); }
     finally { setBusy(false); }
   }
 
-  async function decideLeave(r, decision) {
-    const escalate = decision === "approved" && r.days > limit;
-    const status = decision === "declined" ? "declined" : (escalate ? "escalated" : "approved");
-    await supabase.from("leave_requests").update({
-      status, decided_by: me.id, decided_at: new Date().toISOString() }).eq("id", r.id);
+  function openResource(resource = null) {
+    setMsg(null);
+    setResourceForm(resource ? {
+      id: resource.id, title: resource.title, category: resource.category,
+      reference_url: resource.reference_url, description: resource.description || "",
+      pinned: resource.pinned, sort_order: resource.sort_order,
+    } : { id: null, title: "", category: "reference", reference_url: "", description: "", pinned: false, sort_order: resources.length });
+    setSheet("resource");
+  }
+
+  async function saveResource() {
+    setBusy(true); setMsg(null);
+    try {
+      const { error: saveError } = await supabase.rpc("save_unit_resource", {
+        p_resource_id: resourceForm.id, p_unit_id: me.unit_id, p_title: resourceForm.title.trim(),
+        p_category: resourceForm.category, p_reference_url: resourceForm.reference_url.trim(),
+        p_description: resourceForm.description.trim() || null, p_visibility: "unit",
+        p_pinned: resourceForm.pinned, p_sort_order: Number(resourceForm.sort_order) || 0,
+      });
+      if (saveError) throw saveError;
+      setSheet(null); await load();
+    } catch (err) { setMsg(err.message || "That resource could not be saved."); }
+    finally { setBusy(false); }
+  }
+
+  async function setResourceActive(resource, active) {
+    setError(null);
+    const { error: updateError } = await supabase.rpc("set_unit_resource_active", { p_resource_id: resource.id, p_active: active });
+    if (updateError) { setError(updateError.message); return; }
     await load();
   }
+
+  const groupedPeople = subTeams.map((team) => ({
+    ...team,
+    people: people.filter((person) => (members[person.profile_id] || []).includes(team.id)),
+  }));
+  const unassignedPeople = people.filter((person) => !(members[person.profile_id] || []).length);
 
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Your team</h1>
-        <p className="screen-note">Set up the parts of your team and who is in them. Leave requests from your team also live here.</p>
+        <div className="eyebrow">{me.unit_name}</div>
+        <h1 className="h1" style={{ marginTop: 6 }}>Your team</h1>
+        <p className="screen-note">Presence and work are shown side by side as facts. They are not a judgement about a person.</p>
       </div>
+      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
+      {loading && <div className="spin">Loading your team...</div>}
 
-      {leaveQueue.length > 0 && (<>
-        <div className="sec"><span>Leave to decide</span><span>{leaveQueue.length}</span></div>
-        {leaveQueue.map((r) => (
-          <div key={r.id} className="row">
-            <div className="row-t">{r.profiles ? r.profiles.full_name : "—"} — {r.days} day{r.days === 1 ? "" : "s"} {r.kind}</div>
-            <div className="row-m">{r.start_date} → {r.end_date}</div>
-            {r.reason && <div className="row-note">&ldquo;{r.reason}&rdquo;</div>}
-            {r.days > limit && <div className="row-note" style={{ color: "var(--amber)" }}>Over {limit} days — approval goes on to admin.</div>}
-            <div style={{ display: "flex", gap: 7, marginTop: 10 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => decideLeave(r, "declined")}>Decline</button>
-              <button className="btn btn-sm" onClick={() => decideLeave(r, "approved")}>{r.days > limit ? "Send to admin" : "Approve"}</button>
-            </div>
-          </div>))}
-      </>)}
-
-      <div className="split" style={{ marginTop: 20 }}>
-        <div className="main-col">
-          <div className="sec"><span>People</span><span>{people.length + pending.length}</span></div>
-          {people.map((p) => (
-            <div key={p.id} className="row">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-                <div>
-                  <div className="row-t">{p.profiles ? p.profiles.full_name : ""}</div>
-                  <div className="row-m">{p.profiles ? (p.profiles.job_title || p.profiles.email) : ""}</div>
-                </div>
-                <select className="field" style={{ marginTop: 0, width: "auto", padding: "6px 9px", fontSize: 12.5 }}
-                  value={p.role} onChange={(e) => setRole(p.id, e.target.value)}>
-                  <option value="staff">Staff</option>
-                  <option value="sub_team_lead">Team lead</option>
-                  <option value="manager">Unit head</option>
-                </select>
-              </div>
-              {subTeams.length > 0 && (
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-                  {subTeams.map((s) => {
-                    const on = (members[p.profile_id] || []).includes(s.id);
-                    return (
-                      <button key={s.id} onClick={() => toggleMember(p.profile_id, s.id)}
-                        style={{ fontSize: 11.5, padding: "4px 10px", borderRadius: 20,
-                          border: "1px solid " + (on ? "var(--green)" : "var(--line)"),
-                          background: on ? "var(--green-soft)" : "var(--card)",
-                          color: on ? "var(--green)" : "var(--ink-faint)",
-                          fontWeight: on ? 600 : 400 }}>{s.name}</button>);
-                  })}
-                </div>)}
-            </div>))}
-
-          {pending.map((p) => (
-            <div key={p.email} className="row">
-              <div className="row-t">{p.full_name || p.email}</div>
-              <div className="row-m" style={{ color: "var(--amber)" }}>
-                Invitation sent to {p.email} — waiting for them to sign in
-              </div>
-            </div>))}
-
-          <button className="btn btn-ghost wide-auto" style={{ marginTop: 12 }}
-            onClick={() => { setSheet("invite"); setMsg(null); }}>Add someone to the team</button>
+      {!loading && <><div className="sec"><span>People</span><span>{people.length}</span></div>
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div className="row-t">{me.unit_name}</div>
+        <div className="row-m">Unit Head — {me.full_name || "—"}</div>
+      </div>
+      {groupedPeople.map((team) => <div key={team.id}>
+        <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 7 }}>
+          {team.profiles?.full_name && <div className="small">Sub-team lead — {team.profiles.full_name}</div>}
+          {goAssign && <button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Give work to this part</button>}
         </div>
+        {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
+        {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
+      </div>)}
+      {unassignedPeople.length > 0 && <div>
+        <div className="sec" style={{ marginTop: 18 }}><span>Not assigned to a part yet</span><span>{unassignedPeople.length}</span></div>
+        {unassignedPeople.map((person) => <PersonRow key={`unassigned-${person.id}`} person={person} openPerson={openPerson} />)}
+      </div>}
+      {people.length === 0 && <div className="card small">There are no other staff members in this unit yet. Your own work remains under My work.</div>}
 
+      <div className="sec"><span>Team setup</span><span>{showSetup ? "Open" : "Secondary"}</span></div>
+      <button className="btn btn-ghost wide-auto" onClick={() => setShowSetup((value) => !value)}>{showSetup ? "Hide team setup" : "Open team setup"}</button>
+      <p className="screen-note">Invitations and work-lane structure live here. Official role and sub-team membership changes are handled by Administration & HR. Leave decisions remain on Home.</p>
+
+      {showSetup && <div className="split" style={{ marginTop: 12 }}>
+        <div className="main-col">
+          <div className="sec"><span>Staff and invitations</span><span>{people.length + pending.length}</span></div>
+          {people.map((person) => {
+            const laneNames = subTeams
+              .filter((team) => (members[person.profile_id] || []).includes(team.id))
+              .map((team) => team.name);
+            return <div key={person.id} className="row">
+              <div className="row-t">{person.profiles?.full_name || "—"}</div>
+              <div className="row-m">{person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff"}</div>
+              <div className="row-note">{laneNames.length ? laneNames.join(" · ") : "Not assigned to a part yet"}</div>
+            </div>;
+          })}
+          {pending.map((person) => <div key={person.email} className="row"><div className="row-t">{person.full_name || person.email}</div><div className="row-m">Invitation sent — waiting for sign-in</div></div>)}
+          <button className="btn btn-ghost wide-auto" onClick={() => { setSheet("invite"); setMsg(null); }}>Add someone</button>
+        </div>
         <div className="side-col">
           <div className="sec"><span>Parts of the team</span><span>{subTeams.length}</span></div>
-          {subTeams.map((s) => (
-            <div key={s.id} className="row">
-              <div className="row-t">{s.name}</div>
-              <div className="row-m">
-                {s.code} · {Object.values(members).filter((v) => v.includes(s.id)).length} people
-                {s.profiles && s.profiles.full_name ? " · led by " + s.profiles.full_name : " · no lead yet"}
-              </div>
-            </div>))}
-          {subTeams.length === 0 && (
-            <div className="card small" style={{ lineHeight: 1.5 }}>
-              Nothing set up yet. Add the parts your unit is divided into.
-            </div>)}
-          <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }}
-            onClick={() => setSheet("subteam")}>Add a part of the team</button>
+          {subTeams.map((team, index) => <div key={team.id} className="row">
+            <div className="row-t">{team.name}</div>
+            <div className="row-m">{team.code} · {Object.values(members).filter((value) => value.includes(team.id)).length} people{team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setEditName(team.name); setMsg(null); setSheet({ type: "rename-subteam", team }); }}>Rename</button>
+              <button className="btn btn-ghost btn-sm" disabled={index === 0} onClick={() => moveSubTeam(team, -1)}>Move up</button>
+              <button className="btn btn-ghost btn-sm" disabled={index === subTeams.length - 1} onClick={() => moveSubTeam(team, 1)}>Move down</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => openRemoveSubTeam(team)}>Remove</button>
+            </div>
+          </div>)}
+          {subTeams.length === 0 && <div className="card small">No parts have been set up. Empty parts are allowed.</div>}
+          <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => { setSheet("subteam"); setMsg(null); }}>Add a part</button>
         </div>
-      </div>
+      </div>}
+      {showSetup && <>
+        <div className="sec"><span>Unit resources</span><span>{resources.filter((resource) => resource.active).length} active</span></div>
+        <p className="screen-note">Share approved links and references with this unit. Files remain in their authorised source.</p>
+        {resources.map((resource) => <div key={resource.id} className="row">
+          <div className="row-t">{resource.pinned ? "Pinned · " : ""}{resource.title}</div>
+          <div className="row-m">{resource.category.replace("_", " ")} · {resource.active ? "Active" : "Archived"}</div>
+          <div className="row-note">{resource.reference_url}</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => openResource(resource)}>Edit</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setResourceActive(resource, !resource.active)}>{resource.active ? "Archive" : "Restore"}</button>
+          </div>
+        </div>)}
+        {resources.length === 0 && <div className="card small">No unit resources have been added.</div>}
+        <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => openResource()}>Add a resource</button>
+      </>}
 
-      {sheet === "subteam" && (
-        <Sheet onClose={() => setSheet(null)}>
-          <div className="h2">Add a part of the team</div>
-          <p className="screen-note">Call it what your team already calls it. It can exist with nobody in it.</p>
-          <input className="field" placeholder="What it is called" value={name} onChange={(e) => setName(e.target.value)} />
-          <input className="field" placeholder="Short code for job numbers, e.g. GFX" value={code}
-            onChange={(e) => setCode(e.target.value)} maxLength={4} />
-          {msg && <div className="flag flag-amber" style={{ marginTop: 12 }}>{msg}</div>}
-          <button className="btn" style={{ marginTop: 14 }} onClick={addSubTeam} disabled={busy || !name.trim()}>
-            {busy ? "Saving..." : "Add it"}</button>
-        </Sheet>)}
-
-      {sheet === "invite" && (
-        <Sheet onClose={() => { setSheet(null); setMsg(null); }}>
-          <div className="h2">Add someone to the team</div>
-          <p className="screen-note">They get an email with a sign-in link, and appear here once they use it. Nobody shares a password.</p>
-          <input className="field" placeholder="Their full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          <input className="field" placeholder="Their work email" type="email" autoCapitalize="none"
-            value={email} onChange={(e) => setEmail(e.target.value)} />
-          {msg && <div className="flag flag-amber" style={{ marginTop: 12 }}>{msg}</div>}
-          <button className="btn" style={{ marginTop: 14 }} onClick={invite}
-            disabled={busy || !email.trim() || !fullName.trim()}>
-            {busy ? "Sending..." : "Send the invitation"}</button>
-          <div className="hint">After they sign in, put them in a part of the team and set their role.</div>
-        </Sheet>)}
-    </div>);
+      {sheet === "subteam" && <Sheet onClose={() => setSheet(null)}>
+        <div className="h2">Add a part of the team</div>
+        <p className="screen-note">It can exist before anybody is placed in it.</p>
+        <input className="field" placeholder="What it is called" value={name} onChange={(event) => setName(event.target.value)} />
+        <input className="field" placeholder="Short code, e.g. GFX" value={code} onChange={(event) => setCode(event.target.value)} maxLength={4} />
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} onClick={addSubTeam} disabled={busy || !name.trim()}>{busy ? "Saving..." : "Add it"}</button>
+      </Sheet>}
+      {sheet?.type === "rename-subteam" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">Rename this part</div>
+        <p className="screen-note">Existing work references stay unchanged. New work will use the same short code unless you set up a different part.</p>
+        <input className="field" value={editName} onChange={(event) => setEditName(event.target.value)} />
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} disabled={busy || !editName.trim()} onClick={() => renameSubTeam(sheet.team)}>{busy ? "Saving..." : "Rename"}</button>
+      </Sheet>}
+      {sheet?.type === "remove-subteam" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">Remove {sheet.team.name}?</div>
+        <p className="screen-note">{removeWorkCount > 0 ? `${removeWorkCount} work item${removeWorkCount === 1 ? "" : "s"} currently sit in this part. Choose where that work should go before removing it.` : "No work is currently attached to this part."}</p>
+        {removeWorkCount > 0 && <select className="field" value={moveWorkTo} onChange={(event) => setMoveWorkTo(event.target.value)}>
+          <option value="">General unit work — no part</option>
+          {subTeams.filter((team) => team.id !== sheet.team.id).map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+        </select>}
+        <div className="hint">Removing the part does not delete its work. Existing work references are kept.</div>
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => removeSubTeam(sheet.team)}>{busy ? "Moving work..." : "Move work and remove part"}</button>
+      </Sheet>}
+      {sheet === "invite" && <Sheet onClose={() => { setSheet(null); setMsg(null); }}>
+        <div className="h2">Add someone to the team</div>
+        <input className="field" placeholder="Their full name" value={fullName} onChange={(event) => setFullName(event.target.value)} />
+        <input className="field" placeholder="Their work email" type="email" autoCapitalize="none" value={email} onChange={(event) => setEmail(event.target.value)} />
+        {msg && <div className="flag flag-amber" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} onClick={invite} disabled={busy || !email.trim() || !fullName.trim()}>{busy ? "Sending..." : "Send invitation"}</button>
+      </Sheet>}
+      {sheet === "resource" && <Sheet onClose={() => !busy && setSheet(null)}>
+        <div className="h2">{resourceForm.id ? "Edit unit resource" : "Add unit resource"}</div>
+        <p className="screen-note">Use a secure link to an approved guide, template or shared document.</p>
+        <label className="field-label">Title</label>
+        <input className="field" value={resourceForm.title} onChange={(event) => setResourceForm((value) => ({ ...value, title: event.target.value }))} />
+        <label className="field-label">Category</label>
+        <select className="field" value={resourceForm.category} onChange={(event) => setResourceForm((value) => ({ ...value, category: event.target.value }))}>
+          <option value="reference">Reference</option><option value="guide">Operating guide</option>
+          <option value="template">Approved template</option><option value="run_sheet">Run sheet</option>
+          <option value="brand">Brand resource</option><option value="other">Other</option>
+        </select>
+        <label className="field-label">Secure link</label>
+        <input className="field" type="url" placeholder="https://" value={resourceForm.reference_url} onChange={(event) => setResourceForm((value) => ({ ...value, reference_url: event.target.value }))} />
+        <label className="field-label">Description (optional)</label>
+        <textarea className="field" rows="3" value={resourceForm.description} onChange={(event) => setResourceForm((value) => ({ ...value, description: event.target.value }))} />
+        <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
+          <input type="checkbox" checked={resourceForm.pinned} onChange={(event) => setResourceForm((value) => ({ ...value, pinned: event.target.checked }))} /> Pin for the unit
+        </label>
+        {msg && <div className="flag flag-brick" style={{ marginTop: 12 }}>{msg}</div>}
+        <button className="btn" style={{ marginTop: 14 }} onClick={saveResource} disabled={busy || !resourceForm.title.trim() || !resourceForm.reference_url.trim()}>{busy ? "Saving..." : "Save resource"}</button>
+      </Sheet>}
+      </>}
+    </div>
+  );
 }

@@ -18,11 +18,23 @@ export default function OfficeSettings({ me }) {
   const [mLimit, setMLimit] = useState(5);
   useEffect(() => { load(); }, []);
   async function load() {
-    const { data: o } = await supabase.from("office_locations")
+    setSaved(null);
+    const officeResult = await supabase.from("office_locations")
       .select("*").eq("is_primary", true).limit(1).maybeSingle();
+    if (officeResult.error) {
+      setSaved("Office settings could not load: " + officeResult.error.message);
+      return;
+    }
+    const o = officeResult.data;
     if (o) { setOffice(o); setName(o.name); setLat(String(o.lat)); setLng(String(o.lng)); setRadius(o.radius_meters); }
-    const { data: s } = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
-    if (s) { setAnn(s.annual_days); setSick(s.sick_days); setCarry(s.max_carryover); setMLimit(s.manager_approval_limit); }
+
+    const leaveResult = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
+    if (leaveResult.error) {
+      setSaved("Leave settings could not load: " + leaveResult.error.message);
+      return;
+    }
+    const settings = leaveResult.data;
+    if (settings) { setAnn(settings.annual_days); setSick(settings.sick_days); setCarry(settings.max_carryover); setMLimit(settings.manager_approval_limit); }
   }
   function pickHere() {
     setLocErr(null);
@@ -49,27 +61,32 @@ export default function OfficeSettings({ me }) {
     try {
       const lt = parseFloat(lat), ln = parseFloat(lng);
       if (!lt || !ln) throw new Error("Enter both latitude and longitude.");
+      let result;
       if (office) {
-        await supabase.from("office_locations").update({
+        result = await supabase.from("office_locations").update({
           name, lat: lt, lng: ln, radius_meters: radius,
           set_by: me.id, set_at: new Date().toISOString() }).eq("id", office.id);
       } else {
-        await supabase.from("office_locations").insert({
+        result = await supabase.from("office_locations").insert({
           org_id: me.org_id, name, lat: lt, lng: ln,
           radius_meters: radius, is_primary: true, set_by: me.id });
       }
-      setSaved("Office location saved."); await load();
+      if (result.error) throw result.error;
+      await load();
+      setSaved("Office location saved.");
     } catch (e) { setSaved(e.message); }
     finally { setSaving(false); }
   }
   async function saveLeave() {
     setSaving(true); setSaved(null);
     try {
-      await supabase.from("leave_settings").update({
+      const result = await supabase.from("leave_settings").update({
         annual_days: ann, sick_days: sick, max_carryover: carry,
         manager_approval_limit: mLimit, updated_by: me.id,
         updated_at: new Date().toISOString() }).eq("org_id", me.org_id);
-      setSaved("Leave rules saved."); await load();
+      if (result.error) throw result.error;
+      await load();
+      setSaved("Leave rules saved.");
     } catch (e) { setSaved(e.message); }
     finally { setSaving(false); }
   }

@@ -41,6 +41,12 @@ export default function Reports({ me }) {
       supabase.from("reports").select("id, period_id, scope, unit_id, project_id, status, version, narrative, challenges, submitted_at, submitted_by, evidence"),
       supabase.from("units").select("id, name").eq("active", true).order("name"),
     ]);
+    const loadError = ps.error || rs.error || us.error;
+    if (loadError) {
+      setMsg(loadError.message);
+      setLoading(false);
+      return;
+    }
     setPeriods(ps.data || []); setReports(rs.data || []); setUnits(us.data || []);
     setLoading(false);
   }
@@ -85,7 +91,10 @@ export default function Reports({ me }) {
 
   async function setStatus(p, status) {
     if (status === "closed" && !confirm("Close " + p.label + "? Managers will no longer be able to file or change reports for it.")) return;
-    await supabase.from("report_periods").update({ status }).eq("id", p.id);
+    setBusy(true); setMsg(null);
+    const { error } = await supabase.from("report_periods").update({ status }).eq("id", p.id);
+    setBusy(false);
+    if (error) { setMsg(error.message); return; }
     await load();
   }
 
@@ -170,6 +179,7 @@ export default function Reports({ me }) {
         <p className="screen-note">Nobody can file a report until you open a period. Open one, then see who has filed and who has not.</p>
       </div>
 
+      {msg && !sheet && <div className="flag flag-brick" style={{ marginTop: 14 }}>{msg}</div>}
       <button className="btn wide-auto" style={{ marginTop: 16 }}
         onClick={() => { prefill("week"); setSheet("new"); setMsg(null); }}>Open a reporting period</button>
 

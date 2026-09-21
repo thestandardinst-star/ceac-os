@@ -1,0 +1,46 @@
+name: Migration Replay
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/replay/**"
+      - ".github/workflows/migration-replay.yml"
+  workflow_dispatch:
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Initialise local Supabase config
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Start clean Supabase base without application migrations
+        run: |
+          mkdir -p /tmp/ceac-migrations
+          find supabase/migrations -maxdepth 1 -name '*.sql' -exec mv {} /tmp/ceac-migrations/ \;
+          supabase start
+          mv /tmp/ceac-migrations/*.sql supabase/migrations/
+
+      - name: Restore documented legacy live-only artifact
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/replay/legacy-live-artifacts.sql
+
+      - name: Replay immutable migrations 001 through current
+        run: supabase migration up --local
+
+      - name: Show local migration state
+        run: supabase migration list --local

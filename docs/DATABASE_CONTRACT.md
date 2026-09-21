@@ -352,9 +352,10 @@ instead. The read-only helpers are deliberately left — they are called
 inside RLS policies, and removing anon's execute turns a clean empty
 result into a permission error. They return nothing without a session.
 
-**Migration files are still not in the repository.** See
-`supabase/migrations/README.md` — it needs `npx supabase db pull` run on a
-machine with network access to Supabase. Claude's sandbox has none.
+**Migration history is now reconciled.** GitHub contains the live SQL for
+migrations 001–044. Historical 001–033 were recovered from Supabase's own
+migration registry; 034–044 are committed as the applied hardening/typed-work
+continuation. See `supabase/migrations/README.md`.
 
 ## Three CEAC decisions, settled (migration 030)
 
@@ -376,3 +377,520 @@ People already answers what one person did, and no separate workflow was
 ever defined. `reports.profile_id` and the `person` scope stay in the
 schema, unused and documented as such. Office scope is covered by the
 Admin Reporting screen. **Codex: unit and project scope only.**
+
+
+---
+
+## Authority and work-state hardening (migrations 040–041)
+
+### Official people / lane authority
+
+- `unit_memberships` official membership and role writes: Administration & HR only.
+- `sub_team_members` official lane membership writes: Administration & HR only.
+- Unit managers may still manage sub-team lane structure, but a trigger prevents them from changing `sub_teams.lead_id`.
+- Project-close child rows (objective verdicts, costs, deliverables) are writable only while the close is a draft **and** the caller is the close author or Administration.
+
+### Atomic Manager approval
+
+Use:
+
+```js
+await supabase.rpc("approve_work_submission", {
+  p_submission_id: submissionId,
+  p_comment: comment || null,
+});
+```
+
+This transaction:
+
+1. locks the submission/work;
+2. requires the latest submission and an authorised reviewer;
+3. writes the completed review;
+4. calculates first-time approval from retained return history;
+5. marks the work completed;
+6. writes authoritative `activity_events`.
+
+Do not insert `reviews` directly.
+
+Return remains:
+
+```js
+await supabase.rpc("return_work_for_correction", {
+  p_submission_id: submissionId,
+  p_comment: reason,
+  p_checklist_item_ids: idsOrNull,
+});
+```
+
+Both approval and return reject stale/previous submissions.
+
+### Reopen approved work
+
+```js
+await supabase.rpc("reopen_approved_work", {
+  p_work_item_id: workItemId,
+  p_reason: reason,
+});
+```
+
+The earlier approval/self-certification remains in history. The RPC records a `reopened` activity event, clears current completion time, and returns the work to `in_progress`. Direct backwards mutation of terminal work is blocked.
+
+---
+
+## Typed Work Engine (migrations 042–044)
+
+The shared Work Engine remains `work_items`, but each non-Task kind now has its own behaviour contract.
+
+### Type-specific storage
+
+- Routine — existing `recurring_operations` + `operation_occurrences`, now linked to `work_items`, plus `routine_schedule_versions`.
+- Case — `work_cases`.
+- Request — `work_requests` + append-only `work_request_responses`.
+- Decision — `work_decisions`.
+- Meeting outcome — `work_meeting_outcomes`.
+- Deliverable — `work_deliverables`.
+- Cross-work relationships — `work_item_links`.
+
+Direct writes to the typed extension tables are not a client contract. Read is RLS-scoped; writes happen through RPCs.
+
+### Create non-Task work
+
+```js
+const { data: workId } = await supabase.rpc("create_typed_work", {
+  p_kind: "case", // routine | case | request | decision | meeting_outcome | deliverable
+  p_unit_id: unitId,
+  p_title: "Equipment fault",
+  p_assignee_id: ownerId,
+  p_sub_team_id: null,
+  p_project_id: null,
+  p_phase_id: null,
+  p_objective_id: null,
+  p_responsibility_id: null,
+  p_purpose: null,
+  p_expected_outcome: null,
+  p_due_at: null,
+  p_visibility: "unit",
+  p_confidential: false,
+  p_details: {}
+});
+```
+
+Server validation checks unit authority, active unit membership of the assignee, sub-team/project/objective/responsibility context, and type-specific required fields.
+
+A non-Task `work_items` row cannot be inserted directly by an authenticated client, and `kind` cannot be changed after creation.
+
+### Routine
+
+Create details support:
+
+- `schedule_kind`: `daily | weekly | monthly | weekdays`
+- `weekdays`: ISO weekday integers 1–7
+- `day_of_month`: 1–31
+- `starts_on`, `ends_on`
+- `records_value`
+- `value_label`
+
+RPCs:
+
+- `record_routine_occurrence(work_item_id, occurred_on, value, note)`
+- `change_routine_schedule(work_item_id, effective_from, schedule_kind, weekdays, day_of_month, ends_on)`
+- `set_routine_paused(work_item_id, paused, reason)`
+
+Schedule changes are versioned and must start in the future. Past occurrences are append-only.
+
+### Case
+
+A case has a named owner, opened date, optional target resolution date, and permanent resolution record.
+
+Close it with:
+
+`resolve_work_case(work_item_id, resolution_note)`
+
+Only the case owner or Administration records the resolution.
+
+### Request
+
+A request has a requester plus a responsible person and/or responsible unit.
+
+RPCs:
+
+- `respond_work_request(work_item_id, outcome, note)`
+- `provide_request_clarification(work_item_id, note)`
+
+Outcomes: fulfilled, declined, clarification, cancelled. Every response is retained in `work_request_responses`.
+
+A responsible unit's manager can answer a unit-level request without gaining general cross-unit work visibility.
+
+### Decision
+
+A Decision has an explicitly named decision-maker and permanent question.
+
+Complete with:
+
+`record_work_decision(work_item_id, decision, rationale)`
+
+Decision and rationale are both required and attributable.
+
+### Meeting outcome
+
+`work_meeting_outcomes` preserves meeting title/date/note and optional `ministry_events` source. It uses the normal submit/review completion loop.
+
+### Deliverable
+
+`work_deliverables` records whether evidence is required and the accepted evidence kind:
+
+- `file_or_link`
+- `file`
+- `link`
+- `none`
+
+`approve_work_submission` refuses to approve a Deliverable until the required evidence exists on that submission.
+
+### Work links
+
+`link_work_items(parent, child, relation)` supports:
+
+- `case_action`
+- `follow_up`
+- `related`
+
+A `case_action` parent must actually be a Case.
+
+### Completion counting rule
+
+The architecture rule remains unchanged: **only Task and Deliverable are counted as "completed" output metrics.** Other kinds may reach a terminal base status for lifecycle handling but must not be added to Task/Deliverable completion counts.
+
+
+---
+
+## Typed-work reconciliation hardening (migration 045)
+
+Migration 045 closes four defects found after the initial 042–044 typed-work acceptance.
+
+### Legacy Routine reconciliation
+
+The five pre-typed `recurring_operations` rows are now linked to normal `work_items(kind='routine')` records.
+
+Where the old cadence explicitly said `Weekly, Sunday`, the migrated schedule is weekly/Sunday.
+
+Where the old record only said `Weekly`, CEAC OS **does not guess a weekday**. Those routines have a Work Engine record but no schedule version until an authorised manager configures one.
+
+For a legacy routine with no existing schedule version, `change_routine_schedule` may establish the first schedule from today or a future date. Once a schedule version exists, changes remain future-only.
+
+### Lifecycle enforcement
+
+Routine, Case, Request and Decision cannot be moved into arbitrary generic Work statuses by direct client updates.
+
+Their state transitions must use their type-specific RPCs:
+
+- Routine — occurrence/schedule/pause-resume actions;
+- Case — `resolve_work_case`;
+- Request — request response / clarification actions;
+- Decision — `record_work_decision`.
+
+Meeting outcome and Deliverable continue to use the ordinary submission/review path.
+
+### Named cross-unit Request
+
+A Request's named responsible person no longer has to belong to the requesting unit.
+
+If `responsible_unit_id` is supplied, the named responsible person must be an active member of that responsible unit. This allows a manager in one unit to make a legitimate Request to a named person in another unit while keeping the Request rooted in the requesting unit's context.
+
+### Safe work-lane deletion
+
+Deleting a sub-team/work lane is refused while any of the following still reference it:
+
+- official sub-team memberships;
+- work items;
+- recurring operations.
+
+This prevents a Manager delete from cascading away HR-controlled membership records. Move/clear the dependent records first, then remove the empty lane.
+
+
+---
+
+## Review-contract hardening (migration 046)
+
+Only these kinds use `submissions`:
+
+- Task
+- Meeting outcome
+- Deliverable
+
+Routine, Case, Request and Decision cannot insert generic submission rows.
+
+### Task approval
+
+`approve_work_submission` now independently verifies that every Task checklist item has a current tick before approval. The UI checklist gate is therefore convenience, not the security/integrity boundary.
+
+### Manager self-certification
+
+`self_certify_work` accepts only:
+
+- Task
+- Meeting outcome
+- Deliverable
+
+For Deliverable, the type-specific evidence contract is enforced during self-certification. A Deliverable configured with required link evidence cannot be completed by a manager without that link.
+
+The current Manager/Staff client records Deliverable evidence as a link. It does not pretend that a general upload pipeline exists.
+
+---
+
+## Staff experience continuation (migrations 047–054)
+
+### Work-session recovery and blocker resolution — 047 / 053
+
+`work_sessions` now carries `last_confirmed_at`, correction attribution and an append-only `work_session_events` history.
+
+Client contract:
+
+- `end_work_session(session_id)` ends the employee's own current session normally.
+- `reconcile_work_session(session_id, action, effective_ended_at, note)` is used when a session is stale.
+
+A previous-day session is never allowed to silently accumulate overnight time.
+
+After migration 053, `action='continue'` means:
+
+1. close the stale session at its last confirmed point;
+2. retain a reconciliation event on the old session;
+3. create a fresh open session for the current day carrying the same work/place context;
+4. return the new session.
+
+This deliberately avoids treating the overnight gap as working time.
+
+`blockers` now has explicit attributable resolution fields:
+
+- `resolved_at`
+- `resolved_by`
+- `resolution_note`
+
+Use `respond_to_blocker` for acknowledge/dispute and `resolve_blocker` for actual closure. Acknowledged is still active; resolved leaves the active attention set. If no other active blocker remains on a waiting work item, resolution returns that item to `in_progress`.
+
+### Announcements — 048 / 049
+
+Tables:
+
+- `announcements`
+- `announcement_audiences`
+- `announcement_receipts`
+
+Audience types:
+
+- organisation
+- unit
+- role
+
+Staff can only read currently published, unexpired announcements whose audience includes them. Read/acknowledgement is attributable via `mark_announcement_read`.
+
+Authoring uses RPCs rather than direct table writes:
+
+- `create_announcement`
+- `update_announcement`
+- `publish_announcement`
+- `close_announcement`
+
+Publishing authority is Administration, Group Pastor, or an explicit `post_announcement` capability. Audience counts are factual counts only; there is no employee ranking.
+
+### Unit resources — 050
+
+`unit_resources` stores approved links/references, not protected HR files.
+
+Supported categories:
+
+- brand
+- run_sheet
+- template
+- guide
+- reference
+- other
+
+Unit managers may manage resources for units they manage. Administration may also publish organisation-visible resources.
+
+Staff read active own-unit resources. Cross-unit resource visibility is denied unless the resource is intentionally organisation-visible.
+
+Use:
+
+- `save_unit_resource`
+- `set_unit_resource_active`
+
+### Approved leave visibility — 051
+
+`list_unit_approved_leave(unit_id, from, to)` exposes only the minimal operational leave facts needed by colleagues:
+
+- person
+- leave kind
+- start date
+- end date
+
+It does not expose the employee's leave reason or other private HR content.
+
+### Employee-maintained ordinary details — 052 / 054
+
+`profiles.preferred_name` is now available.
+
+Private ordinary personal information is stored in:
+
+- `profile_personal_details`
+- `profile_personal_detail_events`
+
+Private details include emergency contact, ordinary address and social handles. These are readable only by the employee and Administration.
+
+Use `update_my_personal_details` for employee changes to:
+
+- preferred name;
+- phone;
+- birthday;
+- emergency contact;
+- address;
+- social handles.
+
+Migration 054 makes the RPC the authoritative employee-write path. Direct employee updates to `profiles`, even for ordinary personal fields, are blocked so every change receives an attributable event. Administration retains its official profile authority.
+
+### Protected HR remains separate
+
+The Staff continuation deliberately does **not** store the following in ordinary profile or unit-resource storage:
+
+- Ghana Card images/details;
+- SSNIT;
+- tax details;
+- bank/payment details;
+- salary;
+- contracts;
+- payslips;
+- protected certificates/documents.
+
+Those require the approved protected-storage and HR verification model. Do not implement them with public URLs or ordinary profile columns.
+
+---
+
+## Staff operating-surface correction (migrations 055–059)
+
+### Attention state is source-driven — 055
+
+`alerts` now carries `resolved_at` and `resolved_reason`. An alert is not a permanent employee obligation.
+
+Background checks retire stale alerts when the source record changes. In particular:
+
+- completed, self-certified or cancelled work retires overdue and gone-quiet alerts;
+- work moved to `in_review` retires employee overdue/gone-quiet alerts because the next action is with the reviewer;
+- work in `waiting_on` retires those same employee-action alerts;
+- recent movement retires a gone-quiet alert;
+- blocker no-response alerts retire when the blocker is acknowledged, disputed or resolved.
+
+Clients may acknowledge permitted alerts but may not directly set alert resolution fields.
+
+### Historical session reconciliation — 056 / 057
+
+Legacy ended manual sessions longer than 24 hours with no prior correction are marked with `flags.needs_reconciliation = true` and excluded from employee time totals until corrected.
+
+Use `reconcile_closed_work_session(session_id, effective_ended_at, note)`.
+
+The employee may only correct their own flagged historical session. The corrected end must fall between the recorded start and old recorded end. The correction is retained in session/activity history. CEAC OS does not invent an end time.
+
+### Work-review follow-up — 058
+
+`work_followups` stores attributable review follow-ups. Use `follow_up_work_review(work_item_id)`.
+
+Rules:
+
+- assigned employee only;
+- work must still be `in_review`;
+- Task, Meeting outcome or Deliverable only;
+- first follow-up after one day from the latest submission;
+- final follow-up after three days;
+- maximum two follow-ups.
+
+The target Manager unit receives a `review_followup` alert. That alert resolves automatically when review ends.
+
+### Dependency follow-up — 059
+
+`blocker_followups` stores attributable dependency follow-ups. Use `follow_up_blocker(blocker_id)`.
+
+Rules:
+
+- blocker claimant only;
+- blocker must remain `claimed` or `acknowledged`;
+- blocker must target a CEAC unit;
+- first follow-up after one day from the latest claim/response;
+- final follow-up after three days;
+- maximum two follow-ups.
+
+The target unit receives a `blocker_followup` alert. It resolves when the dependency is resolved or disputed.
+
+### Staff information architecture
+
+Staff Home now separates:
+
+- What changed;
+- Your next move;
+- Waiting on others;
+- Coming up;
+- Announcements;
+- This week.
+
+Staff Work is presented as Assigned, My agreed work and Private.
+
+Self-created Task work may be unattached to a project, may have no due date and may intentionally have no checklist when the employee chooses to determine the method. Expected result remains required.
+
+Private work remains visible only to the employee and is excluded from formal Staff Record evidence.
+
+Staff Record is presented as Highlights, Work history and Time & activity. Highlights are derived from actual completed Task/Deliverable records and factual manager feedback. No self-authored performance score or achievement ranking is created.
+
+
+---
+
+## Stabilisation contracts (migrations 060–066)
+
+### Invite-only identity and authority — 060 / 061
+
+Use `create_pending_invitation(email, full_name, unit_id, role)` for application invitations.
+
+Rules:
+- Managers may invite `staff` only and only into units they manage.
+- Administration may invite Staff into any active unit in the organisation.
+- direct authenticated writes to `pending_invitations` are revoked;
+- invitations expire;
+- `handle_new_user` requires a matching unresolved/unexpired invitation;
+- organisation and unit come from that invitation;
+- client-supplied organisation metadata and first-organisation fallback are not authoritative;
+- every new account begins as Staff.
+
+Administration assigns official Unit Head authority with `assign_unit_head(unit_id, profile_id)`.
+
+`completed_outputs` is the canonical completed-output source: Task and Deliverable only, in `completed` or `self_certified`, with `completed_at`.
+
+### Threshold-driven deterministic rules — 062 / 063
+
+`app_threshold(org_id,name,default)` is the runtime source for configured rule values.
+
+`app_working_days_between(from,to)` currently counts Monday–Friday. Holiday-aware calculations require a future approved holiday-calendar contract.
+
+Daily checks cover work silence, review waiting, aged acknowledged blockers, project end/open deliverables, project silence, objective silence, missing unit reports and factual Falling from explicit comparable `report_targets.achieved_value` rows.
+
+Narrative reports are never converted into invented numeric trend data.
+
+### Atomic write RPCs — 064
+
+Use:
+- `create_task_with_checklist`
+- `submit_work_for_review`
+- `raise_work_blocker`
+- `create_project_with_participants`
+- `save_and_submit_project_close`
+- `save_and_submit_report`
+- `swap_sub_team_positions`
+
+These functions own their complete multi-row transition and authoritative activity event. Clients must not recreate their old multi-call sequences.
+
+### Performance contract — 065 / 066
+
+Hot-path indexes cover current work, submissions, alerts, blockers, leave, project participation, objectives, sessions and reporting access patterns.
+
+Administration People must use:
+- `admin_people_summary()` for list/filter facts;
+- `admin_person_detail(profile_id)` when one employee is opened.
+
+This prevents organisation-wide work/session/leave histories from being downloaded merely to render the People list.
+
+Manager reporting source rows are scoped to the selected period before transfer to the client.
