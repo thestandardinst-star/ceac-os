@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { statusPill } from "../components/bits";
 import VoiceInput from "../components/VoiceInput";
+import { humanError } from "../lib/productLanguage";
 
 function whenLabel(value) {
   return new Date(value).toLocaleString("en-GB", {
@@ -49,7 +50,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       setLinks(linkResult.data || []);
       setParticipants(participantResult.data || []);
     } catch (err) {
-      setError(err.message || "Meeting could not be opened.");
+      setError(humanError(err, "Meeting could not be opened."));
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       setNote("");
       await load();
     } catch (err) {
-      setError(err.message || "Meeting record could not be saved.");
+      setError(humanError(err, "Meeting record could not be saved."));
     } finally {
       setBusy(false);
     }
