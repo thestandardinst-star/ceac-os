@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel, isOverdue } from "../lib/time";
-import { Pill, statusPill } from "../components/bits";
+import { Pill, statusPill, ProductNotice, LoadingState, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 function requireResult(result, label) {
@@ -124,7 +124,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     finally { setBusy(false); }
   }
 
-  if (!person) return <div className="body manager-person-detail"><button className="back" onClick={back}>← Team</button>{error ? <div className="flag flag-brick"><h4>Could not open person detail</h4>{error}</div> : <div className="spin">Loading...</div>}</div>;
+  if (!person) return <div className="body manager-person-detail"><button className="back" onClick={back}>← Team</button>{error ? <ProductNotice tone="error" title="Could not open person detail">{error}</ProductNotice> : <LoadingState label="Loading person…" />}</div>;
 
   const periodStart = new Date(); periodStart.setDate(periodStart.getDate() - periodDays);
   const current = items.filter((item) => !["completed", "self_certified", "cancelled"].includes(item.status));
