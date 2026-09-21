@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
+import { Sheet, statusPill, FieldGroup, ProductNotice, LoadingState } from "../components/bits";
 
 const MODES = [
   ["assigned", "Assigned"],
@@ -37,6 +38,8 @@ export default function Work({ me, isManager = false, openItem }) {
   const [noStepsNeeded, setNoStepsNeeded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
+  const [queryText, setQueryText] = useState("");
+  const [sortMode, setSortMode] = useState("due");
 
   useEffect(() => { load(); }, [mode, statusFilter, me.id, isManager]);
   useEffect(() => { loadProjects(); }, [me.id, me.unit_id]);
@@ -131,14 +134,25 @@ export default function Work({ me, isManager = false, openItem }) {
         : `${created.ref} added to your agreed work. It appears immediately in your record.`);
       await load();
     } catch (error) {
-      setLoadError(error.message || "The work could not be added.");
+      setLoadError(humanError(error, "The work could not be added."));
     } finally {
       setBusy(false);
     }
   }
 
+  const cleanQuery = queryText.trim().toLowerCase();
+  const visibleItems = items
+    .filter((item) => !cleanQuery || [item.title,item.ref,item.kind,item.projects?.name,item.expected_outcome].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanQuery)))
+    .sort((left,right) => {
+      if (sortMode === "title") return left.title.localeCompare(right.title);
+      if (sortMode === "status") return String(left.status).localeCompare(String(right.status)) || left.title.localeCompare(right.title);
+      const a = left.due_at ? new Date(left.due_at).getTime() : Number.MAX_SAFE_INTEGER;
+      const b = right.due_at ? new Date(right.due_at).getTime() : Number.MAX_SAFE_INTEGER;
+      return a-b || left.title.localeCompare(right.title);
+    });
+
   const grouped = {};
-  items.forEach((item) => {
+  visibleItems.forEach((item) => {
     const key = item.projects ? item.projects.name : "Not attached to a project";
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(item);
@@ -173,7 +187,7 @@ export default function Work({ me, isManager = false, openItem }) {
       <button className="btn btn-ghost btn-sm" onClick={() => openCreate("private")}>Add private work</button>
     </div>
 
-    {notice && <div className="flag flag-green" style={{ marginTop: 12 }}>{notice}</div>}
+    {notice && <ProductNotice tone="success" title="Work updated">{notice}</ProductNotice>}
 
     <div className="status-filter" aria-label="Work status">
       {STATUS_FILTERS.map(([key, label]) => <button
@@ -183,8 +197,12 @@ export default function Work({ me, isManager = false, openItem }) {
       >{label}</button>)}
     </div>
 
-    {loadError && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not load your work</h4>{loadError}</div>}
-    {loading && <div className="spin">Loading your work...</div>}
+    {items.length > 10 && <div className="work-scale-tools">
+      <FieldGroup label="Find work"><input className="field" type="search" placeholder="Search title, reference or project" value={queryText} onChange={(event) => setQueryText(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Sort by"><select className="field" value={sortMode} onChange={(event) => setSortMode(event.target.value)}><option value="due">Due date</option><option value="title">Title</option><option value="status">Status</option></select></FieldGroup>
+    </div>}
+    {loadError && <ProductNotice tone="error" title="Could not load your work">{loadError}</ProductNotice>}
+    {loading && <LoadingState label="Loading your work…" />}
 
     {!loading && Object.keys(grouped).map((project) => <section key={project} className="work-group">
       <div className="work-group-head"><strong>{project}</strong><span>{grouped[project].length}</span></div>
@@ -203,6 +221,7 @@ export default function Work({ me, isManager = false, openItem }) {
       </div>
     </section>)}
 
+    {!loading && !loadError && items.length > 0 && visibleItems.length === 0 && <div className="quiet-empty"><strong>No matching work</strong><span>Try a different search.</span></div>}
     {!loading && !loadError && items.length === 0 && <div className="quiet-empty">
       <strong>Nothing here right now</strong>
       <span>{mode === "private"
@@ -221,9 +240,9 @@ export default function Work({ me, isManager = false, openItem }) {
           : "Record work you already agreed to carry. You can attach it to a project, but you do not have to."}
       </p>
 
-      <input className="field" placeholder="What are you doing?" value={title} onChange={(event) => setTitle(event.target.value)} />
-      <textarea className="field" rows={2} placeholder="Why it matters (optional)" value={purpose} onChange={(event) => setPurpose(event.target.value)} />
-      <textarea className="field" rows={3} placeholder="What should be true when this is finished?" value={expectedOutcome} onChange={(event) => setExpectedOutcome(event.target.value)} />
+      <FieldGroup label="Work to carry"><input className="field" placeholder="What are you doing?" value={title} onChange={(event) => setTitle(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Why it matters" hint="Optional context."><textarea className="field" rows={2} placeholder="Why it matters" value={purpose} onChange={(event) => setPurpose(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Finished result"><textarea className="field" rows={3} placeholder="What should be true when this is finished?" value={expectedOutcome} onChange={(event) => setExpectedOutcome(event.target.value)} /></FieldGroup>
 
       <select className="field" value={projectId} onChange={(event) => setProjectId(event.target.value)}>
         <option value="">No project attached</option>
