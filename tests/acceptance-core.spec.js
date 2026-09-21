@@ -648,7 +648,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Cost", "Finance", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
