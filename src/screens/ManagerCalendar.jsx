@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Sheet } from "../components/bits";
 
-const FILTERS = [["all","All"],["projects","Projects"],["tasks","Tasks"],["leave","Leave"],["activities","Ministry/unit activities"]];
+const FILTERS = [["all","All"],["meetings","Meetings"],["projects","Projects"],["tasks","Tasks"],["leave","Leave"],["activities","Ministry/unit activities"]];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const pad = (n) => String(n).padStart(2, "0");
 const dateKey = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -16,13 +16,16 @@ const accraDateKey = (value) => {
   return `${byType.year}-${byType.month}-${byType.day}`;
 };
 
-export default function ManagerCalendar({ me, openItem, openProject, openPerson }) {
+export default function ManagerCalendar({ me, openItem, openProject, openMeeting, openPerson }) {
   const [view,setView]=useState("month");
   const [filter,setFilter]=useState("all");
   const [cursor,setCursor]=useState(new Date());
   const [events,setEvents]=useState([]);
   const [selectedActivity,setSelectedActivity]=useState(null);
   const [selectedLeave,setSelectedLeave]=useState(null);
+  const [meetingSheet,setMeetingSheet]=useState(false);
+  const [meetingForm,setMeetingForm]=useState({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
+  const [savingMeeting,setSavingMeeting]=useState(false);
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(true);
 
@@ -30,15 +33,16 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
 
   async function load(){
     setLoading(true); setError(null);
-    const [projects, work, members, leave, ministry, ministryNeeds] = await Promise.all([
+    const [projects, work, members, leave, ministry, ministryNeeds, meetings] = await Promise.all([
       supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)"),
       supabase.from("work_items").select("id,ref,title,due_at,status,project_id").eq("unit_id",me.unit_id).not("due_at","is",null).neq("visibility","private"),
       supabase.from("unit_memberships").select("profile_id").eq("unit_id",me.unit_id),
       supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").eq("status","approved"),
       supabase.from("ministry_events").select("id,title,kind,scope,unit_id,starts_at,ends_at,all_day,location,notes,cancelled"),
-      supabase.from("ministry_event_units").select("event_id,unit_id,note").eq("unit_id",me.unit_id)
+      supabase.from("ministry_event_units").select("event_id,unit_id,note").eq("unit_id",me.unit_id),
+      supabase.from("meeting_sessions").select("id,title,scope,unit_id,project_id,starts_at,ends_at,status,provider,join_url").order("starts_at")
     ]);
-    const firstError=[projects.error,work.error,members.error,leave.error,ministry.error,ministryNeeds.error].find(Boolean);
+    const firstError=[projects.error,work.error,members.error,leave.error,ministry.error,ministryNeeds.error,meetings.error].find(Boolean);
     if(firstError){ setError(firstError.message); setLoading(false); return; }
     const memberIds=new Set((members.data||[]).map(x=>x.profile_id));
     const out=[];
@@ -85,6 +89,15 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
         d=addDays(d,1);
       }
     });
+    (meetings.data||[]).forEach((meeting)=>{
+      out.push({
+        id:`meeting-${meeting.id}`,
+        type:"meetings",
+        date:accraDateKey(meeting.starts_at),
+        title:`${meeting.status==="cancelled"?"Cancelled · ":""}${meeting.title}`,
+        meetingId:meeting.id,
+      });
+    });
     setEvents(out); setLoading(false);
   }
 
@@ -98,8 +111,34 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
   const move=(n)=>setCursor(view==="month"?new Date(cursor.getFullYear(),cursor.getMonth()+n,1):addDays(cursor,n*7));
   const heading=view==="month"?`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`:`${labelDate(dateKey(days[0]))} – ${labelDate(dateKey(days[6]))}`;
 
+  async function saveMeeting(){
+    if(!meetingForm.title.trim() || !meetingForm.starts_at) return;
+    setSavingMeeting(true); setError(null);
+    try{
+      const result=await supabase.from("meeting_sessions").insert({
+        org_id:me.org_id,
+        scope:"unit",
+        unit_id:me.unit_id,
+        title:meetingForm.title.trim(),
+        agenda:meetingForm.agenda.trim()||null,
+        starts_at:new Date(meetingForm.starts_at).toISOString(),
+        ends_at:meetingForm.ends_at?new Date(meetingForm.ends_at).toISOString():null,
+        provider:"zoom",
+        join_url:meetingForm.join_url.trim()||null,
+        created_by:me.id,
+      }).select("id").single();
+      if(result.error) throw result.error;
+      setMeetingSheet(false);
+      setMeetingForm({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
+      await load();
+      openMeeting?.(result.data.id);
+    }catch(err){ setError(err.message||"Meeting could not be scheduled."); }
+    finally{ setSavingMeeting(false); }
+  }
+
   return <div className="body manager-calendar">
-    <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Project dates, task deadlines, approved team leave and the ministry calendar in one place.</p></div>
+    <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Meetings, project dates, task deadlines, approved leave and ministry activity in one place.</p></div>
+    <button className="btn wide-auto manager-calendar-create" onClick={()=>setMeetingSheet(true)}>Schedule meeting</button>
     {error&&<div className="flag flag-brick"><h4>Could not load the calendar</h4>{error}</div>}
     <div className="manager-calendar-controls">
       <button className={"btn btn-sm "+(view==="month"?"":"btn-ghost")} onClick={()=>setView("month")}>Month</button>
@@ -110,10 +149,21 @@ export default function ManagerCalendar({ me, openItem, openProject, openPerson 
     {loading?<div className="spin">Loading calendar...</div>:<div className={`manager-calendar-grid manager-calendar-${view}`}>
       {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className={`manager-calendar-day ${dayEvents.length?"has-events":"is-empty"} ${muted?"is-muted":""}`}>
         <div className="manager-calendar-date">{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        <div className="manager-calendar-events">{dayEvents.map(e=><button className="manager-calendar-event" key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}>{e.title}</button>)}</div>
+        <div className="manager-calendar-events">{dayEvents.map(e=><button className="manager-calendar-event" key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.meetingId?openMeeting?.(e.meetingId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}>{e.title}</button>)}</div>
       </div>})}
     </div>}
     {!loading&&visible.length===0&&<div className="card small manager-calendar-empty">No events are recorded for this view and period.</div>}
+    {meetingSheet&&<Sheet onClose={()=>setMeetingSheet(false)}>
+      <div className="eyebrow">Unit meeting</div>
+      <div className="h2" style={{marginTop:5}}>Schedule meeting</div>
+      <p className="screen-note">CEAC keeps the agenda, notes, decisions and resulting work. Zoom remains the video provider.</p>
+      <input className="field" placeholder="Meeting title" value={meetingForm.title} onChange={(e)=>setMeetingForm(v=>({...v,title:e.target.value}))}/>
+      <label className="small">Starts<input className="field" type="datetime-local" value={meetingForm.starts_at} onChange={(e)=>setMeetingForm(v=>({...v,starts_at:e.target.value}))}/></label>
+      <label className="small">Ends (optional)<input className="field" type="datetime-local" value={meetingForm.ends_at} onChange={(e)=>setMeetingForm(v=>({...v,ends_at:e.target.value}))}/></label>
+      <input className="field" type="url" placeholder="Zoom join link (optional)" value={meetingForm.join_url} onChange={(e)=>setMeetingForm(v=>({...v,join_url:e.target.value}))}/>
+      <textarea className="field" rows={4} placeholder="Agenda (optional)" value={meetingForm.agenda} onChange={(e)=>setMeetingForm(v=>({...v,agenda:e.target.value}))}/>
+      <button className="btn" disabled={savingMeeting||!meetingForm.title.trim()||!meetingForm.starts_at} onClick={saveMeeting}>{savingMeeting?"Scheduling...":"Schedule meeting"}</button>
+    </Sheet>}
     {selectedLeave&&<Sheet onClose={()=>setSelectedLeave(null)}>
       <div className="eyebrow">Approved leave</div>
       <div className="h2" style={{marginTop:5}}>{selectedLeave.full_name}</div>
