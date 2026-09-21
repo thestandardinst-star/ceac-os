@@ -43,6 +43,9 @@ export default function MeetingScheduler({
   const [projects, setProjects] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [people, setPeople] = useState([]);
+  const [orgPeople, setOrgPeople] = useState([]);
+  const [unitMembers, setUnitMembers] = useState([]);
+  const [subTeamMembers, setSubTeamMembers] = useState([]);
   const [projectManagers, setProjectManagers] = useState([]);
   const [audience, setAudience] = useState(() => {
     if (context.subTeamId) return [{ type: "sub_team", id: context.subTeamId, label: context.subTeamName || "Sub-team" }];
@@ -61,14 +64,20 @@ export default function MeetingScheduler({
   async function loadBase() {
     setLoadingOptions(true);
     try {
-      const [unitResult, projectResult] = await Promise.all([
+      const [unitResult, projectResult, peopleResult, membershipResult, subTeamMemberResult] = await Promise.all([
         supabase.from("units").select("id,name,active").eq("active", true).order("name"),
         supabase.from("projects")
           .select("id,name,status,lead_unit_id,project_units(unit_id)")
           .in("status", ["planned","active"]).order("name"),
+        supabase.from("profiles").select("id,full_name,active").eq("active",true).order("full_name"),
+        supabase.from("unit_memberships").select("profile_id,unit_id,role"),
+        supabase.from("sub_team_members").select("sub_team_id,profile_id"),
       ]);
       if (unitResult.error) throw unitResult.error;
       if (projectResult.error) throw projectResult.error;
+      if (peopleResult.error) throw peopleResult.error;
+      if (membershipResult.error) throw membershipResult.error;
+      if (subTeamMemberResult.error) throw subTeamMemberResult.error;
 
       const visibleUnits = privileged
         ? unitResult.data || []
@@ -82,6 +91,9 @@ export default function MeetingScheduler({
             || (row.project_units || []).some((unit) => managedUnitIds.includes(unit.unit_id))
           );
       setProjects(manageableProjects);
+      setOrgPeople(peopleResult.data || []);
+      setUnitMembers(membershipResult.data || []);
+      setSubTeamMembers(subTeamMemberResult.data || []);
     } catch (err) {
       setError(err.message || "Meeting options could not be loaded.");
     } finally {
@@ -170,6 +182,26 @@ export default function MeetingScheduler({
     }
   }
 
+  const resolvedParticipantCount = useMemo(() => {
+    const ids = new Set([me.id]);
+    for (const entry of audience) {
+      if (entry.type === "organisation") orgPeople.forEach((person) => ids.add(person.id));
+      if (entry.type === "unit") unitMembers.filter((row) => row.unit_id === entry.id).forEach((row) => ids.add(row.profile_id));
+      if (entry.type === "sub_team") subTeamMembers.filter((row) => row.sub_team_id === entry.id).forEach((row) => ids.add(row.profile_id));
+      if (entry.type === "selected") ids.add(entry.id);
+      if (entry.type === "project" || entry.type === "project_managers") {
+        const project = projects.find((row) => row.id === entry.id);
+        if (project) {
+          const projectUnitIds = new Set([project.lead_unit_id,...(project.project_units || []).map((row) => row.unit_id)].filter(Boolean));
+          unitMembers
+            .filter((row) => projectUnitIds.has(row.unit_id) && (entry.type !== "project_managers" || row.role === "manager"))
+            .forEach((row) => ids.add(row.profile_id));
+        }
+      }
+    }
+    return ids.size;
+  }, [audience, me.id, orgPeople, unitMembers, subTeamMembers, projects]);
+
   const canSubmit = title.trim() && startsAt && audience.length
     && (scope !== "unit" || unitId)
     && (scope !== "project" || projectId);
@@ -234,14 +266,26 @@ export default function MeetingScheduler({
         </div>
 
         <aside className="meeting-audience">
-          <div className="meeting-audience-head"><span>Invite</span><strong>{audience.length} audience selection{audience.length === 1 ? "" : "s"}</strong></div>
+          <div className="meeting-audience-head"><span>Invite</span><strong>{resolvedParticipantCount} participant{resolvedParticipantCount === 1 ? "" : "s"}</strong><small>{audience.length} audience selection{audience.length === 1 ? "" : "s"} · duplicates removed</small></div>
 
           {loadingOptions && <div className="spin">Loading audience…</div>}
 
-          {!loadingOptions && scope === "organisation" && <button className={"meeting-audience-option " + (isOn({type:"organisation",id:null}) ? "on" : "")}
-            onClick={() => toggle({ type:"organisation", id:null, label:"Everyone in CEAC" })}>
-            <span><strong>Everyone in CEAC</strong><small>Organisation-wide meeting</small></span><b>{isOn({type:"organisation",id:null}) ? "✓" : "+"}</b>
-          </button>}
+          {!loadingOptions && scope === "organisation" && <>
+            <button className={"meeting-audience-option " + (isOn({type:"organisation",id:null}) ? "on" : "")}
+              onClick={() => toggle({ type:"organisation", id:null, label:"Everyone in CEAC" })}>
+              <span><strong>Everyone in CEAC</strong><small>Invite every active CEAC account</small></span><b>{isOn({type:"organisation",id:null}) ? "✓" : "+"}</b>
+            </button>
+            <div className="meeting-audience-subhead">Or combine units</div>
+            {units.map((unit) => <button key={unit.id} className={"meeting-audience-option " + (isOn({type:"unit",id:unit.id}) ? "on" : "")}
+              onClick={() => toggle({ type:"unit", id:unit.id, label:unit.name })}>
+              <span><strong>{unit.name}</strong><small>Everyone currently in this unit</small></span><b>{isOn({type:"unit",id:unit.id}) ? "✓" : "+"}</b>
+            </button>)}
+            <div className="meeting-audience-subhead">Specific people</div>
+            {orgPeople.map((person) => <button key={person.id} className={"meeting-audience-option person " + (isOn({type:"selected",id:person.id}) ? "on" : "")}
+              onClick={() => toggle({ type:"selected", id:person.id, label:person.full_name })}>
+              <span><strong>{person.full_name}</strong><small>Individual invitation</small></span><b>{isOn({type:"selected",id:person.id}) ? "✓" : "+"}</b>
+            </button>)}
+          </>}
 
           {!loadingOptions && scope === "unit" && unitId && <>
             <button className={"meeting-audience-option " + (isOn({type:"unit",id:unitId}) ? "on" : "")}
