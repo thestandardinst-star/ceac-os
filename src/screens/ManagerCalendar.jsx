@@ -16,16 +16,14 @@ const accraDateKey = (value) => {
   return `${byType.year}-${byType.month}-${byType.day}`;
 };
 
-export default function ManagerCalendar({ me, openItem, openProject, openMeeting, openPerson }) {
+export default function ManagerCalendar({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson }) {
   const [view,setView]=useState("month");
   const [filter,setFilter]=useState("all");
   const [cursor,setCursor]=useState(new Date());
   const [events,setEvents]=useState([]);
   const [selectedActivity,setSelectedActivity]=useState(null);
   const [selectedLeave,setSelectedLeave]=useState(null);
-  const [meetingSheet,setMeetingSheet]=useState(false);
-  const [meetingForm,setMeetingForm]=useState({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
-  const [savingMeeting,setSavingMeeting]=useState(false);
+  const [filterSheet,setFilterSheet]=useState(false);
   const [error,setError]=useState(null);
   const [loading,setLoading]=useState(true);
 
@@ -111,39 +109,18 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
   const move=(n)=>setCursor(view==="month"?new Date(cursor.getFullYear(),cursor.getMonth()+n,1):addDays(cursor,n*7));
   const heading=view==="month"?`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`:`${labelDate(dateKey(days[0]))} – ${labelDate(dateKey(days[6]))}`;
 
-  async function saveMeeting(){
-    if(!meetingForm.title.trim() || !meetingForm.starts_at) return;
-    setSavingMeeting(true); setError(null);
-    try{
-      const result=await supabase.from("meeting_sessions").insert({
-        org_id:me.org_id,
-        scope:"unit",
-        unit_id:me.unit_id,
-        title:meetingForm.title.trim(),
-        agenda:meetingForm.agenda.trim()||null,
-        starts_at:new Date(meetingForm.starts_at).toISOString(),
-        ends_at:meetingForm.ends_at?new Date(meetingForm.ends_at).toISOString():null,
-        provider:"zoom",
-        join_url:meetingForm.join_url.trim()||null,
-        created_by:me.id,
-      }).select("id").single();
-      if(result.error) throw result.error;
-      setMeetingSheet(false);
-      setMeetingForm({ title:"", starts_at:"", ends_at:"", join_url:"", agenda:"" });
-      await load();
-      openMeeting?.(result.data.id);
-    }catch(err){ setError(err.message||"Meeting could not be scheduled."); }
-    finally{ setSavingMeeting(false); }
-  }
-
   return <div className="body manager-calendar">
     <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Meetings, project dates, task deadlines, approved leave and ministry activity in one place.</p></div>
-    <button className="btn wide-auto manager-calendar-create" onClick={()=>setMeetingSheet(true)}>Schedule meeting</button>
+    <button className="btn wide-auto manager-calendar-create" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</button>
     {error&&<div className="flag flag-brick"><h4>Could not load the calendar</h4>{error}</div>}
-    <div className="manager-calendar-controls">
-      <button className={"btn btn-sm "+(view==="month"?"":"btn-ghost")} onClick={()=>setView("month")}>Month</button>
-      <button className={"btn btn-sm "+(view==="week"?"":"btn-ghost")} onClick={()=>setView("week")}>Week</button>
-      {FILTERS.map(([k,l])=><button key={k} className={"btn btn-ghost btn-sm "+(filter===k?"on":"")} onClick={()=>setFilter(k)}>{l}</button>)}
+    <div className="manager-calendar-toolbar">
+      <div className="calendar-view-toggle" role="group" aria-label="Calendar view">
+        <button className={view==="month"?"on":""} onClick={()=>setView("month")}>Month</button>
+        <button className={view==="week"?"on":""} onClick={()=>setView("week")}>Week</button>
+      </div>
+      <button className="calendar-filter-trigger" onClick={()=>setFilterSheet(true)}>
+        <span>View</span><strong>{FILTERS.find(([key])=>key===filter)?.[1]||"All"}</strong><b aria-hidden="true">⌄</b>
+      </button>
     </div>
     <div className="manager-calendar-period"><button aria-label="Previous period" onClick={()=>move(-1)}>←</button><strong>{heading}</strong><button aria-label="Next period" onClick={()=>move(1)}>→</button></div>
     {loading?<div className="spin">Loading calendar...</div>:<div className={`manager-calendar-grid manager-calendar-${view}`}>
@@ -153,16 +130,15 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       </div>})}
     </div>}
     {!loading&&visible.length===0&&<div className="card small manager-calendar-empty">No events are recorded for this view and period.</div>}
-    {meetingSheet&&<Sheet onClose={()=>setMeetingSheet(false)}>
-      <div className="eyebrow">Unit meeting</div>
-      <div className="h2" style={{marginTop:5}}>Schedule meeting</div>
-      <p className="screen-note">CEAC keeps the agenda, notes, decisions and resulting work. Zoom remains the video provider.</p>
-      <input className="field" placeholder="Meeting title" value={meetingForm.title} onChange={(e)=>setMeetingForm(v=>({...v,title:e.target.value}))}/>
-      <label className="small">Starts<input className="field" type="datetime-local" value={meetingForm.starts_at} onChange={(e)=>setMeetingForm(v=>({...v,starts_at:e.target.value}))}/></label>
-      <label className="small">Ends (optional)<input className="field" type="datetime-local" value={meetingForm.ends_at} onChange={(e)=>setMeetingForm(v=>({...v,ends_at:e.target.value}))}/></label>
-      <input className="field" type="url" placeholder="Zoom join link (optional)" value={meetingForm.join_url} onChange={(e)=>setMeetingForm(v=>({...v,join_url:e.target.value}))}/>
-      <textarea className="field" rows={4} placeholder="Agenda (optional)" value={meetingForm.agenda} onChange={(e)=>setMeetingForm(v=>({...v,agenda:e.target.value}))}/>
-      <button className="btn" disabled={savingMeeting||!meetingForm.title.trim()||!meetingForm.starts_at} onClick={saveMeeting}>{savingMeeting?"Scheduling...":"Schedule meeting"}</button>
+    {filterSheet&&<Sheet onClose={()=>setFilterSheet(false)}>
+      <div className="eyebrow">Calendar view</div>
+      <div className="h2" style={{marginTop:5}}>Show on calendar</div>
+      <p className="screen-note">Choose one layer. Your Month or Week setting stays unchanged.</p>
+      <div className="calendar-filter-sheet">
+        {FILTERS.map(([key,label])=><button key={key} className={filter===key?"on":""} onClick={()=>{setFilter(key);setFilterSheet(false);}}>
+          <span>{label}</span><b>{filter===key?"✓":""}</b>
+        </button>)}
+      </div>
     </Sheet>}
     {selectedLeave&&<Sheet onClose={()=>setSelectedLeave(null)}>
       <div className="eyebrow">Approved leave</div>
