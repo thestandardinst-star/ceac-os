@@ -137,7 +137,7 @@ function desktopGroups({ isAdmin, isExec, isManager }) {
     { label:"Personal", items:[["me","Me"]] },
   ];
   if (isAdmin) return [
-    { label:"Organisation", items:[["home","Home"],["units","Units"]] },
+    { label:"Organisation", items:[["home","Home"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[["people","People"],["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
@@ -155,7 +155,7 @@ export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
     units:"Units", people:"People", attendance:"Attendance & leave", reporting:"Reports",
-    finance:"Finance", cost:"Cost", announcements:"Announcements", settings:"Settings",
+    finance:"Finance", cost:"Cost", announcements:"Announcements", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
   };
@@ -223,7 +223,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false }
     { label:"Personal", items:[["me","Me"]] },
   ];
   const adminGroups = [
-    { label:"Organisation", items:[["units","Units"]] },
+    { label:"Organisation", items:[["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[["settings","Settings"],["me","Me"]] },
