@@ -1,8 +1,8 @@
 # CEAC OS — Product Experience, Collaboration & PWA Architecture Amendment
 
-**Date:** 21 September 2026  
-**Status:** APPROVED PRODUCT EXPERIENCE DECISION — binding  
-**Decision owner:** CEAC product owner  
+**Date:** 21 September 2026
+**Status:** APPROVED PRODUCT EXPERIENCE DECISION — binding
+**Decision owner:** CEAC product owner
 **Applies to:** Staff, Manager, Administration & HR, Group Pastor, shared navigation, future Rooms, and future meeting experience.
 
 ## 0. Precedence and safety boundary
