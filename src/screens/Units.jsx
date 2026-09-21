@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader } from "../components/bits";
@@ -283,3 +283,4 @@ export default function Units({ me, openItem }) {
     </div>
     {units.length === 0 && <EmptyState title="No active units">Create or activate units from organisation settings before assigning people or work.</EmptyState>}
   </div>;
+}
