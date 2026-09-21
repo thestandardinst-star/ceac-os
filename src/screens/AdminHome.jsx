@@ -54,7 +54,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
           .select("id,party_text,since,state,party_unit_id,work_items(id,title,unit_id),claimant:profiles!blockers_claimed_by_fkey(full_name),units(name)")
           .neq("state","resolved").limit(20), "Cross-unit blockers"),
         must(supabase.from("leave_requests")
-          .select("id,kind,start_date,end_date,days,status,profiles(full_name)")
+          .select("id,kind,start_date,end_date,days,status,requester:profiles!leave_requests_profile_id_fkey(full_name)")
           .in("status",["pending","escalated"]).order("requested_at",{ascending:false}).limit(20), "Leave queue"),
         must(supabase.from("work_items")
           .select("id,ref,title,status,due_at").eq("assignee_id",me.id)
@@ -226,7 +226,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
       {leaveQueue.map((request) => <div key={request.id} className="admin-action-row">
         <div>
-          <strong>{request.profiles?.full_name || "—"} · {request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
+          <strong>{request.requester?.full_name || "—"} · {request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
           <span>{request.start_date} → {request.end_date} · {request.status === "escalated" ? "Escalated by manager" : "Waiting for Administration"}</span>
         </div>
         <div className="admin-row-actions">
