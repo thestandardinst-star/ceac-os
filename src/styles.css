@@ -983,3 +983,17 @@ textarea{width:100%}
   .staff-app .area-heading{align-items:flex-start;flex-wrap:wrap}
   .staff-app .area-heading .btn{max-width:100%}
 }
+
+
+/* iOS PWA/Safari stability: 16px form text prevents automatic focus zoom.
+   Keep user pinch-zoom enabled; only remove the browser's involuntary form zoom. */
+.staff-app{ -webkit-text-size-adjust:100%; text-size-adjust:100% }
+.staff-app button,.staff-app a{touch-action:manipulation}
+@media (max-width:819px){
+  .staff-app input.field,
+  .staff-app textarea.field,
+  .staff-app select.field,
+  .staff-app .mobile-unit-switch select{
+    font-size:16px
+  }
+}
