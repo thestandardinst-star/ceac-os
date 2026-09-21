@@ -424,7 +424,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         <p className="screen-note">Describe the outcome naturally, then review exactly what CEAC understood before anything is sent.</p>
         <div className="assign-voice">
           <div><strong>Speak or type</strong><span>Voice can prefill the form. You remain in control.</span></div>
-          <VoiceInput onResult={handleVoice} label="Speak instruction" />
+          <VoiceInput onResult={handleVoice} label="Speak your instruction" />
         </div>
       </section>
       {voiceProposal && <div className="voice-proposal">
