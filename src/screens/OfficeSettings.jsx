@@ -79,6 +79,10 @@ export default function OfficeSettings({ me }) {
     }
   }
 
+  function jumpTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function pickHere() {
     setLocErr(null);
     if (!("geolocation" in navigator)) {
@@ -143,16 +147,20 @@ export default function OfficeSettings({ me }) {
         throw new Error("Complete all four leave-rule fields before confirming the policy.");
       }
 
-      const result = await supabase.from("leave_settings").update({
+      const result = await supabase.from("leave_settings").upsert({
+        org_id: me.org_id,
         annual_days: annual,
         sick_days: sick,
         max_carryover: carry,
         manager_approval_limit: limit,
         updated_by: me.id,
         updated_at: new Date().toISOString(),
-      }).eq("org_id", me.org_id);
+      }, { onConflict: "org_id" })
+        .select("org_id,annual_days,sick_days,max_carryover,manager_approval_limit,updated_by")
+        .single();
 
       if (result.error) throw result.error;
+      if (!result.data?.updated_by) throw new Error("The leave policy was not persisted.");
       await load();
       setMessage({ tone: "success", title: "Leave policy confirmed", body: "CEAC OS will use these values only from this confirmation onward." });
     } catch (error) {
@@ -194,7 +202,7 @@ export default function OfficeSettings({ me }) {
     {message && <ProductNotice tone={message.tone} title={message.title}>{message.body}</ProductNotice>}
 
     <div className="office-settings-grid">
-      <section className="office-settings-card">
+      <section id="office-location-settings" className="office-settings-card">
         <SectionHeader eyebrow="Attendance context" title="Office location" />
         <p className="screen-note">This location tells CEAC OS whether a work session began at the office or elsewhere. It does not determine productivity.</p>
         <FieldGroup label="Location name">
@@ -214,7 +222,7 @@ export default function OfficeSettings({ me }) {
         {office && <div className="office-setting-footnote">Last confirmed {dateOnly(office.set_at)}.</div>}
       </section>
 
-      <section className="office-settings-card">
+      <section id="leave-policy-settings" className="office-settings-card">
         <SectionHeader eyebrow="Policy" title="Leave rules" />
         {!leaveConfigured && <ProductNotice tone="attention" title="Leave policy not configured">
           The database contains old prototype defaults, but CEAC has not confirmed its actual leave rules. Those values are not being presented as CEAC policy.
@@ -234,7 +242,7 @@ export default function OfficeSettings({ me }) {
         </button>
       </section>
 
-      <section className="office-settings-card office-settings-wide">
+      <section id="attention-rule-settings" className="office-settings-card office-settings-wide">
         <SectionHeader eyebrow="Quiet by default" title="When to tell Administration" />
         <p className="screen-note">These are deterministic rules already used by CEAC OS. Changing a value changes when an item becomes visible; it does not change the underlying work or create a score.</p>
         <div className="office-threshold-list">
@@ -246,7 +254,7 @@ export default function OfficeSettings({ me }) {
         </div>
       </section>
 
-      <section className="office-settings-card office-settings-wide">
+      <section id="access-settings" className="office-settings-card office-settings-wide">
         <SectionHeader eyebrow="People & access" title="Pending invitations" count={pendingInvitations.length} />
         <p className="screen-note">New accounts always activate as Staff. Administration assigns official authority only after activation.</p>
         {pendingInvitations.length === 0 && <div className="card small">No active invitations are waiting.</div>}
@@ -256,14 +264,24 @@ export default function OfficeSettings({ me }) {
       </section>
 
       <section className="office-settings-card office-settings-wide">
-        <SectionHeader eyebrow="Administration & HR" title="Configuration status" />
+        <SectionHeader eyebrow="Administration & HR" title="Setup & configuration" />
+        <p className="screen-note">Open the settings CEAC can control here. Items that still need an approved CEAC policy remain clearly unavailable rather than pretending to be configurable.</p>
         <div className="office-config-status">
-          <div><span>Office location</span><strong>{office ? "Configured" : "Needs setup"}</strong></div>
-          <div><span>Leave policy</span><strong>{leaveConfigured ? "Configured" : "Awaiting CEAC policy"}</strong></div>
-          <div><span>Salary structure</span><strong>Awaiting CEAC policy</strong></div>
-          <div><span>Payroll approval chain</span><strong>Awaiting CEAC policy</strong></div>
-          <div><span>Protected HR storage</span><strong>Security foundation ready</strong></div>
-          <div><span>People & access</span><strong>Available through Units / invitations</strong></div>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("office-location-settings")}>
+            <span>Office location</span><strong>{office ? "Configured" : "Needs setup"}</strong><small>{office ? "Review or change" : "Set up now"} ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("leave-policy-settings")}>
+            <span>Leave policy</span><strong>{leaveConfigured ? "Configured" : "Needs confirmation"}</strong><small>{leaveConfigured ? "Review or change" : "Configure now"} ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("attention-rule-settings")}>
+            <span>Attention rules</span><strong>{thresholds.length ? "Configurable" : "Needs setup"}</strong><small>Review rules ↑</small>
+          </button>
+          <button type="button" className="office-config-card" onClick={() => jumpTo("access-settings")}>
+            <span>People & access</span><strong>{pendingInvitations.length ? pendingInvitations.length + " invitation" + (pendingInvitations.length === 1 ? "" : "s") + " waiting" : "No invitations waiting"}</strong><small>Review access ↑</small>
+          </button>
+          <div className="office-config-card is-deferred"><span>Salary structure</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
+          <div className="office-config-card is-deferred"><span>Payroll approval chain</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
+          <div className="office-config-card is-deferred"><span>Protected HR storage</span><strong>Security foundation ready</strong><small>Protected fields are not enabled yet</small></div>
         </div>
       </section>
     </div>
