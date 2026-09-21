@@ -1,60 +1,116 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { dueLabel, dateOnly } from "../lib/time";
-import { statusPill } from "../components/bits";
+import { dateOnly, dueLabel } from "../lib/time";
+import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
 
-// Units deep-dive. Spec rule: every figure opens its underlying rows.
-// Nothing here is a stored total — each number is counted from real rows,
-// and pressing it shows exactly those rows.
+function money(minor, currency = "GHS") {
+  const value = Number(minor || 0) / 100;
+  try {
+    return new Intl.NumberFormat("en-GH", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+  } catch {
+    return `${currency} ${value.toLocaleString("en-GB", { maximumFractionDigits: 2 })}`;
+  }
+}
+
+function sumByCurrency(rows) {
+  const totals = {};
+  rows.forEach((row) => {
+    const currency = row.currency || "GHS";
+    totals[currency] = (totals[currency] || 0) + Number(row.amount_minor || 0);
+  });
+  return totals;
+}
+
 export default function Units({ me, openItem }) {
   const [units, setUnits] = useState([]);
-  const [open, setOpen] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [openUnitId, setOpenUnitId] = useState(null);
+  const [area, setArea] = useState("overview");
   const [headChoice, setHeadChoice] = useState({});
   const [savingHead, setSavingHead] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [me.id]);
 
   async function load() {
     setLoading(true);
     setError(null);
-    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-    const [us, mem, items, projs, objs] = await Promise.all([
-      supabase.from("units").select("id, name, code, active").eq("active", true).order("name"),
-      supabase.from("unit_memberships").select("unit_id, role, profile_id, profiles(id, full_name, job_title)"),
-      supabase.from("work_items").select("id, ref, title, unit_id, assignee_id, status, due_at, completed_at, visibility"),
-      supabase.from("projects").select("id, name, status, lead_unit_id, starts_on, ends_on"),
-      supabase.from("objectives").select("id, name, status, unit_id, project_id"),
-    ]);
-    const failed = [
-      ["Units", us], ["Memberships", mem], ["Work", items], ["Projects", projs], ["Objectives", objs],
-    ].find(([, result]) => result.error);
-    if (failed) {
-      setError(`${failed[0]}: ${failed[1].error.message}`);
+    try {
+      const year = new Date().getFullYear();
+      const monthStart = new Date(year, new Date().getMonth(), 1);
+      const monthIso = monthStart.toISOString();
+      const dayStart = new Date(); dayStart.setHours(0,0,0,0);
+      const todayStr = new Date().toISOString().slice(0,10);
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString();
+
+      const results = await Promise.all([
+        supabase.from("units").select("id,name,code,active").eq("active",true).order("name"),
+        supabase.from("unit_memberships").select("unit_id,role,profile_id,profiles(id,full_name,job_title,active)"),
+        supabase.from("work_items").select("id,ref,title,kind,unit_id,assignee_id,status,due_at,completed_at,visibility").neq("visibility","private"),
+        supabase.from("projects").select("id,name,status,lead_unit_id,starts_on,ends_on"),
+        supabase.from("objectives").select("id,name,status,unit_id,project_id,target_value,target_unit,achieved_value"),
+        supabase.from("budgets").select("id,unit_id,project_id,year,amount_minor,currency").eq("year",year),
+        supabase.from("spend_lines").select("id,unit_id,spent_on,description,amount_minor,currency").gte("spent_on",`${year}-01-01`),
+        supabase.from("report_periods").select("id,label,status,starts_on,ends_on").eq("status","open").order("starts_on",{ascending:false}).limit(1).maybeSingle(),
+        supabase.from("reports").select("id,unit_id,period_id,status,version,submitted_at").eq("scope","unit"),
+        supabase.from("work_sessions").select("profile_id,started_at,ended_at,place").gte("started_at",thirtyDaysAgo),
+        supabase.from("leave_requests").select("profile_id,start_date,end_date,status").eq("status","approved").gte("end_date",todayStr),
+      ]);
+      const failed = results.find((result) => result.error);
+      if (failed) throw failed.error;
+
+      const [unitRows,membershipRows,workRows,projectRows,objectiveRows,budgetRows,spendRows,periodResult,reportRows,sessionRows,leaveRows] = results.map((result) => result.data);
+      const currentPeriod = periodResult || null;
+
+      const built = (unitRows || []).map((unit) => {
+        const people = (membershipRows || []).filter((row) => row.unit_id === unit.id);
+        const profileIds = new Set(people.map((row) => row.profile_id));
+        const work = (workRows || []).filter((row) => row.unit_id === unit.id);
+        const completed = work.filter((row) => ["task","deliverable"].includes(row.kind) && ["completed","self_certified"].includes(row.status));
+        const objectives = (objectiveRows || []).filter((row) => row.unit_id === unit.id);
+        const projects = (projectRows || []).filter((row) => row.lead_unit_id === unit.id);
+        const budget = (budgetRows || []).filter((row) => row.unit_id === unit.id && !row.project_id);
+        const spend = (spendRows || []).filter((row) => row.unit_id === unit.id);
+        const sessions = (sessionRows || []).filter((row) => profileIds.has(row.profile_id));
+        const todaySessions = sessions.filter((row) => new Date(row.started_at) >= dayStart);
+        const startedIds = new Set(todaySessions.map((row) => row.profile_id));
+        const leave = (leaveRows || []).filter((row) => profileIds.has(row.profile_id) && row.start_date <= todayStr && row.end_date >= todayStr);
+        const awayIds = new Set(leave.map((row) => row.profile_id));
+
+        let report = null;
+        if (currentPeriod) {
+          const candidates = (reportRows || []).filter((row) => row.unit_id === unit.id && row.period_id === currentPeriod.id);
+          report = candidates.sort((a,b) => Number(b.version || 0)-Number(a.version || 0))[0] || null;
+        }
+
+        return {
+          ...unit,
+          people,
+          head: people.find((row) => row.role === "manager") || null,
+          work,
+          openWork: work.filter((row) => !["completed","self_certified","cancelled"].includes(row.status)),
+          completedThisMonth: completed.filter((row) => row.completed_at && new Date(row.completed_at) >= monthStart),
+          projects,
+          activeProjects: projects.filter((row) => row.status === "active"),
+          objectives,
+          objectivesOnTrack: objectives.filter((row) => ["on_track","met"].includes(row.status)),
+          budget,
+          spend,
+          report,
+          currentPeriod,
+          sessions,
+          todayStarted: startedIds.size,
+          onLeaveToday: awayIds.size,
+          noSessionToday: people.filter((row) => !startedIds.has(row.profile_id) && !awayIds.has(row.profile_id)).length,
+        };
+      });
+      setUnits(built);
+    } catch (e) {
+      setError(humanError(e, "The Units workspace could not load."));
+    } finally {
       setLoading(false);
-      return;
     }
-    const members = mem.data || [], allItems = (items.data || []).filter((i) => i.visibility !== "private");
-    const allProjs = projs.data || [], allObjs = objs.data || [];
-    setUnits((us.data || []).map((u) => {
-      const people = members.filter((m) => m.unit_id === u.id);
-      const mine = allItems.filter((i) => i.unit_id === u.id);
-      const doneMonth = mine.filter((i) => i.status === "completed" && i.completed_at && new Date(i.completed_at) >= monthStart);
-      const uObjs = allObjs.filter((o) => o.unit_id === u.id);
-      return {
-        ...u, people,
-        head: people.find((m) => m.role === "manager") || null,
-        items: mine,
-        openItems: mine.filter((i) => i.status !== "completed" && i.status !== "cancelled"),
-        doneMonth,
-        projects: allProjs.filter((p) => p.lead_unit_id === u.id),
-        activeProjects: allProjs.filter((p) => p.lead_unit_id === u.id && p.status === "active"),
-        objectives: uObjs,
-        onTrack: uObjs.filter((o) => o.status === "on_track" || o.status === "met"),
-      };
-    }));
-    setLoading(false);
   }
 
   async function assignHead(unit) {
@@ -62,109 +118,168 @@ export default function Units({ me, openItem }) {
     if (!profileId) return;
     setSavingHead(unit.id);
     setError(null);
-    const { error: assignError } = await supabase.rpc("assign_unit_head", {
-      p_unit_id: unit.id,
-      p_profile_id: profileId,
-    });
-    setSavingHead(null);
-    if (assignError) {
-      setError(assignError.message || "The Unit Head could not be assigned.");
-      return;
+    try {
+      const result = await supabase.rpc("assign_unit_head", { p_unit_id: unit.id, p_profile_id: profileId });
+      if (result.error) throw result.error;
+      setHeadChoice((current) => ({ ...current, [unit.id]: "" }));
+      await load();
+    } catch (e) {
+      setError(humanError(e, "The Unit Head could not be assigned."));
+    } finally {
+      setSavingHead(null);
     }
-    setHeadChoice((current) => ({ ...current, [unit.id]: "" }));
-    await load();
   }
 
-  if (loading) return <div className="body"><div className="spin">Loading the units...</div></div>;
+  const openUnit = units.find((unit) => unit.id === openUnitId) || null;
 
-  if (open) {
-    const u = units.find((x) => x.id === open.id);
-    if (!u) return null;
-    const rows = open.rows || [];
-    return (
-      <div className="body">
-        <button className="back" onClick={() => setOpen(null)}>← All units</button>
-        <div className="eyebrow">{u.code || "Unit"}</div>
-        <h1 className="h1" style={{ marginTop: 6 }}>{u.name}</h1>
-        <p className="screen-note">
-          {u.head ? "Led by " + u.head.profiles.full_name : "No head assigned yet"} · {u.people.length} {u.people.length === 1 ? "person" : "people"}
-        </p>
+  useEffect(() => {
+    if (!openUnitId) { setArea("overview"); return; }
+    const saved = sessionStorage.getItem(`ceac-admin-unit-area:${openUnitId}`);
+    setArea(saved || "overview");
+  }, [openUnitId]);
 
-        <div className="sec"><span>{open.label}</span><span>{rows.length}</span></div>
-        {rows.length === 0 && <div className="card small">Nothing recorded here yet.</div>}
-        {open.kind === "work" && rows.map((i) => (
-          <button key={i.id} className="row" onClick={() => openItem(i.id)}>
-            <div className="row-t">{i.title}</div>
-            <div className="row-m">{i.ref} · {i.completed_at ? "finished " + dateOnly(i.completed_at) : dueLabel(i.due_at)}</div>
-            <div style={{ marginTop: 7 }}>{statusPill(i.status)}</div>
-          </button>))}
-        {open.kind === "people" && rows.map((m) => (
-          <div key={m.profile_id} className="row">
-            <div className="row-t">{m.profiles ? m.profiles.full_name : "—"}</div>
-            <div className="row-m">{m.role === "manager" ? "Unit head" : m.role === "sub_team_lead" ? "Team lead" : "Staff"}{m.profiles && m.profiles.job_title ? " · " + m.profiles.job_title : ""}</div>
-          </div>))}
-        {open.kind === "projects" && rows.map((p) => (
-          <div key={p.id} className="row">
-            <div className="row-t">{p.name}</div>
-            <div className="row-m">{p.status}{p.ends_on ? " · ends " + dateOnly(p.ends_on) : ""}</div>
-          </div>))}
-        {open.kind === "objectives" && rows.map((o) => (
-          <div key={o.id} className="row">
-            <div className="row-t">{o.name}</div>
-            <div className="row-m">{o.status ? o.status.replace(/_/g, " ") : "no status set"}</div>
-          </div>))}
-      </div>);
+  useEffect(() => {
+    if (openUnitId) sessionStorage.setItem(`ceac-admin-unit-area:${openUnitId}`, area);
+  }, [openUnitId, area]);
+
+  if (loading) return <div className="body"><LoadingState label="Loading Units…" /></div>;
+
+  if (openUnit) {
+    const budgetTotals = sumByCurrency(openUnit.budget);
+    const spendTotals = sumByCurrency(openUnit.spend);
+    const currencies = [...new Set([...Object.keys(budgetTotals), ...Object.keys(spendTotals)])];
+    const reportingLabel = !openUnit.currentPeriod ? "No open period"
+      : ["submitted","confirmed"].includes(openUnit.report?.status) ? "Submitted"
+      : openUnit.report ? "Draft" : "Missing";
+
+    return <div className="body admin-unit-detail">
+      <button className="back" onClick={() => setOpenUnitId(null)}>← All units</button>
+      <div className="eyebrow">{openUnit.code || "Unit"}</div>
+      <h1 className="h1">{openUnit.name}</h1>
+      <p className="screen-note">{openUnit.head ? `Led by ${openUnit.head.profiles?.full_name || "Unit Head"}` : "No Unit Head assigned"} · {openUnit.people.length} {openUnit.people.length === 1 ? "person" : "people"}.</p>
+
+      {!openUnit.head && <ProductNotice tone="attention" title="Unit Head not assigned">Administration should assign an existing member as Unit Head after their account is active.</ProductNotice>}
+
+      <nav className="admin-workspace-nav" aria-label="Unit workspace">
+        {[
+          ["overview","Overview"],["people","People"],["work","Work"],["objectives","Objectives"],["projects","Projects"],["reporting","Reporting"],["attendance","Attendance"],["cost","Cost"],
+        ].map(([key,label]) => <button key={key} className={area === key ? "on" : ""} onClick={() => setArea(key)}>{label}</button>)}
+      </nav>
+
+      {area === "overview" && <section className="admin-workspace-area">
+        <div className="admin-unit-facts">
+          <div><strong>{openUnit.people.length}</strong><span>people</span></div>
+          <div><strong>{openUnit.openWork.length}</strong><span>open work</span></div>
+          <div><strong>{openUnit.completedThisMonth.length}</strong><span>completed outputs this month</span></div>
+          <div><strong>{openUnit.activeProjects.length}</strong><span>active projects</span></div>
+          <div><strong>{openUnit.objectivesOnTrack.length} / {openUnit.objectives.length}</strong><span>objectives on track / recorded</span></div>
+          <div><strong>{reportingLabel}</strong><span>{openUnit.currentPeriod?.label || "reporting"}</span></div>
+        </div>
+        <SectionHeader eyebrow="Today" title="Operational context" />
+        <p className="screen-note">Session and leave facts are context only. They do not measure output.</p>
+        <div className="admin-unit-facts">
+          <div><strong>{openUnit.todayStarted}</strong><span>started a session</span></div>
+          <div><strong>{openUnit.onLeaveToday}</strong><span>on approved leave</span></div>
+          <div><strong>{openUnit.noSessionToday}</strong><span>no session recorded</span></div>
+        </div>
+      </section>}
+
+      {area === "people" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Unit" title="People" count={openUnit.people.length} />
+        {openUnit.people.map((member) => <div key={member.profile_id} className="admin-evidence-row">
+          <div><strong>{member.profiles?.full_name || "—"}</strong><span>{member.role === "manager" ? "Unit Head" : member.role === "sub_team_lead" ? "Sub-team lead" : "Staff"}{member.profiles?.job_title ? ` · ${member.profiles.job_title}` : ""}</span></div>
+          {!member.profiles?.active && <span className="pill p-grey">Inactive</span>}
+        </div>)}
+        {!openUnit.head && openUnit.people.length > 0 && <div className="admin-head-assignment">
+          <label className="field-label" htmlFor={`head-${openUnit.id}`}>Assign Unit Head</label>
+          <select id={`head-${openUnit.id}`} className="field" value={headChoice[openUnit.id] || ""} onChange={(event) => setHeadChoice((current) => ({ ...current, [openUnit.id]: event.target.value }))}>
+            <option value="">Choose an existing unit member</option>
+            {openUnit.people.map((member) => <option key={member.profile_id} value={member.profile_id}>{member.profiles?.full_name || member.profile_id}</option>)}
+          </select>
+          <button className="btn btn-sm" disabled={!headChoice[openUnit.id] || savingHead === openUnit.id} onClick={() => assignHead(openUnit)}>{savingHead === openUnit.id ? "Assigning…" : "Make Unit Head"}</button>
+        </div>}
+      </section>}
+
+      {area === "work" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Evidence" title="Work" count={openUnit.work.length} />
+        <p className="screen-note">Administration can inspect the record but does not enter the Manager’s review queue.</p>
+        {openUnit.work.map((item) => <button key={item.id} className="admin-evidence-row admin-action-button" onClick={() => openItem(item.id)}>
+          <div><strong>{item.title}</strong><span>{item.ref} · {item.completed_at ? `finished ${dateOnly(item.completed_at)}` : dueLabel(item.due_at)}</span></div>
+          {statusPill(item.status)}
+        </button>)}
+        {openUnit.work.length === 0 && <EmptyState compact title="No work recorded">Unit work will appear here as normal operation generates it.</EmptyState>}
+      </section>}
+
+      {area === "objectives" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Outcome" title="Objectives" count={openUnit.objectives.length} />
+        {openUnit.objectives.map((objective) => <div key={objective.id} className="admin-evidence-row">
+          <div><strong>{objective.name}</strong><span>{String(objective.status || "not set").replaceAll("_"," ")}{objective.target_value !== null ? ` · target ${objective.target_value} ${objective.target_unit || ""} · result ${objective.achieved_value ?? "not recorded"} ${objective.target_unit || ""}` : ""}</span></div>
+        </div>)}
+        {openUnit.objectives.length === 0 && <EmptyState compact title="No objectives recorded">Objectives linked to this unit will appear here.</EmptyState>}
+      </section>}
+
+      {area === "projects" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Delivery" title="Projects led by this unit" count={openUnit.projects.length} />
+        {openUnit.projects.map((project) => <div key={project.id} className="admin-evidence-row">
+          <div><strong>{project.name}</strong><span>{project.status}{project.ends_on ? ` · ends ${dateOnly(project.ends_on)}` : ""}</span></div>
+        </div>)}
+        {openUnit.projects.length === 0 && <EmptyState compact title="No projects led by this unit">Cross-unit participation remains visible through the underlying project records.</EmptyState>}
+      </section>}
+
+      {area === "reporting" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Reporting" title={openUnit.currentPeriod?.label || "No open period"} />
+        {!openUnit.currentPeriod && <EmptyState compact title="No reporting period is open">Administration manages periods from Reporting.</EmptyState>}
+        {openUnit.currentPeriod && <div className="admin-reporting-card">
+          <div><strong>{reportingLabel}</strong><span>{openUnit.report?.submitted_at ? `Submitted ${dateOnly(openUnit.report.submitted_at)}` : "No submitted report for this unit yet."}</span></div>
+        </div>}
+      </section>}
+
+      {area === "attendance" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Factual context" title="Attendance & leave" />
+        <p className="screen-note">This records when sessions were opened and approved leave. It does not determine productivity.</p>
+        <div className="admin-unit-facts">
+          <div><strong>{openUnit.todayStarted}</strong><span>started today</span></div>
+          <div><strong>{openUnit.onLeaveToday}</strong><span>on leave today</span></div>
+          <div><strong>{openUnit.noSessionToday}</strong><span>no session today</span></div>
+          <div><strong>{openUnit.sessions.length}</strong><span>sessions in last 30 days</span></div>
+        </div>
+      </section>}
+
+      {area === "cost" && <section className="admin-workspace-area">
+        <SectionHeader eyebrow="Cost" title="Budget & recorded spending" />
+        <p className="screen-note">Currencies remain separate; CEAC OS does not invent exchange rates.</p>
+        {currencies.length === 0 && <EmptyState compact title="No unit cost recorded">Budgets and spend lines entered in Cost will appear here.</EmptyState>}
+        {currencies.map((currency) => <div key={currency} className="admin-evidence-row">
+          <div><strong>{currency}</strong><span>{money(spendTotals[currency] || 0,currency)} spent · {budgetTotals[currency] ? `${money(budgetTotals[currency],currency)} budget` : "no budget set"}</span></div>
+        </div>)}
+      </section>}
+    </div>;
   }
 
-  function Fig({ n, label, unit, kind, rows }) {
-    return (
-      <button className="metric" style={{ textAlign: "left", width: "100%" }}
-        onClick={() => setOpen({ id: unit.id, label, kind, rows })}>
-        <b>{n}</b><span>{label}</span>
-      </button>);
-  }
-
-  return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Units</h1>
-        <p className="screen-note">Every department, what it is carrying and what it has finished. New accounts begin as Staff; Administration assigns Unit Head authority here after activation.</p>
-      </div>
-      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Units need attention</h4>{error}<button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={load}>Try again</button></div>}
-      {units.map((u) => (
-        <div key={u.id} className="card" style={{ marginTop: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-            <div>
-              <div className="row-t" style={{ fontSize: 16 }}>{u.name}</div>
-              <div className="row-m">
-                {u.head ? u.head.profiles.full_name : <span style={{ color: "var(--brick)" }}>No head yet</span>}
-              </div>
-            </div>
-            {u.people.length === 1 && <span className="pill p-grey">Unit of one</span>}
-          </div>
-          <div className="metric-grid" style={{ marginTop: 12 }}>
-            <Fig n={u.people.length} label="people" unit={u} kind="people" rows={u.people} />
-            <Fig n={u.openItems.length} label="open jobs" unit={u} kind="work" rows={u.openItems} />
-            <Fig n={u.doneMonth.length} label="finished this month" unit={u} kind="work" rows={u.doneMonth} />
-            <Fig n={u.activeProjects.length} label="active projects" unit={u} kind="projects" rows={u.activeProjects} />
-          </div>
-          {!u.head && u.people.length > 0 && <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--line-soft)" }}>
-            <div className="small" style={{ marginBottom: 6 }}>Assign Unit Head</div>
-            <select className="field" value={headChoice[u.id] || ""} onChange={(event) => setHeadChoice((current) => ({ ...current, [u.id]: event.target.value }))}>
-              <option value="">Choose an existing unit member</option>
-              {u.people.map((member) => <option key={member.profile_id} value={member.profile_id}>{member.profiles?.full_name || member.profile_id}</option>)}
-            </select>
-            <button className="btn btn-sm" style={{ marginTop: 8 }} disabled={!headChoice[u.id] || savingHead === u.id} onClick={() => assignHead(u)}>
-              {savingHead === u.id ? "Assigning..." : "Make Unit Head"}
-            </button>
-          </div>}
-          {u.objectives.length > 0 && (
-            <button className="row" style={{ marginTop: 10, marginBottom: 0 }}
-              onClick={() => setOpen({ id: u.id, label: "Objectives", kind: "objectives", rows: u.objectives })}>
-              <div className="row-t">{u.onTrack.length} of {u.objectives.length} objectives on track</div>
-              <div className="row-m">Press to see each one</div>
-            </button>)}
-        </div>))}
-      {units.length === 0 && <div className="empty"><h3>No units yet</h3><p>Units are created in Settings.</p></div>}
-    </div>);
-}
+  return <div className="body admin-units">
+    <div className="office-page-intro">
+      <div className="eyebrow">Organisation structure</div>
+      <h1 className="h1">Units</h1>
+      <p className="screen-note">Each unit combines people, delivery, reporting, attendance context and cost without creating a second reporting system.</p>
+    </div>
+    {error && <ProductNotice tone="error" title="Units need attention" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
+    <div className="admin-unit-list">
+      {units.map((unit) => <button key={unit.id} className="admin-unit-card" onClick={() => setOpenUnitId(unit.id)}>
+        <div className="admin-unit-card-head">
+          <div><strong>{unit.name}</strong><span>{unit.head ? unit.head.profiles?.full_name : "No Unit Head"}</span></div>
+          {unit.people.length === 1 && <span className="pill p-grey">Unit of one</span>}
+        </div>
+        <div className="admin-unit-card-facts">
+          <span><b>{unit.people.length}</b> people</span>
+          <span><b>{unit.openWork.length}</b> open</span>
+          <span><b>{unit.completedThisMonth.length}</b> completed this month</span>
+          <span><b>{unit.activeProjects.length}</b> active projects</span>
+        </div>
+        <div className="admin-unit-card-foot">
+          <span>{unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period"}</span>
+          <b aria-hidden="true">→</b>
+        </div>
+      </button>)}
+    </div>
+    {units.length === 0 && <EmptyState title="No active units">Create or activate units from organisation settings before assigning people or work.</EmptyState>}
+  </div>;
