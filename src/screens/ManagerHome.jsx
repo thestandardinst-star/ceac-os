@@ -429,74 +429,9 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       ))}
       </section>
 
-      <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Today</div><h2 id="manager-team-heading">Team context</h2></div>
-      </div>
-      <p className="home-context-note">Availability is context, not a performance measure.</p>
-      <div className="home-subhead">Availability</div>
-      <div className="home-stat-grid home-stat-grid-two">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
-      </div>
-      <div className="home-subhead home-subhead-spaced">Work movement today</div>
-      <div className="home-stat-grid">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
-        <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
-      </div>
-      {drill?.zone === "team" && <div className="home-drill">
-        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-        {drill.people && (drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
-          <div className="row-t">{person.name}</div>
-          <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
-        </button>) : <div className="home-quiet">No people in this group.</div>)}
-        {!drill.people && (drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work in this group.</div>)}
-      </div>}
-      </section>
-
-      <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Open blockers</div><h2 id="manager-stuck-heading">Waiting both ways</h2></div>
-          <span className="home-count">{blockers.length}</span>
-        </div>
-        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
-        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
-          <div className="home-subhead">{group.label}</div>
-          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
-              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
-              <div className="row-t">{blocker.work_items.title}</div>
-              <div className="row-m">{blocker.direction === "incoming"
-                ? blocker.state === "acknowledged"
-                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
-                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
-                : blocker.state === "acknowledged"
-                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
-                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
-              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
-              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
-                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
-                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
-                </>}
-                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
-              </div>
-            </div>)}
-        </div>)}
-      </section>
-
-      <section className="home-panel" aria-labelledby="manager-own-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Personal focus</div><h2 id="manager-own-heading">Your own work</h2></div>
-        <span className="home-count">{mine.length}</span>
-      </div>
-      {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone={ownTone(item)} />) : <div className="home-quiet">No due, overdue, returned or waiting work.</div>}
-      </section>
-
       <section className="home-panel home-panel-projects" aria-labelledby="manager-projects-heading">
       <div className="home-section-head">
-        <div><div className="home-kicker">Delivery</div><h2 id="manager-projects-heading">Projects needing attention</h2></div>
+        <div><div className="home-kicker">Delivery risk</div><h2 id="manager-projects-heading">Projects needing attention</h2></div>
         <span className="home-count home-count-attention">{projects.length}</span>
       </div>
       {projects.length ? projects.map((project) => (
@@ -525,9 +460,66 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       </div>}
       </section>
 
+      <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Delivery risk</div><h2 id="manager-stuck-heading">Dependencies needing attention</h2></div>
+          <span className="home-count">{blockers.length}</span>
+        </div>
+        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
+        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
+          <div className="home-subhead">{group.label}</div>
+          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
+              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
+              <div className="row-t">{blocker.work_items.title}</div>
+              <div className="row-m">{blocker.direction === "incoming"
+                ? blocker.state === "acknowledged"
+                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
+                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
+                : blocker.state === "acknowledged"
+                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
+                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
+              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
+              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
+                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
+                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
+                </>}
+                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
+              </div>
+            </div>)}
+        </div>)}
+      </section>
+
+      <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
+      <div className="home-section-head">
+        <div><div className="home-kicker">Today</div><h2 id="manager-team-heading">Team context</h2></div>
+      </div>
+      <p className="home-context-note">Availability is context, not a performance measure.</p>
+      <div className="home-subhead">Availability</div>
+      <div className="home-stat-grid home-stat-grid-two">
+        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
+        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
+      </div>
+      <div className="home-subhead home-subhead-spaced">Work movement today</div>
+      <div className="home-stat-grid">
+        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
+        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
+        <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
+      </div>
+      {drill?.zone === "team" && <div className="home-drill">
+        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
+        {drill.people && (drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
+          <div className="row-t">{person.name}</div>
+          <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
+        </button>) : <div className="home-quiet">No people in this group.</div>)}
+        {!drill.people && (drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work in this group.</div>)}
+      </div>}
+      </section>
+
       <section className="home-panel home-panel-week" aria-labelledby="manager-week-heading">
       <div className="home-section-head">
-        <div><div className="home-kicker">Current week</div><h2 id="manager-week-heading">This week / upcoming</h2></div>
+        <div><div className="home-kicker">Today & next</div><h2 id="manager-week-heading">Coming up</h2></div>
       </div>
       <div className="home-stat-grid">
         <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "week", title: "Tasks due this week", rows: week.due })}><b>{week.due.length}</b><span>Due this week</span></button>
@@ -553,6 +545,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
         {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
       </div>}
+      </section>
+
+      <section className="home-panel" aria-labelledby="manager-own-heading">
+      <div className="home-section-head">
+        <div><div className="home-kicker">Personal focus</div><h2 id="manager-own-heading">Your own work</h2></div>
+        <span className="home-count">{mine.length}</span>
+      </div>
+      {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone={ownTone(item)} />) : <div className="home-quiet">No due, overdue, returned or waiting work.</div>}
       </section>
 
       {incomingRequests.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="manager-requests-heading">
