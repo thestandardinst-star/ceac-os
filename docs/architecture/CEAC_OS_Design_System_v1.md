@@ -1,6 +1,6 @@
 # CEAC OS — Design System v1
 
-**Date:** 21 September 2026  
+**Date:** 21 September 2026
 **Status:** Approved implementation source of truth for the Staff redesign and the foundation for later Manager/Admin/Executive visual work.
 
 This document implements the product-experience architecture. It does not change security, permissions, database contracts, or Work Engine behaviour.
@@ -243,4 +243,3 @@ Desktop is allowed a different composition from mobile.
 - tap targets generally >= 44px for primary phone interactions;
 - no meaning conveyed by colour alone;
 - headings preserve a logical information hierarchy.
-
