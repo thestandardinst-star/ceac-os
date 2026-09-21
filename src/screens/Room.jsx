@@ -55,7 +55,7 @@ export default function Room({
   const [workOptions, setWorkOptions] = useState([]);
   const [projectOptions, setProjectOptions] = useState([]);
   const [panel, setPanel] = useState(null);
-  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionQuery, setMentionQuery] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
@@ -112,7 +112,7 @@ export default function Room({
     setPanel(null);
     setReplyTo(null);
     setMentions([]);
-    setMentionQuery("");
+    setMentionQuery(null);
     if (!initial) setSelectedRefs([]);
     await Promise.all([
       loadMessages(nextRoom.id, true),
@@ -239,7 +239,7 @@ export default function Room({
   const parentById = useMemo(() => new Map(messages.map((message) => [message.id, message])), [messages]);
 
   const mentionMatches = useMemo(() => {
-    const query = mentionQuery.toLowerCase();
+    const query = String(mentionQuery || "").toLowerCase();
     if (!query) return participants.slice(0,6);
     return participants.filter((person) => person.full_name.toLowerCase().includes(query)).slice(0,6);
   }, [mentionQuery, participants]);
@@ -247,8 +247,7 @@ export default function Room({
   function updateBody(value) {
     setBody(value);
     const match = value.match(/(?:^|\s)@([^\n@]*)$/);
-    setMentionQuery(match ? match[1].trim() : "");
-    if (!match) setMentionQuery("");
+    setMentionQuery(match ? match[1].trim() : null);
   }
 
   function chooseMention(person) {
@@ -259,7 +258,7 @@ export default function Room({
       return current.slice(0,start) + "@" + person.full_name + " ";
     });
     setMentions((current) => current.includes(person.id) ? current : [...current, person.id]);
-    setMentionQuery("");
+    setMentionQuery(null);
   }
 
   function typedMentionIds() {
@@ -287,7 +286,7 @@ export default function Room({
         p_mention_ids: mentionIds,
       });
       if (result.error) throw result.error;
-      setBody(""); setReplyTo(null); setMentions([]); setMentionQuery(""); setSelectedRefs([]);
+      setBody(""); setReplyTo(null); setMentions([]); setMentionQuery(null); setSelectedRefs([]);
       await loadMessages(room.id, false);
     } catch (err) {
       setError(err.message || "Your message could not be sent.");
@@ -407,7 +406,7 @@ export default function Room({
         </button>)}
       </div>}
 
-      {mentionQuery !== "" && mentionMatches.length > 0 && <div className="room-inline-mentions">
+      {mentionQuery !== null && mentionMatches.length > 0 && <div className="room-inline-mentions">
         <div className="room-inline-label">Mention someone in this Room</div>
         {mentionMatches.map((person) => <button key={person.id} onClick={() => chooseMention(person)}>
           <span className="room-person-avatar">{person.full_name.charAt(0)}</span>
