@@ -2397,3 +2397,14 @@ textarea{width:100%}
   padding:5px 8px;border-radius:999px;background:#EAF6F4;color:#0E776F;font-size:9px;font-weight:650
 }
 .home-room-mention{border-left:3px solid #118C83!important}
+
+/* Phone/PWA viewport containment.
+   Keep the app and fixed bottom navigation attached to the visual viewport even
+   when Safari page zoom increases the CSS viewport beyond the old 520px cap. */
+@media (max-width:819px){
+  html,body,#root{width:100%;max-width:100%;overflow-x:clip}
+  .app{width:100%;max-width:none;margin:0;overflow-x:clip}
+  .tabs{width:100%;max-width:none;margin:0}
+  .staff-app .body,.manager-app .body{width:100%;max-width:none;margin:0}
+  .staff-home .staff-command-surface{max-width:none}
+}
