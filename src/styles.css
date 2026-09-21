@@ -2408,3 +2408,213 @@ textarea{width:100%}
   .staff-app .body,.manager-app .body{width:100%;max-width:none;margin:0}
   .staff-home .staff-command-surface{max-width:none}
 }
+
+/* ==========================================================================
+   Assistive input + collaboration v2 — 21 Sep 2026
+   ========================================================================== */
+
+/* Universal voice/input affordance */
+.voice-input{min-width:0}
+.voice-button{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:0 13px;
+  border:1px solid #CFDDDF;border-radius:11px;background:#F7FBFA;color:#176F68;
+  font:inherit;font-size:11.5px;font-weight:700;transition:background .18s ease,border-color .18s ease,transform .18s ease
+}
+.voice-button:active{transform:scale(.985)}
+.voice-button.live{border-color:#DCB29F;background:#FFF3EE;color:#9A4D32}
+.voice-button.error{border-color:#E6C8BF;background:#FFF8F5;color:#9A4D32}
+.voice-button i{
+  width:7px;height:7px;border-radius:50%;background:currentColor;animation:voice-pulse 1.15s ease-in-out infinite
+}
+.voice-input.compact{position:absolute;right:7px;bottom:7px;z-index:2}
+.voice-input.compact .voice-button{
+  width:36px;height:36px;min-height:36px;padding:0;border-radius:10px;background:#EEF6F4
+}
+.voice-input.compact .voice-button.live{background:#FFF0EA}
+.voice-live-transcript{
+  margin-top:7px;padding:8px 10px;border-radius:9px;background:#F2F7F6;color:#5B6E75;font-size:10.5px;line-height:1.4
+}
+.voice-error,.voice-unavailable{
+  margin-top:7px;color:#9A4D32;font-size:10.5px;line-height:1.4
+}
+@keyframes voice-pulse{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+.assistive-field{position:relative;min-width:0}
+.assistive-field>.field{padding-right:52px}
+.assistive-field.textarea>textarea,
+.assistive-field.textarea>.field{padding-right:52px}
+.assistive-field-label{display:block;margin-top:12px}
+.assistive-field-label>span{display:block;margin-bottom:6px;color:#74838C;font-size:10.5px;font-weight:650}
+
+/* Spoken-work review: transcript/proposal is visibly separate from a saved record. */
+.voice-proposal{
+  margin-top:12px;padding:14px;border:1px solid #CAE0DC;border-radius:14px;background:linear-gradient(145deg,#FAFDFC,#EEF7F5)
+}
+.voice-proposal-head{display:flex;flex-direction:column}
+.voice-proposal-head span{color:#6E807F;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.voice-proposal-head strong{margin-top:5px;color:#183039;font-size:13px;line-height:1.5}
+.voice-proposal-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.voice-proposal-facts span{padding:5px 8px;border-radius:999px;background:#fff;border:1px solid #D6E6E3;color:#6A787F;font-size:9.5px}
+.voice-proposal-facts b{color:#176F68}
+.voice-proposal p{margin-top:10px;color:#687A82;font-size:10.5px;line-height:1.45}
+.voice-proposal-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.voice-proposal-actions .btn{width:auto}
+
+/* Rooms 2.0 */
+.room-scope-strip{
+  display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:11px 14px 1px
+}
+.room-scope-strip::-webkit-scrollbar{display:none}
+.room-scope-strip button{
+  flex:none;min-height:32px;padding:0 11px;border:1px solid #D8E2E5;border-radius:999px;background:#fff;
+  color:#6B7B84;font-size:9.5px;font-weight:650;white-space:nowrap
+}
+.room-scope-strip button.on{border-color:#B8D9D5;background:#EAF6F4;color:#0E776F}
+.room-composer-v2{
+  grid-template-columns:42px minmax(0,1fr) auto!important;align-items:end
+}
+.room-plus{
+  display:grid;place-items:center;width:42px;height:46px;border:1px solid #D6E1E4;border-radius:12px;background:#fff;
+  color:#52656F;font-size:25px;font-weight:300;transition:transform .18s ease,background .18s ease
+}
+.room-plus.on{transform:rotate(45deg);background:#EAF6F4;color:#0E776F;border-color:#C7E0DC}
+.room-text-wrap{position:relative;min-width:0}
+.room-text-wrap textarea{padding-right:50px!important;resize:none!important}
+.room-text-wrap .voice-input.compact{right:6px;bottom:5px}
+.room-plus-panel,.room-picker-panel,.room-inline-mentions{
+  margin-bottom:8px;border:1px solid #D9E3E6;border-radius:14px;background:rgba(255,255,255,.985);
+  box-shadow:0 16px 42px rgba(25,40,50,.12);overflow:hidden;animation:composer-rise .16s ease-out
+}
+.room-plus-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:6px}
+.room-plus-panel>button{
+  display:flex;align-items:center;gap:10px;min-width:0;min-height:58px;padding:10px;border-radius:10px;text-align:left
+}
+.room-plus-panel>button:active,.room-picker-panel>button:active{background:#F1F5F5}
+.room-plus-panel>button>span{
+  display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:#EDF6F4;color:#167A72;font-size:14px
+}
+.room-plus-panel>button>div{display:flex;flex-direction:column;min-width:0}
+.room-plus-panel strong{font-size:10.5px;color:#263840}
+.room-plus-panel small{margin-top:2px;color:#819098;font-size:8.8px;line-height:1.25}
+.room-picker-head{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border-bottom:1px solid #E6ECEE
+}
+.room-picker-head strong{font-size:10.5px;color:#394B54}
+.room-picker-head button{color:#14776F;font-size:9px;font-weight:650}
+.room-picker-panel>button{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:42px;padding:9px 11px;
+  border-bottom:1px solid #EDF1F2;text-align:left;color:#4B5E67;font-size:10.5px
+}
+.room-picker-panel>button:last-child{border-bottom:0}
+.room-picker-panel>button.on{background:#EEF8F6;color:#0E776F}
+.room-picker-panel>button span{min-width:0}
+.room-picker-panel>button span small{display:block;margin-bottom:2px;color:#89979E;font-size:8.5px}
+.room-picker-panel>button b{color:#118C83;font-size:10px}
+.room-inline-mentions{max-height:220px;overflow-y:auto}
+.room-inline-label{
+  padding:8px 10px;border-bottom:1px solid #E8EDEF;color:#839198;font-size:8.8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase
+}
+.room-inline-mentions>button{
+  display:flex;align-items:center;gap:9px;width:100%;min-height:42px;padding:8px 10px;border-bottom:1px solid #EDF1F2;text-align:left
+}
+.room-inline-mentions>button:last-child{border-bottom:0}
+.room-person-avatar{
+  display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#EAF6F4;color:#0E776F;font-size:10px;font-weight:750
+}
+.room-inline-mentions strong{font-size:10.5px;color:#394B54}
+.room-composer-context-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.room-composer-context-list button{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;max-width:100%;padding:6px 8px;
+  border:1px solid #D6E4E2;border-radius:9px;background:#F2F8F7;text-align:left
+}
+.room-composer-context-list span{color:#78908D;font-size:7.8px;text-transform:uppercase}
+.room-composer-context-list strong{min-width:0;color:#37554F;font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.room-composer-context-list b{color:#708189;font-size:11px}
+@keyframes composer-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Audience-aware meeting scheduler */
+.meeting-scheduler{position:fixed;inset:0;z-index:30;display:grid;align-items:end}
+.meeting-scheduler-bg{position:absolute;inset:0;background:rgba(13,26,34,.56);backdrop-filter:blur(4px)}
+.meeting-scheduler-sheet{
+  position:relative;z-index:1;width:100%;max-height:min(92dvh,900px);padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius:22px 22px 0 0;background:#F4F7F7;overflow-y:auto;box-shadow:0 -24px 70px rgba(9,23,31,.22);
+  animation:sheet-up .2s cubic-bezier(.2,.7,.2,1)
+}
+.meeting-scheduler-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:13px}
+.meeting-scheduler-head span{color:#14837A;font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.meeting-scheduler-head h2{margin-top:3px;color:#17232D;font-size:24px;letter-spacing:-.035em}
+.meeting-scheduler-grid{display:grid;gap:16px}
+.meeting-scheduler-main{min-width:0}
+.meeting-context-switch{
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;margin:13px 0 9px;padding:3px;border-radius:11px;background:#E5EBED
+}
+.meeting-context-switch button{min-height:34px;border-radius:9px;color:#667780;font-size:10px;font-weight:650}
+.meeting-context-switch button.on{background:#fff;color:#17232D;box-shadow:0 1px 4px rgba(25,40,50,.08)}
+.meeting-time-grid,.meeting-provider-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:9px}
+.meeting-audience{
+  min-width:0;padding:12px;border:1px solid #DCE5E7;border-radius:14px;background:#fff
+}
+.meeting-audience-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.meeting-audience-head span{color:#7E8E96;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.meeting-audience-head strong{color:#41545D;font-size:9.5px;font-weight:600}
+.meeting-audience-option{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:47px;padding:8px 7px;
+  border-bottom:1px solid #EDF1F2;text-align:left
+}
+.meeting-audience-option:last-of-type{border-bottom:0}
+.meeting-audience-option>span{display:flex;flex-direction:column;min-width:0}
+.meeting-audience-option strong{color:#2E4049;font-size:10.5px}
+.meeting-audience-option small{margin-top:2px;color:#829198;font-size:8.8px}
+.meeting-audience-option>b{
+  display:grid;place-items:center;flex:none;width:25px;height:25px;border-radius:8px;background:#EEF3F4;color:#71818A;font-size:10px
+}
+.meeting-audience-option.on>b{background:#DFF1EE;color:#0D786F}
+.meeting-audience-option.on strong{color:#0D786F}
+.meeting-audience-subhead{
+  margin:12px 2px 3px;color:#839198;font-size:8.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase
+}
+.meeting-audience-selected{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid #E8EDEF}
+.meeting-audience-selected button{padding:5px 8px;border-radius:999px;background:#EAF6F4;color:#0D786F;font-size:8.8px;font-weight:650}
+.meeting-scheduler-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.meeting-scheduler-actions .btn{width:auto}
+.meeting-scheduler-note{margin-top:8px;color:#85939A;font-size:8.8px;line-height:1.4;text-align:right}
+@keyframes sheet-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* Calendar controls: one view switch + one filter control on mobile */
+.manager-calendar-toolbar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px
+}
+.calendar-view-toggle{display:flex;gap:3px;padding:3px;border-radius:11px;background:#E4EAEC}
+.calendar-view-toggle button{min-width:76px;min-height:36px;padding:0 12px;border-radius:9px;color:#65757E;font-size:10.5px;font-weight:650}
+.calendar-view-toggle button.on{background:#fff;color:#17232D;box-shadow:0 1px 4px rgba(25,40,50,.08)}
+.calendar-filter-trigger{
+  display:flex;align-items:center;gap:7px;min-height:42px;padding:0 12px;border:1px solid #D8E1E4;border-radius:11px;background:#fff
+}
+.calendar-filter-trigger span{color:#89969D;font-size:8.5px;text-transform:uppercase}
+.calendar-filter-trigger strong{color:#31434C;font-size:10.5px}
+.calendar-filter-trigger b{color:#819098;font-size:12px}
+.calendar-filter-sheet{margin-top:13px;border:1px solid #DDE5E7;border-radius:13px;background:#fff;overflow:hidden}
+.calendar-filter-sheet button{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:46px;padding:10px 12px;
+  border-bottom:1px solid #EDF1F2;color:#53646D;font-size:11.5px;text-align:left
+}
+.calendar-filter-sheet button:last-child{border-bottom:0}
+.calendar-filter-sheet button.on{background:#ECF7F5;color:#0E776F;font-weight:650}
+
+@media (min-width:640px){
+  .meeting-time-grid,.meeting-provider-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (min-width:820px){
+  .meeting-scheduler{align-items:center;justify-items:center;padding:30px}
+  .meeting-scheduler-sheet{max-width:900px;border-radius:22px;padding:22px;max-height:min(88vh,860px)}
+  .meeting-scheduler-grid{grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:20px}
+  .meeting-audience{max-height:560px;overflow-y:auto}
+  .manager-calendar-toolbar{justify-content:flex-start}
+}
+
+/* Motion: purposeful and optional */
+@media (prefers-reduced-motion:reduce){
+  .voice-button,.room-plus,.meeting-scheduler-sheet,.room-plus-panel,.room-picker-panel,.room-inline-mentions{
+    animation:none!important;transition:none!important
+  }
+}
