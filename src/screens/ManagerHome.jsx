@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill } from "../components/bits";
@@ -590,17 +591,17 @@ export default function ManagerHome({ me, openItem, openProject, openPerson, goA
           </div>
           <div className="hint">Leave these unselected if the correction is not tied to a checklist point.</div>
         </>}
-        <textarea className="field" rows={3} placeholder={sheet.decision === "completed" ? "Note (optional)" : "What needs changing"} value={comment} onChange={(event) => setComment(event.target.value)} />
+        <AssistiveTextarea className="field" rows={3} placeholder={sheet.decision === "completed" ? "Note (optional)" : "What needs changing"} value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || (sheet.decision === "returned" && !comment.trim())} onClick={() => decideWork(sheet.item, sheet.decision)}>{busy ? "Saving..." : sheet.decision === "completed" ? "Approve" : "Return"}</button>
       </Sheet>}
       {sheet?.type === "leave" && <Sheet onClose={() => { setSheet(null); setComment(""); }}>
         <div className="h2">{sheet.decision === "declined" ? "Decline leave" : Number(sheet.item.days) > leaveLimit ? "Escalate leave" : "Approve leave"}</div>
-        <textarea className="field" rows={3} placeholder="Decision note (optional)" value={comment} onChange={(event) => setComment(event.target.value)} />
+        <AssistiveTextarea className="field" rows={3} placeholder="Decision note (optional)" value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => decideLeave(sheet.item, sheet.decision)}>{busy ? "Saving..." : "Save decision"}</button>
       </Sheet>}
       {sheet?.type === "blocker" && <Sheet onClose={() => { setSheet(null); setComment(""); }}>
         <div className="h2">Why does your unit disagree?</div>
-        <textarea className="field" rows={3} placeholder="What is actually needed" value={comment} onChange={(event) => setComment(event.target.value)} />
+        <AssistiveTextarea className="field" rows={3} placeholder="What is actually needed" value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => answerBlocker(sheet.item, "disputed")}>{busy ? "Saving..." : "Send response"}</button>
       </Sheet>}
       </div>}
