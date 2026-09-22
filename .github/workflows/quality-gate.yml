@@ -179,3 +179,11 @@ jobs:
           name: stage9-product-inspection
           path: test-artifacts/stage9-workforce-*.png
           if-no-files-found: ignore
+
+      - name: Upload Stage 10 product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage10-product-inspection
+          path: test-artifacts/stage10-assets-*.png
+          if-no-files-found: ignore
