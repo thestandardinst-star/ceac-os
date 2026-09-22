@@ -4,7 +4,7 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal, openRecord }) {
+export default function Me({ me, openGoal, openRecord, openPerformance }) {
   const [profile, setProfile] = useState(me);
   const [balance, setBalance] = useState(null);
   const [settings, setSettings] = useState(null);
@@ -200,10 +200,16 @@ export default function Me({ me, openGoal, openRecord }) {
       <p className="screen-note">{profile.job_title || "Staff"} · your goals, leave and personal details.</p>
     </div>
 
-    <button className="personal-history-entry" type="button" onClick={() => openRecord?.()}>
-      <span><strong>My work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
-      <b aria-hidden="true">→</b>
-    </button>
+    <div className="personal-entry-stack">
+      <button className="personal-history-entry" type="button" onClick={() => openRecord?.()}>
+        <span><strong>My work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openPerformance?.()}>
+        <span><strong>Reviews & development</strong><small>Your review evidence, reflection, manager assessment, responses and development plan.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
+    </div>
 
     <div className="staff-segment" role="tablist" aria-label="Personal area">
       <button role="tab" aria-selected={area === "goals"} className={area === "goals" ? "on" : ""} onClick={() => setArea("goals")}>Goals</button>
