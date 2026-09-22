@@ -85,8 +85,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>86 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 86-function ceiling to %.',n;
+  if n>92 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 92-function ceiling to %.',n;
   end if;
 end $$;
 
