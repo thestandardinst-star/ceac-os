@@ -698,7 +698,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     await page.getByRole("button", { name: "Save project state", exact: true }).click();
     await expect(page.getByText("Project delivery metadata updated.", { exact: true })).toBeVisible();
 
-    await page.getByLabel("Delivery group link").selectOption({ label: "Acceptance Unit A Programme" });
+    await page.getByLabel("Delivery group link", { exact: true }).selectOption({ label: "Acceptance Unit A Programme" });
     await page.getByLabel("Delivery group link reason").fill("Acceptance project belongs to programme");
     await page.getByRole("button", { name: "Link project", exact: true }).click();
     await expect(page.getByText("Project linked to Programme / Portfolio.", { exact: true })).toBeVisible();
@@ -757,7 +757,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
 
     await page.reload();
     await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
-    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+    await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Unit A Programme$/ }).first()).toBeVisible();
     await page.getByRole("button", { name: /Stage 4 Browser Project/ }).first().click();
     await expect(page.getByText("Acceptance Foundation milestone", { exact: true })).toBeVisible();
     await expect(page.getByText("Acceptance dependency risk", { exact: true })).toBeVisible();
@@ -771,7 +771,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Delivery");
     await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
-    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+    await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Unit A Programme$/ }).first()).toBeVisible();
     await expect(page.getByText(/hidden project score/i)).toBeVisible();
     await context.close();
   }
