@@ -48,24 +48,44 @@ alter table public.projects
     check(health in ('on_track','watch','at_risk','blocked'));
 
 -- Explicit organisation-wide delivery authority participates in project
--- visibility/management without changing Staff/Manager project boundaries.
+-- visibility without recreating the projects <-> project_units RLS recursion
+-- that migration 006 intentionally removed.
+create or replace function public.app_visible_projects()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path=public
+as $
+  select p.id
+  from public.projects p
+  where p.org_id=public.app_org_id()
+    and (
+      public.app_is_admin()
+      or public.app_is_exec()
+      or public.app_has_capability('delivery.manage',null)
+      or p.lead_unit_id in (
+        select m.unit_id
+        from public.unit_memberships m
+        where m.profile_id=auth.uid()
+      )
+      or exists (
+        select 1
+        from public.project_units pu
+        where pu.project_id=p.id
+          and pu.unit_id in (
+            select m.unit_id
+            from public.unit_memberships m
+            where m.profile_id=auth.uid()
+          )
+      )
+    );
+$;
+
 drop policy if exists projects_read on public.projects;
 create policy projects_read on public.projects
 for select to authenticated
-using (
-  org_id=public.app_org_id()
-  and (
-    lead_unit_id in (select public.app_my_units())
-    or id in (
-      select pu.project_id
-      from public.project_units pu
-      where pu.unit_id in (select public.app_my_units())
-    )
-    or public.app_is_admin()
-    or public.app_is_exec()
-    or public.app_has_capability('delivery.manage',null)
-  )
-);
+using (id in (select public.app_visible_projects()));
 
 drop policy if exists projects_write on public.projects;
 create policy projects_write on public.projects
