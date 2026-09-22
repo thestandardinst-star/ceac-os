@@ -147,4 +147,3 @@ Stage 0 may be marked complete only with evidence for:
 - updated handoff.
 
 Once complete, create a fresh Stage 1 branch from the reviewed main and begin Platform Foundation v2 in the order 1A–1G.
-
