@@ -30,6 +30,7 @@ import AdminEvents from "./screens/AdminEvents";
 import AdminWorkflows from "./screens/AdminWorkflows";
 import AdminPolicies from "./screens/AdminPolicies";
 import AdminIntegrations from "./screens/AdminIntegrations";
+import AdminLifecycle from "./screens/AdminLifecycle";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -236,6 +237,7 @@ export default function App() {
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
     if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
     if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
+    if (tab === "lifecycle" && canManagePeople) return <AdminLifecycle me={me} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
