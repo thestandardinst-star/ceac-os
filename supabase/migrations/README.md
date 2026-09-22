@@ -2,11 +2,13 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–070** are currently applied.
+Repository migrations **001–073** are the canonical application history.
 
 ## Repository coverage
 
-The repository contains the historical SQL for **all live migrations 001–070**, plus unapplied migration 071 on the current collaboration branch.
+The repository contains immutable migration files through **073 — private meeting notes**. The live schema contains the effects of 073, but the live Supabase migration ledger currently records alternate timestamps for 069–072 and has no 073 row. This is a bookkeeping drift, not missing live schema.
+
+Do not add migration 074 until the ledger is reconciled using Supabase's supported migration-history repair mechanism. See `docs/security/CEAC_OS_STAGE0_MIGRATION_HISTORY_REPAIR_RUNBOOK_2026-09-22.md`.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +28,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **071**.
+The next migration number will be **074**, but it is blocked until Stage 0 migration-history reconciliation is completed and verified.
 
 
 ## 20 September backend continuation
@@ -102,22 +104,12 @@ Repository timestamps for migrations 047–052 were reconciled to the exact live
 A clean local Supabase replay workflow now rebuilds the application schema from the recovered migration history. The one documented pre-ledger live-only test helper required by immutable migration 037 is restored from `supabase/replay/legacy-live-artifacts.sql` before replay.
 
 
-### 069–070 — collaboration and meeting foundation
+### 069–073 — collaboration and meeting authority
 
 - **069** — contextual Unit/Project Rooms with inherited access, append-only messages, object references, mentions, reads and realtime message delivery.
-- **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable notes/decisions and links back to Work Engine items.
+- **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable records and links back to Work Engine items.
+- **071** — collaboration audiences, including Sub-team Rooms and explicit meeting audiences.
+- **072** — meeting participant authority hardening.
+- **073** — private meeting notes separated from shared decision records; shared meeting records are decision-only.
 
-Both migrations preserve the existing Work Engine and role/security boundaries. Provider secrets are not stored in browser-readable tables.
-
-
-### 071 — Rooms 2.0 and explicit meeting audiences — pending
-
-- adds Sub-team Rooms alongside Unit and Project Rooms;
-- Sub-team Room access is limited to sub-team members/leads plus the authorised unit manager;
-- adds explicit meeting participants/audience rows;
-- replaces ambient unit/project meeting visibility with participant-based visibility;
-- adds atomic `schedule_meeting()` so meeting creation and audience distribution succeed or fail together;
-- supports organisation, unit, sub-team, project, project-manager and authorised selected-person audiences;
-- removes direct authenticated inserts into `meeting_sessions`.
-
-**071 must not be applied live until clean migration replay, RLS acceptance, account security and the Quality Gate pass.**
+The repository timestamps for 069–073 are canonical. Production currently has the correct 073 schema state but its migration ledger does not yet match those canonical timestamps. No migration SQL should be replayed merely to repair that ledger.
