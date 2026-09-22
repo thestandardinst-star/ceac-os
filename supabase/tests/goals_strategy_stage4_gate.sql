@@ -77,9 +77,34 @@ begin
   )
   returning id into v_ministry;
 
+  insert into public.strategy_nodes(
+    org_id,node_type,name,statement,measurement_kind,status,change_reason,created_by,updated_by
+  ) values (
+    '10000000-0000-4000-8000-000000000010','ministry_direction',
+    'Stage 4 hidden draft','Draft strategy must not be visible to ordinary Staff.',
+    'descriptive','draft','Stage 4 draft visibility fixture',
+    '31000000-0000-4000-8000-000000000003','31000000-0000-4000-8000-000000000003'
+  );
+
   perform set_config('ceac.stage4_ministry_objective',v_ministry::text,true);
 end
 $ministry_strategy$;
+
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
+
+do $draft_visibility$
+begin
+  if exists(
+    select 1 from public.strategy_nodes
+    where name='Stage 4 hidden draft'
+  ) then
+    raise exception 'Stage 4 strategy gate failure: ordinary Staff can read draft ministry strategy.';
+  end if;
+end
+$draft_visibility$;
 
 reset role;
 
