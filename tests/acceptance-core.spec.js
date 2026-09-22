@@ -593,6 +593,87 @@ test("Manager primary surfaces stay usable across supported phone widths", async
   }
 });
 
+test("Goals and Strategy preserves factual hierarchy and manager authority", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Strategy");
+    await expect(page.getByRole("heading", { name: "Strategy", exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add Ministry Direction", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Strategy name").fill("Acceptance ministry direction");
+    await dialog.getByLabel("Strategy statement").fill("Build reliable ministry systems while reaching and serving people.");
+    await dialog.getByLabel("Strategy change reason").fill("Acceptance Stage 4 direction");
+    await dialog.getByRole("button", { name: "Create strategy record", exact: true }).click();
+    await expect(page.getByText("Strategy record created.", { exact: true })).toBeVisible();
+
+    const direction = page.locator("section.card").filter({ hasText: "Acceptance ministry direction" });
+    await expect(direction).toBeVisible();
+    await direction.getByRole("button", { name: "Add Ministry Objective", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Strategy name").fill("Acceptance ministry objective");
+    await dialog.getByLabel("Strategy statement").fill("Make weekly ministry delivery more reliable across participating units.");
+    await dialog.getByLabel("Strategy change reason").fill("Acceptance Stage 4 ministry objective");
+    await dialog.getByRole("button", { name: "Create strategy record", exact: true }).click();
+
+    await page.getByRole("button", { name: "Add Unit Objective", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Strategy unit").selectOption("20000000-0000-4000-8000-000000000011");
+    await dialog.getByLabel("Strategy name").fill("Acceptance Unit A objective");
+    await dialog.getByLabel("Strategy statement").fill("Record completed readiness outcomes for the agreed weekly schedule.");
+    await dialog.getByLabel("Strategy measurement").selectOption("numeric");
+    await dialog.getByLabel("Strategy measure label").fill("Completed readiness outcomes");
+    await dialog.getByLabel("Strategy target value").fill("12");
+    await dialog.getByLabel("Strategy target unit").fill("outcomes");
+    await dialog.getByLabel("Strategy current value").fill("3");
+    await dialog.getByLabel("Strategy change reason").fill("Acceptance Stage 4 unit objective");
+    await dialog.getByRole("button", { name: "Create strategy record", exact: true }).click();
+
+    await expect(page.getByText("current 3 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
+    await expect(page.getByText("Acceptance Unit A objective", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Strategy");
+    const unitObjective = page.locator(".row").filter({ hasText: "Acceptance Unit A objective" });
+    await expect(unitObjective).toBeVisible();
+    await unitObjective.getByRole("button", { name: "Revise", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Strategy current value").fill("5");
+    await dialog.getByLabel("Strategy change reason").fill("Acceptance factual result update");
+    await dialog.getByRole("button", { name: "Record revision", exact: true }).click();
+    await expect(page.getByText("current 5 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+
+    await unitObjective.getByRole("button", { name: "Link project", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Strategy delivery project").selectOption({ label: "Stage 4 Browser Project" });
+    await dialog.getByLabel("Strategy delivery reason").fill("Acceptance project supports this Unit Objective");
+    await dialog.getByRole("button", { name: "Link project", exact: true }).click();
+    await expect(page.getByText("Stage 4 Browser Project", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText("current 5 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+    await expect(page.getByText("Stage 4 Browser Project", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "Strategy");
+    await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add Ministry Direction", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Revise", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Link project", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
@@ -766,7 +847,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
