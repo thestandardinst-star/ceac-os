@@ -76,8 +76,35 @@ jobs:
       - name: Run Admin & HR security gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/admin_hr_security_gate.sql
 
+      - name: Run Platform Kernel gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/platform_kernel_gate.sql
+
       - name: Run Meeting authority gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/meeting_authority_gate.sql
+
+      - name: Run Stage 1A employment history gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/employment_history_gate.sql
+
+      - name: Run Stage 1B platform audit gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/platform_audit_gate.sql
+
+      - name: Run Stage 1C capability authority gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/capability_authority_gate.sql
+
+      - name: Run Stage 1D event framework gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/event_framework_gate.sql
+
+      - name: Run Stage 1E workflow engine gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/workflow_engine_gate.sql
+
+      - name: Run Stage 1F policy rules gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/policy_rules_gate.sql
+
+      - name: Run Stage 1G integration gateway gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/integration_gateway_gate.sql
+
+      - name: Run Stage 2 employee lifecycle gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/employee_lifecycle_gate.sql
 
       - name: Install Playwright runner
         run: |

@@ -467,7 +467,7 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
     const composer = page.getByPlaceholder("Message Fixture Video Team");
     await composer.fill("@Sta");
-    await expect(page.getByRole("button", { name: /Staff Fixture/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Staff Fixture/ })).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Staff Fixture/ }).click();
     await composer.fill((await composer.inputValue()) + message);
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -621,6 +621,98 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Protected HR", { exact: true })).toBeVisible();
   await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
   await expect(page.getByText(/entitlement not configured/i)).toBeVisible();
+  await expect(page.getByText("Employment record", { exact: true })).toBeVisible();
+  await expect(page.getByText("Employment history", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Record change", exact: true }).click();
+  const employmentDialog = page.getByRole("dialog");
+  await expect(employmentDialog.locator(".h2").filter({ hasText: /^Record employment change$/ })).toBeVisible();
+  await employmentDialog.getByLabel("Change").selectOption("working_pattern_changed");
+  await employmentDialog.getByLabel("Working pattern", { exact: true }).selectOption("flexible");
+  await employmentDialog.getByLabel("Reason / context").fill("Acceptance employment history change");
+  await employmentDialog.getByRole("button", { name: "Record employment change", exact: true }).click();
+  await expect(page.getByText("Working pattern changed", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "← All people", exact: true }).click();
+  await page.getByLabel("Find a person").fill("Staff Fixture");
+  await page.getByRole("button", { name: /Staff Fixture/ }).click();
+  await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
+
+  await go(page, "Employee lifecycle");
+  await expect(page.getByRole("heading", { name: "Employee lifecycle", exact: true })).toBeVisible();
+  await page.getByLabel("Lifecycle employee").selectOption("31000000-0000-4000-8000-000000000006");
+  await page.getByLabel("Lifecycle type").selectOption("onboarding");
+  await page.getByLabel("Lifecycle reason").fill("Acceptance onboarding lifecycle");
+  await page.getByRole("button", { name: "Start lifecycle case", exact: true }).click();
+  await expect(page.getByText("Employee lifecycle case started.", { exact: true })).toBeVisible();
+  for (let step = 1; step <= 4; step += 1) {
+    await page.getByLabel("Lifecycle completion note").fill("Acceptance lifecycle step " + step);
+    await page.getByRole("button", { name: "Complete current step", exact: true }).click();
+    await expect(page.getByText("Lifecycle step completed.", { exact: true })).toBeVisible();
+  }
+  await page.reload();
+  await expect(page.getByText(/Same Unit Fixture · Onboarding/).first()).toBeVisible();
+  await expect(page.getByText(/Completed · effective/).first()).toBeVisible();
+
+  await go(page, "Workflows");
+  await expect(page.getByRole("heading", { name: "Workflows", exact: true })).toBeVisible();
+  const employmentWorkflow = page.getByRole("button", { name: /Review employment change/ }).first();
+  await expect(employmentWorkflow).toBeVisible();
+  await employmentWorkflow.click();
+  await page.getByLabel("Workflow review note").fill("Acceptance workflow review");
+  await page.getByRole("button", { name: "Complete step", exact: true }).click();
+  await expect(page.getByText("Workflow step completed.", { exact: true })).toBeVisible();
+
+  await go(page, "Authority");
+  await expect(page.getByRole("heading", { name: "Authority", exact: true })).toBeVisible();
+  await page.getByLabel("Authority person").selectOption({ label: "Staff Fixture · staff@ceac.local.test" });
+  await page.getByLabel("Capability", { exact: true }).selectOption("performance.admin");
+  await page.getByLabel("Grant reason").fill("Acceptance temporary performance authority");
+  await page.getByRole("button", { name: "Grant capability", exact: true }).click();
+  await expect(page.getByText("Capability granted.", { exact: true })).toBeVisible();
+  await page.getByLabel("Revocation reason").fill("Acceptance authority cleanup");
+  await page.getByRole("button", { name: "Revoke", exact: true }).click();
+  await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
+
+  await go(page, "Policies & rules");
+  await expect(page.getByRole("heading", { name: "Policies & rules", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Work quiet days/ }).click();
+  await page.getByLabel("Policy rule value").fill("6");
+  await page.getByLabel("Policy reason").fill("Acceptance policy rule version");
+  await page.getByRole("button", { name: "Record new version", exact: true }).click();
+  await expect(page.getByText("Policy rule recorded.", { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /Work quiet days/ }).click();
+  await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
+
+  await go(page, "Integrations");
+  await expect(page.getByRole("heading", { name: "Integrations", exact: true })).toBeVisible();
+  await page.getByLabel("Integration connector name").fill("Acceptance Connector");
+  await page.getByLabel("Integration connector key").fill("acceptance-connector");
+  await page.getByRole("button", { name: "Create connector", exact: true }).click();
+  await expect(page.getByText("Connector created.", { exact: true })).toBeVisible();
+  const connectorRow = page.locator(".row").filter({ hasText: "Acceptance Connector" }).first();
+  await connectorRow.getByRole("button", { name: "Enable", exact: true }).click();
+  await expect(page.getByText("Connector enabled.", { exact: true })).toBeVisible();
+  await page.getByLabel("Integration subscription connector").selectOption({ label: "Acceptance Connector" });
+  await page.getByLabel("Integration subscription event").selectOption("policy.rule_changed");
+  await page.getByRole("button", { name: "Create subscription", exact: true }).click();
+  await expect(page.getByText("Event subscription created.", { exact: true })).toBeVisible();
+
+  await go(page, "Audit");
+  await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
+  await expect(page.getByText("Recent changes", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Employment (Record · Update|History · Insert)/).first()).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
+
+  await go(page, "Events");
+  await expect(page.getByRole("heading", { name: "System events", exact: true })).toBeVisible();
+  await expect(page.getByText("Event stream", { exact: true })).toBeVisible();
+  await expect(page.getByText("Employment · Changed", { exact: true }).first()).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "System events", exact: true })).toBeVisible();
 
   await go(page, "Attendance");
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
@@ -659,7 +751,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Settings"];
+  const destinations = ["Home", "People", "Employee lifecycle", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });

@@ -2,11 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Live migrations **001–070** are currently applied.
+Repository migrations **001–075** are the canonical application history on the Stage 1A branch.
 
 ## Repository coverage
 
-The repository contains the historical SQL for **all live migrations 001–070**, plus unapplied migration 071 on the current collaboration branch.
+The repository and live Supabase migration ledger are reconciled through **074 — reduce internal privileged RPC surface**. The earlier timestamp drift for 069–072 and missing 073 ledger row were repaired using Supabase's supported migration-history repair mechanism without replaying migration SQL. Production's already-applied 074 was recovered into the repository and verified against the live migration record.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -26,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number is **071**.
+The migration-history reconciliation is complete and verified through 074. Migration **074** is the current Stage 0 hardening migration on PR #19; no later migration should be created until Stage 0 closes and the reviewed branch is merged.
 
 
 ## 20 September backend continuation
@@ -102,22 +102,41 @@ Repository timestamps for migrations 047–052 were reconciled to the exact live
 A clean local Supabase replay workflow now rebuilds the application schema from the recovered migration history. The one documented pre-ledger live-only test helper required by immutable migration 037 is restored from `supabase/replay/legacy-live-artifacts.sql` before replay.
 
 
-### 069–070 — collaboration and meeting foundation
+### 069–073 — collaboration and meeting authority
 
 - **069** — contextual Unit/Project Rooms with inherited access, append-only messages, object references, mentions, reads and realtime message delivery.
-- **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable notes/decisions and links back to Work Engine items.
+- **070** — secure meeting workspace with organisation/unit/project scope, provider join context, attributable records and links back to Work Engine items.
+- **071** — collaboration audiences, including Sub-team Rooms and explicit meeting audiences.
+- **072** — meeting participant authority hardening.
+- **073** — private meeting notes separated from shared decision records; shared meeting records are decision-only.
 
-Both migrations preserve the existing Work Engine and role/security boundaries. Provider secrets are not stored in browser-readable tables.
+The repository timestamps for 069–073 are canonical. Production migration history has been reconciled to those timestamps, and 074 is aligned locally and remotely. No migration SQL was replayed merely to repair the ledger.
 
 
-### 071 — Rooms 2.0 and explicit meeting audiences — pending
+### 074 — reduce internal privileged RPC surface
 
-- adds Sub-team Rooms alongside Unit and Project Rooms;
-- Sub-team Room access is limited to sub-team members/leads plus the authorised unit manager;
-- adds explicit meeting participants/audience rows;
-- replaces ambient unit/project meeting visibility with participant-based visibility;
-- adds atomic `schedule_meeting()` so meeting creation and audience distribution succeed or fail together;
-- supports organisation, unit, sub-team, project, project-manager and authorised selected-person audiences;
-- removes direct authenticated inserts into `meeting_sessions`.
+Migration `20260922033628_074_reduce_internal_rpc_surface.sql` removes direct `authenticated` EXECUTE from six reviewed internal-only SECURITY DEFINER helpers while preserving service-role/owner execution:
 
-**071 must not be applied live until clean migration replay, RLS acceptance, account security and the Quality Gate pass.**
+- `app_can_publish_announcements()`
+- `app_threshold(uuid,text,numeric)`
+- `next_close_version(uuid,text,uuid)`
+- `next_work_ref(uuid,uuid)`
+- `submit_project_close(uuid)`
+- `submit_report(uuid,jsonb)`
+
+The Platform Kernel gate now requires the reviewed authenticated SECURITY DEFINER surface to be exactly 67 and explicitly fails if any of those six helpers remains directly executable by `authenticated`.
+
+
+### 075 — Stage 1A employment history
+
+Migration `20260922050000_075_employment_history.sql` introduces the ordinary-employment platform record:
+
+- one current employment snapshot per profile;
+- immutable historical employment snapshots;
+- joining/employment type/title/unit/manager/role/working-pattern/status/exit history;
+- Administration-only authoritative change/correction RPCs;
+- compatibility synchronisation from existing profile and unit-membership authority paths;
+- browser read access limited by RLS and no direct browser writes;
+- no compensation, bank, national-ID, tax/SSNIT, payroll or other protected-HR fields.
+
+Stage 1A deliberately adds two reviewed authenticated SECURITY DEFINER RPCs (`admin_employment_detail` and `admin_update_employment`). The Platform Kernel reviewed browser-callable ceiling is therefore 69 on this branch.

@@ -22,6 +22,13 @@ test("Staff navigation stays inside the employee boundary", async ({ browser }) 
   await expect(nav).not.toContainText("Record");
   await expect(nav).not.toContainText("Units");
   await expect(nav).not.toContainText("Reporting");
+  await expect(nav).not.toContainText("Audit");
+  await expect(nav).not.toContainText("Authority");
+  await expect(nav).not.toContainText("Events");
+  await expect(nav).not.toContainText("Workflows");
+  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("Integrations");
+  await expect(nav).not.toContainText("Employee lifecycle");
   await context.close();
 });
 
@@ -35,6 +42,13 @@ test("Manager gets Manager destinations but not Administration authoring", async
   await expect(nav).not.toContainText("Units");
   await expect(nav).not.toContainText("People");
   await expect(nav).not.toContainText("Attendance");
+  await expect(nav).not.toContainText("Audit");
+  await expect(nav).not.toContainText("Authority");
+  await expect(nav).not.toContainText("Events");
+  await expect(nav).not.toContainText("Workflows");
+  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("Integrations");
+  await expect(nav).not.toContainText("Employee lifecycle");
   await context.close();
 });
 
@@ -45,6 +59,13 @@ test("Administration gets Administration authoring", async ({ browser }) => {
   await expect(nav).toContainText("People");
   await expect(nav).toContainText("Attendance");
   await expect(nav).toContainText("Reports");
+  await expect(nav).toContainText("Audit");
+  await expect(nav).toContainText("Authority");
+  await expect(nav).toContainText("Events");
+  await expect(nav).toContainText("Workflows");
+  await expect(nav).toContainText("Policies & rules");
+  await expect(nav).toContainText("Integrations");
+  await expect(nav).toContainText("Employee lifecycle");
   await expect(nav).toContainText("Settings");
   await context.close();
 });
@@ -61,6 +82,13 @@ test("Group Pastor has a dedicated non-Admin navigation boundary", async ({ brow
   await expect(nav).not.toContainText("Cost");
   await expect(nav).not.toContainText("Finance");
   await expect(nav).not.toContainText("Reporting");
+  await expect(nav).not.toContainText("Audit");
+  await expect(nav).not.toContainText("Authority");
+  await expect(nav).not.toContainText("Events");
+  await expect(nav).not.toContainText("Workflows");
+  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("Integrations");
+  await expect(nav).not.toContainText("Employee lifecycle");
   await expect(nav).not.toContainText("Settings");
   await context.close();
 });

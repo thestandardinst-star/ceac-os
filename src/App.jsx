@@ -24,6 +24,13 @@ import StaffTeam from "./screens/StaffTeam";
 import OfficeSettings from "./screens/OfficeSettings";
 import AdminProjects from "./screens/AdminProjects";
 import AdminCalendar from "./screens/AdminCalendar";
+import AdminAudit from "./screens/AdminAudit";
+import AdminAuthority from "./screens/AdminAuthority";
+import AdminEvents from "./screens/AdminEvents";
+import AdminWorkflows from "./screens/AdminWorkflows";
+import AdminPolicies from "./screens/AdminPolicies";
+import AdminIntegrations from "./screens/AdminIntegrations";
+import AdminLifecycle from "./screens/AdminLifecycle";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -191,6 +198,12 @@ export default function App() {
   const isUnitManager = !isAdmin && !isExec && me.role === "manager";
   const isStaff = !isAdmin && !isExec && !isUnitManager;
   const isManager = isAdmin || isUnitManager;
+  const hasCapability = (capability) => (me.capabilities || []).includes(capability);
+  const canManagePeople = hasCapability("people.manage");
+  const canViewAudit = hasCapability("audit.view");
+  const canManageAuthority = hasCapability("authority.manage");
+  const canUseWorkflows = canViewAudit || canManagePeople || canManageAuthority;
+  const canManageIntegrations = hasCapability("integration.manage");
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -223,10 +236,17 @@ export default function App() {
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
     if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
-    if (tab === "people" && isAdmin) return <People me={me} openItem={openItem} />;
+    if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
+    if (tab === "lifecycle" && canManagePeople) return <AdminLifecycle me={me} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
+    if (tab === "audit" && canViewAudit) return <AdminAudit me={me} />;
+    if (tab === "events" && canViewAudit) return <AdminEvents me={me} />;
+    if (tab === "workflows" && canUseWorkflows) return <AdminWorkflows me={me} />;
+    if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
+    if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
+    if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
   }
@@ -268,7 +288,7 @@ export default function App() {
             : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} />
             : pageForTab()}
         </main>
-        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} />}
+        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} />}
       </div>
     </div>);
 }
