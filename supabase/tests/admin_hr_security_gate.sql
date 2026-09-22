@@ -61,7 +61,9 @@ end $$;
 -- app_can_manage_meeting(uuid). It binds to auth.uid(), the active org, and
 -- approved manager/admin/executive/organiser authority; it has a fixed
 -- search_path and no anon EXECUTE.
--- Reducing this surface is allowed. Any growth beyond 73 requires another
+-- Stage 3 adds two reviewed capability-gated protected-HR RPCs:
+-- hr_protected_summary(uuid) and hr_protected_record(uuid,text,jsonb,uuid,text).
+-- Reducing this surface is allowed. Any growth beyond 75 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -72,8 +74,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>73 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 73-function ceiling to %.',n;
+  if n>75 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 75-function ceiling to %.',n;
   end if;
 end $$;
 
