@@ -1,10 +1,10 @@
 # CEAC OS — Stage 3 Protected HR Handoff
 
-**Date:** 22 September 2026  
-**Status:** ACTIVE / STACKED  
-**Repository:** `thestandardinst-star/ceac-os`  
-**Base:** Stage 2 green head `48bbbf0f2e9ae4bc5d89ffc01766659f5775649e`  
-**Branch:** `chatgpt/enterprise-expansion-stage-3-protected-hr-2026-09-22`  
+**Date:** 22 September 2026
+**Status:** ACTIVE / STACKED
+**Repository:** `thestandardinst-star/ceac-os`
+**Base:** Stage 2 green head `48bbbf0f2e9ae4bc5d89ffc01766659f5775649e`
+**Branch:** `chatgpt/enterprise-expansion-stage-3-protected-hr-2026-09-22`
 **Migration:** 083 — protected HR Stage 3
 
 ## Implemented
