@@ -228,6 +228,24 @@ using(
   )
 );
 
+drop policy if exists stage9_work_sessions_workforce_read on public.work_sessions;
+create policy stage9_work_sessions_workforce_read
+on public.work_sessions for select to authenticated
+using(
+  org_id=public.app_org_id()
+  and (
+    profile_id=auth.uid()
+    or public.app_has_capability('workforce.manage',null)
+    or public.app_has_capability('attendance.correct',null)
+    or exists(
+      select 1 from public.employment_records er
+      where er.profile_id=work_sessions.profile_id
+        and er.org_id=public.app_org_id()
+        and er.unit_id in (select public.app_managed_units())
+    )
+  )
+);
+
 create policy attendance_corrections_read
 on public.attendance_corrections for select to authenticated
 using(
@@ -477,10 +495,7 @@ begin
   )
   returning id into v_id;
 
-  if p_reverses_id is not null then
-    update public.attendance_corrections set state='reversed' where id=p_reverses_id;
-  end if;
-
+  -- Reversal is represented by this new linked row. The original correction is never rewritten.
   return v_id;
 end;
 $$;
