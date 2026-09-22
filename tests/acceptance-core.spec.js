@@ -618,8 +618,9 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
   await page.getByLabel("Find a person").fill("Staff Fixture");
   await page.getByRole("button", { name: /Staff Fixture/ }).click();
-  await expect(page.getByText("Protected HR", { exact: true })).toBeVisible();
-  await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
+  const peopleMain = page.getByRole("main");
+  await expect(peopleMain.getByText("Protected HR", { exact: true })).toBeVisible();
+  await expect(peopleMain.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
   await expect(page.getByText(/entitlement not configured/i)).toBeVisible();
   await expect(page.getByText("Employment record", { exact: true })).toBeVisible();
   await expect(page.getByText("Employment history", { exact: true })).toBeVisible();
@@ -654,6 +655,20 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.reload();
   await expect(page.getByText(/Same Unit Fixture · Onboarding/).first()).toBeVisible();
   await expect(page.getByText(/Completed · effective/).first()).toBeVisible();
+
+  await go(page, "Protected HR");
+  await expect(page.getByRole("heading", { name: "Protected HR", exact: true })).toBeVisible();
+  await page.getByLabel("Protected HR employee").selectOption("31000000-0000-4000-8000-000000000001");
+  await page.getByLabel("Protected HR record type").selectOption("identifier");
+  await page.getByLabel("Identifier type").fill("Acceptance ID");
+  await page.getByLabel("Identifier value").fill("ACCEPTANCE-001");
+  await page.getByLabel("Protected HR reason").fill("Acceptance protected HR record");
+  await page.getByRole("button", { name: "Save protected record", exact: true }).click();
+  await expect(page.getByText("Protected HR record saved.", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Acceptance ID · Active/).first()).toBeVisible();
+  await expect(page.getByText("ACCEPTANCE-001", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("ACCEPTANCE-001", { exact: true })).toBeVisible();
 
   await go(page, "Workflows");
   await expect(page.getByRole("heading", { name: "Workflows", exact: true })).toBeVisible();
@@ -751,7 +766,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Employee lifecycle", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });

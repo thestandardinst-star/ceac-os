@@ -23,7 +23,7 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "attendance") return <svg {...props}><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></svg>;
   if (name === "reporting") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 16v-4M12 16V8M15 16v-6" /></svg>;
   if (name === "cost") return <svg {...props}><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
-  if (name === "audit" || name === "authority" || name === "events" || name === "workflows" || name === "policies") return <svg {...props}><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>;
+  if (name === "audit" || name === "authority" || name === "events" || name === "workflows" || name === "policies" || name === "protected-hr") return <svg {...props}><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h5" /></svg>;
   if (name === "settings") return <svg {...props}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1V21H9.6v-.09a1.7 1.7 0 0 0-1.4-1.67 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.8 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1-.4H2V9.6h.09A1.7 1.7 0 0 0 3.76 8.2a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.2 3.8a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1V2h4v.09A1.7 1.7 0 0 0 15 3.76a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8.2a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1 .4H21v4h-.09A1.7 1.7 0 0 0 19.4 15z" /></svg>;
   return <svg {...props}><circle cx="12" cy="12" r="2" /></svg>;
 }
@@ -131,7 +131,7 @@ function tabItems(isManager = false) {
   return [["home","Home"],["work","Work"],["team","Team"],["me","Me"]];
 }
 
-function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false }) {
+function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false }) {
   if (isExec) return [
     { label:"Ministry", items:[["home","Home"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
@@ -139,7 +139,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit
   ];
   if (isAdmin) return [
     { label:"Organisation", items:[["home","Home"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),["attendance","Attendance"]] },
+    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
@@ -155,7 +155,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit
 export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
-    units:"Units", people:"People", lifecycle:"Employee lifecycle", attendance:"Attendance & leave", reporting:"Reports",
+    units:"Units", people:"People", lifecycle:"Employee lifecycle", "protected-hr":"Protected HR", attendance:"Attendance & leave", reporting:"Reports",
     finance:"Finance", cost:"Cost", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
@@ -183,6 +183,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
   const groups = desktopGroups({
     isAdmin, isExec, isManager,
     canPeople: capabilities.includes("people.manage"),
+    canProtectedHR: capabilities.includes("hr_private.access"),
     canAudit: capabilities.includes("audit.view"),
     canAuthority: capabilities.includes("authority.manage"),
     canWorkflows: capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage"),
@@ -234,7 +235,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
   const capabilities = me?.capabilities || [];
   const adminGroups = [
     { label:"Organisation", items:[["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : [])] },
+    { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : []),...(capabilities.includes("hr_private.access") ? [["protected-hr","Protected HR"]] : [])] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[

@@ -61,7 +61,9 @@ end $$;
 -- app_can_manage_meeting(uuid). It binds to auth.uid(), the active org, and
 -- approved manager/admin/executive/organiser authority; it has a fixed
 -- search_path and no anon EXECUTE.
--- Reducing this surface is allowed. Any growth beyond 73 requires another
+-- Stage 3 adds two reviewed capability-gated protected-HR RPCs:
+-- hr_protected_summary(uuid) and hr_protected_record(uuid,text,jsonb,uuid,text).
+-- Reducing this surface is allowed. Any growth beyond 75 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -72,8 +74,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>73 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 73-function ceiling to %.',n;
+  if n>75 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 75-function ceiling to %.',n;
   end if;
 end $$;
 
@@ -194,22 +196,44 @@ begin
 end
 $hr_bucket$;
 
--- Foundation stage deliberately has no direct browser Storage policy for the
--- protected HR bucket. Later access must update this assertion with explicit
--- role/path tests in the same PR.
+-- Stage 3 explicitly reviews private HR Storage access. The bucket stays
+-- private; browser access is capability-gated and constrained to the caller's
+-- organisation path. No generic/public policy is permitted.
 do $hr_storage_policy$
-declare n integer;
+declare
+  n integer;
+  unsafe integer;
 begin
   select count(*) into n
+  from pg_policies
+  where schemaname='storage'
+    and tablename='objects'
+    and policyname in (
+      'ceac_hr_private_select',
+      'ceac_hr_private_insert',
+      'ceac_hr_private_delete'
+    );
+
+  if n<>3 then
+    raise exception 'Security gate failure: expected 3 reviewed ceac-hr-private Storage policies, found %.',n;
+  end if;
+
+  select count(*) into unsafe
   from pg_policies
   where schemaname='storage'
     and tablename='objects'
     and (
       coalesce(qual,'') ilike '%ceac-hr-private%'
       or coalesce(with_check,'') ilike '%ceac-hr-private%'
+    )
+    and (
+      (coalesce(qual,'')||' '||coalesce(with_check,'')) not ilike '%hr_private.access%'
+      or (coalesce(qual,'')||' '||coalesce(with_check,'')) not ilike '%foldername%'
+      or (coalesce(qual,'')||' '||coalesce(with_check,'')) not ilike '%app_org_id%'
     );
-  if n<>0 then
-    raise exception 'Security gate failure: direct browser policy exists for ceac-hr-private before explicit HR document-access review.';
+
+  if unsafe<>0 then
+    raise exception 'Security gate failure: protected HR Storage policy is not capability + organisation-path constrained.';
   end if;
 end
 $hr_storage_policy$;

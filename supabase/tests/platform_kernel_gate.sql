@@ -59,7 +59,7 @@ $definer_search_path$;
 
 -- Stage 0 semantic review identified six internal-only helpers that do not
 -- need direct authenticated execution. Migration 074 reduces the reviewed
--- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73.
+-- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75.
 do $definer_surface$
 declare n integer;
 begin
@@ -70,8 +70,8 @@ begin
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
 
-  if n<>73 then
-    raise exception 'Platform Kernel gate failure: expected 73 authenticated SECURITY DEFINER functions after reviewed Stage 1E workflow RPC, found %.',n;
+  if n<>75 then
+    raise exception 'Platform Kernel gate failure: expected 75 authenticated SECURITY DEFINER functions after reviewed Stage 3 protected-HR RPCs, found %.',n;
   end if;
 
   if has_function_privilege('authenticated','public.app_can_publish_announcements()','EXECUTE')
