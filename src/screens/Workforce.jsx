@@ -25,8 +25,12 @@ export default function Workforce({ me }) {
   const [corrections,setCorrections]=useState([]);
   const [policies,setPolicies]=useState([]);
   const [policyRules,setPolicyRules]=useState([]);
+  const [office,setOffice]=useState(null);
+  const [meetings,setMeetings]=useState([]);
+  const [ministryEvents,setMinistryEvents]=useState([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState(null);
+  const [datasetErrors,setDatasetErrors]=useState({});
   const [notice,setNotice]=useState(null);
   const [busy,setBusy]=useState(false);
 
@@ -66,30 +70,44 @@ export default function Workforce({ me }) {
   async function load(){
     setLoading(true); setError(null);
     const since=new Date(Date.now()-31*86400000).toISOString();
-    const requests=[
-      supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active"),
-      supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,place,end_reason,flags").gte("started_at",since).order("started_at",{ascending:false}),
-      supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles(full_name)").order("start_date",{ascending:false}),
-      supabase.from("leave_request_events").select("*").order("created_at",{ascending:false}),
-      supabase.from("workforce_day_types").select("*").eq("active",true).order("name"),
-      supabase.from("workforce_schedule_versions").select("*").order("created_at",{ascending:false}),
-      supabase.from("attendance_corrections").select("*").order("created_at",{ascending:false}),
-      supabase.from("leave_policy_versions").select("*").order("created_at",{ascending:false}),
-      supabase.from("leave_policy_rules").select("*").order("leave_kind"),
+    const datasets=[
+      ["people", supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active")],
+      ["sessions", supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,place,end_reason,flags,lat,lng,ip").gte("started_at",since).order("started_at",{ascending:false})],
+      ["leave", supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles(full_name)").order("start_date",{ascending:false})],
+      ["leave history", supabase.from("leave_request_events").select("*").order("created_at",{ascending:false})],
+      ["day types", supabase.from("workforce_day_types").select("*").eq("active",true).order("name")],
+      ["schedules", supabase.from("workforce_schedule_versions").select("*").order("created_at",{ascending:false})],
+      ["corrections", supabase.from("attendance_corrections").select("*").order("created_at",{ascending:false})],
+      ["leave policies", supabase.from("leave_policy_versions").select("*").order("created_at",{ascending:false})],
+      ["leave policy rules", supabase.from("leave_policy_rules").select("*").order("leave_kind")],
+      ["office location", supabase.from("office_locations").select("name,lat,lng,radius_meters").eq("is_primary",true).limit(1).maybeSingle()],
+      ["meetings", supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,unit_id").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString()).neq("status","cancelled")],
+      ["ministry events", supabase.from("ministry_events").select("id,title,starts_at,ends_at,location,cancelled,scope,unit_id").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString())],
     ];
-    const results=await Promise.all(requests);
-    const failed=results.find((r)=>r.error);
-    if(failed){ setError(humanError(failed.error,"Workforce could not finish loading.")); setLoading(false); return; }
-    setPeople((results[0].data||[]).filter((row)=>row.profiles?.active!==false));
-    setSessions(results[1].data||[]);
-    setLeave(results[2].data||[]);
-    setLeaveEvents(results[3].data||[]);
-    setDayTypes(results[4].data||[]);
-    setSchedules(results[5].data||[]);
-    setCorrections(results[6].data||[]);
-    setPolicies(results[7].data||[]);
-    setPolicyRules(results[8].data||[]);
+    const results=await Promise.all(datasets.map(async ([name,query])=>({name,...await query})));
+    const errors={};
+    const byName=Object.fromEntries(results.map((row)=>[row.name,row]));
+    for(const row of results){
+      if(row.error) errors[row.name]=humanError(row.error, row.name+" could not load.");
+    }
+
+    if(!byName.people.error) setPeople((byName.people.data||[]).filter((row)=>row.profiles?.active!==false));
+    if(!byName.sessions.error) setSessions(byName.sessions.data||[]);
+    if(!byName.leave.error) setLeave(byName.leave.data||[]);
+    if(!byName["leave history"].error) setLeaveEvents(byName["leave history"].data||[]);
+    if(!byName["day types"].error) setDayTypes(byName["day types"].data||[]);
+    if(!byName.schedules.error) setSchedules(byName.schedules.data||[]);
+    if(!byName.corrections.error) setCorrections(byName.corrections.data||[]);
+    if(!byName["leave policies"].error) setPolicies(byName["leave policies"].data||[]);
+    if(!byName["leave policy rules"].error) setPolicyRules(byName["leave policy rules"].data||[]);
+    if(!byName["office location"].error) setOffice(byName["office location"].data||null);
+    if(!byName.meetings.error) setMeetings(byName.meetings.data||[]);
+    if(!byName["ministry events"].error) setMinistryEvents((byName["ministry events"].data||[]).filter((row)=>!row.cancelled));
+
+    setDatasetErrors(errors);
+    if(Object.keys(errors).length) setError("Some workforce data could not load. The affected dataset is identified below; available datasets remain usable.");
     setLoading(false);
+    return {errors};
   }
 
   const today=isoDay(new Date());
@@ -126,19 +144,26 @@ export default function Workforce({ me }) {
     return {label:dayType.name,tone:"grey",detail:"A work session is not ordinarily expected for this configured day type."};
   }
 
-  async function runRpc(name,args,success){
+  async function runRpc(name,args,success,requiredDatasets=[]){
     setBusy(true); setError(null); setNotice(null);
     const {error:e}=await supabase.rpc(name,args);
+    if(e){ setBusy(false); setError(humanError(e,"That workforce change could not be recorded.")); return false; }
+    const reload=await load();
+    const missing=requiredDatasets.filter((name)=>reload.errors[name]);
     setBusy(false);
-    if(e){ setError(humanError(e,"That workforce change could not be recorded.")); return false; }
-    setNotice(success); await load(); return true;
+    if(missing.length){
+      setError("The change was recorded, but these required datasets failed to reload: "+missing.join(", ")+".");
+      return false;
+    }
+    setNotice(success);
+    return true;
   }
 
   async function recordDayType(){
     const ok=await runRpc("workforce_record_day_type",{
       p_id:null,p_name:dayTypeName.trim(),p_description:dayTypeDescription.trim()||null,
       p_session_expected:dayTypeExpected,p_leave_overlay_allowed:true,p_active:true,
-    },"Day type recorded.");
+    },"Day type recorded.",["people","day types"]);
     if(ok){ setDayTypeSheet(false); setDayTypeName(""); setDayTypeDescription(""); }
   }
 
@@ -149,7 +174,7 @@ export default function Workforce({ me }) {
       p_day_map:{[scheduleDay]:scheduleDayType},
       p_expected_start:scheduleStart||null,p_expected_end:scheduleEnd||null,
       p_reason:scheduleReason.trim(),p_supersedes_id:null,
-    },"Workforce schedule recorded.");
+    },"Workforce schedule recorded.",["people","day types","schedules"]);
     if(ok){ setScheduleSheet(false); setScheduleReason(""); }
   }
 
@@ -265,9 +290,11 @@ export default function Workforce({ me }) {
     </>}
 
     {tab==="setup"&&canManage&&<>
+      {Object.keys(datasetErrors).length>0&&<ProductNotice tone="error" title="Workforce data status">{Object.entries(datasetErrors).map(([name,message])=><div key={name}><strong>{human(name)}</strong>: {message}</div>)}</ProductNotice>}
+      <div className="card small workforce-data-status">Visible people: <strong>{people.length}</strong> · Active day types: <strong>{dayTypes.length}</strong></div>
       <div className="workforce-setup-actions">
         <button className="btn btn-ghost" onClick={()=>setDayTypeSheet(true)}>Add day type</button>
-        <button className="btn btn-ghost" disabled={!dayTypes.length||!people.length} onClick={()=>{setSchedulePerson(people[0]?.profile_id||"");setScheduleDayType(dayTypes[0]?.id||"");setScheduleSheet(true)}}>Record schedule</button>
+        <button className="btn btn-ghost" disabled={busy||!dayTypes.length||!people.length} title={!people.length?"No visible active people loaded":!dayTypes.length?"No active day types loaded":""} onClick={()=>{setSchedulePerson(people[0]?.profile_id||"");setScheduleDayType(dayTypes[0]?.id||"");setScheduleSheet(true)}}>Record schedule</button>
         <button className="btn" onClick={()=>setPolicySheet(true)}>{activePolicy?"Create policy revision":"Configure leave policy"}</button>
       </div>
       <div className="sec"><span>Day types</span><span>{dayTypes.length}</span></div>
