@@ -189,6 +189,9 @@ drop policy if exists ap_write on public.appraisals;
 drop policy if exists fn_read on public.feedback_notes;
 drop policy if exists fn_write on public.feedback_notes;
 
+revoke all on public.appraisal_cycles from anon;
+revoke all on public.appraisals from anon;
+revoke all on public.feedback_notes from anon;
 revoke insert,update,delete on public.appraisal_cycles from authenticated;
 revoke insert,update,delete on public.appraisals from authenticated;
 revoke insert,update,delete on public.feedback_notes from authenticated;
