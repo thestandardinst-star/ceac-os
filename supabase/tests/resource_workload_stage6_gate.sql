@@ -186,7 +186,48 @@ declare
   v_commitment uuid:=nullif(current_setting('ceac.stage6_commitment_id',true),'')::uuid;
   v_revision uuid:=nullif(current_setting('ceac.stage6_revision_id',true),'')::uuid;
   v_count integer;
-beginend
+begin
+  if v_capacity is null or v_commitment is null or v_revision is null then
+    raise exception 'Stage 6 gate failure: manager-flow evidence identifiers were not preserved.';
+  end if;
+
+  select count(*) into v_count
+  from public.platform_audit_events
+  where resource_type='resource_capacity_version';
+
+  if v_count<1 then
+    raise exception 'Stage 6 gate failure: no capacity audit evidence was recorded.';
+  end if;
+
+  select count(*) into v_count
+  from public.platform_audit_events
+  where resource_type='resource_project_commitment_version';
+
+  if v_count<2 then
+    raise exception 'Stage 6 gate failure: expected commitment audit history, found % event(s).',v_count;
+  end if;
+
+  select count(*) into v_count
+  from public.platform_events
+  where event_type='resource.capacity_changed'
+    and idempotency_key='resource-capacity:'||v_capacity::text;
+
+  if v_count<>1 then
+    raise exception 'Stage 6 gate failure: capacity change produced % semantic event(s) instead of 1.',v_count;
+  end if;
+
+  select count(*) into v_count
+  from public.platform_events
+  where event_type='resource.commitment_changed'
+    and idempotency_key in (
+      'resource-commitment:'||v_commitment::text,
+      'resource-commitment:'||v_revision::text
+    );
+
+  if v_count<>2 then
+    raise exception 'Stage 6 gate failure: commitment history produced % semantic event(s) instead of 2.',v_count;
+  end if;
+end
 $stage6_evidence$;
 
 -- The person may read their own recorded planning history, but still cannot edit it.
