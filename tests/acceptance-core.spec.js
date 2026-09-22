@@ -939,7 +939,7 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
     await page.reload();
     const reloadedCase = page.locator(".performance-case-row").filter({ hasText: "Staff Fixture" });
     await reloadedCase.click();
-    await expect(page.getByText(assessmentText, { exact: true })).toBeVisible();
+    await expect(page.locator(".performance-narrative p").filter({ hasText: assessmentText }).first()).toBeVisible();
     await expect(page.getByText(planFocus, { exact: true })).toBeVisible();
     await expect(page.getByText(feedbackText, { exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/stage7-performance-manager.png", fullPage: true });
