@@ -15,7 +15,7 @@ export function Icon({ name, size = 18, strokeWidth = 1.8, className = "" }) {
   if (name === "projects" || name === "admin-projects") return <svg {...props}><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h5a2 2 0 0 1 2 2v2" /></svg>;
   if (name === "calendar" || name === "admin-calendar") return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M7 3v4M17 3v4M3 10h18" /><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" /></svg>;
   if (name === "manager-finance" || name === "finance") return <svg {...props}><path d="M4 20V9M9 20V4M14 20v-7M19 20V7" /><path d="M2 20h20" /></svg>;
-  if (name === "manager-reports" || name === "reports") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
+  if (name === "manager-reports" || name === "reports" || name === "strategy") return <svg {...props}><path d="M5 3h14v18H5z" /><path d="M9 8h6M9 12h6M9 16h4" /></svg>;
   if (name === "more") return <svg {...props}><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" /></svg>;
   if (name === "announcements") return <svg {...props}><path d="M3 11v2l12 4V7z" /><path d="M15 9l5-2v10l-5-2" /><path d="M6 14l1 6h4l-2-5" /></svg>;
   if (name === "people") return <svg {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M17 11h5M19.5 8.5v5" /></svg>;
@@ -127,25 +127,25 @@ export function statusPill(status) {
   return <Pill tone="grey">Not started</Pill>;
 }
 function tabItems(isManager = false) {
-  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
-  return [["home","Home"],["work","Work"],["team","Team"],["me","Me"]];
+  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["strategy","Strategy"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["me","Me"]];
 }
 
 function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false }) {
   if (isExec) return [
-    { label:"Ministry", items:[["home","Home"]] },
+    { label:"Ministry", items:[["home","Home"],["strategy","Strategy"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
   if (isAdmin) return [
-    { label:"Organisation", items:[["home","Home"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
   ];
   if (isManager) return [
-    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"]] },
+    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["projects","Projects"],["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
@@ -156,7 +156,7 @@ export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
     units:"Units", people:"People", lifecycle:"Employee lifecycle", "protected-hr":"Protected HR", attendance:"Attendance & leave", reporting:"Reports",
-    finance:"Finance", cost:"Cost", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
+    finance:"Finance", cost:"Cost", strategy:"Strategy", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
   };
@@ -228,13 +228,14 @@ function MobileMenuGroup({ label, items, tab, setTab, close }) {
 export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, me = null }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const managerGroups = [
+    { label:"Planning", items:[["strategy","Strategy"]] },
     { label:"Schedule", items:[["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
   const capabilities = me?.capabilities || [];
   const adminGroups = [
-    { label:"Organisation", items:[["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"Organisation", items:[["strategy","Strategy"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : []),...(capabilities.includes("hr_private.access") ? [["protected-hr","Protected HR"]] : [])] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
