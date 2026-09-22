@@ -942,6 +942,7 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
     await expect(page.getByText(assessmentText, { exact: true })).toBeVisible();
     await expect(page.getByText(planFocus, { exact: true })).toBeVisible();
     await expect(page.getByText(feedbackText, { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage7-performance-manager.png", fullPage: true });
     await context.close();
   }
 
@@ -970,6 +971,21 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, "Stage 7 Staff review overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage7-performance-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Performance & development");
+    await page.getByText(cycleName, { exact: true }).first().click();
+    await page.getByRole("button", { name: "Close selected period", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Review period close reason").fill("Acceptance Stage 7 review period completed");
+    await dialog.getByRole("button", { name: "Close review period", exact: true }).click();
+    await expect(page.getByText("Review period closed.", { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Closed", { exact: true }).first()).toBeVisible();
     await context.close();
   }
 
