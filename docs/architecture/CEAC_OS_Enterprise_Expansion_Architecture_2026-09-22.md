@@ -435,4 +435,3 @@ Shared schema/platform contracts require whole-system review because they affect
 The enterprise programme begins with Stage 0 only.
 
 No Stage 1 schema or enterprise feature UI should be merged until Stage 0 production-security closure is documented as passed.
-
