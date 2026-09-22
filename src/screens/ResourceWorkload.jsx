@@ -62,6 +62,7 @@ export default function ResourceWorkload({ me }) {
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState(null);
   const [notice,setNotice]=useState(null);
+  const [detailKey,setDetailKey]=useState("capacity");
 
   const capabilities=me.capabilities||[];
   const orgAuthority=capabilities.includes("resource.manage");
@@ -163,6 +164,9 @@ export default function ResourceWorkload({ me }) {
 
   const selected=profilesById[selectedProfileId]||null;
   const selectedFacts=selected?personFacts(selected):null;
+  const selectedCapacityHistory=selectedProfileId
+    ? capacityVersions.filter((row)=>row.profile_id===selectedProfileId)
+    : [];
   const selectedCommitmentHistory=selectedProfileId&&commitmentProjectId?commitmentHistory(selectedProfileId,commitmentProjectId):[];
   const selectedPriorCommitment=selectedCommitmentHistory[0]||null;
 
@@ -242,7 +246,7 @@ export default function ResourceWorkload({ me }) {
               <div><strong>{hours(facts.cap?.weekly_minutes)}</strong><span>weekly planning capacity</span></div>
               <div><strong>{hours(facts.estimatedDueMinutes)}</strong><span>estimated due work</span></div>
               <div><strong>{hours(facts.commitmentMinutes)}</strong><span>project commitments / week</span></div>
-              <div><strong>{facts.leaveDays||0}</strong><span>approved leave days</span></div>
+              <div><strong>{facts.leaveDays||0}</strong><span>approved leave request days</span></div>
             </div>
             {facts.missingEstimate>0&&<div className="small" style={{marginTop:8}}>{facts.missingEstimate} due item{facts.missingEstimate===1?"":"s"} with no estimate.</div>}
           </button>;
@@ -250,36 +254,121 @@ export default function ResourceWorkload({ me }) {
         {!visiblePeople.length&&<EmptyState title="No people in planning scope">People in units you manage will appear here.</EmptyState>}
 
         {selected&&selectedFacts&&<>
-          <div className="sec"><span>Factual components</span></div>
+          <div className="sec"><span>Factual components</span><span>Open a figure to see its records</span></div>
           <div className="card" style={{padding:15}}>
             <div className="row-t">{selected.full_name}</div>
             <div className="row-m">Working pattern: {human(selectedFacts.record?.working_pattern?.kind||"not_recorded")}</div>
-            <div className="project-overview-summary" style={{marginTop:12}}>
-              <div><strong>{hours(selectedFacts.cap?.weekly_minutes)}</strong><span>weekly planning capacity</span></div>
-              <div><strong>{selectedFacts.dueWork.length}</strong><span>open items due in horizon</span></div>
-              <div><strong>{hours(selectedFacts.estimatedDueMinutes)}</strong><span>recorded estimate total</span></div>
-              <div><strong>{selectedFacts.missingEstimate}</strong><span>due items without estimate</span></div>
-              <div><strong>{selectedFacts.routineRows.length}</strong><span>active routines</span></div>
-              <div><strong>{hours(selectedFacts.routineEstimatedPerOccurrence)}</strong><span>routine estimate / occurrence</span></div>
-              <div><strong>{hours(selectedFacts.commitmentMinutes)}</strong><span>project commitment / week</span></div>
-              <div><strong>{selectedFacts.leaveDays||0}</strong><span>approved leave request days</span></div>
+            <div className="workload-metric-grid" style={{marginTop:12}}>
+              <button type="button" className={"workload-metric"+(detailKey==="capacity"?" on":"")} onClick={()=>setDetailKey("capacity")}>
+                <strong>{hours(selectedFacts.cap?.weekly_minutes)}</strong>
+                <span>weekly planning capacity</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="due"?" on":"")} onClick={()=>setDetailKey("due")}>
+                <strong>{selectedFacts.dueWork.length}</strong>
+                <span>open items due in horizon</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="due"?" on":"")} onClick={()=>setDetailKey("due")}>
+                <strong>{hours(selectedFacts.estimatedDueMinutes)}</strong>
+                <span>recorded estimate total</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="missing"?" on":"")} onClick={()=>setDetailKey("missing")}>
+                <strong>{selectedFacts.missingEstimate}</strong>
+                <span>due items without estimate</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="routines"?" on":"")} onClick={()=>setDetailKey("routines")}>
+                <strong>{selectedFacts.routineRows.length}</strong>
+                <span>active routines</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="routines"?" on":"")} onClick={()=>setDetailKey("routines")}>
+                <strong>{hours(selectedFacts.routineEstimatedPerOccurrence)}</strong>
+                <span>routine estimate / occurrence</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="commitments"?" on":"")} onClick={()=>setDetailKey("commitments")}>
+                <strong>{hours(selectedFacts.commitmentMinutes)}</strong>
+                <span>project commitment / week</span>
+                <small>Open records</small>
+              </button>
+              <button type="button" className={"workload-metric"+(detailKey==="leave"?" on":"")} onClick={()=>setDetailKey("leave")}>
+                <strong>{selectedFacts.leaveDays||0}</strong>
+                <span>approved leave request days</span>
+                <small>Open records</small>
+              </button>
             </div>
           </div>
 
-          <div className="sec"><span>Project commitments</span><span>{selectedFacts.commitments.length}</span></div>
-          {selectedFacts.commitments.map((row)=><div className="row" key={row.id}>
-            <div className="row-t">{projectsById[row.project_id]?.name||"Project"}</div>
-            <div className="row-m">{hours(row.planned_minutes_per_week)} / week · {row.starts_on}{row.ends_on?" → "+row.ends_on:""}</div>
-            <div className="small" style={{marginTop:6}}>{row.reason}</div>
-          </div>)}
-          {!selectedFacts.commitments.length&&<div className="card small">No active project commitment has been recorded for this horizon.</div>}
+          <div className="sec"><span>Records behind the figure</span><span>{human(detailKey)}</span></div>
+          <div className="card workload-detail-panel">
+            {detailKey==="capacity"&&<>
+              <div className="row-t">Planning capacity history</div>
+              <p className="small">The headline uses the latest recorded version effective on or before {from}. Previous versions stay visible as history.</p>
+              {selectedCapacityHistory.map((row)=><div className="row" key={row.id}>
+                <div className="row-t">{hours(row.weekly_minutes)} / week{row.id===selectedFacts.cap?.id?" · current for horizon":""}</div>
+                <div className="row-m">Effective {row.effective_on}</div>
+                <div className="small" style={{marginTop:6}}>{row.reason}</div>
+              </div>)}
+              {!selectedCapacityHistory.length&&<EmptyState compact title="No planning capacity recorded">Record a capacity version when CEAC has an explicit planning assumption for this person.</EmptyState>}
+            </>}
 
-          <div className="sec"><span>Approved leave in horizon</span><span>{selectedFacts.leaveRows.length}</span></div>
-          {selectedFacts.leaveRows.map((row)=><div className="row" key={row.id}>
-            <div className="row-t">{row.start_date} → {row.end_date}</div>
-            <div className="row-m">{row.days} approved day{Number(row.days)===1?"":"s"}</div>
-          </div>)}
-          {!selectedFacts.leaveRows.length&&<div className="card small">No approved leave request overlaps this horizon.</div>}
+            {detailKey==="due"&&<>
+              <div className="row-t">Open work due in this horizon</div>
+              <p className="small">Only recorded estimates are added. Work with no estimate stays visible and contributes no guessed time.</p>
+              {selectedFacts.dueWork.map((item)=><div className="row" key={item.id}>
+                <div className="row-t">{item.title}</div>
+                <div className="row-m">{projectsById[item.project_id]?.name||"No project"} · due {item.due_at?.slice(0,10)||"date not recorded"} · {item.estimate_minutes?hours(item.estimate_minutes):"No estimate"}</div>
+              </div>)}
+              {!selectedFacts.dueWork.length&&<EmptyState compact title="No open work due in this horizon">Change the planning horizon to inspect another period.</EmptyState>}
+            </>}
+
+            {detailKey==="missing"&&<>
+              <div className="row-t">Due work without an estimate</div>
+              <p className="small">CEAC OS leaves these unestimated rather than inventing effort.</p>
+              {selectedFacts.dueWork.filter((item)=>!item.estimate_minutes).map((item)=><div className="row" key={item.id}>
+                <div className="row-t">{item.title}</div>
+                <div className="row-m">{projectsById[item.project_id]?.name||"No project"} · due {item.due_at?.slice(0,10)||"date not recorded"} · No estimate</div>
+              </div>)}
+              {!selectedFacts.missingEstimate&&<EmptyState compact title="Every due item has a recorded estimate">No missing estimate is contributing to this figure.</EmptyState>}
+            </>}
+
+            {detailKey==="routines"&&<>
+              <div className="row-t">Recurring responsibilities</div>
+              <p className="small">Estimates are shown per occurrence. CEAC OS does not multiply them into a weekly total without an explicit recurrence rule.</p>
+              {selectedFacts.routineRows.map((routine)=>{
+                const item=workById[routine.work_item_id];
+                return <div className="row" key={routine.id}>
+                  <div className="row-t">{routine.name}</div>
+                  <div className="row-m">{human(routine.schedule_kind||"recurring")} · {item?.estimate_minutes?hours(item.estimate_minutes):"No estimate"} per occurrence</div>
+                </div>;
+              })}
+              {!selectedFacts.routineRows.length&&<EmptyState compact title="No active recurring responsibilities">No active routine is linked to this person in the current record.</EmptyState>}
+            </>}
+
+            {detailKey==="commitments"&&<>
+              <div className="row-t">Project commitments overlapping this horizon</div>
+              <p className="small">These are explicit weekly planning commitments. They are not inferred from attendance or task counts.</p>
+              {selectedFacts.commitments.map((row)=><div className="row" key={row.id}>
+                <div className="row-t">{projectsById[row.project_id]?.name||"Project"}</div>
+                <div className="row-m">{hours(row.planned_minutes_per_week)} / week · {row.starts_on}{row.ends_on?" → "+row.ends_on:""}</div>
+                <div className="small" style={{marginTop:6}}>{row.reason}</div>
+              </div>)}
+              {!selectedFacts.commitments.length&&<EmptyState compact title="No active project commitment">No recorded project commitment overlaps this planning horizon.</EmptyState>}
+            </>}
+
+            {detailKey==="leave"&&<>
+              <div className="row-t">Approved leave requests overlapping this horizon</div>
+              <p className="small">The day count is the value recorded on each overlapping approved request. CEAC OS does not convert leave days into hours.</p>
+              {selectedFacts.leaveRows.map((row)=><div className="row" key={row.id}>
+                <div className="row-t">{row.start_date} → {row.end_date}</div>
+                <div className="row-m">{row.days} approved day{Number(row.days)===1?"":"s"}</div>
+              </div>)}
+              {!selectedFacts.leaveRows.length&&<EmptyState compact title="No approved leave in this horizon">No approved leave request overlaps the selected dates.</EmptyState>}
+            </>}
+          </div>
         </>}
       </div>
 
