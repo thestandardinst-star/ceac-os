@@ -117,7 +117,7 @@ The repository timestamps for 069–073 are canonical. Production currently has 
 
 ### 074 — reduce internal privileged RPC surface
 
-Migration `20260922032000_074_reduce_internal_rpc_surface.sql` removes direct `authenticated` EXECUTE from six reviewed internal-only SECURITY DEFINER helpers while preserving service-role/owner execution:
+Migration `20260922033628_074_reduce_internal_rpc_surface.sql` removes direct `authenticated` EXECUTE from six reviewed internal-only SECURITY DEFINER helpers while preserving service-role/owner execution:
 
 - `app_can_publish_announcements()`
 - `app_threshold(uuid,text,numeric)`
