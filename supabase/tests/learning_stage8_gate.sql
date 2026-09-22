@@ -35,8 +35,9 @@ begin
 
   if has_table_privilege('authenticated','public.learning_assignments','UPDATE')
      or has_table_privilege('authenticated','public.learning_module_progress','INSERT')
-     or has_table_privilege('authenticated','public.learning_progress_history','INSERT') then
-    raise exception 'Stage 8 gate failure: person progress can bypass reviewed RPCs.';
+     or has_table_privilege('authenticated','public.learning_progress_history','INSERT')
+     or has_table_privilege('authenticated','public.training_records','UPDATE') then
+    raise exception 'Stage 8 gate failure: learning progress or completion evidence can bypass reviewed correction paths.';
   end if;
 end
 $stage8_structure$;
