@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`
-**Active branch:** `chatgpt/enterprise-expansion-stage-0-2026-09-22`
-**Current stage:** Stage 0 — Platform baseline and production security closure
-**Latest production migration reconciled on Stage 0 branch:** 074 — reduce internal privileged RPC surface
+**Baseline main:** `115c23dfa100c39f7aeab8f9a9b46e55862d7d81`
+**Active branch:** `chatgpt/enterprise-expansion-stage-5-work-management-2026-09-22`
+**Current stage:** Stage 5 — Work Management 2.0
+**Latest merged migration on main:** 084 — Goals and Strategy; Stage 5 migration 085 is under review
 
 ## 1. Governing architecture
 
@@ -179,3 +179,28 @@ No migration SQL was rerun as part of the repair.
 Migration 074 is the current Stage 0 hardening change. Production already contains the migration, and the exact production SQL has been recovered into the repository. It reduces direct authenticated execution of six reviewed internal-only privileged helpers. The Platform Kernel gate now enforces the post-074 authenticated SECURITY DEFINER surface of 67.
 
 The current PR head has passed CI, Migration Replay, Account Security and the full Quality Gate. Vercel deployment for the current head is presently blocked by the provider's build-rate limit; deployed-product inspection therefore remains open.
+
+
+## Current linear-build checkpoint — 22 September 2026
+
+Merged into `main`:
+- Stage 0 through Stage 2 via consolidation;
+- Stage 3 Protected HR via clean main-based rebuild;
+- Stage 4 Goals and Strategy via clean main-based rebuild.
+
+Current merged main before Stage 5: `115c23dfa100c39f7aeab8f9a9b46e55862d7d81`.
+
+Active work is Stage 5 only:
+- PR #33 — Stage 5: Work Management 2.0;
+- branch `chatgpt/enterprise-expansion-stage-5-work-management-2026-09-22`;
+- no Stage 6 work may begin until Stage 5 is fully green and merged into `main`.
+
+After Stage 5 the mandatory order is:
+
+`6 Resource & Workload → 7 Performance & Development → 8 Learning → 9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
+
+Every stage must branch from the latest merged `main`, complete its architecture/security contract, migrations, cumulative automated gates, UI, browser/responsive acceptance and handoff, then merge before the next branch is created.
+
+Stage 13 is a hard policy gate. Do not infer salary basis, allowances, deductions, SSNIT/PAYE treatment, approval authority, payment process, pay periods, payslip requirements or reversal rules. If those are not formally confirmed, stop before Payroll and request them.
+
+The enterprise programme is not complete merely because Stage 15 code exists. Completion requires the final whole-system product inspection, role-by-role acceptance, migration/security verification, deployment inspection, operational recovery/ownership evidence and production closure.
