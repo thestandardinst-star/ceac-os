@@ -60,6 +60,21 @@ for (const user of users) {
   }
 }
 
+const employmentFixtures = [
+  { id: users[0].id, manager: users[1].id, role: "staff" },
+  { id: users[1].id, manager: users[2].id, role: "manager" },
+  { id: users[4].id, manager: users[6].id, role: "staff" },
+  { id: users[5].id, manager: users[1].id, role: "staff" },
+  { id: users[6].id, manager: users[2].id, role: "manager" },
+];
+
+for (const row of employmentFixtures) {
+  const employment = await service.from("employment_records")
+    .update({ manager_profile_id: row.manager, membership_role: row.role, updated_by: users[2].id })
+    .eq("profile_id", row.id);
+  assert.equal(employment.error, null, employment.error?.message);
+}
+
 const adminCapabilityKeys = [
   "authority.manage",
   "people.manage",
