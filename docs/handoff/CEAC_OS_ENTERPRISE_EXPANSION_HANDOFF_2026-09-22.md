@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `8dd3b8d50600942f482a7bdb1dde287c1e0a04dc`
-**Active branch:** `chatgpt/enterprise-expansion-stage-9-workforce-management-2026-09-22`
-**Current stage:** Stage 9 — Workforce Management 2.0
-**Latest merged migration on main:** 088 — Learning; Stage 9 migration 089 is under development
+**Baseline main:** `b8d32f0a6a28716b1eb178feab160ca45bad1e17`
+**Active branch:** `chatgpt/enterprise-expansion-stage-10-assets-devices-2026-09-22`
+**Current stage:** Stage 10 — Assets & Devices
+**Latest merged migration on main:** 089 — Workforce Management 2.0; Stage 10 migration 090 is under development
 
 ## 1. Governing architecture
 
@@ -225,3 +225,23 @@ After Stage 9 the mandatory order remains:
 Stage 13 remains a hard policy gate. Do not infer payroll rules.
 
 The enterprise programme is not complete merely because Stage 15 code exists. Completion still requires whole-system inspection and production closure.
+
+
+## Stage 9 closure / Stage 10 activation — 22 September 2026
+
+Stage 9 Workforce Management 2.0 merged through PR #39.
+
+- merged main: `b8d32f0a6a28716b1eb178feab160ca45bad1e17`;
+- migration 089 is now canonical on main;
+- CI, Migration Replay, Account Security, all cumulative SQL/security gates through Stage 9 and the 27-test Playwright role/acceptance suite passed on the final Stage 9 head;
+- Stage 9 desktop Administration and Staff-mobile product-inspection artifacts were generated;
+- exact-head Vercel deployment reached Ready;
+- the product owner explicitly waived the protected-preview inspection because that preview is accessible to Codex rather than this ChatGPT connector;
+- the older preview URL `ceac-os-git-chatgpt-produ-e6b68f-...` was traced to merged PR #18 and is not the Stage 9 deployment.
+
+Stage 10 is now the only active enterprise-expansion stage.
+
+Stage 10 contract:
+`docs/architecture/CEAC_OS_STAGE10_ASSETS_DEVICES_2026-09-22.md`
+
+No Stage 11 work may begin until Stage 10 is green and merged.
