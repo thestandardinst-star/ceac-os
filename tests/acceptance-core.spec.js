@@ -1120,7 +1120,7 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Workforce");
     await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
-    await expect(page.getByText(/No session recorded.*not an automatic absence/i)).toBeVisible();
+    await expect(page.getByText(/never an automatic absence finding/i)).toBeVisible();
 
     await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
     await page.getByRole("button", { name: "Add day type", exact: true }).click();
