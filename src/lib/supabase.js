@@ -16,10 +16,17 @@ export async function loadMe() {
     .eq("id", auth.user.id).single();
   if (profileError) throw profileError;
   if (!p) return null;
-  const { data: memberships, error: membershipError } = await supabase.from("unit_memberships")
-    .select("role, unit_id, units(name)")
-    .eq("profile_id", auth.user.id);
+  const [{ data: memberships, error: membershipError }, { data: capabilityGrants, error: capabilityError }] = await Promise.all([
+    supabase.from("unit_memberships")
+      .select("role, unit_id, units(name)")
+      .eq("profile_id", auth.user.id),
+    supabase.from("capability_grants")
+      .select("id,capability,scope_unit_id,granted_at")
+      .eq("profile_id", auth.user.id)
+      .is("revoked_at", null),
+  ]);
   if (membershipError) throw membershipError;
+  if (capabilityError) throw capabilityError;
   const options = (memberships || []).map((m) => ({
     unit_id: m.unit_id,
     unit_name: m.units ? m.units.name : null,
@@ -34,7 +41,9 @@ export async function loadMe() {
     unit_id: selected ? selected.unit_id : null,
     unit_name: selected ? selected.unit_name : null,
     role: selected ? selected.role : null,
-    memberships: options };
+    memberships: options,
+    capability_grants: capabilityGrants || [],
+    capabilities: [...new Set((capabilityGrants || []).map((grant) => grant.capability))] };
 }
 export async function inviteByEmail({ email, fullName, unitId }) {
   const cleanEmail = email.trim().toLowerCase();
