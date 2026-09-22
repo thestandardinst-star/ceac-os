@@ -621,6 +621,23 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Protected HR", { exact: true })).toBeVisible();
   await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
   await expect(page.getByText(/entitlement not configured/i)).toBeVisible();
+  await expect(page.getByText("Employment record", { exact: true })).toBeVisible();
+  await expect(page.getByText("Employment history", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Record change", exact: true }).click();
+  const employmentDialog = page.getByRole("dialog");
+  await expect(employmentDialog.getByText("Record employment change", { exact: true })).toBeVisible();
+  await employmentDialog.getByLabel("Change").selectOption("working_pattern_changed");
+  await employmentDialog.getByLabel("Working pattern").selectOption("flexible");
+  await employmentDialog.getByLabel("Reason / context").fill("Acceptance employment history change");
+  await employmentDialog.getByRole("button", { name: "Record employment change", exact: true }).click();
+  await expect(page.getByText("Working pattern changed", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "← All people", exact: true }).click();
+  await page.getByLabel("Find a person").fill("Staff Fixture");
+  await page.getByRole("button", { name: /Staff Fixture/ }).click();
+  await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
 
   await go(page, "Attendance");
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
