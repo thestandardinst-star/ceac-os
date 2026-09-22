@@ -25,7 +25,7 @@ export default function Workforce({ me }) {
   const caps=me.capabilities||[];
   const canManage=caps.includes("workforce.manage");
   const canCorrect=caps.includes("attendance.correct");
-  const isManager=(me.managed_units||[]).length>0;
+  const isManager=me.role==="manager" || (me.managed_units||[]).length>0;
   const [tab,setTab]=useState("today");
   const [people,setPeople]=useState([]);
   const [sessions,setSessions]=useState([]);
