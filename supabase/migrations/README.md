@@ -2,7 +2,7 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Repository migrations **001–074** are the canonical application history.
+Repository migrations **001–075** are the canonical application history on the Stage 1A branch.
 
 ## Repository coverage
 
@@ -125,3 +125,18 @@ Migration `20260922033628_074_reduce_internal_rpc_surface.sql` removes direct `a
 - `submit_report(uuid,jsonb)`
 
 The Platform Kernel gate now requires the reviewed authenticated SECURITY DEFINER surface to be exactly 67 and explicitly fails if any of those six helpers remains directly executable by `authenticated`.
+
+
+### 075 — Stage 1A employment history
+
+Migration `20260922050000_075_employment_history.sql` introduces the ordinary-employment platform record:
+
+- one current employment snapshot per profile;
+- immutable historical employment snapshots;
+- joining/employment type/title/unit/manager/role/working-pattern/status/exit history;
+- Administration-only authoritative change/correction RPCs;
+- compatibility synchronisation from existing profile and unit-membership authority paths;
+- browser read access limited by RLS and no direct browser writes;
+- no compensation, bank, national-ID, tax/SSNIT, payroll or other protected-HR fields.
+
+Stage 1A deliberately adds two reviewed authenticated SECURITY DEFINER RPCs (`admin_employment_detail` and `admin_update_employment`). The Platform Kernel reviewed browser-callable ceiling is therefore 69 on this branch.
