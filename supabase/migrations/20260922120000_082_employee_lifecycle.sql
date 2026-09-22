@@ -197,9 +197,11 @@ begin
   order by position
   limit 1;
 
+  perform set_config('ceac.lifecycle_internal','advance',true);
   update public.employee_lifecycle_steps
   set state='ready'
   where id=v_first;
+  perform set_config('ceac.lifecycle_internal','',true);
 
   perform public.platform_emit_event(
     new.org_id,
