@@ -843,6 +843,15 @@ begin
       'learning-course-published:'||new.id::text,null,null,now()
     );
   end if;
+
+  if old.state is distinct from new.state and new.state='archived' then
+    update public.learning_assignment_rules
+    set active=false,
+        updated_by=coalesce(auth.uid(),updated_by),
+        updated_at=now()
+    where course_id=new.id and active;
+  end if;
+
   return new;
 end;
 $$;
