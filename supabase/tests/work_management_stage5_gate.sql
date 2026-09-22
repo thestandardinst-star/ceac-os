@@ -2,7 +2,9 @@
 
 begin;
 
--- Stage 5 dependency fixtures are provided by scripts/seed-role-fixtures.mjs.\n\ndo $stage5_tables$
+-- Stage 5 dependency fixtures are provided by scripts/seed-role-fixtures.mjs.
+
+do $stage5_tables$
 declare n integer;
 begin
   select count(*) into n
