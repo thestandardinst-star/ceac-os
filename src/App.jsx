@@ -24,6 +24,7 @@ import StaffTeam from "./screens/StaffTeam";
 import OfficeSettings from "./screens/OfficeSettings";
 import AdminProjects from "./screens/AdminProjects";
 import AdminCalendar from "./screens/AdminCalendar";
+import AdminAudit from "./screens/AdminAudit";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -227,6 +228,7 @@ export default function App() {
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
+    if (tab === "audit" && isAdmin) return <AdminAudit me={me} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
   }
