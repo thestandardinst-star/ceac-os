@@ -17,8 +17,8 @@ begin
   end if;
 
   select count(*) into n from public.capability_definitions;
-  if n<>10 then
-    raise exception 'Capability authority gate failure: expected 10 canonical capabilities after Stage 4 strategy authority, found %.',n;
+  if n<>11 then
+    raise exception 'Capability authority gate failure: expected 11 canonical capabilities after Stage 5 delivery authority, found %.',n;
   end if;
 end
 $authority_tables$;
