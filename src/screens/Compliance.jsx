@@ -278,6 +278,7 @@ export default function Compliance({ me }) {
               <span>Applies to <b>{policyScopes(policy.id).map(scopeLabel).join(", ")||"Not recorded"}</b></span>
             </div>
             {!canManage&&!isManager&&active&&needsAck&&<div className="compliance-ack-row">{ack?<Pill tone="green">Acknowledged {day(ack.acknowledged_at.slice(0,10))}</Pill>:<button className="btn btn-sm" disabled={busy} onClick={()=>acknowledge(policy)}>Acknowledge policy</button>}</div>}
+            {policies.filter((row)=>row.policy_key===policy.policy_key).length>1&&<details className="compliance-history"><summary>Version history · {policies.filter((row)=>row.policy_key===policy.policy_key).length}</summary>{policies.filter((row)=>row.policy_key===policy.policy_key).sort((a,b)=>b.version-a.version).map((row)=><div key={row.id}><strong>Version {row.version} · {human(row.state)}</strong><span>Effective {day(row.effective_on)} · {row.reason}</span></div>)}</details>}
             {canManage&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>openRevision(policy)}>Publish revision</button>{policy.state==="active"&&<button className="btn btn-ghost btn-sm" onClick={()=>retirePolicy(policy)}>Retire policy</button>}</div>}
           </article>;
         })}
@@ -304,6 +305,7 @@ export default function Compliance({ me }) {
           <div><strong>{req.title}</strong><span>{policyById[req.policy_version_id]?.title}</span></div>
           {row?<Pill tone={stateTone(row.state,expired)}>{expired?human(row.state)+" · Expired":human(row.state)}</Pill>:<Pill tone="grey">No evidence submitted</Pill>}
           {row&&<small>{row.evidence_reference}{row.expires_on?" · expires "+day(row.expires_on):" · no expiry recorded"}</small>}
+          {row&&evidence.filter((item)=>item.evidence_key===row.evidence_key).length>1&&<details className="compliance-history"><summary>Evidence history · {evidence.filter((item)=>item.evidence_key===row.evidence_key).length}</summary>{evidence.filter((item)=>item.evidence_key===row.evidence_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}{item.expires_on&&item.expires_on<today?" · expired":""}</strong><span>{item.evidence_reference} · {dateTime(item.created_at)}{item.reviewer_note?" · "+item.reviewer_note:""}</span></div>)}</details>}
           <button className="btn btn-ghost btn-sm" onClick={()=>{setEvidenceSheet(req);setEvidenceReference(row?.evidence_reference||"");setEvidenceNote("");setEvidenceIssued(row?.issued_on||"");setEvidenceExpires(row?.expires_on||"");}}>{row?"Submit replacement evidence":"Submit evidence"}</button>
         </div>;
       })}
@@ -314,6 +316,7 @@ export default function Compliance({ me }) {
           <div className="row-m">{row.evidence_reference} · {row.expires_on?"expires "+day(row.expires_on):"no expiry recorded"}</div>
           <div className="row-note"><Pill tone={stateTone(row.state,expired)}>{expired?human(row.state)+" · expired":human(row.state)}</Pill></div>
           {row.reviewer_note&&<div className="row-note">{row.reviewer_note}</div>}
+          {evidence.filter((item)=>item.evidence_key===row.evidence_key).length>1&&<details className="compliance-history"><summary>Evidence history · {evidence.filter((item)=>item.evidence_key===row.evidence_key).length}</summary>{evidence.filter((item)=>item.evidence_key===row.evidence_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.reviewer_note?" · "+item.reviewer_note:""}</span></div>)}</details>}
           {canManage&&row.state==="submitted"&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>{setReviewSheet(row);setReviewAction("verified");setReviewNote("");}}>Review evidence</button></div>}
         </div>;
       })}
@@ -328,6 +331,7 @@ export default function Compliance({ me }) {
           <div><strong>{req.title}</strong><span>{policyById[req.policy_version_id]?.title}</span></div>
           {row?<Pill tone={stateTone(row.state)}>{human(row.state)}</Pill>:<Pill tone="grey">No exception requested</Pill>}
           {row?.approved_until&&<small>Approved until {day(row.approved_until)}</small>}
+          {row&&exceptions.filter((item)=>item.exception_key===row.exception_key).length>1&&<details className="compliance-history"><summary>Exception history · {exceptions.filter((item)=>item.exception_key===row.exception_key).length}</summary>{exceptions.filter((item)=>item.exception_key===row.exception_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.note?" · "+item.note:""}</span></div>)}</details>}
           {!row&&<button className="btn btn-ghost btn-sm" onClick={()=>setExceptionSheet(req)}>Request exception</button>}
         </div>;
       })}
@@ -336,6 +340,7 @@ export default function Compliance({ me }) {
         <div className="row-m">{human(row.state)}{row.requested_until?" · requested until "+day(row.requested_until):""}{row.approved_until?" · approved until "+day(row.approved_until):""}</div>
         <div className="row-note">{row.reason}</div>
         {row.note&&<div className="row-note">{row.note}</div>}
+        {exceptions.filter((item)=>item.exception_key===row.exception_key).length>1&&<details className="compliance-history"><summary>Exception history · {exceptions.filter((item)=>item.exception_key===row.exception_key).length}</summary>{exceptions.filter((item)=>item.exception_key===row.exception_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.note?" · "+item.note:""}</span></div>)}</details>}
         {canManage&&(row.state==="requested"||row.state==="approved")&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>{setDecisionSheet(row);setDecisionAction(row.state==="approved"?"resolved":"approved");setDecisionNote("");setDecisionUntil("");}}>{row.state==="approved"?"Resolve exception":"Decide exception"}</button></div>}
       </div>)}
       {!exceptionLatest.length&&(canManage||isManager)&&<EmptyState compact title="No exception records">Requests and decisions in your authorised scope will appear here.</EmptyState>}
