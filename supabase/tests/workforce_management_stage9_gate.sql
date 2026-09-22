@@ -201,9 +201,9 @@ begin
     'Stage 9 attendance correction reversal',v_corr
   );
 
-  if not exists(select 1 from public.attendance_corrections where id=v_corr and state='reversed')
-     or not exists(select 1 from public.attendance_corrections where id=v_rev and reverses_id=v_corr) then
-    raise exception 'Stage 9 gate failure: attendance correction reversal history is incomplete.';
+  if not exists(select 1 from public.attendance_corrections where id=v_corr and correction_type='context_note')
+     or not exists(select 1 from public.attendance_corrections where id=v_rev and reverses_id=v_corr and correction_type='reversal') then
+    raise exception 'Stage 9 gate failure: append-only attendance correction reversal history is incomplete.';
   end if;
 
   select count(*) into v_after
