@@ -19,6 +19,26 @@ The enterprise expansion architecture is the newest approved whole-system sequen
 
 For every consequential feature use this order: purpose → authority → data → sensitive-data classification → lifecycle → audit → reversal → migration/RLS/RPC → tests → UI → acceptance → handoff. A screen is not proof that a feature exists securely.
 
+
+### Locked continuation sequence — do not skip or parallelise
+
+From the current programme state onward, the only approved enterprise build sequence is:
+
+`Stage 5 Work Management 2.0 → merge to main → Stage 6 Resource & Workload → merge → Stage 7 Performance & Development → merge → Stage 8 Learning → merge → Stage 9 Workforce Management 2.0 → merge → Stage 10 Assets & Devices → merge → Stage 11 Compliance & Policy → merge → Stage 12 Integrations → merge → Stage 13 Payroll only after CEAC payroll rules are formally confirmed → merge → Stage 14 Search & Intelligence → merge → Stage 15 Assistive AI → merge → whole-system inspection → production closure.`
+
+Rules for every future agent:
+- inspect GitHub before editing; `main` is the source of truth;
+- never start stage N+1 until stage N is fully green and merged into `main`;
+- branch the next stage from the latest merged `main`, never from an older stage branch;
+- do not carry forward failed, stale or stacked PR history;
+- each stage must pass CI, clean migration replay, Account Security, all cumulative SQL/security gates, browser/role acceptance, persistence/responsive checks and deployment validation before merge;
+- update the enterprise handoff after each merge with exact main SHA, latest migration and next stage;
+- if a stage depends on unconfirmed CEAC policy, stop at that gate instead of inventing rules;
+- Stage 13 Payroll is explicitly blocked until CEAC confirms the payroll rule set listed in the architecture;
+- after Stage 15, do not declare the product complete until the whole-system inspection and production-closure checklist pass.
+
+This sequence is binding unless the product owner explicitly changes it.
+
 ## Read the specification before building a screen
 
 `docs/architecture/` holds the real specifications. **Read

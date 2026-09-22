@@ -69,6 +69,7 @@ const adminCapabilityKeys = [
   "audit.view",
   "integration.manage",
   "strategy.manage",
+  "delivery.manage",
 ];
 const capabilityGrants = await service.from("capability_grants").insert(
   adminCapabilityKeys.map((capability) => ({
@@ -120,6 +121,54 @@ const stage4Project = await service.from("projects").insert({
   created_by: users[1].id,
 });
 assert.equal(stage4Project.error, null, stage4Project.error?.message);
+
+const stage5DependencyProject = await service.from("projects").insert({
+  id: "25000000-0000-4000-8000-000000000012",
+  org_id: orgId,
+  kind: "project",
+  lead_unit_id: unitA,
+  name: "Stage 5 Dependency Project",
+  purpose: "Synthetic predecessor project for Delivery browser acceptance.",
+  status: "active",
+  created_by: users[1].id,
+});
+assert.equal(stage5DependencyProject.error, null, stage5DependencyProject.error?.message);
+
+const stage5Work = await service.from("work_items").insert([
+  {
+    id: "26000000-0000-4000-8000-000000000011",
+    org_id: orgId,
+    ref: "TUA-WM5-001",
+    kind: "task",
+    unit_id: unitA,
+    project_id: stage4Project.data?.id || "25000000-0000-4000-8000-000000000011",
+    assignee_id: users[0].id,
+    assigned_by: users[1].id,
+    title: "Stage 5 predecessor work",
+    purpose: "Synthetic dependency source.",
+    origin: "assigned",
+    visibility: "unit",
+    confidential: false,
+    status: "not_started",
+  },
+  {
+    id: "26000000-0000-4000-8000-000000000012",
+    org_id: orgId,
+    ref: "TUA-WM5-002",
+    kind: "task",
+    unit_id: unitA,
+    project_id: "25000000-0000-4000-8000-000000000011",
+    assignee_id: users[5].id,
+    assigned_by: users[1].id,
+    title: "Stage 5 dependent work",
+    purpose: "Synthetic dependency target.",
+    origin: "assigned",
+    visibility: "unit",
+    confidential: false,
+    status: "not_started",
+  },
+]);
+assert.equal(stage5Work.error, null, stage5Work.error?.message);
 
 // The Admin acceptance suite must exercise a real deterministic attention rule.
 // Production organisations receive these through their setup data; the isolated

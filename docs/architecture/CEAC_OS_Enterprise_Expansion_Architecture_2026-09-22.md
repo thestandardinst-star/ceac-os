@@ -432,6 +432,12 @@ Shared schema/platform contracts require whole-system review because they affect
 
 ## 10. Immediate programme state
 
-The enterprise programme begins with Stage 0 only.
+Stages 0–4 are merged into main. Stage 5 Work Management 2.0 is the only active enterprise stage.
 
-No Stage 1 schema or enterprise feature UI should be merged until Stage 0 production-security closure is documented as passed.
+The remainder of the programme is strictly linear:
+
+`Stage 5 → merge → Stage 6 → merge → Stage 7 → merge → Stage 8 → merge → Stage 9 → merge → Stage 10 → merge → Stage 11 → merge → Stage 12 → merge → Stage 13 only after CEAC payroll rules are confirmed → merge → Stage 14 → merge → Stage 15 → merge → whole-system inspection → production closure.`
+
+No later-stage branch may be created from an unmerged stage branch. Each new stage must start from the latest reviewed `main`.
+
+The whole-system programme is complete only after Stage 15 is merged and the final production-closure inspection passes. Payroll remains conditional on confirmed CEAC rules; no builder may guess those rules.
