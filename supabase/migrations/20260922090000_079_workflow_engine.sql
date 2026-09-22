@@ -143,7 +143,7 @@ using (
     or exists (
       select 1
       from public.workflow_run_steps wrs
-      where wrs.workflow_run_id=id
+      where wrs.workflow_run_id=workflow_runs.id
         and wrs.state='ready'
         and (
           wrs.required_capability is null
@@ -429,4 +429,4 @@ for each row execute function public.platform_audit_capture('workflow_run','id',
 
 create trigger audit_workflow_run_steps
 after insert or update or delete on public.workflow_run_steps
-for each row execute function public.platform_audit_capture('workflow_run_step','id','completed_by');
+for each row execute function public.platform_audit_capture('workflow_run_step','id','');
