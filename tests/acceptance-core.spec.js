@@ -650,7 +650,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 
   await go(page, "Authority");
   await expect(page.getByRole("heading", { name: "Authority", exact: true })).toBeVisible();
-  await page.getByLabel("Authority person").selectOption({ label: /Staff Fixture/ });
+  await page.getByLabel("Authority person").selectOption({ label: "Staff Fixture · staff@ceac.local.test" });
   await page.getByLabel("Capability").selectOption("performance.admin");
   await page.getByLabel("Grant reason").fill("Acceptance temporary performance authority");
   await page.getByRole("button", { name: "Grant capability", exact: true }).click();
