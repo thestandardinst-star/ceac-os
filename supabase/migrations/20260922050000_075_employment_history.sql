@@ -354,15 +354,14 @@ declare
   v_actor uuid:=auth.uid();
   v_profile uuid:=coalesce(new.profile_id,old.profile_id);
   v_org uuid:=coalesce(new.org_id,old.org_id);
-  v_old_unit uuid:=old.unit_id;
-  v_new_unit uuid:=new.unit_id;
   v_current public.employment_records;
   v_next_unit uuid;
   v_next_role text;
   v_kind text:='role_changed';
 begin
   if current_setting('ceac.employment_sync',true)='skip' then
-    return coalesce(new,old);
+    if tg_op='DELETE' then return old; end if;
+    return new;
   end if;
 
   select * into v_current
@@ -453,9 +452,20 @@ $;
 
 revoke all on function public.sync_employment_from_membership() from public,anon,authenticated;
 
-drop trigger if exists unit_memberships_sync_employment_history on public.unit_memberships;
-create trigger unit_memberships_sync_employment_history
-after insert or update of unit_id,role or delete on public.unit_memberships
+drop trigger if exists unit_memberships_sync_employment_history_insert on public.unit_memberships;
+drop trigger if exists unit_memberships_sync_employment_history_update on public.unit_memberships;
+drop trigger if exists unit_memberships_sync_employment_history_delete on public.unit_memberships;
+
+create trigger unit_memberships_sync_employment_history_insert
+after insert on public.unit_memberships
+for each row execute function public.sync_employment_from_membership();
+
+create trigger unit_memberships_sync_employment_history_update
+after update of unit_id,role on public.unit_memberships
+for each row execute function public.sync_employment_from_membership();
+
+create trigger unit_memberships_sync_employment_history_delete
+after delete on public.unit_memberships
 for each row execute function public.sync_employment_from_membership();
 
 create or replace function public.admin_employment_detail(p_profile_id uuid)
