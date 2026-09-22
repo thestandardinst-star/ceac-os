@@ -63,7 +63,13 @@ export default function Workforce({ me }) {
   const [policyReason,setPolicyReason]=useState("");
   const [policyKind,setPolicyKind]=useState("annual");
   const [policyEntitlement,setPolicyEntitlement]=useState("");
-  const [policyRoute,setPolicyRoute]=useState("manager_then_admin");
+  const [policyEntitlementUnit,setPolicyEntitlementUnit]=useState("");
+  const [policyAccrualMethod,setPolicyAccrualMethod]=useState("");
+  const [policyAccrualRate,setPolicyAccrualRate]=useState("");
+  const [policyCarryoverMethod,setPolicyCarryoverMethod]=useState("");
+  const [policyCarryoverLimit,setPolicyCarryoverLimit]=useState("");
+  const [policyOpeningBalanceRequired,setPolicyOpeningBalanceRequired]=useState(false);
+  const [policyRoute,setPolicyRoute]=useState("");
 
   useEffect(()=>{ load(); },[me.id]);
 
@@ -194,24 +200,40 @@ export default function Workforce({ me }) {
   }
 
   async function recordPolicy(){
-    const entitlement=Number(policyEntitlement);
+    const entitlement=policyEntitlement===""?null:Number(policyEntitlement);
+    const accrualRate=policyAccrualRate===""?null:Number(policyAccrualRate);
+    const carryoverLimit=policyCarryoverLimit===""?null:Number(policyCarryoverLimit);
     const rules=[{
-      leave_kind:policyKind,
+      leave_kind:policyKind.trim(),
       entitlement_amount:Number.isFinite(entitlement)?entitlement:null,
-      entitlement_unit:"days",
-      accrual_method:"annual",
-      carryover_method:"none",
-      approval_route:policyRoute,
-      opening_balance_required:false,
-      complete:Number.isFinite(entitlement)&&entitlement>0,
+      entitlement_unit:policyEntitlementUnit||null,
+      accrual_method:policyAccrualMethod||null,
+      accrual_rate:Number.isFinite(accrualRate)?accrualRate:null,
+      carryover_method:policyCarryoverMethod||null,
+      carryover_limit:Number.isFinite(carryoverLimit)?carryoverLimit:null,
+      approval_route:policyRoute||null,
+      opening_balance_required:policyOpeningBalanceRequired,
     }];
     const ok=await runRpc("workforce_record_leave_policy",{
       p_name:policyName.trim(),p_effective_from:policyFrom,p_effective_to:null,
       p_source_reference:policySource.trim()||null,p_reason:policyReason.trim(),
       p_rules:rules,p_activate:true,p_supersedes_id:activePolicy?.id||null,
-    },"Confirmed leave policy activated.");
+    },"Confirmed leave policy activated.",["leave policies","leave policy rules"]);
     if(ok){ setPolicySheet(false); setPolicyReason(""); }
   }
+
+  const policyReady=
+    policyName.trim().length>=3
+    && policyKind.trim().length>=2
+    && policyEntitlement!==""
+    && Number(policyEntitlement)>=0
+    && Boolean(policyEntitlementUnit)
+    && Boolean(policyAccrualMethod)
+    && (policyAccrualMethod!=="monthly" || (policyAccrualRate!=="" && Number(policyAccrualRate)>=0))
+    && Boolean(policyCarryoverMethod)
+    && (policyCarryoverMethod!=="limited" || (policyCarryoverLimit!=="" && Number(policyCarryoverLimit)>=0))
+    && Boolean(policyRoute)
+    && policyReason.trim().length>=3;
 
   const waitingLeave=leave.filter((l)=>["pending","escalated"].includes(l.status));
   const tabs=[["today","Today"],["calendar","Calendar"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
@@ -337,10 +359,24 @@ export default function Workforce({ me }) {
       <FieldGroup label="Policy name"><input className="field" aria-label="Policy name" value={policyName} onChange={e=>setPolicyName(e.target.value)}/></FieldGroup>
       <FieldGroup label="Effective from"><input className="field" type="date" value={policyFrom} onChange={e=>setPolicyFrom(e.target.value)}/></FieldGroup>
       <FieldGroup label="Source reference"><input className="field" aria-label="Policy source reference" value={policySource} onChange={e=>setPolicySource(e.target.value)} placeholder="Document, approval or reference"/></FieldGroup>
-      <div className="form-grid two"><FieldGroup label="Leave kind"><input className="field" value={policyKind} onChange={e=>setPolicyKind(e.target.value)}/></FieldGroup><FieldGroup label="Confirmed entitlement days"><input className="field" type="number" min="0" value={policyEntitlement} onChange={e=>setPolicyEntitlement(e.target.value)}/></FieldGroup></div>
-      <FieldGroup label="Approval route"><select className="field" value={policyRoute} onChange={e=>setPolicyRoute(e.target.value)}><option value="manager">Manager</option><option value="admin">Administration</option><option value="manager_then_admin">Manager then Administration</option></select></FieldGroup>
+      <div className="form-grid two">
+        <FieldGroup label="Leave kind"><input className="field" aria-label="Policy leave kind" value={policyKind} onChange={e=>setPolicyKind(e.target.value)}/></FieldGroup>
+        <FieldGroup label="Entitlement amount"><input className="field" aria-label="Policy entitlement amount" type="number" min="0" value={policyEntitlement} onChange={e=>setPolicyEntitlement(e.target.value)}/></FieldGroup>
+      </div>
+      <FieldGroup label="Entitlement unit"><select className="field" aria-label="Policy entitlement unit" value={policyEntitlementUnit} onChange={e=>setPolicyEntitlementUnit(e.target.value)}><option value="">Not configured</option><option value="days">Days</option><option value="weeks">Weeks</option><option value="hours">Hours</option></select></FieldGroup>
+      <div className="form-grid two">
+        <FieldGroup label="Accrual method"><select className="field" aria-label="Policy accrual method" value={policyAccrualMethod} onChange={e=>setPolicyAccrualMethod(e.target.value)}><option value="">Not configured</option><option value="none">No accrual</option><option value="annual">Annual</option><option value="monthly">Monthly</option><option value="manual">Manual</option></select></FieldGroup>
+        <FieldGroup label="Accrual rate" hint={policyAccrualMethod==="monthly"?"Required for monthly accrual.":"Leave blank unless the confirmed policy defines a rate."}><input className="field" aria-label="Policy accrual rate" type="number" min="0" step="0.01" value={policyAccrualRate} onChange={e=>setPolicyAccrualRate(e.target.value)}/></FieldGroup>
+      </div>
+      <div className="form-grid two">
+        <FieldGroup label="Carry-over method"><select className="field" aria-label="Policy carryover method" value={policyCarryoverMethod} onChange={e=>setPolicyCarryoverMethod(e.target.value)}><option value="">Not configured</option><option value="none">No carry-over</option><option value="limited">Limited</option><option value="full">Full</option><option value="manual">Manual</option></select></FieldGroup>
+        <FieldGroup label="Carry-over limit" hint={policyCarryoverMethod==="limited"?"Required for limited carry-over.":"Leave blank unless the confirmed policy defines a limit."}><input className="field" aria-label="Policy carryover limit" type="number" min="0" step="0.01" value={policyCarryoverLimit} onChange={e=>setPolicyCarryoverLimit(e.target.value)}/></FieldGroup>
+      </div>
+      <FieldGroup label="Approval route"><select className="field" aria-label="Policy approval route" value={policyRoute} onChange={e=>setPolicyRoute(e.target.value)}><option value="">Not configured</option><option value="manager">Manager</option><option value="admin">Administration</option><option value="manager_then_admin">Manager then Administration</option></select></FieldGroup>
+      <label className="check-row"><input type="checkbox" checked={policyOpeningBalanceRequired} onChange={e=>setPolicyOpeningBalanceRequired(e.target.checked)}/><span>This rule requires an explicitly recorded opening balance before remaining balance may be calculated</span></label>
       <FieldGroup label="Reason for this policy version"><textarea className="field" aria-label="Policy reason" rows="2" value={policyReason} onChange={e=>setPolicyReason(e.target.value)}/></FieldGroup>
-      <button className="btn" style={{marginTop:14}} disabled={busy||policyName.trim().length<3||Number(policyEntitlement)<=0||policyReason.trim().length<3} onClick={recordPolicy}>Activate confirmed policy</button>
+      {!policyReady&&<div className="card small">Activation stays disabled until entitlement, unit, accrual method, carry-over method, approval route and any conditional rate/limit are explicitly configured. Nothing is inferred.</div>}
+      <button className="btn" style={{marginTop:14}} disabled={busy||!policyReady} onClick={recordPolicy}>Activate confirmed policy</button>
     </Sheet>}
   </div>;
 }
