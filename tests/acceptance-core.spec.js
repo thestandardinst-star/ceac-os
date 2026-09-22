@@ -1258,9 +1258,10 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
 
     await page.getByRole("button", { name: /My workforce context/ }).click();
     await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
-    await expect(page.getByText("Staff Fixture", { exact: true }).first()).toBeVisible();
-    await expect(page.getByText("Manager Fixture", { exact: true })).toHaveCount(0);
-    await expect(page.getByText(dayTypeName, { exact: true }).first()).toBeVisible();
+    const ownWorkforceCard = page.locator(".workforce-person").filter({ hasText: "Staff Fixture" }).first();
+    await expect(ownWorkforceCard).toBeVisible();
+    await expect(page.locator(".workforce-person").filter({ hasText: "Manager Fixture" })).toHaveCount(0);
+    await expect(ownWorkforceCard.getByText(dayTypeName, { exact: true })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, "Stage 9 Staff workforce overflowed the 390px viewport").toBeLessThanOrEqual(1);
     await page.screenshot({ path: "test-artifacts/stage9-workforce-staff-mobile.png", fullPage: true });
