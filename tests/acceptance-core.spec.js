@@ -689,7 +689,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     await dialog.getByLabel("Delivery group reason").fill("Acceptance Stage 5 programme");
     await dialog.getByRole("button", { name: "Create Programme / Portfolio", exact: true }).click();
     await expect(page.getByText("Programme / Portfolio created.", { exact: true })).toBeVisible();
-    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+    await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Unit A Programme$/ }).first()).toBeVisible();
 
     await page.getByRole("button", { name: /Stage 4 Browser Project/ }).first().click();
     await page.getByLabel("Delivery project priority").selectOption("high");
