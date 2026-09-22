@@ -286,6 +286,16 @@ begin
     raise exception 'Stage 5 gate failure: risk resolution history is incomplete.';
   end if;
 
+end
+$manager_delivery$;
+
+reset role;
+
+-- Audit evidence is checked as the test owner because manager RLS correctly
+-- hides the organisation-wide audit feed from users without audit.view.
+do $stage5_audit$
+declare v_count integer;
+begin
   select count(*) into v_count
   from public.platform_audit_events
   where resource_type in (
@@ -303,9 +313,7 @@ begin
     raise exception 'Stage 5 gate failure: expected Stage 5 audit evidence, found % event(s).',v_count;
   end if;
 end
-$manager_delivery$;
-
-reset role;
+$stage5_audit$;
 
 -- Executive can create ministry-level Portfolio without a unit.
 set local role authenticated;
