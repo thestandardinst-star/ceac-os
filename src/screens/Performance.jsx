@@ -98,6 +98,8 @@ export default function Performance({ me }) {
   const [cycleStart, setCycleStart] = useState("");
   const [cycleEnd, setCycleEnd] = useState("");
   const [cycleReason, setCycleReason] = useState("");
+  const [closeCycleFlow, setCloseCycleFlow] = useState(false);
+  const [closeCycleReason, setCloseCycleReason] = useState("");
 
   const [reviewerId, setReviewerId] = useState("");
   const [reviewerReason, setReviewerReason] = useState("");
@@ -251,6 +253,18 @@ export default function Performance({ me }) {
     }
   }
 
+  async function closeCycle() {
+    if (!selectedCycle) return;
+    const ok = await rpc("close_performance_review_cycle", {
+      p_cycle_id: selectedCycle.id,
+      p_reason: closeCycleReason.trim(),
+    }, "Review period closed.");
+    if (ok) {
+      setCloseCycleFlow(false);
+      setCloseCycleReason("");
+    }
+  }
+
   async function assignReviewer() {
     if (!selectedCase) return;
     const ok = await rpc("assign_performance_reviewer", {
@@ -337,7 +351,10 @@ export default function Performance({ me }) {
         <strong>Review periods</strong>
         <small>Open a period when CEAC is ready to review a defined date range. No frequency is assumed.</small>
       </div>
-      <button className="btn btn-sm" onClick={() => setCycleFlow(true)}>Open review period</button>
+      <div className="performance-admin-actions">
+        {selectedCycle?.status === "open" && <button className="btn btn-ghost btn-sm" onClick={() => setCloseCycleFlow(true)}>Close selected period</button>}
+        <button className="btn btn-sm" onClick={() => setCycleFlow(true)}>Open review period</button>
+      </div>
     </section>}
 
     {cycles.length > 0 && <div className="performance-cycle-strip" aria-label="Review periods">
@@ -409,6 +426,10 @@ export default function Performance({ me }) {
             </FieldGroup>
             <button className="btn wide-auto" disabled={busy || reflection.trim().length < 3} onClick={() => recordEntry("employee_reflection", reflection, currentReflection, currentReflection ? "Reflection revision recorded." : "Reflection recorded.")}>{currentReflection ? "Record reflection revision" : "Submit reflection"}</button>
           </> : currentReflection ? <div className="card performance-narrative"><p>{currentReflection.body}</p><small>Recorded {new Date(currentReflection.created_at).toLocaleString("en-GB")}</small></div> : <div className="card small">No employee reflection has been recorded yet.</div>}
+          {entries.filter((entry) => entry.entry_type === "employee_reflection").length > 1 && <details className="performance-history">
+            <summary>Reflection history · {entries.filter((entry) => entry.entry_type === "employee_reflection").length} versions</summary>
+            {entries.filter((entry) => entry.entry_type === "employee_reflection").map((entry) => <div key={entry.id}><strong>{entry.body}</strong><span>{new Date(entry.created_at).toLocaleString("en-GB")}</span></div>)}
+          </details>}
 
           <div className="performance-section-head"><div><span className="eyebrow">Reviewer narrative</span><h3>Manager assessment</h3></div></div>
           {currentAssessment && <div className="card performance-narrative"><p>{currentAssessment.body}</p><small>{currentAssessment.author?.full_name || "Reviewer"} · {new Date(currentAssessment.created_at).toLocaleString("en-GB")}</small></div>}
@@ -419,6 +440,10 @@ export default function Performance({ me }) {
             <button className="btn wide-auto" disabled={busy || assessment.trim().length < 3} onClick={() => recordEntry("manager_assessment", assessment, currentAssessment, currentAssessment ? "Assessment revision recorded." : "Manager assessment recorded.")}>{currentAssessment ? "Record assessment revision" : "Record assessment"}</button>
           </>}
           {!currentAssessment && !isReviewer && <div className="card small">No manager assessment has been recorded yet.</div>}
+          {entries.filter((entry) => entry.entry_type === "manager_assessment").length > 1 && <details className="performance-history">
+            <summary>Assessment history · {entries.filter((entry) => entry.entry_type === "manager_assessment").length} versions</summary>
+            {entries.filter((entry) => entry.entry_type === "manager_assessment").map((entry) => <div key={entry.id}><strong>{entry.body}</strong><span>{entry.author?.full_name || "Reviewer"} · {new Date(entry.created_at).toLocaleString("en-GB")}</span></div>)}
+          </details>}
 
           <div className="performance-section-head"><div><span className="eyebrow">Human review</span><h3>Review conversation</h3></div></div>
           {currentConversation && <div className="card performance-narrative"><p>{currentConversation.body}</p><small>{currentConversation.author?.full_name || "Reviewer"} · {new Date(currentConversation.created_at).toLocaleString("en-GB")}</small></div>}
@@ -428,6 +453,10 @@ export default function Performance({ me }) {
             </FieldGroup>
             <button className="btn wide-auto" disabled={busy || conversation.trim().length < 3} onClick={() => recordEntry("conversation_record", conversation, currentConversation, currentConversation ? "Conversation record revision recorded." : "Review conversation recorded.")}>{currentConversation ? "Record conversation revision" : "Record conversation"}</button>
           </>}
+          {entries.filter((entry) => entry.entry_type === "conversation_record").length > 1 && <details className="performance-history">
+            <summary>Conversation history · {entries.filter((entry) => entry.entry_type === "conversation_record").length} versions</summary>
+            {entries.filter((entry) => entry.entry_type === "conversation_record").map((entry) => <div key={entry.id}><strong>{entry.body}</strong><span>{entry.author?.full_name || "Reviewer"} · {new Date(entry.created_at).toLocaleString("en-GB")}</span></div>)}
+          </details>}
 
           <div className="performance-section-head">
             <div><span className="eyebrow">Next cycle</span><h3>Development plan</h3></div>
@@ -441,6 +470,10 @@ export default function Performance({ me }) {
             <div><span>State</span><strong>{sentence(currentPlan.state)}</strong></div>
             <small>Version {currentPlan.version}. Earlier versions remain in history.</small>
           </div> : <div className="card small">No development plan has been recorded for this review yet.</div>}
+          {plans.length > 1 && <details className="performance-history">
+            <summary>Development plan history · {plans.length} versions</summary>
+            {plans.map((plan) => <div key={plan.id}><strong>Version {plan.version} · {plan.focus}</strong><span>{sentence(plan.state)} · {plan.change_reason}</span></div>)}
+          </details>}
 
           <div className="performance-section-head"><div><span className="eyebrow">Right of reply</span><h3>Employee response</h3></div></div>
           {entries.filter((entry) => entry.entry_type === "staff_response").map((entry) => <div className="row" key={entry.id}><div className="row-t">{entry.body}</div><div className="row-m">{new Date(entry.created_at).toLocaleString("en-GB")}</div></div>)}
@@ -497,6 +530,14 @@ export default function Performance({ me }) {
           ? <button className="btn" disabled={(cycleStep === 1 && cycleName.trim().length < 3) || (cycleStep === 2 && (!cycleStart || !cycleEnd))} onClick={() => setCycleStep((step) => step+1)}>Continue</button>
           : <button className="btn" disabled={busy || cycleReason.trim().length < 3} onClick={openCycle}>{busy ? "Opening…" : "Open review period"}</button>}
       </div>
+    </Sheet>}
+
+    {closeCycleFlow && <Sheet onClose={() => { if (!busy) setCloseCycleFlow(false); }}>
+      <div className="eyebrow">Close review period</div>
+      <div className="h2">Close {selectedCycle?.name || "this period"}?</div>
+      <p className="screen-note">This closes the period itself. Reviews already shared are marked closed; incomplete reviews keep their factual workflow state so Administration can still see what was unfinished.</p>
+      <FieldGroup label="Reason"><textarea className="field" aria-label="Review period close reason" rows="3" value={closeCycleReason} onChange={(event) => setCloseCycleReason(event.target.value)} placeholder="Why this review period is closing" /></FieldGroup>
+      <button className="btn" style={{ marginTop:14 }} disabled={busy || closeCycleReason.trim().length < 3} onClick={closeCycle}>{busy ? "Closing…" : "Close review period"}</button>
     </Sheet>}
 
     {planFlow && <Sheet onClose={() => { if (!busy) { setPlanFlow(false); setPlanStep(1); } }}>
