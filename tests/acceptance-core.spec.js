@@ -1110,6 +1110,69 @@ test("Stage 8 Learning publishes structured learning and preserves factual compl
   }
 });
 
+test("Stage 9 Workforce keeps schedule, session and leave context factual across roles", async ({ browser }) => {
+  test.setTimeout(180000);
+  const dayTypeName = "Acceptance working day";
+  const scheduleReason = "Acceptance Stage 9 workforce schedule";
+  const weekday = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Workforce");
+    await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
+    await expect(page.getByText(/No session recorded.*not an automatic absence/i)).toBeVisible();
+
+    await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
+    await page.getByRole("button", { name: "Add day type", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Day type name").fill(dayTypeName);
+    await dialog.getByLabel("Day type description").fill("Acceptance day with recorded session context");
+    await dialog.getByRole("button", { name: "Record day type", exact: true }).click();
+    await expect(page.getByText("Day type recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Record schedule", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Schedule person").selectOption("31000000-0000-4000-8000-000000000001");
+    await dialog.getByLabel("Schedule weekday").selectOption(weekday);
+    await dialog.getByLabel("Schedule day type").selectOption({ label: dayTypeName });
+    await dialog.getByLabel("Schedule reason").fill(scheduleReason);
+    await dialog.getByRole("button", { name: "Record schedule", exact: true }).click();
+    await expect(page.getByText("Workforce schedule recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Today", exact: true }).click();
+    const staffCard = page.locator(".workforce-person").filter({ hasText: "Staff Fixture" });
+    await expect(staffCard).toBeVisible();
+    await expect(staffCard.getByText(dayTypeName, { exact: true })).toBeVisible();
+    await expect(staffCard.getByText("No session recorded", { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage9-workforce-admin.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Workforce");
+    await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Schedules & policy", exact: true })).toHaveCount(0);
+    await page.getByRole("tab", { name: "Corrections", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Record correction", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("button", { name: /My workforce context/ }).click();
+    await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
+    await expect(page.getByText("Staff Fixture", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Manager Fixture", { exact: true })).toHaveCount(0);
+    await expect(page.getByText(dayTypeName, { exact: true }).first()).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Stage 9 Staff workforce overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage9-workforce-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
