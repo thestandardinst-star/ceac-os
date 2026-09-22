@@ -60,6 +60,26 @@ for (const user of users) {
   }
 }
 
+const adminCapabilityKeys = [
+  "authority.manage",
+  "people.manage",
+  "hr_private.access",
+  "attendance.correct",
+  "performance.admin",
+  "audit.view",
+];
+const capabilityGrants = await service.from("capability_grants").insert(
+  adminCapabilityKeys.map((capability) => ({
+    org_id: orgId,
+    profile_id: users[2].id,
+    capability,
+    scope_unit_id: null,
+    granted_by: users[2].id,
+    grant_reason: "Local acceptance fixture authority.",
+  }))
+);
+assert.equal(capabilityGrants.error, null, capabilityGrants.error?.message);
+
 const subTeamA = "22000000-0000-4000-8000-000000000011";
 const subTeam = await service.from("sub_teams").insert({
   id: subTeamA,
