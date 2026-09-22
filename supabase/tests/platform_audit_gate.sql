@@ -55,10 +55,12 @@ begin
   from pg_policies
   where schemaname='public'
     and tablename='platform_audit_events'
-    and policyname='platform_audit_events_admin_read'
-    and cmd='SELECT';
+    and policyname='platform_audit_events_capability_read'
+    and cmd='SELECT'
+    and coalesce(qual,'') ilike '%app_has_capability%'
+    and coalesce(qual,'') ilike '%audit.view%';
   if n<>1 then
-    raise exception 'Platform audit gate failure: expected one Administration read policy, found %.',n;
+    raise exception 'Platform audit gate failure: expected one audit.view capability read policy, found %.',n;
   end if;
 end
 $audit_policy$;
