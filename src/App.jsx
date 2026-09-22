@@ -210,7 +210,7 @@ export default function App() {
   const canManageIntegrations = hasCapability("integration.manage");
   const canAccessProtectedHR = hasCapability("hr_private.access");
   const canUseDelivery = isAdmin || isExec || isUnitManager || hasCapability("delivery.manage");
-  const canUseWorkload = isAdmin || isUnitManager || hasCapability("resource.manage");
+  const canUseWorkload = isUnitManager || hasCapability("resource.manage");
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
