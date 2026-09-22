@@ -244,7 +244,7 @@ grant select,insert,update on public.learning_assignment_rules to authenticated;
 grant select on public.learning_assignments to authenticated;
 grant select on public.learning_module_progress to authenticated;
 grant select on public.learning_progress_history to authenticated;
-grant select,insert,update on public.training_records to authenticated;
+grant select,insert on public.training_records to authenticated;
 
 create policy learning_courses_read
 on public.learning_courses
@@ -417,22 +417,6 @@ with check(
   and source='historical'
   and learning_assignment_id is null
   and recorded_by=auth.uid()
-  and public.app_has_capability('learning.manage',null)
-);
-
-create policy stage8_training_records_update
-on public.training_records
-for update to authenticated
-using(
-  org_id=public.app_org_id()
-  and source='historical'
-  and learning_assignment_id is null
-  and public.app_has_capability('learning.manage',null)
-)
-with check(
-  org_id=public.app_org_id()
-  and source='historical'
-  and learning_assignment_id is null
   and public.app_has_capability('learning.manage',null)
 );
 
