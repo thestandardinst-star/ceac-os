@@ -4,7 +4,7 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce }) {
+export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce, openAssets }) {
   const [profile, setProfile] = useState(me);
   const [leavePolicy, setLeavePolicy] = useState(null);
   const [leavePolicyRules, setLeavePolicyRules] = useState([]);
@@ -239,6 +239,10 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       </button>}
       {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openWorkforce?.()}>
         <span><strong>My workforce context</strong><small>Your schedule, recorded session context, leave history and attendance corrections.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openAssets?.()}>
+        <span><strong>My assets</strong><small>CEAC equipment currently in your custody and your recorded custody history.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
     </div>
