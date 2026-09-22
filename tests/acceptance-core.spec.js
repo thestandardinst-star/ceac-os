@@ -665,7 +665,8 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Strategy", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Strategy", exact: true }).click();
     await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add Ministry Direction", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Revise", exact: true })).toHaveCount(0);
@@ -1052,7 +1053,8 @@ test("Stage 8 Learning publishes structured learning and preserves factual compl
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Learning", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Learning", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
     await expect(page.getByText(courseTitle, { exact: true }).first()).toBeVisible();
     await expect(page.getByText(moduleTitle, { exact: true })).toBeVisible();
