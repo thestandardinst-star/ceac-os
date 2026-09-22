@@ -139,7 +139,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit
   ];
   if (isAdmin) return [
     { label:"Organisation", items:[["home","Home"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(canPeople ? [["people","People"]] : []),["attendance","Attendance"]] },
+    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
@@ -155,7 +155,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit
 export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
-    units:"Units", people:"People", attendance:"Attendance & leave", reporting:"Reports",
+    units:"Units", people:"People", lifecycle:"Employee lifecycle", attendance:"Attendance & leave", reporting:"Reports",
     finance:"Finance", cost:"Cost", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
@@ -234,6 +234,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
   const capabilities = me?.capabilities || [];
   const adminGroups = [
     { label:"Organisation", items:[["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : [])] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[
