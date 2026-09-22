@@ -4,10 +4,10 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal, openRecord, openPerformance }) {
+export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce }) {
   const [profile, setProfile] = useState(me);
-  const [balance, setBalance] = useState(null);
-  const [settings, setSettings] = useState(null);
+  const [leavePolicy, setLeavePolicy] = useState(null);
+  const [leavePolicyRules, setLeavePolicyRules] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [goals, setGoals] = useState([]);
   const [reminders, setReminders] = useState([]);
@@ -30,22 +30,26 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
 
   async function load() {
     setMessage(null);
-    const year = new Date().getFullYear();
-    const { data: b, error: balanceError } = await supabase.from("leave_balances")
-      .select("annual_taken, sick_taken, carryover_from_last_year")
-      .eq("profile_id", me.id).eq("year", year).maybeSingle();
-    if (balanceError) { setMessage(balanceError.message); return; }
-    setBalance(b || { annual_taken: 0, sick_taken: 0, carryover_from_last_year: 0 });
-
-    const { data: s, error: settingsError } = await supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle();
-    if (settingsError) { setMessage(settingsError.message); return; }
-    setSettings(s);
-
     const { data: requests, error: requestsError } = await supabase.from("leave_requests")
-      .select("id, kind, start_date, end_date, days, status")
-      .eq("profile_id", me.id).order("requested_at", { ascending: false }).limit(10);
+      .select("id, kind, start_date, end_date, days, status, requested_at")
+      .eq("profile_id", me.id).order("requested_at", { ascending: false }).limit(100);
     if (requestsError) { setMessage(requestsError.message); return; }
     setMyRequests(requests || []);
+
+    const { data: policy, error: policyError } = await supabase.from("leave_policy_versions")
+      .select("*").eq("org_id", me.org_id).eq("state", "active")
+      .order("confirmed_at", { ascending: false }).limit(1).maybeSingle();
+    if (policyError) { setMessage(policyError.message); return; }
+    setLeavePolicy(policy || null);
+
+    if (policy) {
+      const { data: rules, error: rulesError } = await supabase.from("leave_policy_rules")
+        .select("*").eq("policy_version_id", policy.id).order("leave_kind");
+      if (rulesError) { setMessage(rulesError.message); return; }
+      setLeavePolicyRules(rules || []);
+    } else {
+      setLeavePolicyRules([]);
+    }
 
     const { data: goalRows, error: goalsError } = await supabase.from("personal_goals")
       .select("id, title, target_date, status, achieved_at")
@@ -72,13 +76,26 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
     if (currentProfile) setProfile((value) => ({ ...value, ...currentProfile }));
   }
 
-  const policyConfigured = Boolean(settings?.updated_by);
-  const annualEntitlement = policyConfigured ? Number(settings.annual_days || 0) : null;
-  const sickEntitlement = policyConfigured ? Number(settings.sick_days || 0) : null;
-  const carryover = balance ? Number(balance.carryover_from_last_year || 0) : 0;
-  const annualTaken = balance ? Number(balance.annual_taken || 0) : 0;
-  const annualLeft = annualEntitlement === null ? null : annualEntitlement + carryover - annualTaken;
-  const sickLeft = sickEntitlement === null ? null : sickEntitlement - Number(balance?.sick_taken || 0);
+  const policyConfigured = Boolean(leavePolicy);
+  const annualRule = leavePolicyRules.find((rule) => rule.leave_kind === "annual" && rule.complete);
+  const sickRule = leavePolicyRules.find((rule) => rule.leave_kind === "sick" && rule.complete);
+  const simpleBalanceRule = (rule) => Boolean(
+    rule
+    && rule.entitlement_unit === "days"
+    && !rule.opening_balance_required
+    && (rule.accrual_method === "annual" || rule.accrual_method === "none")
+    && rule.carryover_method === "none"
+  );
+  const annualEntitlement = simpleBalanceRule(annualRule) ? Number(annualRule.entitlement_amount || 0) : null;
+  const sickEntitlement = simpleBalanceRule(sickRule) ? Number(sickRule.entitlement_amount || 0) : null;
+  const currentYear = new Date().getFullYear();
+  const approvedThisYear = myRequests.filter((request) =>
+    request.status === "approved" && new Date(request.start_date + "T00:00:00").getFullYear() === currentYear
+  );
+  const annualTaken = approvedThisYear.filter((request) => request.kind === "annual").reduce((sum, request) => sum + Number(request.days || 0), 0);
+  const sickTaken = approvedThisYear.filter((request) => request.kind === "sick").reduce((sum, request) => sum + Number(request.days || 0), 0);
+  const annualLeft = annualEntitlement === null ? null : annualEntitlement - annualTaken;
+  const sickLeft = sickEntitlement === null ? null : sickEntitlement - sickTaken;
   const activeGoals = goals.filter((goal) => goal.status === "active");
   const achievedGoals = goals.filter((goal) => goal.status === "achieved");
 
@@ -92,19 +109,30 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
     try {
       const days = daysBetween(startDate, endDate);
       if (days <= 0) throw new Error("Pick a valid range.");
-      const { error } = await supabase.from("leave_requests").insert({
-        org_id: me.org_id,
-        profile_id: me.id,
-        kind,
-        start_date: startDate,
-        end_date: endDate,
-        days,
-        reason: reason || null,
+      const { error } = await supabase.rpc("workforce_request_leave", {
+        p_kind: kind,
+        p_start_date: startDate,
+        p_end_date: endDate,
+        p_reason: reason || null,
       });
       if (error) throw error;
       setSheet(null); setKind("annual"); setStartDate(""); setEndDate(""); setReason("");
       await load();
     } catch (error) { setMessage(humanError(error, "CEAC could not save that change.")); }
+    finally { setBusy(false); }
+  }
+
+  async function cancelLeave(id) {
+    setBusy(true); setMessage(null);
+    try {
+      const { error } = await supabase.rpc("workforce_leave_action", {
+        p_leave_request_id: id,
+        p_action: "cancelled_by_employee",
+        p_reason: "Cancelled by employee",
+      });
+      if (error) throw error;
+      await load();
+    } catch (error) { setMessage(humanError(error, "That leave request could not be cancelled.")); }
     finally { setBusy(false); }
   }
 
@@ -209,6 +237,10 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
         <span><strong>Reviews & development</strong><small>Your review evidence, reflection, manager assessment, responses and development plan.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openWorkforce?.()}>
+        <span><strong>My workforce context</strong><small>Your schedule, recorded session context, leave history and attendance corrections.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
     </div>
 
     <div className="staff-segment" role="tablist" aria-label="Personal area">
@@ -260,11 +292,11 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
       </div>
 
       {!policyConfigured && <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>}
+      {policyConfigured && (annualLeft === null || sickLeft === null) && <ProductNotice tone="info" title="Some balances are unavailable">A confirmed policy exists, but CEAC OS only calculates a remaining balance when the relevant rule has explicit day entitlement, a supported accrual method, no carry-over, and no unresolved opening-balance requirement.</ProductNotice>}
       <div className="leave-summary">
-        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual entitlement not configured" : "annual days left"}</span></div>
-        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick entitlement not configured" : "sick days left"}</span></div>
+        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual balance unavailable" : "annual days left"}</span></div>
+        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick balance unavailable" : "sick days left"}</span></div>
       </div>
-      {carryover > 0 && <p className="context-note">{carryover} day{carryover === 1 ? "" : "s"} carried over from last year.</p>}
 
       {myRequests.length > 0 && <>
         <div className="area-heading secondary"><div><h2>Your requests</h2></div></div>
@@ -273,9 +305,12 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
             <strong>{request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
             <span>{dateOnly(request.start_date)} — {dateOnly(request.end_date)}</span>
           </div>
-          <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" ? "p-brick" : "p-amber"}`}>
-            {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "escalated" ? "With admin" : "Waiting"}
-          </span>
+          <div className="leave-request-actions">
+            <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" || request.status === "cancelled" ? "p-brick" : "p-amber"}`}>
+              {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "cancelled" ? "Cancelled" : request.status === "escalated" ? "With admin" : "Waiting"}
+            </span>
+            {(request.status === "pending" || request.status === "escalated") && <button className="text-action" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</button>}
+          </div>
         </div>)}
       </>}
     </div>}

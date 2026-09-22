@@ -45,7 +45,7 @@ test("Manager gets Manager destinations but not Administration authoring", async
   await expect(nav).toContainText("Reports");
   await expect(nav).not.toContainText("Units");
   await expect(nav).not.toContainText("People");
-  await expect(nav).not.toContainText("Attendance");
+  await expect(nav).toContainText("Workforce");
   await expect(nav).not.toContainText("Audit");
   await expect(nav).not.toContainText("Authority");
   await expect(nav).not.toContainText("Events");
@@ -65,7 +65,7 @@ test("Administration gets Administration authoring", async ({ browser }) => {
   const nav = page.locator(".side nav");
   await expect(nav).toContainText("Units");
   await expect(nav).toContainText("People");
-  await expect(nav).toContainText("Attendance");
+  await expect(nav).toContainText("Workforce");
   await expect(nav).toContainText("Reports");
   await expect(nav).toContainText("Audit");
   await expect(nav).toContainText("Authority");
@@ -90,7 +90,7 @@ test("Group Pastor has a dedicated non-Admin navigation boundary", async ({ brow
   await expect(nav).toContainText("Me");
   await expect(nav).not.toContainText("Units");
   await expect(nav).not.toContainText("People");
-  await expect(nav).not.toContainText("Attendance");
+  await expect(nav).not.toContainText("Workforce");
   await expect(nav).not.toContainText("Cost");
   await expect(nav).not.toContainText("Finance");
   await expect(nav).not.toContainText("Reporting");

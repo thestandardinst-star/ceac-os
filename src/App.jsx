@@ -12,7 +12,7 @@ import ManagerHome from "./screens/ManagerHome";
 import AdminHome from "./screens/AdminHome";
 import Units from "./screens/Units";
 import People from "./screens/People";
-import Attendance from "./screens/Attendance";
+import Workforce from "./screens/Workforce";
 import Cost from "./screens/Cost";
 import Finance from "./screens/Finance";
 import Reports from "./screens/Reports";
@@ -218,6 +218,7 @@ export default function App() {
   const canUseWorkload = isUnitManager || hasCapability("resource.manage");
   const canUsePerformance = !isExec && (isStaff || isUnitManager || hasOrgCapability("performance.admin"));
   const canUseLearning = !isExec && (isStaff || isUnitManager || hasOrgCapability("learning.manage"));
+  const canUseWorkforce = !isExec && (isStaff || isUnitManager || hasOrgCapability("workforce.manage") || hasOrgCapability("attendance.correct"));
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -254,7 +255,7 @@ export default function App() {
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
-    if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
+    if (tab === "attendance" && canUseWorkforce) return <Workforce me={me} />;
     if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
     if (tab === "lifecycle" && canManagePeople) return <AdminLifecycle me={me} />;
     if (tab === "protected-hr" && canAccessProtectedHR) return <AdminProtectedHR me={me} />;
@@ -267,8 +268,8 @@ export default function App() {
     if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
     if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
-    if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
-    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} />;
+    if (tab === "settings" && isAdmin) return <OfficeSettings me={me} openWorkforce={() => go("attendance")} />;
+    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} openWorkforce={() => go("attendance")} />;
   }
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");

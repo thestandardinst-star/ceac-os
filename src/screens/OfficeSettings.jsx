@@ -4,7 +4,7 @@ import { dateOnly } from "../lib/time";
 import { FieldGroup, ProductNotice, SectionHeader } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
-export default function OfficeSettings({ me }) {
+export default function OfficeSettings({ me, openWorkforce }) {
   const [office, setOffice] = useState(null);
   const [name, setName] = useState("CEAC main office");
   const [lat, setLat] = useState("");
@@ -15,11 +15,8 @@ export default function OfficeSettings({ me }) {
   const [locErr, setLocErr] = useState(null);
   const [message, setMessage] = useState(null);
 
-  const [leaveConfigured, setLeaveConfigured] = useState(false);
-  const [annualDays, setAnnualDays] = useState("");
-  const [sickDays, setSickDays] = useState("");
-  const [carryOver, setCarryOver] = useState("");
-  const [managerLimit, setManagerLimit] = useState("");
+  const [leavePolicy, setLeavePolicy] = useState(null);
+  const [leaveRules, setLeaveRules] = useState([]);
   const [thresholds, setThresholds] = useState([]);
   const [pendingInvitations, setPendingInvitations] = useState([]);
 
@@ -29,7 +26,7 @@ export default function OfficeSettings({ me }) {
     setMessage(null);
     const [officeResult, leaveResult, thresholdResult, inviteResult] = await Promise.all([
       supabase.from("office_locations").select("*").eq("is_primary", true).limit(1).maybeSingle(),
-      supabase.from("leave_settings").select("*").eq("org_id", me.org_id).maybeSingle(),
+      supabase.from("leave_policy_versions").select("id,name,state,confirmed_at,source_reference,reason,leave_policy_rules(id,leave_kind,employment_type,entitlement_amount,entitlement_unit,accrual_method,accrual_rate,carryover_method,carryover_limit,approval_route,opening_balance_required,complete)").eq("org_id", me.org_id).eq("state","active").order("confirmed_at",{ascending:false}).limit(1).maybeSingle(),
       supabase.from("thresholds").select("name,label,value,unit_label").neq("name","pay_change_pct").order("label"),
       supabase.from("pending_invitations").select("id,email,full_name,unit_id,invited_at,expires_at,units(name)").is("resolved_at",null).gt("expires_at",new Date().toISOString()).order("invited_at",{ascending:false}),
     ]);
@@ -63,20 +60,9 @@ export default function OfficeSettings({ me }) {
     setThresholds((thresholdResult.data || []).map((row) => ({ ...row, value: String(row.value ?? "") })));
     setPendingInvitations(inviteResult.data || []);
 
-    const policy = leaveResult.data;
-    const configured = Boolean(policy?.updated_by);
-    setLeaveConfigured(configured);
-    if (configured) {
-      setAnnualDays(String(policy.annual_days ?? ""));
-      setSickDays(String(policy.sick_days ?? ""));
-      setCarryOver(String(policy.max_carryover ?? ""));
-      setManagerLimit(String(policy.manager_approval_limit ?? ""));
-    } else {
-      setAnnualDays("");
-      setSickDays("");
-      setCarryOver("");
-      setManagerLimit("");
-    }
+    const policy = leaveResult.data || null;
+    setLeavePolicy(policy);
+    setLeaveRules(policy?.leave_policy_rules || []);
   }
 
   function jumpTo(id) {
@@ -135,41 +121,6 @@ export default function OfficeSettings({ me }) {
     }
   }
 
-  async function saveLeave() {
-    setSaving(true);
-    setMessage(null);
-    try {
-      const annual = Number.parseInt(annualDays, 10);
-      const sick = Number.parseInt(sickDays, 10);
-      const carry = Number.parseInt(carryOver, 10);
-      const limit = Number.parseInt(managerLimit, 10);
-      if (![annual, sick, carry, limit].every(Number.isFinite)) {
-        throw new Error("Complete all four leave-rule fields before confirming the policy.");
-      }
-
-      const result = await supabase.from("leave_settings").upsert({
-        org_id: me.org_id,
-        annual_days: annual,
-        sick_days: sick,
-        max_carryover: carry,
-        manager_approval_limit: limit,
-        updated_by: me.id,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "org_id" })
-        .select("org_id,annual_days,sick_days,max_carryover,manager_approval_limit,updated_by")
-        .single();
-
-      if (result.error) throw result.error;
-      if (!result.data?.updated_by) throw new Error("The leave policy was not persisted.");
-      await load();
-      setMessage({ tone: "success", title: "Leave policy confirmed", body: "CEAC OS will use these values only from this confirmation onward." });
-    } catch (error) {
-      setMessage({ tone: "error", title: "Leave policy was not saved", body: humanError(error) });
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function saveThreshold(row) {
     setSaving(true);
     setMessage(null);
@@ -193,6 +144,7 @@ export default function OfficeSettings({ me }) {
     }
   }
 
+  const leaveConfigured = Boolean(leavePolicy);
   const mapSrc = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}&z=17&output=embed` : null;
 
   return <div className="body office-settings">
@@ -228,20 +180,23 @@ export default function OfficeSettings({ me }) {
       <section id="leave-policy-settings" className="office-settings-card">
         <SectionHeader eyebrow="Policy" title="Leave rules" />
         {!leaveConfigured && <ProductNotice tone="attention" title="Leave policy not configured">
-          The database contains old prototype defaults, but CEAC has not confirmed its actual leave rules. Those values are not being presented as CEAC policy.
+          The old prototype leave defaults are not CEAC policy. Configure entitlement, accrual, carry-over and approval route explicitly in Workforce.
         </ProductNotice>}
         {leaveConfigured && <ProductNotice tone="success" title="Leave policy configured">
-          These values were explicitly confirmed by Administration. Change them only when CEAC policy changes.
+          {leavePolicy.name} is the active confirmed Stage 9 policy. Historical prototype defaults are not used.
         </ProductNotice>}
-
-        <div className="office-policy-grid">
-          <FieldGroup label="Annual leave days"><input className="field" type="number" min="0" value={annualDays} onChange={(event) => setAnnualDays(event.target.value)} placeholder="Not configured" /></FieldGroup>
-          <FieldGroup label="Sick leave days"><input className="field" type="number" min="0" value={sickDays} onChange={(event) => setSickDays(event.target.value)} placeholder="Not configured" /></FieldGroup>
-          <FieldGroup label="Maximum carry-over"><input className="field" type="number" min="0" value={carryOver} onChange={(event) => setCarryOver(event.target.value)} placeholder="Not configured" /></FieldGroup>
-          <FieldGroup label="Manager approval limit" hint="Requests above this number of days come to Administration."><input className="field" type="number" min="0" value={managerLimit} onChange={(event) => setManagerLimit(event.target.value)} placeholder="Not configured" /></FieldGroup>
-        </div>
-        <button className="btn" onClick={saveLeave} disabled={saving}>
-          {saving ? "Saving…" : leaveConfigured ? "Update confirmed leave policy" : "Confirm leave policy"}
+        {leaveConfigured && <div className="office-policy-grid">
+          {leaveRules.map((rule) => <div className="card small" key={rule.id}>
+            <strong>{rule.leave_kind}</strong><br />
+            {rule.complete ? `${rule.entitlement_amount} ${rule.entitlement_unit}` : "Incomplete rule"} ·
+            {" "}accrual {rule.accrual_method || "not configured"} ·
+            {" "}carry-over {rule.carryover_method || "not configured"} ·
+            {" "}route {rule.approval_route || "not configured"}
+            {rule.opening_balance_required ? " · opening balance required" : ""}
+          </div>)}
+        </div>}
+        <button className="btn" onClick={() => openWorkforce?.()}>
+          {leaveConfigured ? "Review policy in Workforce" : "Configure policy in Workforce"}
         </button>
       </section>
 
@@ -274,7 +229,7 @@ export default function OfficeSettings({ me }) {
             <span>Office location</span><strong>{office ? "Configured" : "Needs setup"}</strong><small>{office ? "Review or change" : "Set up now"} ↑</small>
           </button>
           <button type="button" className="office-config-card" onClick={() => jumpTo("leave-policy-settings")}>
-            <span>Leave policy</span><strong>{leaveConfigured ? "Configured" : "Needs confirmation"}</strong><small>{leaveConfigured ? "Review or change" : "Configure now"} ↑</small>
+            <span>Leave policy</span><strong>{leaveConfigured ? "Configured" : "Needs confirmation"}</strong><small>Managed in Workforce ↑</small>
           </button>
           <button type="button" className="office-config-card" onClick={() => jumpTo("attention-rule-settings")}>
             <span>Attention rules</span><strong>{thresholds.length ? "Configurable" : "Needs setup"}</strong><small>Review rules ↑</small>

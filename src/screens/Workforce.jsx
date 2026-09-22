@@ -1,0 +1,585 @@
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
+
+const DAY_KEYS=["sun","mon","tue","wed","thu","fri","sat"];
+const DAY_LABELS={sun:"Sun",mon:"Mon",tue:"Tue",wed:"Wed",thu:"Thu",fri:"Fri",sat:"Sat"};
+
+function isoDay(value){ return new Date(value).toISOString().slice(0,10); }
+function niceDay(value){ return new Date(value+"T00:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}); }
+function human(value=""){ return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase()); }
+function clock(value){
+  if(!value) return "Not recorded";
+  const date=new Date(value);
+  return date.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+}
+function metresBetween(aLat,aLng,bLat,bLng){
+  const R=6371000,toRad=(d)=>(d*Math.PI)/180;
+  const dLat=toRad(bLat-aLat),dLng=toRad(bLng-aLng);
+  const x=Math.sin(dLat/2)**2+Math.cos(toRad(aLat))*Math.cos(toRad(bLat))*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));
+}
+
+export default function Workforce({ me }) {
+  const caps=me.capabilities||[];
+  const canManage=caps.includes("workforce.manage");
+  const canCorrect=caps.includes("attendance.correct");
+  const isManager=me.role==="manager" || (me.managed_units||[]).length>0;
+  const [tab,setTab]=useState("today");
+  const [people,setPeople]=useState([]);
+  const [sessions,setSessions]=useState([]);
+  const [leave,setLeave]=useState([]);
+  const [leaveEvents,setLeaveEvents]=useState([]);
+  const [dayTypes,setDayTypes]=useState([]);
+  const [schedules,setSchedules]=useState([]);
+  const [corrections,setCorrections]=useState([]);
+  const [policies,setPolicies]=useState([]);
+  const [policyRules,setPolicyRules]=useState([]);
+  const [office,setOffice]=useState(null);
+  const [meetings,setMeetings]=useState([]);
+  const [ministryEvents,setMinistryEvents]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState(null);
+  const [datasetErrors,setDatasetErrors]=useState({});
+  const [notice,setNotice]=useState(null);
+  const [busy,setBusy]=useState(false);
+  const [calendarUnit,setCalendarUnit]=useState("");
+  const [calendarPerson,setCalendarPerson]=useState("");
+
+  const [scheduleSheet,setScheduleSheet]=useState(false);
+  const [schedulePerson,setSchedulePerson]=useState("");
+  const [scheduleDayType,setScheduleDayType]=useState("");
+  const [scheduleDay,setScheduleDay]=useState("mon");
+  const [scheduleFrom,setScheduleFrom]=useState(isoDay(new Date()));
+  const [scheduleTo,setScheduleTo]=useState("");
+  const [scheduleStart,setScheduleStart]=useState("");
+  const [scheduleEnd,setScheduleEnd]=useState("");
+  const [scheduleReason,setScheduleReason]=useState("");
+
+  const [correctionSheet,setCorrectionSheet]=useState(false);
+  const [correctionPerson,setCorrectionPerson]=useState("");
+  const [correctionDate,setCorrectionDate]=useState(isoDay(new Date()));
+  const [correctionType,setCorrectionType]=useState("context_note");
+  const [correctionNote,setCorrectionNote]=useState("");
+  const [correctionReason,setCorrectionReason]=useState("");
+
+  const [dayTypeSheet,setDayTypeSheet]=useState(false);
+  const [dayTypeName,setDayTypeName]=useState("");
+  const [dayTypeDescription,setDayTypeDescription]=useState("");
+  const [dayTypeExpected,setDayTypeExpected]=useState(true);
+
+  const [policySheet,setPolicySheet]=useState(false);
+  const [policyName,setPolicyName]=useState("");
+  const [policyFrom,setPolicyFrom]=useState(isoDay(new Date()));
+  const [policySource,setPolicySource]=useState("");
+  const [policyReason,setPolicyReason]=useState("");
+  const [policyKind,setPolicyKind]=useState("annual");
+  const [policyEntitlement,setPolicyEntitlement]=useState("");
+  const [policyEntitlementUnit,setPolicyEntitlementUnit]=useState("");
+  const [policyAccrualMethod,setPolicyAccrualMethod]=useState("");
+  const [policyAccrualRate,setPolicyAccrualRate]=useState("");
+  const [policyCarryoverMethod,setPolicyCarryoverMethod]=useState("");
+  const [policyCarryoverLimit,setPolicyCarryoverLimit]=useState("");
+  const [policyOpeningBalanceRequired,setPolicyOpeningBalanceRequired]=useState(false);
+  const [policyRoute,setPolicyRoute]=useState("");
+
+  useEffect(()=>{ load(); },[me.id]);
+
+  async function load(){
+    setLoading(true); setError(null);
+    const since=new Date(Date.now()-31*86400000).toISOString();
+    const datasets=[
+      ["people", supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,employment_type,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active")],
+      ["sessions", supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,place,end_reason,flags,lat,lng,ip").gte("started_at",since).order("started_at",{ascending:false})],
+      ["leave", supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles!leave_requests_profile_id_fkey(full_name)").order("start_date",{ascending:false})],
+      ["leave history", supabase.from("leave_request_events").select("*").order("created_at",{ascending:false})],
+      ["day types", supabase.from("workforce_day_types").select("*").eq("active",true).order("name")],
+      ["schedules", supabase.from("workforce_schedule_versions").select("*").order("created_at",{ascending:false})],
+      ["corrections", supabase.from("attendance_corrections").select("*").order("created_at",{ascending:false})],
+      ["leave policies", supabase.from("leave_policy_versions").select("*").order("created_at",{ascending:false})],
+      ["leave policy rules", supabase.from("leave_policy_rules").select("*").order("leave_kind")],
+      ["office location", supabase.from("office_locations").select("name,lat,lng,radius_meters").eq("is_primary",true).limit(1).maybeSingle()],
+      ["meetings", supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,unit_id,meeting_participants(profile_id)").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString()).neq("status","cancelled")],
+      ["ministry events", supabase.from("ministry_events").select("id,title,starts_at,ends_at,location,cancelled,scope,unit_id").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString())],
+    ];
+    const results=await Promise.all(datasets.map(async ([name,query])=>({name,...await query})));
+    const errors={};
+    const byName=Object.fromEntries(results.map((row)=>[row.name,row]));
+    for(const row of results){
+      if(row.error) errors[row.name]=humanError(row.error, row.name+" could not load.");
+    }
+
+    if(!byName.people.error) setPeople((byName.people.data||[]).filter((row)=>row.profiles?.active!==false));
+    if(!byName.sessions.error) setSessions(byName.sessions.data||[]);
+    if(!byName.leave.error) setLeave(byName.leave.data||[]);
+    if(!byName["leave history"].error) setLeaveEvents(byName["leave history"].data||[]);
+    if(!byName["day types"].error) setDayTypes(byName["day types"].data||[]);
+    if(!byName.schedules.error) setSchedules(byName.schedules.data||[]);
+    if(!byName.corrections.error) setCorrections(byName.corrections.data||[]);
+    if(!byName["leave policies"].error) setPolicies(byName["leave policies"].data||[]);
+    if(!byName["leave policy rules"].error) setPolicyRules(byName["leave policy rules"].data||[]);
+    if(!byName["office location"].error) setOffice(byName["office location"].data||null);
+    if(!byName.meetings.error) setMeetings(byName.meetings.data||[]);
+    if(!byName["ministry events"].error) setMinistryEvents((byName["ministry events"].data||[]).filter((row)=>!row.cancelled));
+
+    setDatasetErrors(errors);
+    if(Object.keys(errors).length) setError("Some workforce data could not load. The affected dataset is identified below; available datasets remain usable.");
+    setLoading(false);
+    return {errors};
+  }
+
+  const today=isoDay(new Date());
+  const peopleById=Object.fromEntries(people.map((p)=>[p.profile_id,p]));
+  const dayTypesById=Object.fromEntries(dayTypes.map((d)=>[d.id,d]));
+  const activePolicy=policies.find((p)=>p.state==="active")||null;
+  const activeRules=activePolicy?policyRules.filter((r)=>r.policy_version_id===activePolicy.id):[];
+
+  function latestSchedule(profileId,date=today){
+    const rows=schedules.filter((s)=>s.profile_id===profileId && s.effective_from<=date && (!s.effective_to || s.effective_to>=date));
+    const superseded=new Set(rows.map((s)=>s.supersedes_id).filter(Boolean));
+    return rows.find((s)=>!superseded.has(s.id))||rows[0]||null;
+  }
+  function sessionsOn(profileId,date=today){
+    return sessions.filter((s)=>s.profile_id===profileId && s.started_at?.slice(0,10)===date);
+  }
+  function approvedLeave(profileId,date=today){
+    return leave.find((l)=>l.profile_id===profileId && l.status==="approved" && l.start_date<=date && l.end_date>=date)||null;
+  }
+  function currentDayType(profileId,date=today){
+    const schedule=latestSchedule(profileId,date);
+    const key=DAY_KEYS[new Date(date+"T00:00:00").getDay()];
+    const id=schedule?.day_map?.[key];
+    return id?dayTypesById[id]||null:null;
+  }
+  function contextFor(profileId,date=today){
+    const leaveRow=approvedLeave(profileId,date);
+    if(leaveRow) return {label:"Approved leave",tone:"blue",detail:human(leaveRow.kind)+" leave"};
+    const rows=sessionsOn(profileId,date);
+    if(rows.length) return {label:"Session recorded",tone:"green",detail:rows.length+" recorded session"+(rows.length===1?"":"s")};
+    const dayType=currentDayType(profileId,date);
+    if(!dayType) return {label:"Schedule not configured",tone:"grey",detail:"No workforce schedule is recorded for this date."};
+    if(dayType.session_expected) return {label:"No session recorded",tone:"amber",detail:"This is recorded context only, not an absence judgement."};
+    return {label:dayType.name,tone:"grey",detail:"A work session is not ordinarily expected for this configured day type."};
+  }
+
+  async function runRpc(name,args,success,requiredDatasets=[]){
+    setBusy(true); setError(null); setNotice(null);
+    const {error:e}=await supabase.rpc(name,args);
+    if(e){ setBusy(false); setError(humanError(e,"That workforce change could not be recorded.")); return false; }
+    const reload=await load();
+    const missing=requiredDatasets.filter((name)=>reload.errors[name]);
+    setBusy(false);
+    if(missing.length){
+      setError("The change was recorded, but these required datasets failed to reload: "+missing.join(", ")+".");
+      return false;
+    }
+    setNotice(success);
+    return true;
+  }
+
+  async function recordDayType(){
+    const ok=await runRpc("workforce_record_day_type",{
+      p_id:null,p_name:dayTypeName.trim(),p_description:dayTypeDescription.trim()||null,
+      p_session_expected:dayTypeExpected,p_leave_overlay_allowed:true,p_active:true,
+    },"Day type recorded.",["people","day types"]);
+    if(ok){ setDayTypeSheet(false); setDayTypeName(""); setDayTypeDescription(""); }
+  }
+
+  async function recordSchedule(){
+    const prior=latestSchedule(schedulePerson,scheduleFrom);
+    const ok=await runRpc("workforce_record_schedule",{
+      p_profile_id:schedulePerson,p_unit_id:peopleById[schedulePerson]?.unit_id||null,
+      p_effective_from:scheduleFrom,p_effective_to:scheduleTo||null,p_source:"person",
+      p_day_map:{...(prior?.day_map||{}),[scheduleDay]:scheduleDayType},
+      p_expected_start:scheduleStart||prior?.expected_start||null,p_expected_end:scheduleEnd||prior?.expected_end||null,
+      p_reason:scheduleReason.trim(),p_supersedes_id:prior?.id||null,
+    },"Workforce schedule recorded.",["people","day types","schedules"]);
+    if(ok){ setScheduleSheet(false); setScheduleReason(""); }
+  }
+
+  async function recordCorrection(){
+    const ok=await runRpc("workforce_record_attendance_correction",{
+      p_profile_id:correctionPerson,p_work_date:correctionDate,p_work_session_id:null,
+      p_correction_type:correctionType,p_before_context:{},
+      p_after_context:{note:correctionNote.trim()},p_reason:correctionReason.trim(),p_reverses_id:null,
+    },"Attendance context correction recorded.");
+    if(ok){ setCorrectionSheet(false); setCorrectionNote(""); setCorrectionReason(""); }
+  }
+
+  async function reverseCorrection(row){
+    const reason=window.prompt("Reason for reversing this attendance correction");
+    if(!reason) return;
+    await runRpc("workforce_record_attendance_correction",{
+      p_profile_id:row.profile_id,p_work_date:row.work_date,p_work_session_id:row.work_session_id||null,
+      p_correction_type:"reversal",p_before_context:{},p_after_context:{},
+      p_reason:reason,p_reverses_id:row.id,
+    },"Attendance correction reversal recorded.",["corrections"]);
+  }
+
+  async function leaveAction(id,action){
+    const reason=window.prompt(action==="manager_approved"?"Reason for approval":"Reason for this leave decision");
+    if(!reason) return;
+    await runRpc("workforce_leave_action",{p_leave_request_id:id,p_action:action,p_reason:reason},"Leave decision recorded.");
+  }
+
+  async function recordPolicy(){
+    const entitlement=policyEntitlement===""?null:Number(policyEntitlement);
+    const accrualRate=policyAccrualRate===""?null:Number(policyAccrualRate);
+    const carryoverLimit=policyCarryoverLimit===""?null:Number(policyCarryoverLimit);
+    const retainedRules=activeRules
+      .filter((rule)=>rule.leave_kind!==policyKind.trim() || Boolean(rule.employment_type))
+      .map((rule)=>({
+        leave_kind:rule.leave_kind,
+        employment_type:rule.employment_type||null,
+        entitlement_amount:rule.entitlement_amount,
+        entitlement_unit:rule.entitlement_unit,
+        accrual_method:rule.accrual_method,
+        accrual_rate:rule.accrual_rate,
+        carryover_method:rule.carryover_method,
+        carryover_limit:rule.carryover_limit,
+        approval_route:rule.approval_route,
+        opening_balance_required:rule.opening_balance_required,
+      }));
+    const rules=[...retainedRules,{
+      leave_kind:policyKind.trim(),
+      employment_type:null,
+      entitlement_amount:Number.isFinite(entitlement)?entitlement:null,
+      entitlement_unit:policyEntitlementUnit||null,
+      accrual_method:policyAccrualMethod||null,
+      accrual_rate:Number.isFinite(accrualRate)?accrualRate:null,
+      carryover_method:policyCarryoverMethod||null,
+      carryover_limit:Number.isFinite(carryoverLimit)?carryoverLimit:null,
+      approval_route:policyRoute||null,
+      opening_balance_required:policyOpeningBalanceRequired,
+    }];
+    const ok=await runRpc("workforce_record_leave_policy",{
+      p_name:policyName.trim(),p_effective_from:policyFrom,p_effective_to:null,
+      p_source_reference:policySource.trim()||null,p_reason:policyReason.trim(),
+      p_rules:rules,p_activate:true,p_supersedes_id:activePolicy?.id||null,
+    },"Confirmed leave policy activated.",["leave policies","leave policy rules"]);
+    if(ok){ setPolicySheet(false); setPolicyReason(""); }
+  }
+
+  const policyReady=
+    policyName.trim().length>=3
+    && policyKind.trim().length>=2
+    && policyEntitlement!==""
+    && Number(policyEntitlement)>=0
+    && Boolean(policyEntitlementUnit)
+    && Boolean(policyAccrualMethod)
+    && (policyAccrualMethod!=="monthly" || (policyAccrualRate!=="" && Number(policyAccrualRate)>=0))
+    && Boolean(policyCarryoverMethod)
+    && (policyCarryoverMethod!=="limited" || (policyCarryoverLimit!=="" && Number(policyCarryoverLimit)>=0))
+    && Boolean(policyRoute)
+    && policyReason.trim().length>=3;
+
+  const waitingLeave=leave.filter((l)=>["pending","escalated"].includes(l.status));
+  const reversedCorrectionIds=new Set(corrections.filter((row)=>row.correction_type==="reversal"&&row.reverses_id).map((row)=>row.reverses_id));
+  const units=Array.from(new Map(people.filter((row)=>row.unit_id).map((row)=>[row.unit_id,row.units?.name||"Unit"])).entries());
+  const calendarPeople=people.filter((row)=>
+    (!calendarUnit||row.unit_id===calendarUnit)
+    && (!calendarPerson||row.profile_id===calendarPerson)
+  );
+
+  function effectiveCorrections(profileId,date){
+    return corrections.filter((row)=>
+      row.profile_id===profileId
+      && row.work_date===date
+      && row.correction_type!=="reversal"
+      && !reversedCorrectionIds.has(row.id)
+    );
+  }
+
+  function sessionFacts(profileId,date=today){
+    const rows=sessionsOn(profileId,date).slice().sort((a,b)=>new Date(a.started_at)-new Date(b.started_at));
+    return {
+      rows,
+      first:rows[0]||null,
+      last:rows[rows.length-1]||null,
+      lastEnd:rows.filter((row)=>row.ended_at).map((row)=>row.ended_at).sort().at(-1)||null,
+    };
+  }
+
+  function recordedDifferences(session){
+    const out=[];
+    if(session.end_reason&&session.end_reason!=="manual") out.push("Ended by the system rather than a manual end");
+    if(!session.ended_at&&isoDay(session.started_at)!==today) out.push("Session has no recorded end");
+    if(session.place==="office"&&office&&session.lat&&session.lng){
+      const distance=metresBetween(Number(office.lat),Number(office.lng),Number(session.lat),Number(session.lng));
+      if(distance>Number(office.radius_meters||100)) out.push("Marked as office; recorded "+distance+"m from the configured office point");
+    }
+    if(session.place==="office"&&!session.lat) out.push("Marked as office; no location was recorded");
+    if(session.flags&&typeof session.flags==="object"){
+      Object.entries(session.flags).forEach(([key,value])=>{if(value) out.push(human(key));});
+    }
+    return out;
+  }
+
+  function ruleForLeave(row){
+    if(!activePolicy) return null;
+    const employmentType=peopleById[row.profile_id]?.employment_type;
+    return activeRules.find((rule)=>rule.leave_kind===row.kind&&rule.employment_type===employmentType)
+      || activeRules.find((rule)=>rule.leave_kind===row.kind&&!rule.employment_type)
+      || null;
+  }
+
+  function calendarEventsOn(date){
+    const personUnit=calendarPerson?peopleById[calendarPerson]?.unit_id:null;
+    const unit=calendarUnit||personUnit||"";
+    const meetingRows=meetings.filter((row)=>{
+      if(isoDay(row.starts_at)!==date) return false;
+      if(calendarPerson){
+        return (row.meeting_participants||[]).some((p)=>p.profile_id===calendarPerson);
+      }
+      if(unit) return row.scope==="organisation"||row.unit_id===unit;
+      return true;
+    }).map((row)=>({id:"meeting-"+row.id,label:"Meeting",title:row.title,at:row.starts_at}));
+    const ministryRows=ministryEvents.filter((row)=>{
+      if(isoDay(row.starts_at)!==date) return false;
+      if(unit) return row.scope==="church"||row.unit_id===unit;
+      return true;
+    }).map((row)=>({id:"ministry-"+row.id,label:"Ministry activity",title:row.title,at:row.starts_at}));
+    return [...meetingRows,...ministryRows].sort((a,b)=>new Date(a.at)-new Date(b.at));
+  }
+
+  const flaggedSessions=sessions.map((session)=>({session,differences:recordedDifferences(session)})).filter((row)=>row.differences.length);
+  const tabs=[["today","Today"],["calendar","Calendar"],["sessions","Sessions"],["differences","Recorded differences"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
+
+  if(loading) return <div className="body"><LoadingState label="Loading workforce…" /></div>;
+
+  return <div className="body workforce-page">
+    <div style={{paddingTop:26}}>
+      <div className="eyebrow">Workforce management</div>
+      <h1 className="h1">Workforce</h1>
+      <p className="screen-note">Schedules, recorded sessions, approved leave and attributable corrections. “No session recorded” is context only and never an automatic absence finding.</p>
+    </div>
+    {error&&<ProductNotice tone="error" title="Workforce">{error}</ProductNotice>}
+    {notice&&<ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}
+
+    <div className="workforce-tabs" role="tablist" aria-label="Workforce sections">
+      {tabs.map(([key,label])=><button key={key} role="tab" aria-selected={tab===key} className={tab===key?"on":""} onClick={()=>setTab(key)}>{label}</button>)}
+    </div>
+
+    {!activePolicy&&<ProductNotice tone="attention" title="Leave policy not configured">Leave requests remain available. CEAC OS will not calculate entitlement, accrual, carry-over or remaining balance from the old seeded defaults.</ProductNotice>}
+
+    {tab==="today"&&<>
+      <div className="sec"><span>Today</span><span>{people.length} people in your visible workforce scope</span></div>
+      <div className="workforce-grid">
+        {people.map((row)=>{
+          const ctx=contextFor(row.profile_id);
+          const schedule=latestSchedule(row.profile_id);
+          const dayType=currentDayType(row.profile_id);
+          const facts=sessionFacts(row.profile_id);
+          const leaveRow=approvedLeave(row.profile_id);
+          const activeCorrections=effectiveCorrections(row.profile_id,today);
+          return <article className="card workforce-person" key={row.profile_id}>
+            <div className="workforce-person-head"><Avatar name={row.profiles?.full_name} size="sm"/><div><strong>{row.profiles?.full_name}</strong><span>{row.units?.name||"Unit not recorded"} · {row.profiles?.job_title||"Position not recorded"}</span></div><Pill tone={ctx.tone}>{ctx.label}</Pill></div>
+            <p>{ctx.detail}</p>
+            <div className="workforce-facts">
+              <span>Day type <b>{dayType?.name||"Not configured"}</b></span>
+              <span>Configured clock context <b>{schedule?.expected_start?String(schedule.expected_start).slice(0,5):"Not recorded"}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</b></span>
+              <span>First recorded session <b>{facts.first?clock(facts.first.started_at):"None recorded"}</b></span>
+              <span>Final recorded end <b>{facts.lastEnd?clock(facts.lastEnd):facts.rows.length?"No final end recorded":"None recorded"}</b></span>
+              <span>Approved leave <b>{leaveRow?human(leaveRow.kind):"None recorded"}</b></span>
+              <span>Effective corrections <b>{activeCorrections.length}</b></span>
+            </div>
+          </article>;
+        })}
+      </div>
+      {!people.length&&<EmptyState title="No workforce records in scope">Your authorised people will appear here.</EmptyState>}
+    </>}
+
+    {tab==="calendar"&&<>
+      <div className="sec"><span>Seven-day workforce context</span><span>{calendarPeople.length} visible people</span></div>
+      <div className="workforce-calendar-filters">
+        <FieldGroup label="Unit">
+          <select className="field" aria-label="Workforce calendar unit filter" value={calendarUnit} onChange={(e)=>{setCalendarUnit(e.target.value);setCalendarPerson("");}}>
+            <option value="">All visible units</option>
+            {units.map(([id,name])=><option key={id} value={id}>{name}</option>)}
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Person">
+          <select className="field" aria-label="Workforce calendar person filter" value={calendarPerson} onChange={(e)=>setCalendarPerson(e.target.value)}>
+            <option value="">All visible people</option>
+            {people.filter((row)=>!calendarUnit||row.unit_id===calendarUnit).map((row)=><option key={row.profile_id} value={row.profile_id}>{row.profiles?.full_name}</option>)}
+          </select>
+        </FieldGroup>
+      </div>
+      <div className="workforce-calendar">
+        {Array.from({length:7},(_,i)=>{
+          const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
+          const events=calendarEventsOn(date);
+          return <section key={date}>
+            <header><strong>{niceDay(date)}</strong><small>{events.length?events.length+" calendar item"+(events.length===1?"":"s"):"No shared calendar items"}</small></header>
+            {calendarPeople.map((p)=>{
+              const ctx=contextFor(p.profile_id,date);
+              const facts=sessionFacts(p.profile_id,date);
+              const schedule=latestSchedule(p.profile_id,date);
+              return <div className="workforce-calendar-person" key={p.profile_id}>
+                <span><strong>{p.profiles?.full_name}</strong><small>{currentDayType(p.profile_id,date)?.name||"Schedule not configured"}{schedule?.expected_start?" · configured "+String(schedule.expected_start).slice(0,5):""}{facts.first?" · first recorded "+clock(facts.first.started_at):""}</small></span>
+                <Pill tone={ctx.tone}>{ctx.label}</Pill>
+              </div>;
+            })}
+            {events.length>0&&<div className="workforce-calendar-events">{events.map((event)=><div key={event.id}><span>{event.label}</span><strong>{event.title}</strong><small>{clock(event.at)}</small></div>)}</div>}
+          </section>;
+        })}
+      </div>
+    </>}
+
+    {tab==="sessions"&&<>
+      <div className="sec"><span>Recorded sessions · last 31 days</span><span>{sessions.length}</span></div>
+      <p className="screen-note">Session history is factual activity context. It is not a performance score and it is not used as payroll time.</p>
+      {sessions.slice(0,160).map((session)=>{
+        const person=peopleById[session.profile_id];
+        const diff=recordedDifferences(session);
+        const sessionCorrections=effectiveCorrections(session.profile_id,isoDay(session.started_at)).filter((row)=>!row.work_session_id||row.work_session_id===session.id);
+        return <div className="row workforce-session-row" key={session.id}>
+          <div className="row-t">{person?.profiles?.full_name||"Employee"}</div>
+          <div className="row-m">{new Date(session.started_at).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})} · {clock(session.started_at)} → {session.ended_at?clock(session.ended_at):"no recorded end"} · {session.place||"place not recorded"}</div>
+          {(diff.length>0||sessionCorrections.length>0)&&<div className="row-note">{diff.length} recorded difference{diff.length===1?"":"s"} · {sessionCorrections.length} effective correction{sessionCorrections.length===1?"":"s"}</div>}
+        </div>;
+      })}
+      {!sessions.length&&<EmptyState compact title="No sessions recorded in this period">Nothing is inferred from the absence of session rows.</EmptyState>}
+    </>}
+
+    {tab==="differences"&&<>
+      <div className="sec"><span>Expected versus recorded today</span></div>
+      <ProductNotice tone="info" title="Descriptive context only">Configured schedule context and recorded activity are shown side by side. CEAC OS does not convert a missing or different record into “absent”, “late”, “underworked” or a performance judgement.</ProductNotice>
+      {people.map((row)=>{
+        const schedule=latestSchedule(row.profile_id);
+        const dayType=currentDayType(row.profile_id);
+        const facts=sessionFacts(row.profile_id);
+        const ctx=contextFor(row.profile_id);
+        return <div className="row workforce-compare-row" key={row.profile_id}>
+          <div className="row-t">{row.profiles?.full_name}</div>
+          <div className="row-m">Scheduled: {dayType?.name||"not configured"}{schedule?.expected_start?" · "+String(schedule.expected_start).slice(0,5):""}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</div>
+          <div className="row-note">Recorded: {facts.first?clock(facts.first.started_at):"no session"}{facts.lastEnd?" → "+clock(facts.lastEnd):facts.rows.length?" · no final end":""} · {ctx.label}</div>
+        </div>;
+      })}
+
+      <div className="sec"><span>Recorded session differences</span><span>{flaggedSessions.length}</span></div>
+      {!office&&<ProductNotice tone="info" title="Office point not configured">Location-based differences stay unavailable until a primary office point exists. Other factual differences still appear.</ProductNotice>}
+      {flaggedSessions.map(({session,differences})=><div className="row" key={session.id}>
+        <div className="row-t">{peopleById[session.profile_id]?.profiles?.full_name||"Employee"}</div>
+        <div className="row-m">{new Date(session.started_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})} · {clock(session.started_at)}</div>
+        {differences.map((difference,index)=><div className="row-note" key={index}>{difference}</div>)}
+      </div>)}
+      {!flaggedSessions.length&&<EmptyState compact title="No recorded session differences">Nothing in the last 31 days matches the factual difference checks.</EmptyState>}
+    </>}
+
+    {tab==="leave"&&<>
+      <div className="sec"><span>Waiting on a decision</span><span>{waitingLeave.length}</span></div>
+      {waitingLeave.map((l)=>{
+        const rule=ruleForLeave(l);
+        const route=rule?.approval_route||null;
+        return <div className="row" key={l.id}>
+          <div className="row-t">{l.profiles?.full_name||peopleById[l.profile_id]?.profiles?.full_name||"Employee"} · {l.days} day{Number(l.days)===1?"":"s"} {human(l.kind)}</div>
+          <div className="row-m">{niceDay(l.start_date)} → {niceDay(l.end_date)} · {human(l.status)} · {route?"Policy route: "+human(route):"No confirmed route for this leave kind"}</div>
+          {(isManager||canManage)&&<div className="workforce-row-actions">
+            {l.status==="pending"&&(route===null||route==="manager")&&(isManager||canManage)&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"manager_approved")}>Approve</button>}
+            {l.status==="pending"&&(route===null||route==="manager_then_admin")&&(isManager||canManage)&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"escalated")}>Escalate</button>}
+            {l.status==="pending"&&canManage&&(route===null||route==="admin")&&<button className="btn btn-sm" onClick={()=>leaveAction(l.id,"admin_approved")}>Admin approve</button>}
+            {l.status==="escalated"&&canManage&&<button className="btn btn-sm" onClick={()=>leaveAction(l.id,"admin_approved")}>Admin approve</button>}
+            <button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"declined")}>Decline</button>
+          </div>}
+          {l.status==="pending"&&route==="admin"&&isManager&&!canManage&&<div className="row-note">This confirmed route is Administration approval; the manager has no approval action here.</div>}
+        </div>;
+      })}
+      {!waitingLeave.length&&<EmptyState compact title="No leave requests are waiting">New requests will appear here with their recorded history.</EmptyState>}
+
+      <div className="sec"><span>Recent resolved requests</span></div>
+      {leave.filter((row)=>["approved","declined","cancelled"].includes(row.status)).slice(0,60).map((row)=><div className="row" key={row.id}>
+        <div className="row-t">{row.profiles?.full_name||peopleById[row.profile_id]?.profiles?.full_name||"Employee"} · {human(row.kind)} leave</div>
+        <div className="row-m">{niceDay(row.start_date)} → {niceDay(row.end_date)} · {human(row.status)}</div>
+        {canManage&&row.status==="approved"&&<div className="workforce-row-actions"><button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(row.id,"approval_reversed")}>Reverse approval</button></div>}
+      </div>)}
+
+      <div className="sec"><span>Decision history</span></div>
+      {leaveEvents.slice(0,80).map((e)=><div className="row" key={e.id}><div className="row-t">{human(e.action)}</div><div className="row-m">{peopleById[e.profile_id]?.profiles?.full_name||"Employee"} · {human(e.from_status||"new")} → {human(e.to_status)} · {new Date(e.created_at).toLocaleString("en-GB")}</div>{e.reason&&<div className="row-note">{e.reason}</div>}</div>)}
+    </>}
+
+    {tab==="corrections"&&<>
+      <div className="sec"><span>Attendance correction history</span>{canCorrect&&<button className="btn btn-sm" onClick={()=>{setCorrectionPerson(people[0]?.profile_id||"");setCorrectionSheet(true)}}>Record correction</button>}</div>
+      <p className="screen-note">Corrections overlay the factual record. Original work-session rows are not rewritten; reversal is another linked history row.</p>
+      {corrections.map((row)=>{
+        const reversed=row.correction_type!=="reversal"&&reversedCorrectionIds.has(row.id);
+        return <div className="row" key={row.id}>
+          <div className="row-t">{peopleById[row.profile_id]?.profiles?.full_name||"Employee"} · {human(row.correction_type)}{reversed?" · reversed":""}</div>
+          <div className="row-m">{niceDay(row.work_date)} · {row.reason}</div>
+          {row.after_context?.note&&<div className="row-note">{row.after_context.note}</div>}
+          {canCorrect&&row.correction_type!=="reversal"&&!reversed&&<div className="workforce-row-actions"><button className="btn btn-ghost btn-sm" onClick={()=>reverseCorrection(row)}>Reverse correction</button></div>}
+        </div>;
+      })}
+      {!corrections.length&&<EmptyState compact title="No attendance corrections recorded">Nothing has been corrected in your visible scope.</EmptyState>}
+    </>}
+
+    {tab==="setup"&&canManage&&<>
+      {Object.keys(datasetErrors).length>0&&<ProductNotice tone="error" title="Workforce data status">{Object.entries(datasetErrors).map(([name,message])=><div key={name}><strong>{human(name)}</strong>: {message}</div>)}</ProductNotice>}
+      <div className="card small workforce-data-status">Visible people: <strong>{people.length}</strong> · Active day types: <strong>{dayTypes.length}</strong></div>
+      <div className="workforce-setup-actions">
+        <button className="btn btn-ghost" onClick={()=>setDayTypeSheet(true)}>Add day type</button>
+        <button className="btn btn-ghost" disabled={busy||!dayTypes.length||!people.length} title={!people.length?"No visible active people loaded":!dayTypes.length?"No active day types loaded":""} onClick={()=>{setSchedulePerson(people[0]?.profile_id||"");setScheduleDayType(dayTypes[0]?.id||"");setScheduleSheet(true)}}>Record schedule</button>
+        <button className="btn" onClick={()=>setPolicySheet(true)}>{activePolicy?"Create policy revision":"Configure leave policy"}</button>
+      </div>
+      <div className="sec"><span>Day types</span><span>{dayTypes.length}</span></div>
+      {dayTypes.map((d)=><div className="row" key={d.id}><div className="row-t">{d.name}</div><div className="row-m">{d.session_expected?"Session ordinarily expected":"Session not ordinarily expected"} · {d.description||"No description"}</div></div>)}
+      <div className="sec"><span>Leave policy status</span></div>
+      {activePolicy?<div className="card workforce-policy"><strong>{activePolicy.name}</strong><span>Confirmed {new Date(activePolicy.confirmed_at).toLocaleString("en-GB")}</span>{activeRules.map((r)=><small key={r.id}>{human(r.leave_kind)} · {r.complete?(String(r.entitlement_amount)+" "+r.entitlement_unit):"rule incomplete"} · accrual {r.accrual_method?human(r.accrual_method):"not configured"} · carry-over {r.carryover_method?human(r.carryover_method):"not configured"} · route {r.approval_route?human(r.approval_route):"not configured"}{r.opening_balance_required?" · opening balance required":""}</small>)}</div>:<div className="card small">No confirmed CEAC leave policy is active. Legacy seeded defaults are not used as policy.</div>}
+    </>}
+
+    {dayTypeSheet&&<Sheet onClose={()=>!busy&&setDayTypeSheet(false)}>
+      <div className="h2">Add workforce day type</div>
+      <FieldGroup label="Name"><input className="field" aria-label="Day type name" value={dayTypeName} onChange={e=>setDayTypeName(e.target.value)}/></FieldGroup>
+      <FieldGroup label="Description"><textarea className="field" aria-label="Day type description" rows="2" value={dayTypeDescription} onChange={e=>setDayTypeDescription(e.target.value)}/></FieldGroup>
+      <label className="check-row"><input type="checkbox" checked={dayTypeExpected} onChange={e=>setDayTypeExpected(e.target.checked)}/><span>A work session is ordinarily expected on this day type</span></label>
+      <button className="btn" style={{marginTop:14}} disabled={busy||dayTypeName.trim().length<2} onClick={recordDayType}>Record day type</button>
+    </Sheet>}
+
+    {scheduleSheet&&<Sheet onClose={()=>!busy&&setScheduleSheet(false)}>
+      <div className="h2">Record workforce schedule</div>
+      <FieldGroup label="Person"><select className="field" aria-label="Schedule person" value={schedulePerson} onChange={e=>setSchedulePerson(e.target.value)}>{people.map(p=><option key={p.profile_id} value={p.profile_id}>{p.profiles?.full_name}</option>)}</select></FieldGroup>
+      <div className="form-grid two"><FieldGroup label="Day"><select className="field" aria-label="Schedule weekday" value={scheduleDay} onChange={e=>setScheduleDay(e.target.value)}>{DAY_KEYS.map(k=><option key={k} value={k}>{DAY_LABELS[k]}</option>)}</select></FieldGroup><FieldGroup label="Day type"><select className="field" aria-label="Schedule day type" value={scheduleDayType} onChange={e=>setScheduleDayType(e.target.value)}>{dayTypes.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></FieldGroup></div>
+      <div className="form-grid two"><FieldGroup label="Effective from"><input className="field" type="date" value={scheduleFrom} onChange={e=>setScheduleFrom(e.target.value)}/></FieldGroup><FieldGroup label="Effective to"><input className="field" type="date" value={scheduleTo} onChange={e=>setScheduleTo(e.target.value)}/></FieldGroup></div>
+      <div className="form-grid two"><FieldGroup label="Expected start"><input className="field" type="time" value={scheduleStart} onChange={e=>setScheduleStart(e.target.value)}/></FieldGroup><FieldGroup label="Expected end"><input className="field" type="time" value={scheduleEnd} onChange={e=>setScheduleEnd(e.target.value)}/></FieldGroup></div>
+      <FieldGroup label="Reason"><textarea className="field" aria-label="Schedule reason" rows="2" value={scheduleReason} onChange={e=>setScheduleReason(e.target.value)}/></FieldGroup>
+      <button className="btn" style={{marginTop:14}} disabled={busy||!schedulePerson||!scheduleDayType||scheduleReason.trim().length<3} onClick={recordSchedule}>Record schedule</button>
+    </Sheet>}
+
+    {correctionSheet&&<Sheet onClose={()=>!busy&&setCorrectionSheet(false)}>
+      <div className="h2">Record attendance context correction</div>
+      <p className="screen-note">This adds an attributable correction. It does not rewrite the original work session.</p>
+      <FieldGroup label="Person"><select className="field" aria-label="Correction person" value={correctionPerson} onChange={e=>setCorrectionPerson(e.target.value)}>{people.map(p=><option key={p.profile_id} value={p.profile_id}>{p.profiles?.full_name}</option>)}</select></FieldGroup>
+      <div className="form-grid two"><FieldGroup label="Date"><input className="field" type="date" value={correctionDate} onChange={e=>setCorrectionDate(e.target.value)}/></FieldGroup><FieldGroup label="Type"><select className="field" value={correctionType} onChange={e=>setCorrectionType(e.target.value)}><option value="context_note">Context note</option><option value="start_time">Start time</option><option value="end_time">End time</option><option value="day_type">Day type</option><option value="administrative_finding">Human administrative finding</option></select></FieldGroup></div>
+      <FieldGroup label="Corrected context"><textarea className="field" aria-label="Corrected context" rows="3" value={correctionNote} onChange={e=>setCorrectionNote(e.target.value)}/></FieldGroup>
+      <FieldGroup label="Reason"><textarea className="field" aria-label="Correction reason" rows="2" value={correctionReason} onChange={e=>setCorrectionReason(e.target.value)}/></FieldGroup>
+      <button className="btn" style={{marginTop:14}} disabled={busy||!correctionPerson||correctionReason.trim().length<3} onClick={recordCorrection}>Record correction</button>
+    </Sheet>}
+
+    {policySheet&&<Sheet onClose={()=>!busy&&setPolicySheet(false)}>
+      <div className="h2">{activePolicy?"Create leave policy revision":"Configure confirmed leave policy"}</div>
+      <p className="screen-note">Enter only CEAC-confirmed values. Activating this version makes it the organisation policy record.</p>
+      <FieldGroup label="Policy name"><input className="field" aria-label="Policy name" value={policyName} onChange={e=>setPolicyName(e.target.value)}/></FieldGroup>
+      <FieldGroup label="Effective from"><input className="field" type="date" value={policyFrom} onChange={e=>setPolicyFrom(e.target.value)}/></FieldGroup>
+      <FieldGroup label="Source reference"><input className="field" aria-label="Policy source reference" value={policySource} onChange={e=>setPolicySource(e.target.value)} placeholder="Document, approval or reference"/></FieldGroup>
+      <div className="form-grid two">
+        <FieldGroup label="Leave kind"><input className="field" aria-label="Policy leave kind" value={policyKind} onChange={e=>setPolicyKind(e.target.value)}/></FieldGroup>
+        <FieldGroup label="Entitlement amount"><input className="field" aria-label="Policy entitlement amount" type="number" min="0" value={policyEntitlement} onChange={e=>setPolicyEntitlement(e.target.value)}/></FieldGroup>
+      </div>
+      <FieldGroup label="Entitlement unit"><select className="field" aria-label="Policy entitlement unit" value={policyEntitlementUnit} onChange={e=>setPolicyEntitlementUnit(e.target.value)}><option value="">Not configured</option><option value="days">Days</option><option value="weeks">Weeks</option><option value="hours">Hours</option></select></FieldGroup>
+      <div className="form-grid two">
+        <FieldGroup label="Accrual method"><select className="field" aria-label="Policy accrual method" value={policyAccrualMethod} onChange={e=>setPolicyAccrualMethod(e.target.value)}><option value="">Not configured</option><option value="none">No accrual</option><option value="annual">Annual</option><option value="monthly">Monthly</option><option value="manual">Manual</option></select></FieldGroup>
+        <FieldGroup label="Accrual rate" hint={policyAccrualMethod==="monthly"?"Required for monthly accrual.":"Leave blank unless the confirmed policy defines a rate."}><input className="field" aria-label="Policy accrual rate" type="number" min="0" step="0.01" value={policyAccrualRate} onChange={e=>setPolicyAccrualRate(e.target.value)}/></FieldGroup>
+      </div>
+      <div className="form-grid two">
+        <FieldGroup label="Carry-over method"><select className="field" aria-label="Policy carryover method" value={policyCarryoverMethod} onChange={e=>setPolicyCarryoverMethod(e.target.value)}><option value="">Not configured</option><option value="none">No carry-over</option><option value="limited">Limited</option><option value="full">Full</option><option value="manual">Manual</option></select></FieldGroup>
+        <FieldGroup label="Carry-over limit" hint={policyCarryoverMethod==="limited"?"Required for limited carry-over.":"Leave blank unless the confirmed policy defines a limit."}><input className="field" aria-label="Policy carryover limit" type="number" min="0" step="0.01" value={policyCarryoverLimit} onChange={e=>setPolicyCarryoverLimit(e.target.value)}/></FieldGroup>
+      </div>
+      <FieldGroup label="Approval route"><select className="field" aria-label="Policy approval route" value={policyRoute} onChange={e=>setPolicyRoute(e.target.value)}><option value="">Not configured</option><option value="manager">Manager</option><option value="admin">Administration</option><option value="manager_then_admin">Manager then Administration</option></select></FieldGroup>
+      <label className="check-row"><input type="checkbox" checked={policyOpeningBalanceRequired} onChange={e=>setPolicyOpeningBalanceRequired(e.target.checked)}/><span>This rule requires an explicitly recorded opening balance before remaining balance may be calculated</span></label>
+      <FieldGroup label="Reason for this policy version"><textarea className="field" aria-label="Policy reason" rows="2" value={policyReason} onChange={e=>setPolicyReason(e.target.value)}/></FieldGroup>
+      {!policyReady&&<div className="card small">Activation stays disabled until entitlement, unit, accrual method, carry-over method, approval route and any conditional rate/limit are explicitly configured. Nothing is inferred.</div>}
+      <button className="btn" style={{marginTop:14}} disabled={busy||!policyReady} onClick={recordPolicy}>Activate confirmed policy</button>
+    </Sheet>}
+  </div>;
+}

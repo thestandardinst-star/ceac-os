@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `c095a546dd096ed9624aeddd6f4859d729383c6a`
-**Active branch:** none — Stage 8 is closed; Stage 9 is next
-**Current stage:** Stage 8 closed — Stage 9 Workforce Management 2.0 is next
-**Latest merged migration on main:** 088 — Learning
+**Baseline main:** `8dd3b8d50600942f482a7bdb1dde287c1e0a04dc`
+**Active branch:** `chatgpt/enterprise-expansion-stage-9-workforce-management-2026-09-22`
+**Current stage:** Stage 9 — Workforce Management 2.0
+**Latest merged migration on main:** 088 — Learning; Stage 9 migration 089 is under development
 
 ## 1. Governing architecture
 
@@ -190,35 +190,37 @@ Merged into `main`:
 - Stage 5 Work Management 2.0;
 - Stage 6 Resource & Workload;
 - Stage 7 Performance & Development;
-- Stage 8 Learning via PR #37.
+- Stage 8 Learning and its closure handoff.
 
-Current merged main after Stage 8: `c095a546dd096ed9624aeddd6f4859d729383c6a`.
+Current canonical main after Stage 8 closure: `8dd3b8d50600942f482a7bdb1dde287c1e0a04dc`.
 Latest merged migration: 088.
 
-Stage 8 closure evidence:
-- exact final development head `b1ef246001779b814f98c30e85bfdfc8f0e4bcfb`;
-- CI, Migration Replay and Account Security passed;
-- every cumulative SQL/RLS/security gate through Stage 8 passed;
-- Stage 8 Learning gate proved learning authority, person/unit/role/onboarding assignment materialisation, duplicate prevention, staff completion, training-history persistence, manager read boundaries and attributable correction history;
-- exact-head Staff/Manager/Admin Playwright acceptance passed;
-- exact-head Administration desktop and Staff mobile Learning screenshots were inspected;
-- canonical capability inventory advanced to 13 with `learning.manage`;
-- direct authenticated UPDATE access to `training_records` was removed before closure so completed-learning evidence cannot be silently rewritten;
-- no quiz, certification/expiry, skill inference, learning score or ranking was introduced;
-- Vercel remained blocked by the Free-plan daily deployment quota; exact-head local browser acceptance and product artifacts were used for product inspection;
-- repository verified-signature protection rejected a normal merge commit, so PR #37 was squash-merged through GitHub's verified commit path.
+Active work is Stage 9 only:
+- branch `chatgpt/enterprise-expansion-stage-9-workforce-management-2026-09-22`;
+- governing contract `docs/architecture/CEAC_OS_STAGE9_WORKFORCE_MANAGEMENT_2026-09-22.md`;
+- planned migration 089 extends existing employment/work-session/leave records rather than creating duplicate attendance or leave systems;
+- no-session-recorded must never automatically mean absence;
+- leave policy/balance calculations remain blocked until CEAC entitlement/accrual/carry-over/opening-balance rules are formally confirmed;
+- Stage 10 must not begin until Stage 9 is fully green, product-inspected and merged.
 
-Stage 8 merged main: `c095a546dd096ed9624aeddd6f4859d729383c6a`.
-
-Next permitted work is Stage 9 only — Workforce Management 2.0.
-
-Stage 9 must branch from the latest merged `main` after this closure handoff is merged. It must not include Stage 10+ scope.
+Stage 9 exit evidence must include:
+- CI;
+- clean Migration Replay;
+- Account Security;
+- every cumulative SQL/security gate through Stage 9;
+- workforce authority/RLS tests;
+- append-only schedule and attendance-correction history;
+- attributable leave decision/reversal history;
+- proof that unconfirmed legacy leave defaults do not generate balances;
+- Staff/Manager/Admin browser acceptance;
+- persistence after reload;
+- desktop/mobile responsive acceptance;
+- exact-head product inspection;
+- deployment validation or explicit provider-only blocker documentation.
 
 After Stage 9 the mandatory order remains:
 
 `10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
-
-Every stage must branch from the latest merged `main`, complete its architecture/security contract, migrations, cumulative automated gates, UI, browser/responsive acceptance and handoff, then merge before the next stage starts.
 
 Stage 13 remains a hard policy gate. Do not infer payroll rules.
 
