@@ -670,6 +670,20 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
 
+  await go(page, "Integrations");
+  await expect(page.getByRole("heading", { name: "Integrations", exact: true })).toBeVisible();
+  await page.getByLabel("Integration connector name").fill("Acceptance Connector");
+  await page.getByLabel("Integration connector key").fill("acceptance-connector");
+  await page.getByRole("button", { name: "Create connector", exact: true }).click();
+  await expect(page.getByText("Connector created.", { exact: true })).toBeVisible();
+  const connectorRow = page.locator(".row").filter({ hasText: "Acceptance Connector" }).first();
+  await connectorRow.getByRole("button", { name: "Enable", exact: true }).click();
+  await expect(page.getByText("Connector enabled.", { exact: true })).toBeVisible();
+  await page.getByLabel("Integration subscription connector").selectOption({ label: "Acceptance Connector" });
+  await page.getByLabel("Integration subscription event").selectOption("policy.rule_changed");
+  await page.getByRole("button", { name: "Create subscription", exact: true }).click();
+  await expect(page.getByText("Event subscription created.", { exact: true })).toBeVisible();
+
   await go(page, "Audit");
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
   await expect(page.getByText("Recent changes", { exact: true })).toBeVisible();
@@ -721,7 +735,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
