@@ -17,8 +17,15 @@ begin
   end if;
 
   select count(*) into n from public.capability_definitions;
-  if n<>12 then
-    raise exception 'Capability authority gate failure: expected 12 canonical capabilities after Stage 6 resource authority, found %.',n;
+  if n<>13 then
+    raise exception 'Capability authority gate failure: expected 13 canonical capabilities after Stage 8 learning authority, found %.',n;
+  end if;
+
+  if not exists(
+    select 1 from public.capability_definitions
+    where capability='learning.manage'
+  ) then
+    raise exception 'Capability authority gate failure: Stage 8 learning.manage capability is missing.';
   end if;
 end
 $authority_tables$;

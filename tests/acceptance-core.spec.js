@@ -564,7 +564,7 @@ test("Administration can combine multiple units into one meeting audience", asyn
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Performance & development", "Finance", "Reports"];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Performance & development", "Learning", "Finance", "Reports"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
@@ -993,6 +993,119 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
     const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
     await page.goto("/?tab=performance");
     await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
+test("Stage 8 Learning publishes structured learning and preserves factual completion", async ({ browser }) => {
+  test.setTimeout(180000);
+  const courseTitle = "Acceptance Stage 8 Learning";
+  const courseSummary = "A practical course used to verify structured learning.";
+  const moduleTitle = "Acceptance required module";
+  const resourceTitle = "Acceptance learning resource";
+  const assignmentReason = "Acceptance learning for Staff Fixture";
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Learning");
+    await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not turn learning activity into a skill, performance or potential score/i)).toBeVisible();
+
+    await page.getByRole("button", { name: "Create course", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Learning course title").fill(courseTitle);
+    await dialog.getByLabel("Learning course summary").fill(courseSummary);
+    await dialog.getByLabel("Learning course minutes").fill("30");
+    await dialog.getByRole("button", { name: "Create draft course", exact: true }).click();
+    await expect(page.getByText("Draft course created.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add module", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Learning module title").fill(moduleTitle);
+    await dialog.getByLabel("Learning module summary").fill("One required module with one reviewed resource.");
+    await dialog.getByLabel("Learning module minutes").fill("30");
+    await dialog.getByRole("button", { name: "Add module", exact: true }).click();
+    await expect(page.getByText("Course module added.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add resource", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Learning resource type").selectOption("link");
+    await dialog.getByLabel("Learning resource title").fill(resourceTitle);
+    await dialog.getByLabel("Learning resource URL").fill("https://example.com/stage8-learning");
+    await dialog.getByRole("button", { name: "Add resource", exact: true }).click();
+    await expect(page.getByText("Learning resource added.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Publish course", exact: true }).click();
+    await expect(page.getByText("Course published.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Published", { exact: true }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "Create assignment rule", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Learning target kind").selectOption("person");
+    await dialog.getByLabel("Learning target person").selectOption({ label: "Staff Fixture" });
+    await dialog.getByLabel("Learning due days").fill("14");
+    await dialog.getByLabel("Learning assignment reason").fill(assignmentReason);
+    await dialog.getByRole("button", { name: "Create assignment rule", exact: true }).click();
+    await expect(page.getByText("Learning assignment rule created.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Learning", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
+    await expect(page.getByText(courseTitle, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(moduleTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText(resourceTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText("0 of 1 required modules complete", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Complete module", exact: true }).click();
+    await expect(page.getByText("Module completion recorded.", { exact: true })).toBeVisible();
+    await expect(page.getByText("1 of 1 required modules complete", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText(courseTitle, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("1 of 1 required modules complete", { exact: true })).toBeVisible();
+
+    await page.locator(".learning-mode-tabs").getByRole("button", { name: "Completed learning", exact: true }).click();
+    await expect(page.getByText(courseTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText("CEAC OS course", { exact: true })).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Stage 8 Staff learning overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage8-learning-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Learning");
+    await page.locator(".learning-mode-tabs").getByRole("button", { name: "Team learning", exact: true }).click();
+    const staffLearning = page.locator(".learning-assignment-card").filter({ hasText: "Staff Fixture" });
+    await expect(staffLearning).toBeVisible();
+    await expect(staffLearning.getByText(courseTitle, { exact: true })).toBeVisible();
+    await expect(staffLearning.getByText("Completed", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Create course", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Learning");
+    await page.locator(".learning-mode-tabs").getByRole("button", { name: "Progress", exact: true }).click();
+    const staffLearning = page.locator(".learning-assignment-card").filter({ hasText: "Staff Fixture" });
+    await expect(staffLearning).toBeVisible();
+    await staffLearning.click();
+    await expect(page.getByText("1 of 1 required modules complete", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Correct completion", exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage8-learning-admin.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await page.goto("/?tab=learning");
+    await expect(page.getByRole("heading", { name: "Learning", exact: true })).toHaveCount(0);
     await context.close();
   }
 });

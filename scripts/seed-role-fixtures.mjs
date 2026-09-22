@@ -86,6 +86,7 @@ const adminCapabilityKeys = [
   "strategy.manage",
   "delivery.manage",
   "resource.manage",
+  "learning.manage",
 ];
 const capabilityGrants = await service.from("capability_grants").insert(
   adminCapabilityKeys.map((capability) => ({

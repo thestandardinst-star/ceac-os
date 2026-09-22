@@ -37,6 +37,7 @@ import Strategy from "./screens/Strategy";
 import Delivery from "./screens/Delivery";
 import ResourceWorkload from "./screens/ResourceWorkload";
 import Performance from "./screens/Performance";
+import Learning from "./screens/Learning";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
@@ -216,6 +217,7 @@ export default function App() {
   const canUseDelivery = isAdmin || isExec || isUnitManager || hasCapability("delivery.manage");
   const canUseWorkload = isUnitManager || hasCapability("resource.manage");
   const canUsePerformance = !isExec && (isStaff || isUnitManager || hasOrgCapability("performance.admin"));
+  const canUseLearning = !isExec && (isStaff || isUnitManager || hasOrgCapability("learning.manage"));
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -248,6 +250,7 @@ export default function App() {
     if (tab === "delivery" && canUseDelivery) return <Delivery me={me} />;
     if (tab === "workload" && canUseWorkload) return <ResourceWorkload me={me} />;
     if (tab === "performance" && canUsePerformance) return <Performance me={me} />;
+    if (tab === "learning" && canUseLearning) return <Learning me={me} />;
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;

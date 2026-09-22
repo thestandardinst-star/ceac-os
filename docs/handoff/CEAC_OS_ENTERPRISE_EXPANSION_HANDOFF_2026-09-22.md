@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `af16cc2214fc56e001337f8f6bb830fb8464643a`
-**Active branch:** `chatgpt/enterprise-expansion-stage-7-performance-development-2026-09-22`
-**Current stage:** Stage 7 — Performance & Development
-**Latest merged migration on main:** 086 — Resource & Workload; Stage 7 migration 087 is under development
+**Baseline main:** `d668cec6cef09bd19a45038c0c779992f37cce4b`
+**Active branch:** `chatgpt/enterprise-expansion-stage-8-learning-2026-09-22`
+**Current stage:** Stage 8 — Learning
+**Latest merged migration on main:** 087 — Performance & Development; Stage 8 migration 088 is under development
 
 ## 1. Governing architecture
 
@@ -188,35 +188,49 @@ Merged into `main`:
 - Stage 3 Protected HR;
 - Stage 4 Goals and Strategy;
 - Stage 5 Work Management 2.0;
-- Stage 6 Resource & Workload via PR #34.
+- Stage 6 Resource & Workload;
+- Stage 7 Performance & Development via PR #36.
 
-Current merged main after Stage 6: `af16cc2214fc56e001337f8f6bb830fb8464643a`.
-Latest merged migration: 086.
+Current merged main after Stage 7: `d668cec6cef09bd19a45038c0c779992f37cce4b`.
+Latest merged migration: 087.
 
-Active work is Stage 7 only:
-- branch `chatgpt/enterprise-expansion-stage-7-performance-development-2026-09-22`;
-- governing contract `docs/architecture/CEAC_OS_STAGE7_PERFORMANCE_DEVELOPMENT_2026-09-22.md`;
-- planned migration 087 extends the existing appraisal/feedback foundation rather than creating a duplicate performance system;
-- Stage 8 must not begin until Stage 7 is fully green, product-inspected and merged.
+Stage 7 closure evidence:
+- final development head `060326417de31d1eccd1f2950619c5f5319300dc`;
+- CI, Migration Replay and Account Security passed;
+- every cumulative SQL/RLS/security gate through Stage 7 passed;
+- exact-head Staff/Manager/Admin Playwright acceptance passed;
+- exact-head Manager desktop and Staff mobile product screenshots were inspected;
+- a pre-existing Private Work refresh race surfaced during cumulative acceptance and was corrected before the final green run;
+- final-head Vercel deployment was blocked only by the Free-account daily deployment quota; the immediately preceding Stage 7 head deployed successfully and the final delta was covered by exact-head CI/browser acceptance;
+- GitHub's verified-signature protection rejected a normal merge commit, so Stage 7 was squash-merged through GitHub's verified commit path.
 
-Stage 7 exit evidence must include:
+Active work is Stage 8 only:
+- branch `chatgpt/enterprise-expansion-stage-8-learning-2026-09-22`;
+- governing contract `docs/architecture/CEAC_OS_STAGE8_LEARNING_2026-09-22.md`;
+- migration 088 extends the existing `training_records` completion evidence with structured catalogue, modules/resources, assignment rules and factual progress;
+- quizzes, certifications/expiry and skill inference are deliberately deferred;
+- Stage 9 must not begin until Stage 8 is fully green, product-inspected and merged.
+
+Stage 8 exit evidence must include:
 - CI;
 - clean Migration Replay;
 - Account Security;
-- every cumulative SQL/security gate through Stage 7;
-- performance authority/RLS tests;
-- evidence-pack integrity and idempotency;
-- append-only review/development history;
+- every cumulative SQL/security gate through Stage 8;
+- learning authority/RLS tests;
+- person/unit/role/onboarding assignment-rule materialisation;
+- duplicate-assignment prevention;
+- staff self-completion and training-history persistence;
+- manager team-learning read boundary;
+- attributable progress correction/reversal history;
 - audit and semantic-event evidence;
 - Staff/Manager/Admin browser acceptance;
-- persistence after reload;
 - desktop/mobile responsive acceptance;
-- deployment validation/product inspection;
-- confirmation that no score, ranking, attendance-derived judgement or hidden assessment has been introduced.
+- deployment validation and product inspection;
+- confirmation that no quiz, certificate, skill claim, score or ranking was invented.
 
-After Stage 7 the mandatory order is:
+After Stage 8 the mandatory order is:
 
-`8 Learning → 9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
+`9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
 
 Every stage must branch from the latest merged `main`, complete its architecture/security contract, migrations, cumulative automated gates, UI, browser/responsive acceptance and handoff, then merge before the next stage starts.
 
