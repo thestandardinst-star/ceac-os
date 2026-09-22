@@ -73,8 +73,11 @@ end $$;
 -- Stage 8 adds two reviewed learning RPCs:
 -- learning_complete_module(uuid,uuid) and
 -- learning_admin_action(uuid,text,uuid,text).
--- The first is self-bound to auth.uid(); the second requires learning.manage.
--- Reducing this surface is allowed. Any growth beyond 86 requires another
+-- Stage 9 adds six reviewed workforce RPCs.
+-- Stage 10 adds four reviewed asset RPCs:
+-- asset_record_item, asset_assign, asset_return and asset_lifecycle_action.
+-- Each Stage 10 RPC binds to auth.uid() and requires asset.manage.
+-- Reducing this surface is allowed. Any growth beyond 96 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -85,8 +88,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>92 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 92-function ceiling to %.',n;
+  if n>96 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 96-function ceiling to %.',n;
   end if;
 end $$;
 

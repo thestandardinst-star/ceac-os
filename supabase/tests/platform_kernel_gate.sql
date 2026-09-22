@@ -59,7 +59,7 @@ $definer_search_path$;
 
 -- Stage 0 semantic review identified six internal-only helpers that do not
 -- need direct authenticated execution. Migration 074 reduces the reviewed
--- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92.
+-- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92. Stage 10 adds four reviewed asset RPCs gated by asset.manage, bringing the surface to 96.
 do $definer_surface$
 declare n integer;
 begin
@@ -70,8 +70,8 @@ begin
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
 
-  if n<>92 then
-    raise exception 'Platform Kernel gate failure: expected 92 authenticated SECURITY DEFINER functions after reviewed Stage 9 workforce RPCs, found %.',n;
+  if n<>96 then
+    raise exception 'Platform Kernel gate failure: expected 96 authenticated SECURITY DEFINER functions after reviewed Stage 10 asset RPCs, found %.',n;
   end if;
 
   if has_function_privilege('authenticated','public.app_can_publish_announcements()','EXECUTE')
