@@ -131,14 +131,14 @@ function tabItems(isManager = false) {
   return [["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["me","Me"]];
 }
 
-function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false }) {
+function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false, canWorkload = false }) {
   if (isExec) return [
     { label:"Ministry", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
   if (isAdmin) return [
-    { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"],...(canWorkload ? [["workload","Workload"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
@@ -188,6 +188,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
     canAuthority: capabilities.includes("authority.manage"),
     canWorkflows: capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage"),
     canIntegrations: capabilities.includes("integration.manage"),
+    canWorkload: capabilities.includes("resource.manage"),
   });
   return (
     <aside className="side">
@@ -235,7 +236,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
   ];
   const capabilities = me?.capabilities || [];
   const adminGroups = [
-    { label:"Organisation", items:[["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
+    { label:"Organisation", items:[["strategy","Strategy"],["delivery","Delivery"],...(capabilities.includes("resource.manage") ? [["workload","Workload"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : []),...(capabilities.includes("hr_private.access") ? [["protected-hr","Protected HR"]] : [])] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
