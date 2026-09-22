@@ -36,6 +36,7 @@ import Goals from "./screens/Goals";
 import Strategy from "./screens/Strategy";
 import Delivery from "./screens/Delivery";
 import ResourceWorkload from "./screens/ResourceWorkload";
+import Performance from "./screens/Performance";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
@@ -203,6 +204,9 @@ export default function App() {
   const isStaff = !isAdmin && !isExec && !isUnitManager;
   const isManager = isAdmin || isUnitManager;
   const hasCapability = (capability) => (me.capabilities || []).includes(capability);
+  const hasOrgCapability = (capability) => (me.capability_grants || []).some((grant) =>
+    grant.capability === capability && !grant.scope_unit_id
+  );
   const canManagePeople = hasCapability("people.manage");
   const canViewAudit = hasCapability("audit.view");
   const canManageAuthority = hasCapability("authority.manage");
@@ -211,6 +215,7 @@ export default function App() {
   const canAccessProtectedHR = hasCapability("hr_private.access");
   const canUseDelivery = isAdmin || isExec || isUnitManager || hasCapability("delivery.manage");
   const canUseWorkload = isUnitManager || hasCapability("resource.manage");
+  const canUsePerformance = !isExec && (isStaff || isUnitManager || hasOrgCapability("performance.admin"));
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -242,6 +247,7 @@ export default function App() {
     if (tab === "strategy") return <Strategy me={me} />;
     if (tab === "delivery" && canUseDelivery) return <Delivery me={me} />;
     if (tab === "workload" && canUseWorkload) return <ResourceWorkload me={me} />;
+    if (tab === "performance" && canUsePerformance) return <Performance me={me} />;
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
@@ -259,7 +265,7 @@ export default function App() {
     if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
-    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
+    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} />;
   }
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
