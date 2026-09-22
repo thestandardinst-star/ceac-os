@@ -659,6 +659,16 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: "Revoke", exact: true }).click();
   await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
 
+  await go(page, "Policies & rules");
+  await expect(page.getByRole("heading", { name: "Policies & rules", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /Work quiet days/ }).click();
+  await page.getByLabel("Policy rule value").fill("6");
+  await page.getByLabel("Policy reason").fill("Acceptance policy rule version");
+  await page.getByRole("button", { name: "Record new version", exact: true }).click();
+  await expect(page.getByText("Policy rule recorded.", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
+
   await go(page, "Audit");
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
   await expect(page.getByText("Recent changes", { exact: true })).toBeVisible();
@@ -710,7 +720,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
