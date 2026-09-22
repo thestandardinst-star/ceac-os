@@ -1,8 +1,8 @@
 # CEAC OS — Stage 0 Production Security Closure
 
-**Date:** 22 September 2026  
-**Status:** OPEN — enterprise feature expansion remains blocked  
-**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`  
+**Date:** 22 September 2026
+**Status:** OPEN — enterprise feature expansion remains blocked
+**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`
 **Active branch:** `chatgpt/enterprise-expansion-stage-0-2026-09-22`
 
 ## Verified live baseline
