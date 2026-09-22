@@ -84,6 +84,7 @@ declare
   v_connector uuid;
   v_subscription uuid;
   v_event uuid;
+  v_rule uuid;
   v_count integer;
 begin
   insert into public.integration_connectors(
@@ -105,17 +106,29 @@ begin
     '31000000-0000-4000-8000-000000000003'
   ) returning id into v_subscription;
 
-  v_event:=public.platform_emit_event(
+  insert into public.policy_rule_versions(
+    org_id,rule_key,value,effective_on,reason,recorded_by
+  ) values (
     '10000000-0000-4000-8000-000000000010',
-    'policy.rule_changed',
-    '31000000-0000-4000-8000-000000000003',
-    null,
-    'policy_rule',
-    gen_random_uuid(),
-    '{"rule_key":"work.quiet_days"}'::jsonb,
-    'stage-1g-event',
-    null,null,now()
-  );
+    'reporting.overdue_days',
+    '3'::jsonb,
+    current_date,
+    'Stage 1G integration event probe',
+    '31000000-0000-4000-8000-000000000003'
+  )
+  returning id into v_rule;
+
+  select id into v_event
+  from public.platform_events
+  where event_type='policy.rule_changed'
+    and aggregate_type='policy_rule'
+    and aggregate_id=v_rule
+  order by recorded_at desc
+  limit 1;
+
+  if v_event is null then
+    raise exception 'Integration gateway gate failure: policy change produced no platform event.';
+  end if;
 
   select count(*) into v_count
   from public.integration_outbox
