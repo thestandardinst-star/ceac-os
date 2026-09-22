@@ -67,6 +67,7 @@ const adminCapabilityKeys = [
   "attendance.correct",
   "performance.admin",
   "audit.view",
+  "integration.manage",
 ];
 const capabilityGrants = await service.from("capability_grants").insert(
   adminCapabilityKeys.map((capability) => ({
