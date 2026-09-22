@@ -326,41 +326,41 @@ export default function People({ me, openItem }) {
         <p className="screen-note">This writes a new historical snapshot. Earlier employment history is not overwritten.</p>
 
         <FieldGroup label="Change">
-          <select className="field" value={employmentForm.changeType} onChange={(event) => setEmploymentForm({ ...employmentForm, changeType: event.target.value })}>
+          <select className="field" aria-label="Change" value={employmentForm.changeType} onChange={(event) => setEmploymentForm({ ...employmentForm, changeType: event.target.value })}>
             {EMPLOYMENT_CHANGES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
           </select>
         </FieldGroup>
         {employmentForm.changeType === "correction" && <FieldGroup label="Event being corrected">
-          <select className="field" value={employmentForm.correctionOf} onChange={(event) => setEmploymentForm({ ...employmentForm, correctionOf: event.target.value })}>
+          <select className="field" aria-label="Event being corrected" value={employmentForm.correctionOf} onChange={(event) => setEmploymentForm({ ...employmentForm, correctionOf: event.target.value })}>
             <option value="">Choose history event</option>
             {employmentHistory.map((event) => <option key={event.id} value={event.id}>{dateOnly(event.effective_on)} · {employmentChangeLabel(event.change_type)}</option>)}
           </select>
         </FieldGroup>}
-        <FieldGroup label="Effective date"><input className="field" type="date" value={employmentForm.effectiveOn} onChange={(event) => setEmploymentForm({ ...employmentForm, effectiveOn: event.target.value })} /></FieldGroup>
-        <FieldGroup label="Employment type"><input className="field" value={employmentForm.employmentType} onChange={(event) => setEmploymentForm({ ...employmentForm, employmentType: event.target.value })} placeholder="Permanent, contract, volunteer…" /></FieldGroup>
-        <FieldGroup label="Job title"><input className="field" value={employmentForm.jobTitle} onChange={(event) => setEmploymentForm({ ...employmentForm, jobTitle: event.target.value })} /></FieldGroup>
+        <FieldGroup label="Effective date"><input className="field" aria-label="Effective date" type="date" value={employmentForm.effectiveOn} onChange={(event) => setEmploymentForm({ ...employmentForm, effectiveOn: event.target.value })} /></FieldGroup>
+        <FieldGroup label="Employment type"><input className="field" aria-label="Employment type" value={employmentForm.employmentType} onChange={(event) => setEmploymentForm({ ...employmentForm, employmentType: event.target.value })} placeholder="Permanent, contract, volunteer…" /></FieldGroup>
+        <FieldGroup label="Job title"><input className="field" aria-label="Job title" value={employmentForm.jobTitle} onChange={(event) => setEmploymentForm({ ...employmentForm, jobTitle: event.target.value })} /></FieldGroup>
         <FieldGroup label="Primary unit">
-          <select className="field" value={employmentForm.unitId} onChange={(event) => setEmploymentForm({ ...employmentForm, unitId: event.target.value, managerId: "" })}>
+          <select className="field" aria-label="Primary unit" value={employmentForm.unitId} onChange={(event) => setEmploymentForm({ ...employmentForm, unitId: event.target.value, managerId: "" })}>
             <option value="">No primary unit</option>
             {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
           </select>
         </FieldGroup>
         <FieldGroup label="Role">
-          <select className="field" value={employmentForm.role} onChange={(event) => setEmploymentForm({ ...employmentForm, role: event.target.value })}>
+          <select className="field" aria-label="Role" value={employmentForm.role} onChange={(event) => setEmploymentForm({ ...employmentForm, role: event.target.value })}>
             <option value="staff">Staff</option>
             <option value="sub_team_lead">Team lead</option>
             <option value="manager">Unit head</option>
           </select>
         </FieldGroup>
         <FieldGroup label="Manager">
-          <select className="field" value={employmentForm.managerId} onChange={(event) => setEmploymentForm({ ...employmentForm, managerId: event.target.value })}>
+          <select className="field" aria-label="Manager" value={employmentForm.managerId} onChange={(event) => setEmploymentForm({ ...employmentForm, managerId: event.target.value })}>
             <option value="">No manager recorded</option>
             {rows.filter((entry) => entry.id !== person.id && entry.active && entry.unit_id === employmentForm.unitId)
               .map((entry) => <option key={entry.id} value={entry.id}>{entry.full_name}</option>)}
           </select>
         </FieldGroup>
         <FieldGroup label="Working pattern">
-          <select className="field" value={employmentForm.workingPattern} onChange={(event) => setEmploymentForm({ ...employmentForm, workingPattern: event.target.value })}>
+          <select className="field" aria-label="Working pattern" value={employmentForm.workingPattern} onChange={(event) => setEmploymentForm({ ...employmentForm, workingPattern: event.target.value })}>
             <option value="not_recorded">Not recorded</option>
             <option value="full_time">Full time</option>
             <option value="part_time">Part time</option>
@@ -368,15 +368,15 @@ export default function People({ me, openItem }) {
           </select>
         </FieldGroup>
         <FieldGroup label="Employment status">
-          <select className="field" value={employmentForm.status} onChange={(event) => setEmploymentForm({ ...employmentForm, status: event.target.value, exitedOn: event.target.value === "exited" ? employmentForm.exitedOn : "" })}>
+          <select className="field" aria-label="Employment status" value={employmentForm.status} onChange={(event) => setEmploymentForm({ ...employmentForm, status: event.target.value, exitedOn: event.target.value === "exited" ? employmentForm.exitedOn : "" })}>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
             <option value="exited">Exited</option>
           </select>
         </FieldGroup>
-        <FieldGroup label="Joined"><input className="field" type="date" value={employmentForm.joinedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, joinedOn: event.target.value })} /></FieldGroup>
-        {employmentForm.status === "exited" && <FieldGroup label="Exit date"><input className="field" type="date" value={employmentForm.exitedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, exitedOn: event.target.value })} /></FieldGroup>}
-        <FieldGroup label="Reason / context"><textarea className="field" rows="3" value={employmentForm.reason} onChange={(event) => setEmploymentForm({ ...employmentForm, reason: event.target.value })} placeholder="Why this employment record changed" /></FieldGroup>
+        <FieldGroup label="Joined"><input className="field" aria-label="Joined" type="date" value={employmentForm.joinedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, joinedOn: event.target.value })} /></FieldGroup>
+        {employmentForm.status === "exited" && <FieldGroup label="Exit date"><input className="field" aria-label="Exit date" type="date" value={employmentForm.exitedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, exitedOn: event.target.value })} /></FieldGroup>}
+        <FieldGroup label="Reason / context"><textarea className="field" aria-label="Reason / context" rows="3" value={employmentForm.reason} onChange={(event) => setEmploymentForm({ ...employmentForm, reason: event.target.value })} placeholder="Why this employment record changed" /></FieldGroup>
 
         {error && <ProductNotice tone="error" title="Employment change">{error}</ProductNotice>}
         <button className="btn" style={{ marginTop: 14 }} onClick={saveEmployment}
