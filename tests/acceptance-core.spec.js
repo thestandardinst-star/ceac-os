@@ -1227,7 +1227,7 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
     await expect(page.getByRole("button", { name: "Record correction", exact: true })).toHaveCount(0);
 
     await page.getByRole("tab", { name: "Leave", exact: true }).click();
-    const leaveRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: "Annual" }).first();
+    const leaveRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: "Annual" }).filter({ hasText: "Pending" }).first();
     await expect(leaveRow).toBeVisible();
     page.once("dialog", (prompt) => prompt.accept("Acceptance manager approval"));
     await leaveRow.getByRole("button", { name: "Approve", exact: true }).click();
