@@ -131,7 +131,7 @@ function tabItems(isManager = false) {
   return [["home","Home"],["work","Work"],["team","Team"],["me","Me"]];
 }
 
-function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit = false, canAuthority = false, canWorkflows = false }) {
+function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false }) {
   if (isExec) return [
     { label:"Ministry", items:[["home","Home"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
@@ -142,7 +142,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canAudit
     { label:"People", items:[...(canPeople ? [["people","People"]] : []),["attendance","Attendance"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
-    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),["settings","Settings"],["me","Me"]] },
+    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
   ];
   if (isManager) return [
     { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"]] },
@@ -156,7 +156,7 @@ export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
     units:"Units", people:"People", attendance:"Attendance & leave", reporting:"Reports",
-    finance:"Finance", cost:"Cost", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
+    finance:"Finance", cost:"Cost", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
   };
@@ -186,6 +186,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
     canAudit: capabilities.includes("audit.view"),
     canAuthority: capabilities.includes("authority.manage"),
     canWorkflows: capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage"),
+    canIntegrations: capabilities.includes("integration.manage"),
   });
   return (
     <aside className="side">
@@ -239,6 +240,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
       ...(capabilities.includes("audit.view") ? [["audit","Audit"],["events","Events"]] : []),
       ...((capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage")) ? [["workflows","Workflows"]] : []),
       ...(capabilities.includes("authority.manage") ? [["authority","Authority"],["policies","Policies & rules"]] : []),
+      ...(capabilities.includes("integration.manage") ? [["integrations","Integrations"]] : []),
       ["settings","Settings"],["me","Me"]
     ] },
   ];
