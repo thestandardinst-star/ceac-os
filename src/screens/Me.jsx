@@ -4,7 +4,7 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal, openRecord, openPerformance }) {
+export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce }) {
   const [profile, setProfile] = useState(me);
   const [balance, setBalance] = useState(null);
   const [settings, setSettings] = useState(null);
@@ -92,14 +92,11 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
     try {
       const days = daysBetween(startDate, endDate);
       if (days <= 0) throw new Error("Pick a valid range.");
-      const { error } = await supabase.from("leave_requests").insert({
-        org_id: me.org_id,
-        profile_id: me.id,
-        kind,
-        start_date: startDate,
-        end_date: endDate,
-        days,
-        reason: reason || null,
+      const { error } = await supabase.rpc("workforce_request_leave", {
+        p_kind: kind,
+        p_start_date: startDate,
+        p_end_date: endDate,
+        p_reason: reason || null,
       });
       if (error) throw error;
       setSheet(null); setKind("annual"); setStartDate(""); setEndDate(""); setReason("");
@@ -207,6 +204,10 @@ export default function Me({ me, openGoal, openRecord, openPerformance }) {
       </button>
       {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openPerformance?.()}>
         <span><strong>Reviews & development</strong><small>Your review evidence, reflection, manager assessment, responses and development plan.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openWorkforce?.()}>
+        <span><strong>My workforce context</strong><small>Your schedule, recorded session context, leave history and attendance corrections.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
     </div>
