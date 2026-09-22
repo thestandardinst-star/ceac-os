@@ -820,6 +820,16 @@ test("Stage 6 Workload keeps capacity components factual and manager-scoped", as
     await expect(page.getByText("Project commitments overlapping this horizon", { exact: true })).toBeVisible();
     await expect(page.getByText("10 h \/ week", { exact: false }).first()).toBeVisible();
     await expect(page.getByText("Acceptance Stage 6 project commitment", { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage6-workload-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Workload", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage6-workload-mobile.png", fullPage: true });
     await context.close();
   }
 
