@@ -10,12 +10,11 @@
 - Supabase project: `efjljhftsesssumtshvp` (`ceac-os`), status ACTIVE_HEALTHY.
 - Database: PostgreSQL 17.6, region eu-west-1.
 - Repository baseline includes migrations through `073_private_meeting_notes`.
-- Live Supabase migration history currently ends at `meeting_participant_authority` (072).
-- Live schema nevertheless contains the 073 `meeting_private_notes` table and the decision-only `meeting_records` constraint.
-- Live migration-history versions for contextual Rooms through meeting authority do not match the timestamped filenames currently stored in GitHub. This is migration-history drift and must be reconciled before any new migration is introduced.
+- Live Supabase migration history is reconciled through `20260922033628` — `074_reduce_internal_rpc_surface`.
+- The repository contains the same canonical history through 074; the earlier 069–073 bookkeeping drift is repaired without replaying migration SQL.
 - Every public application table inspected has RLS enabled.
 - Public SECURITY DEFINER functions: 96 total.
-- Authenticated-callable public SECURITY DEFINER functions: 73.
+- Authenticated-callable public SECURITY DEFINER functions: 67 after migration 074.
 - Anonymous-callable public SECURITY DEFINER functions: 0.
 - Public SECURITY DEFINER functions without fixed `search_path`: 0.
 - `ceac-hr-private` exists and is private.
@@ -23,7 +22,7 @@
 - No direct browser Storage policy currently grants access to `ceac-hr-private`.
 - `hr_private.audit_events` has its immutable trigger present.
 - No protected-HCM/payroll-like columns are present in `public.profiles`.
-- Supabase Security Advisor reports 73 signed-in-callable SECURITY DEFINER warnings. Their semantic review is complete; permission reduction remains deferred until migration-history repair.
+- Supabase Security Advisor reports 67 signed-in-callable SECURITY DEFINER warnings after migration 074. Their semantic review is complete and the six internal-only helpers identified in Stage 0 no longer have direct authenticated EXECUTE.
 - Supabase Security Advisor also reports leaked-password protection disabled. Current Supabase documentation makes that control available on Pro and above.
 - Security Advisor also reports four RLS-enabled/no-policy tables. Two are `hr_private` tables deliberately outside browser schema access; two are reference counters intentionally accessed through authorised RPCs. These remain explicit review items, not automatic defects.
 - GitHub repository rulesets endpoint currently returns no rulesets.
@@ -40,13 +39,14 @@ It blocks:
 - public tables without RLS;
 - anonymous execution of public SECURITY DEFINER functions;
 - SECURITY DEFINER functions without fixed `search_path`;
-- growth beyond the reviewed 73 authenticated-callable definer ceiling without explicit review;
+- deviation from the reviewed post-074 authenticated-callable SECURITY DEFINER surface of 67;
+- renewed authenticated execution of the six internal-only helpers removed by 074;
 - browser access to `hr_private`;
 - a public protected-HR bucket;
 - protected HCM/payroll fields in `public.profiles`;
 - loss of private Meeting-note policies;
 - loss of the decision-only Meeting record contract;
-- omission of migration 073 during clean replay.
+- omission of migration 074 during clean replay.
 
 ## CI evidence
 
@@ -57,18 +57,17 @@ It blocks:
 
 ## Hard Stage 0 blockers
 
-1. **Migration-history reconciliation** — determine and document how live 069–073 schema was applied and repair migration bookkeeping safely without replaying destructive SQL.
-2. **Repository protection** — enforce PR/required-check rules for `main`; connector cannot perform repository-admin writes.
-3. **Privileged RPC remediation** — semantic review is complete. Six internal-only helpers are candidates for direct authenticated EXECUTE revocation, but no permission migration may be created until migration-history repair is complete.
-4. **Supabase Auth/plan decision** — Security Advisor confirms leaked-password protection is disabled. The organisation is on Free, and Supabase documents leaked-password protection as Pro-and-above. Email/password configuration and privileged-account MFA still require dashboard/account verification.
-5. **Secrets/ownership review** — repository and live database source scans found no application secret pattern; there are no Edge Functions and the two cron jobs contain no detected embedded secret pattern. Account-level production credential ownership/recovery still requires human verification.
-6. **Backup/restore** — the organisation is on Free; Supabase does not provide automatic daily backups on this plan and recommends off-site CLI database exports. The runbook is ready, but one real production dump and safe non-production restore still must be executed.
-7. **Deployment inspection** — exact main SHA is tied to a successful Vercel deployment through GitHub status metadata. The connected Vercel account lacks authorisation to the deployment team scope, so exact deployment metadata and browser product inspection remain open.
+Repository/database hardening is complete and all automated gates pass on the current Stage 0 head. The remaining blockers are operational controls that cannot be truthfully closed by repository code alone:
+
+1. **Privileged application-account MFA** — two privileged CEAC OS profiles currently have no verified MFA factor. The affected account holders must enroll MFA; this must then be re-verified.
+2. **Backup/restore evidence** — on the current Supabase Free plan, one real production logical dump and a safe non-production restore test still need to be executed and recorded. Storage objects require separate backup handling.
+3. **Deployment product inspection** — Vercel reports the current Stage 0 preview as Ready, but the connected Vercel tool is not authorised to the owning team scope, and direct preview fetch is blocked by that protection boundary. A browser inspection by an authorised account is still required.
+4. **Credential ownership/recovery evidence** — repository/database scans are clean, but named human ownership/recovery for production credentials remains an account-level verification item.
 
 ## Rules until Stage 0 closes
 
 Do not:
-- create migration 074 or any later enterprise migration;
+- create migration 075 or any Stage 1 enterprise migration;
 - add Stage 1 tables;
 - add onboarding/device/performance/payroll product features;
 - modify live production data to mask migration drift;
@@ -102,3 +101,15 @@ Live Auth/profile inspection shows:
 Stage 0 therefore cannot claim privileged-account MFA closure yet. MFA enrollment must be completed by the affected account holders and then re-verified. This is an account-holder action, not a database migration.
 
 The project remains on Supabase Free. Leaked-password protection remains unavailable on the current plan; this is a documented plan limitation rather than an unverified setting.
+
+
+## Current automated evidence — 22 September 2026
+
+Current Stage 0 head `033786f2866e855b90291d3b8cc9b613d922a060` has:
+- CI — PASS;
+- Migration Replay — PASS;
+- Account Security — PASS;
+- Quality Gate — PASS;
+- Vercel deployment status — SUCCESS / Ready.
+
+A fresh Supabase Security Advisor check after 074 confirms 67 authenticated-callable SECURITY DEFINER functions and the four previously-reviewed RLS-enabled/no-policy informational findings. No new Stage 0 database security regression was introduced by 074.
