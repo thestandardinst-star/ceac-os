@@ -67,7 +67,8 @@ create table public.resource_project_commitment_versions (
   created_by uuid not null references public.profiles(id) on delete restrict,
   created_at timestamptz not null default now(),
   check (ends_on is null or ends_on>=starts_on),
-  check (state<>'withdrawn' or planned_minutes_per_week=0)
+  check (state<>'withdrawn' or planned_minutes_per_week=0),
+  check (state<>'withdrawn' or supersedes_id is not null)
 );
 
 create unique index resource_project_commitment_supersedes_uidx
