@@ -667,6 +667,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: "Record new version", exact: true }).click();
   await expect(page.getByText("Policy rule recorded.", { exact: true })).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: /Work quiet days/ }).click();
   await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
 
   await go(page, "Audit");
