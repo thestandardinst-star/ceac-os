@@ -9,6 +9,17 @@ const DAY_LABELS={sun:"Sun",mon:"Mon",tue:"Tue",wed:"Wed",thu:"Thu",fri:"Fri",sa
 function isoDay(value){ return new Date(value).toISOString().slice(0,10); }
 function niceDay(value){ return new Date(value+"T00:00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}); }
 function human(value=""){ return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase()); }
+function clock(value){
+  if(!value) return "Not recorded";
+  const date=new Date(value);
+  return date.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+}
+function metresBetween(aLat,aLng,bLat,bLng){
+  const R=6371000,toRad=(d)=>(d*Math.PI)/180;
+  const dLat=toRad(bLat-aLat),dLng=toRad(bLng-aLng);
+  const x=Math.sin(dLat/2)**2+Math.cos(toRad(aLat))*Math.cos(toRad(bLat))*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)));
+}
 
 export default function Workforce({ me }) {
   const caps=me.capabilities||[];
@@ -33,6 +44,8 @@ export default function Workforce({ me }) {
   const [datasetErrors,setDatasetErrors]=useState({});
   const [notice,setNotice]=useState(null);
   const [busy,setBusy]=useState(false);
+  const [calendarUnit,setCalendarUnit]=useState("");
+  const [calendarPerson,setCalendarPerson]=useState("");
 
   const [scheduleSheet,setScheduleSheet]=useState(false);
   const [schedulePerson,setSchedulePerson]=useState("");
@@ -77,7 +90,7 @@ export default function Workforce({ me }) {
     setLoading(true); setError(null);
     const since=new Date(Date.now()-31*86400000).toISOString();
     const datasets=[
-      ["people", supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active")],
+      ["people", supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,employment_type,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active")],
       ["sessions", supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,place,end_reason,flags,lat,lng,ip").gte("started_at",since).order("started_at",{ascending:false})],
       ["leave", supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles(full_name)").order("start_date",{ascending:false})],
       ["leave history", supabase.from("leave_request_events").select("*").order("created_at",{ascending:false})],
@@ -87,7 +100,7 @@ export default function Workforce({ me }) {
       ["leave policies", supabase.from("leave_policy_versions").select("*").order("created_at",{ascending:false})],
       ["leave policy rules", supabase.from("leave_policy_rules").select("*").order("leave_kind")],
       ["office location", supabase.from("office_locations").select("name,lat,lng,radius_meters").eq("is_primary",true).limit(1).maybeSingle()],
-      ["meetings", supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,unit_id").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString()).neq("status","cancelled")],
+      ["meetings", supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,unit_id,meeting_participants(profile_id)").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString()).neq("status","cancelled")],
       ["ministry events", supabase.from("ministry_events").select("id,title,starts_at,ends_at,location,cancelled,scope,unit_id").gte("starts_at",new Date().toISOString()).lte("starts_at",new Date(Date.now()+7*86400000).toISOString())],
     ];
     const results=await Promise.all(datasets.map(async ([name,query])=>({name,...await query})));
@@ -174,12 +187,13 @@ export default function Workforce({ me }) {
   }
 
   async function recordSchedule(){
+    const prior=latestSchedule(schedulePerson,scheduleFrom);
     const ok=await runRpc("workforce_record_schedule",{
       p_profile_id:schedulePerson,p_unit_id:peopleById[schedulePerson]?.unit_id||null,
       p_effective_from:scheduleFrom,p_effective_to:scheduleTo||null,p_source:"person",
-      p_day_map:{[scheduleDay]:scheduleDayType},
-      p_expected_start:scheduleStart||null,p_expected_end:scheduleEnd||null,
-      p_reason:scheduleReason.trim(),p_supersedes_id:null,
+      p_day_map:{...(prior?.day_map||{}),[scheduleDay]:scheduleDayType},
+      p_expected_start:scheduleStart||prior?.expected_start||null,p_expected_end:scheduleEnd||prior?.expected_end||null,
+      p_reason:scheduleReason.trim(),p_supersedes_id:prior?.id||null,
     },"Workforce schedule recorded.",["people","day types","schedules"]);
     if(ok){ setScheduleSheet(false); setScheduleReason(""); }
   }
@@ -191,6 +205,16 @@ export default function Workforce({ me }) {
       p_after_context:{note:correctionNote.trim()},p_reason:correctionReason.trim(),p_reverses_id:null,
     },"Attendance context correction recorded.");
     if(ok){ setCorrectionSheet(false); setCorrectionNote(""); setCorrectionReason(""); }
+  }
+
+  async function reverseCorrection(row){
+    const reason=window.prompt("Reason for reversing this attendance correction");
+    if(!reason) return;
+    await runRpc("workforce_record_attendance_correction",{
+      p_profile_id:row.profile_id,p_work_date:row.work_date,p_work_session_id:row.work_session_id||null,
+      p_correction_type:"reversal",p_before_context:{},p_after_context:{},
+      p_reason:reason,p_reverses_id:row.id,
+    },"Attendance correction reversal recorded.",["corrections"]);
   }
 
   async function leaveAction(id,action){
@@ -236,7 +260,76 @@ export default function Workforce({ me }) {
     && policyReason.trim().length>=3;
 
   const waitingLeave=leave.filter((l)=>["pending","escalated"].includes(l.status));
-  const tabs=[["today","Today"],["calendar","Calendar"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
+  const reversedCorrectionIds=new Set(corrections.filter((row)=>row.correction_type==="reversal"&&row.reverses_id).map((row)=>row.reverses_id));
+  const units=Array.from(new Map(people.filter((row)=>row.unit_id).map((row)=>[row.unit_id,row.units?.name||"Unit"])).entries());
+  const calendarPeople=people.filter((row)=>
+    (!calendarUnit||row.unit_id===calendarUnit)
+    && (!calendarPerson||row.profile_id===calendarPerson)
+  );
+
+  function effectiveCorrections(profileId,date){
+    return corrections.filter((row)=>
+      row.profile_id===profileId
+      && row.work_date===date
+      && row.correction_type!=="reversal"
+      && !reversedCorrectionIds.has(row.id)
+    );
+  }
+
+  function sessionFacts(profileId,date=today){
+    const rows=sessionsOn(profileId,date).slice().sort((a,b)=>new Date(a.started_at)-new Date(b.started_at));
+    return {
+      rows,
+      first:rows[0]||null,
+      last:rows[rows.length-1]||null,
+      lastEnd:rows.filter((row)=>row.ended_at).map((row)=>row.ended_at).sort().at(-1)||null,
+    };
+  }
+
+  function recordedDifferences(session){
+    const out=[];
+    if(session.end_reason&&session.end_reason!=="manual") out.push("Ended by the system rather than a manual end");
+    if(!session.ended_at&&isoDay(session.started_at)!==today) out.push("Session has no recorded end");
+    if(session.place==="office"&&office&&session.lat&&session.lng){
+      const distance=metresBetween(Number(office.lat),Number(office.lng),Number(session.lat),Number(session.lng));
+      if(distance>Number(office.radius_meters||100)) out.push("Marked as office; recorded "+distance+"m from the configured office point");
+    }
+    if(session.place==="office"&&!session.lat) out.push("Marked as office; no location was recorded");
+    if(session.flags&&typeof session.flags==="object"){
+      Object.entries(session.flags).forEach(([key,value])=>{if(value) out.push(human(key));});
+    }
+    return out;
+  }
+
+  function ruleForLeave(row){
+    if(!activePolicy) return null;
+    const employmentType=peopleById[row.profile_id]?.employment_type;
+    return activeRules.find((rule)=>rule.leave_kind===row.kind&&rule.employment_type===employmentType)
+      || activeRules.find((rule)=>rule.leave_kind===row.kind&&!rule.employment_type)
+      || null;
+  }
+
+  function calendarEventsOn(date){
+    const personUnit=calendarPerson?peopleById[calendarPerson]?.unit_id:null;
+    const unit=calendarUnit||personUnit||"";
+    const meetingRows=meetings.filter((row)=>{
+      if(isoDay(row.starts_at)!==date) return false;
+      if(calendarPerson){
+        return (row.meeting_participants||[]).some((p)=>p.profile_id===calendarPerson);
+      }
+      if(unit) return row.scope==="organisation"||row.unit_id===unit;
+      return true;
+    }).map((row)=>({id:"meeting-"+row.id,label:"Meeting",title:row.title,at:row.starts_at}));
+    const ministryRows=ministryEvents.filter((row)=>{
+      if(isoDay(row.starts_at)!==date) return false;
+      if(unit) return row.scope==="church"||row.unit_id===unit;
+      return true;
+    }).map((row)=>({id:"ministry-"+row.id,label:"Ministry activity",title:row.title,at:row.starts_at}));
+    return [...meetingRows,...ministryRows].sort((a,b)=>new Date(a.at)-new Date(b.at));
+  }
+
+  const flaggedSessions=sessions.map((session)=>({session,differences:recordedDifferences(session)})).filter((row)=>row.differences.length);
+  const tabs=[["today","Today"],["calendar","Calendar"],["sessions","Sessions"],["differences","Recorded differences"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
 
   if(loading) return <div className="body"><LoadingState label="Loading workforce…" /></div>;
 
