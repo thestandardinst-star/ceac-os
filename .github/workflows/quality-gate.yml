@@ -115,6 +115,9 @@ jobs:
       - name: Run Stage 5 Work Management 2.0 gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/work_management_stage5_gate.sql
 
+      - name: Run Stage 6 Resource and Workload gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/resource_workload_stage6_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
