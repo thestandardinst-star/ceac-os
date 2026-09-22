@@ -6,7 +6,7 @@
 **Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`
 **Active branch:** `chatgpt/enterprise-expansion-stage-0-2026-09-22`
 **Current stage:** Stage 0 — Platform baseline and production security closure
-**Latest known migration on baseline:** 073 — private meeting notes
+**Latest production migration reconciled on Stage 0 branch:** 074 — reduce internal privileged RPC surface
 
 ## 1. Governing architecture
 
@@ -167,12 +167,7 @@ Completed and evidenced on PR #19:
 
 ### Immediate next gate
 
-Execute Supabase's supported migration-history repair only. Do not rerun migration SQL and do not use `db push`.
-
-The verified repair sequence is documented in:
-`docs/security/CEAC_OS_STAGE0_MIGRATION_HISTORY_REPAIR_RUNBOOK_2026-09-22.md`.
-
-After repair, verify remote/local migration alignment through 073 before creating migration 074.
+Repository/database reconciliation is complete through 074. The remaining Stage 0 exit work is operational evidence: privileged production-account controls, backup/restore evidence, and exact deployed-product inspection. Stage 1 remains blocked until those exit gates are closed.
 
 
 ### Migration history reconciliation — completed
@@ -181,4 +176,6 @@ Production migration history was repaired using Supabase's supported `migration 
 
 No migration SQL was rerun as part of the repair.
 
-Migration 074 is now the current Stage 0 hardening change. It reduces direct authenticated execution of six reviewed internal-only privileged helpers. Production must not receive 074 until the current PR head passes clean replay, account security, Platform Kernel/RLS and browser-role acceptance.
+Migration 074 is the current Stage 0 hardening change. Production already contains the migration, and the exact production SQL has been recovered into the repository. It reduces direct authenticated execution of six reviewed internal-only privileged helpers. The Platform Kernel gate now enforces the post-074 authenticated SECURITY DEFINER surface of 67.
+
+The current PR head has passed CI, Migration Replay, Account Security and the full Quality Gate. Vercel deployment for the current head is presently blocked by the provider's build-rate limit; deployed-product inspection therefore remains open.
