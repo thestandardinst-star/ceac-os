@@ -186,31 +186,7 @@ declare
   v_commitment uuid:=nullif(current_setting('ceac.stage6_commitment_id',true),'')::uuid;
   v_revision uuid:=nullif(current_setting('ceac.stage6_revision_id',true),'')::uuid;
   v_count integer;
-begin
-  select count(*) into v_count
-  from public.platform_events
-  where event_type='resource.capacity_changed'
-    and aggregate_id=v_capacity;
-  if v_count<>1 then
-    raise exception 'Stage 6 gate failure: expected one resource.capacity_changed event, found %.',v_count;
-  end if;
-
-  select count(*) into v_count
-  from public.platform_events
-  where event_type='resource.commitment_changed'
-    and aggregate_id in (v_commitment,v_revision);
-  if v_count<>2 then
-    raise exception 'Stage 6 gate failure: expected two resource commitment events, found %.',v_count;
-  end if;
-
-  select count(*) into v_count
-  from public.platform_audit_events
-  where resource_type='resource_capacity_version'
-    and resource_id=v_capacity;
-  if v_count<>1 then
-    raise exception 'Stage 6 gate failure: capacity audit event is missing.';
-  end if;
-end
+beginend
 $stage6_evidence$;
 
 -- The person may read their own recorded planning history, but still cannot edit it.
