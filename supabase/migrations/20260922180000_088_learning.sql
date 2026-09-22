@@ -492,7 +492,7 @@ begin
   new.updated_at:=now();
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.learning_course_guard() from public,anon,authenticated;
 
@@ -530,7 +530,7 @@ begin
   new.updated_at:=now();
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.learning_draft_content_guard() from public,anon,authenticated;
 
@@ -588,7 +588,7 @@ begin
   new.updated_at:=now();
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.learning_assignment_rule_guard() from public,anon,authenticated;
 
