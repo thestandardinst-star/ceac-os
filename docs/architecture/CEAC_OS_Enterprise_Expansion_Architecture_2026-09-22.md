@@ -1,9 +1,9 @@
 # CEAC OS — Enterprise Expansion Architecture
 
-**Date:** 22 September 2026  
-**Status:** APPROVED / BINDING  
-**Programme:** CEAC OS Platform Kernel → Enterprise HCM + Work Management expansion  
-**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`  
+**Date:** 22 September 2026
+**Status:** APPROVED / BINDING
+**Programme:** CEAC OS Platform Kernel → Enterprise HCM + Work Management expansion
+**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`
 **Precedence:** This is the newest approved whole-system expansion architecture. It supplements the 20 September Architecture Amendment and the 21 September Product Intelligence, Collaboration/PWA, Assistive Input and security contracts. It does not weaken existing RLS, protected-HR, Work Engine, finance, evidence, meeting-authority or audit requirements.
 
 ## 1. Product definition
