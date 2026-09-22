@@ -646,6 +646,13 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.reload();
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
 
+  await go(page, "Events");
+  await expect(page.getByRole("heading", { name: "System events", exact: true })).toBeVisible();
+  await expect(page.getByText("Event stream", { exact: true })).toBeVisible();
+  await expect(page.getByText("Employment · Changed", { exact: true }).first()).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "System events", exact: true })).toBeVisible();
+
   await go(page, "Attendance");
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
   await expect(page.getByText(/not a performance judgement/i)).toBeVisible();
@@ -683,7 +690,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
