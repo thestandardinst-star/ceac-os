@@ -268,7 +268,7 @@ export default function App() {
     if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
     if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
-    if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
+    if (tab === "settings" && isAdmin) return <OfficeSettings me={me} openWorkforce={() => go("attendance")} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} openWorkforce={() => go("attendance")} />;
   }
 

@@ -1411,18 +1411,13 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await go(page, "Settings");
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Awaiting CEAC policy", { exact: true }).first()).toBeVisible();
-  await expect(page.getByPlaceholder("Not configured").first()).toHaveValue("");
-  await page.getByLabel("Annual leave days").fill("20");
-  await page.getByLabel("Sick leave days").fill("10");
-  await page.getByLabel("Maximum carry-over").fill("4");
-  await page.getByLabel("Manager approval limit").fill("3");
-  await page.getByRole("button", { name: "Confirm leave policy", exact: true }).click();
-  await expect(page.getByText("Leave policy confirmed", { exact: true })).toBeVisible();
-  await page.reload();
-  await expect(page.getByLabel("Annual leave days")).toHaveValue("20");
-  await expect(page.getByLabel("Sick leave days")).toHaveValue("10");
-  await expect(page.getByLabel("Maximum carry-over")).toHaveValue("4");
-  await expect(page.getByLabel("Manager approval limit")).toHaveValue("3");
+  await expect(page.getByRole("button", { name: "Configure policy in Workforce", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Configure policy in Workforce", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Configure leave policy", exact: true })).toBeVisible();
+
+  await go(page, "Settings");
 
   const attentionRule = page.locator(".office-threshold-row").filter({ hasText: "active work has not moved for" });
   const attentionInput = attentionRule.locator("input");
