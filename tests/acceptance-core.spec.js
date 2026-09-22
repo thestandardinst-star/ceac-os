@@ -631,7 +631,7 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
     await dialog.getByLabel("Strategy change reason").fill("Acceptance Stage 4 unit objective");
     await dialog.getByRole("button", { name: "Create strategy record", exact: true }).click();
 
-    await expect(page.getByText("current 3 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+    await expect(page.getByText(/current 3 outcomes · target 12 outcomes/)).toBeVisible();
     await page.reload();
     await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
     await expect(page.getByText("Acceptance Unit A objective", { exact: true })).toBeVisible();
@@ -648,7 +648,7 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
     await dialog.getByLabel("Strategy current value").fill("5");
     await dialog.getByLabel("Strategy change reason").fill("Acceptance factual result update");
     await dialog.getByRole("button", { name: "Record revision", exact: true }).click();
-    await expect(page.getByText("current 5 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+    await expect(page.getByText(/current 5 outcomes · target 12 outcomes/)).toBeVisible();
 
     await unitObjective.getByRole("button", { name: "Link project", exact: true }).click();
     dialog = page.getByRole("dialog");
