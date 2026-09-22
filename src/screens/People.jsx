@@ -1,10 +1,26 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
-import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter } from "../components/bits";
+import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
+const EMPLOYMENT_CHANGES = [
+  ["employment_details_changed","Employment details changed"],
+  ["transferred","Transfer"],
+  ["promoted","Promotion / title change"],
+  ["manager_changed","Manager changed"],
+  ["role_changed","Role changed"],
+  ["working_pattern_changed","Working pattern changed"],
+  ["status_changed","Status changed"],
+  ["exit_recorded","Exit recorded"],
+  ["correction","Correction"],
+];
+
+function employmentChangeLabel(value) {
+  return EMPLOYMENT_CHANGES.find(([key]) => key === value)?.[1]
+    || (value === "joined" ? "Joined" : value === "baseline_import" ? "Baseline record" : value);
+}
 
 function avgStartLabel(minutes) {
   if (minutes == null || Number.isNaN(Number(minutes))) return "—";
@@ -17,7 +33,11 @@ export default function People({ me, openItem }) {
   const [filter, setFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
   const [leavePolicy, setLeavePolicy] = useState(null);
+  const [units, setUnits] = useState([]);
   const [person, setPerson] = useState(null);
+  const [employmentEditor, setEmploymentEditor] = useState(false);
+  const [employmentForm, setEmploymentForm] = useState(null);
+  const [savingEmployment, setSavingEmployment] = useState(false);
   const [drill, setDrill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -28,9 +48,10 @@ export default function People({ me, openItem }) {
   async function load() {
     setLoading(true);
     setError(null);
-    const [peopleResult, leaveResult] = await Promise.all([
+    const [peopleResult, leaveResult, unitsResult] = await Promise.all([
       supabase.rpc("admin_people_summary"),
       supabase.from("leave_settings").select("annual_days,sick_days,max_carryover,updated_by,updated_at").eq("org_id", me.org_id).maybeSingle(),
+      supabase.from("units").select("id,name").eq("org_id", me.org_id).eq("active", true).order("name"),
     ]);
     if (peopleResult.error) {
       setError(humanError(peopleResult.error, "The People record could not load."));
@@ -42,8 +63,14 @@ export default function People({ me, openItem }) {
       setLoading(false);
       return;
     }
+    if (unitsResult.error) {
+      setError(humanError(unitsResult.error, "Organisation units could not load."));
+      setLoading(false);
+      return;
+    }
     setRows(Array.isArray(peopleResult.data) ? peopleResult.data : []);
     setLeavePolicy(leaveResult.data?.updated_by ? leaveResult.data : null);
+    setUnits(unitsResult.data || []);
     setLoading(false);
   }
 
@@ -51,12 +78,16 @@ export default function People({ me, openItem }) {
     setDetailLoading(true);
     setError(null);
     setDrill(null);
-    const { data, error: detailError } = await supabase.rpc("admin_person_detail", { p_profile_id: summary.id });
+    const [detailResult, employmentResult] = await Promise.all([
+      supabase.rpc("admin_person_detail", { p_profile_id: summary.id }),
+      supabase.rpc("admin_employment_detail", { p_profile_id: summary.id }),
+    ]);
     setDetailLoading(false);
-    if (detailError) {
-      setError(humanError(detailError, "That employee record could not load."));
+    if (detailResult.error || employmentResult.error) {
+      setError(humanError(detailResult.error || employmentResult.error, "That employee record could not load."));
       return;
     }
+    const data = detailResult.data;
     const work = Array.isArray(data?.work) ? data.work.map((item) => ({
       ...item,
       projects: item.project_name ? { name: item.project_name } : null,
@@ -74,12 +105,76 @@ export default function People({ me, openItem }) {
       openWork: work.filter((item) => !["completed","self_certified","cancelled"].includes(item.status)),
       sessions,
       leave,
+      employment: employmentResult.data || { current: null, history: [] },
       balance: {
         annual_taken: summary.annual_taken || 0,
         sick_taken: summary.sick_taken || 0,
         carryover_from_last_year: summary.carryover_from_last_year || 0,
       },
     });
+  }
+
+  function openEmploymentEditor() {
+    if (!person) return;
+    const current = person.employment?.current || {};
+    setEmploymentForm({
+      changeType: "employment_details_changed",
+      effectiveOn: new Date().toISOString().slice(0, 10),
+      employmentType: current.employment_type || person.contract_type || "not_recorded",
+      jobTitle: current.job_title ?? person.job_title ?? "",
+      unitId: current.unit_id || person.unit_id || "",
+      managerId: current.manager_profile_id || "",
+      role: current.membership_role || person.role || "staff",
+      workingPattern: current.working_pattern?.kind || "not_recorded",
+      status: current.employment_status || (person.active ? "active" : "inactive"),
+      joinedOn: current.joined_on || person.started_on || "",
+      exitedOn: current.exited_on || "",
+      reason: "",
+      correctionOf: "",
+    });
+    setEmploymentEditor(true);
+  }
+
+  async function saveEmployment() {
+    if (!person || !employmentForm) return;
+    setSavingEmployment(true);
+    setError(null);
+    const { data, error: saveError } = await supabase.rpc("admin_update_employment", {
+      p_profile_id: person.id,
+      p_employment_type: employmentForm.employmentType,
+      p_job_title: employmentForm.jobTitle || null,
+      p_unit_id: employmentForm.unitId || null,
+      p_manager_profile_id: employmentForm.managerId || null,
+      p_membership_role: employmentForm.role,
+      p_working_pattern: { kind: employmentForm.workingPattern || "not_recorded" },
+      p_employment_status: employmentForm.status,
+      p_joined_on: employmentForm.joinedOn || null,
+      p_exited_on: employmentForm.status === "exited" ? (employmentForm.exitedOn || null) : null,
+      p_change_type: employmentForm.changeType,
+      p_effective_on: employmentForm.effectiveOn,
+      p_reason: employmentForm.reason || null,
+      p_correction_of: employmentForm.changeType === "correction" ? (employmentForm.correctionOf || null) : null,
+    });
+    setSavingEmployment(false);
+    if (saveError) {
+      setError(humanError(saveError, "The employment change could not be recorded."));
+      return;
+    }
+    const current = data?.current || {};
+    setPerson((value) => ({
+      ...value,
+      employment: data,
+      unit_id: current.unit_id,
+      unit_name: current.unit_name,
+      role: current.membership_role,
+      job_title: current.job_title,
+      contract_type: current.employment_type,
+      started_on: current.joined_on,
+      active: current.employment_status === "active",
+    }));
+    setEmploymentEditor(false);
+    setEmploymentForm(null);
+    load();
   }
 
   if (loading) return <div className="body"><LoadingState label="Loading People…" /></div>;
@@ -110,6 +205,8 @@ export default function People({ me, openItem }) {
   }
 
   if (person) {
+    const employmentCurrent = person.employment?.current || null;
+    const employmentHistory = Array.isArray(person.employment?.history) ? person.employment.history : [];
     const taken = Number(person.balance?.annual_taken || 0);
     const entitlement = leavePolicy ? Number(leavePolicy.annual_days || 0) + Number(person.balance?.carryover_from_last_year || 0) : null;
     const Fig = ({ n, label, kind, list }) => <button className="metric" style={{ textAlign: "left", width: "100%" }}
@@ -124,12 +221,12 @@ export default function People({ me, openItem }) {
       <section className="person-identity-header">
         <Avatar name={person.full_name} size="lg" />
         <div className="person-identity-copy">
-          <div className="eyebrow">{person.unit_name || "No unit"}{person.role === "manager" ? " · Unit head" : ""}</div>
+          <div className="eyebrow">{employmentCurrent?.unit_name || person.unit_name || "No unit"}{(employmentCurrent?.membership_role || person.role) === "manager" ? " · Unit head" : ""}</div>
           <h1 className="h1">{person.full_name}</h1>
-          <p className="screen-note">{person.job_title || "No job title recorded"}</p>
+          <p className="screen-note">{employmentCurrent?.job_title || person.job_title || "No job title recorded"}</p>
         </div>
         <div className="person-identity-state">
-          <span>{person.active ? "Active" : "Inactive"}</span>
+          <span>{employmentCurrent?.employment_status || (person.active ? "Active" : "Inactive")}</span>
           {person.on_leave_now && <b>On approved leave</b>}
         </div>
       </section>
@@ -172,6 +269,34 @@ export default function People({ me, openItem }) {
             {person.birthday && <Line l="Birthday" v={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
           </div>
 
+
+          <div className="sec"><span>Employment record</span><button className="text-action" onClick={openEmploymentEditor}>Record change</button></div>
+          <div className="card" style={{ padding: "4px 15px" }}>
+            <Line l="Employment type" v={employmentCurrent?.employment_type || person.contract_type || "not recorded"} />
+            <Line l="Title" v={employmentCurrent?.job_title || person.job_title || "not recorded"} />
+            <Line l="Primary unit" v={employmentCurrent?.unit_name || person.unit_name || "not recorded"} />
+            <Line l="Manager" v={employmentCurrent?.manager_name || "not recorded"} />
+            <Line l="Role" v={(employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ")} />
+            <Line l="Working pattern" v={(employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ")} />
+            <Line l="Joined" v={employmentCurrent?.joined_on ? dateOnly(employmentCurrent.joined_on) : "not recorded"} />
+            <Line l="Status" v={(employmentCurrent?.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ")} />
+            {employmentCurrent?.exited_on && <Line l="Exit" v={dateOnly(employmentCurrent.exited_on)} />}
+          </div>
+
+          <div className="sec"><span>Employment history</span><span>{employmentHistory.length}</span></div>
+          {employmentHistory.length === 0
+            ? <div className="card small">No employment history has been recorded yet.</div>
+            : employmentHistory.slice(0, 12).map((event) => <div className="row" key={event.id}>
+                <div className="row-t">{employmentChangeLabel(event.change_type)}</div>
+                <div className="row-m">
+                  Effective {dateOnly(event.effective_on)}
+                  {event.job_title ? " · " + event.job_title : ""}
+                  {event.unit_name ? " · " + event.unit_name : ""}
+                  {event.actor_name ? " · recorded by " + event.actor_name : " · system baseline"}
+                </div>
+                {event.reason && <div className="small" style={{ marginTop: 6 }}>{event.reason}</div>}
+              </div>)}
+
           <div className="sec"><span>Leave</span></div>
           <div className="card person-leave-card">
             {leavePolicy
@@ -194,6 +319,71 @@ export default function People({ me, openItem }) {
           <p className="screen-note">These records are deliberately not stored in the ordinary employee profile. CEAC policy must be confirmed before protected fields or payroll calculations are introduced.</p>
         </div>
       </div>
+
+      {employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
+        <div className="eyebrow">People & employment</div>
+        <div className="h2">Record employment change</div>
+        <p className="screen-note">This writes a new historical snapshot. Earlier employment history is not overwritten.</p>
+
+        <FieldGroup label="Change">
+          <select className="field" value={employmentForm.changeType} onChange={(event) => setEmploymentForm({ ...employmentForm, changeType: event.target.value })}>
+            {EMPLOYMENT_CHANGES.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </FieldGroup>
+        {employmentForm.changeType === "correction" && <FieldGroup label="Event being corrected">
+          <select className="field" value={employmentForm.correctionOf} onChange={(event) => setEmploymentForm({ ...employmentForm, correctionOf: event.target.value })}>
+            <option value="">Choose history event</option>
+            {employmentHistory.map((event) => <option key={event.id} value={event.id}>{dateOnly(event.effective_on)} · {employmentChangeLabel(event.change_type)}</option>)}
+          </select>
+        </FieldGroup>}
+        <FieldGroup label="Effective date"><input className="field" type="date" value={employmentForm.effectiveOn} onChange={(event) => setEmploymentForm({ ...employmentForm, effectiveOn: event.target.value })} /></FieldGroup>
+        <FieldGroup label="Employment type"><input className="field" value={employmentForm.employmentType} onChange={(event) => setEmploymentForm({ ...employmentForm, employmentType: event.target.value })} placeholder="Permanent, contract, volunteer…" /></FieldGroup>
+        <FieldGroup label="Job title"><input className="field" value={employmentForm.jobTitle} onChange={(event) => setEmploymentForm({ ...employmentForm, jobTitle: event.target.value })} /></FieldGroup>
+        <FieldGroup label="Primary unit">
+          <select className="field" value={employmentForm.unitId} onChange={(event) => setEmploymentForm({ ...employmentForm, unitId: event.target.value, managerId: "" })}>
+            <option value="">No primary unit</option>
+            {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Role">
+          <select className="field" value={employmentForm.role} onChange={(event) => setEmploymentForm({ ...employmentForm, role: event.target.value })}>
+            <option value="staff">Staff</option>
+            <option value="sub_team_lead">Team lead</option>
+            <option value="manager">Unit head</option>
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Manager">
+          <select className="field" value={employmentForm.managerId} onChange={(event) => setEmploymentForm({ ...employmentForm, managerId: event.target.value })}>
+            <option value="">No manager recorded</option>
+            {rows.filter((entry) => entry.id !== person.id && entry.active && entry.unit_id === employmentForm.unitId)
+              .map((entry) => <option key={entry.id} value={entry.id}>{entry.full_name}</option>)}
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Working pattern">
+          <select className="field" value={employmentForm.workingPattern} onChange={(event) => setEmploymentForm({ ...employmentForm, workingPattern: event.target.value })}>
+            <option value="not_recorded">Not recorded</option>
+            <option value="full_time">Full time</option>
+            <option value="part_time">Part time</option>
+            <option value="flexible">Flexible</option>
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Employment status">
+          <select className="field" value={employmentForm.status} onChange={(event) => setEmploymentForm({ ...employmentForm, status: event.target.value, exitedOn: event.target.value === "exited" ? employmentForm.exitedOn : "" })}>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="exited">Exited</option>
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Joined"><input className="field" type="date" value={employmentForm.joinedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, joinedOn: event.target.value })} /></FieldGroup>
+        {employmentForm.status === "exited" && <FieldGroup label="Exit date"><input className="field" type="date" value={employmentForm.exitedOn} onChange={(event) => setEmploymentForm({ ...employmentForm, exitedOn: event.target.value })} /></FieldGroup>}
+        <FieldGroup label="Reason / context"><textarea className="field" rows="3" value={employmentForm.reason} onChange={(event) => setEmploymentForm({ ...employmentForm, reason: event.target.value })} placeholder="Why this employment record changed" /></FieldGroup>
+
+        {error && <ProductNotice tone="error" title="Employment change">{error}</ProductNotice>}
+        <button className="btn" style={{ marginTop: 14 }} onClick={saveEmployment}
+          disabled={savingEmployment || !employmentForm.effectiveOn || !employmentForm.employmentType.trim() || (employmentForm.status === "exited" && !employmentForm.exitedOn) || (employmentForm.changeType === "correction" && !employmentForm.correctionOf)}>
+          {savingEmployment ? "Recording…" : "Record employment change"}
+        </button>
+      </Sheet>}
     </div>;
   }
 
