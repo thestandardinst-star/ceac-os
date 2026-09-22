@@ -2,13 +2,11 @@
 
 The live schema lives in Supabase project `efjljhftsesssumtshvp`.
 
-Repository migrations **001–073** are the canonical application history.
+Repository migrations **001–074** are the canonical application history.
 
 ## Repository coverage
 
-The repository contains immutable migration files through **073 — private meeting notes**. The live schema contains the effects of 073, but the live Supabase migration ledger currently records alternate timestamps for 069–072 and has no 073 row. This is a bookkeeping drift, not missing live schema.
-
-Do not add migration 074 until the ledger is reconciled using Supabase's supported migration-history repair mechanism. See `docs/security/CEAC_OS_STAGE0_MIGRATION_HISTORY_REPAIR_RUNBOOK_2026-09-22.md`.
+The repository and live Supabase migration ledger are reconciled through **074 — reduce internal privileged RPC surface**. The earlier timestamp drift for 069–072 and missing 073 ledger row were repaired using Supabase's supported migration-history repair mechanism without replaying migration SQL. Production's already-applied 074 was recovered into the repository and verified against the live migration record.
 
 On 20 September 2026, migrations 001–033 were recovered directly from Supabase's own `supabase_migrations.schema_migrations.statements` registry. They were not reconstructed from the current schema; repository-only trailing whitespace was normalised where required by CI. Migrations 034–039 were already committed as the emergency security-hardening batch.
 
@@ -28,7 +26,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The migration-history reconciliation is now complete and verified through 073. Migration **074** is the current Stage 0 hardening migration on PR #19; no later migration should be created until 074 passes all gates and is applied/verified.
+The migration-history reconciliation is complete and verified through 074. Migration **074** is the current Stage 0 hardening migration on PR #19; no later migration should be created until Stage 0 closes and the reviewed branch is merged.
 
 
 ## 20 September backend continuation
@@ -112,7 +110,7 @@ A clean local Supabase replay workflow now rebuilds the application schema from 
 - **072** — meeting participant authority hardening.
 - **073** — private meeting notes separated from shared decision records; shared meeting records are decision-only.
 
-The repository timestamps for 069–073 are canonical. Production currently has the correct 073 schema state but its migration ledger does not yet match those canonical timestamps. No migration SQL should be replayed merely to repair that ledger.
+The repository timestamps for 069–073 are canonical. Production migration history has been reconciled to those timestamps, and 074 is aligned locally and remotely. No migration SQL was replayed merely to repair the ledger.
 
 
 ### 074 — reduce internal privileged RPC surface
