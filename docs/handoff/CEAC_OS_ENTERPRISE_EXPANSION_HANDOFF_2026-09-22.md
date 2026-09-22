@@ -147,3 +147,29 @@ Stage 0 may be marked complete only with evidence for:
 - updated handoff.
 
 Once complete, create a fresh Stage 1 branch from the reviewed main and begin Platform Foundation v2 in the order 1A–1G.
+
+
+## Stage 0 progress update — 22 September 2026
+
+Completed and evidenced on PR #19:
+
+- Enterprise Expansion Architecture locked.
+- Platform Kernel SQL gate added and passing.
+- CI, Quality Gate, Migration Replay and Account Security all pass on the current Stage 0 branch.
+- Main-branch protection has been created manually in GitHub by the repository owner.
+- All 73 authenticated-callable SECURITY DEFINER functions have completed semantic review.
+- Six internal-only privileged helpers are identified for later direct-EXECUTE revocation after migration-history repair.
+- Repository and live-database secret-surface scans found no application-level embedded production-secret pattern.
+- Supabase project is verified ACTIVE_HEALTHY on the Free plan with no database branches.
+- Supabase current plan limitations documented: leaked-password protection requires Pro; automatic daily backups are not provided on Free.
+- GitHub records a successful Vercel deployment for exact main SHA `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`. Direct Vercel connector inspection remains unavailable in this session.
+- Migration-history repair has been fully analysed and documented. Live 069–072 SQL matches repository migrations, while 073 schema state is already present live despite its missing ledger row.
+
+### Immediate next gate
+
+Execute Supabase's supported migration-history repair only. Do not rerun migration SQL and do not use `db push`.
+
+The verified repair sequence is documented in:
+`docs/security/CEAC_OS_STAGE0_MIGRATION_HISTORY_REPAIR_RUNBOOK_2026-09-22.md`.
+
+After repair, verify remote/local migration alignment through 073 before creating migration 074.
