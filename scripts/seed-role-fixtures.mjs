@@ -68,6 +68,7 @@ const adminCapabilityKeys = [
   "performance.admin",
   "audit.view",
   "integration.manage",
+  "strategy.manage",
 ];
 const capabilityGrants = await service.from("capability_grants").insert(
   adminCapabilityKeys.map((capability) => ({
@@ -107,6 +108,18 @@ const capability = await service.from("capabilities").insert({
   granted_by: users[2].id,
 });
 assert.equal(capability.error, null, capability.error?.message);
+
+const stage4Project = await service.from("projects").insert({
+  id: "25000000-0000-4000-8000-000000000011",
+  org_id: orgId,
+  kind: "project",
+  lead_unit_id: unitA,
+  name: "Stage 4 Browser Project",
+  purpose: "Synthetic project for Strategy browser acceptance.",
+  status: "active",
+  created_by: users[1].id,
+});
+assert.equal(stage4Project.error, null, stage4Project.error?.message);
 
 // The Admin acceptance suite must exercise a real deterministic attention rule.
 // Production organisations receive these through their setup data; the isolated
