@@ -3563,12 +3563,25 @@ button.office-config-card:active{background:#EEF5F4}
 .workforce-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
 .workforce-facts span{display:grid;gap:2px;padding:8px;border:1px solid var(--line-soft);border-radius:8px;font-size:9.5px;color:var(--ink-faint)}
 .workforce-facts b{font-size:11px;color:var(--ink);font-weight:600}
+.workforce-calendar-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .workforce-calendar{display:grid;gap:8px}
 .workforce-calendar section{border:1px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
-.workforce-calendar header{padding:10px 12px;border-bottom:1px solid var(--line-soft)}
-.workforce-calendar section>div{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid var(--line-soft)}
-.workforce-calendar section>div:first-of-type{border-top:0}
-.workforce-calendar section>div>span{font-size:11.5px;overflow-wrap:anywhere}
+.workforce-calendar header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.workforce-calendar header small{font-size:9.5px;color:var(--ink-faint)}
+.workforce-calendar-person{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid var(--line-soft)}
+.workforce-calendar-person:first-of-type{border-top:0}
+.workforce-calendar-person>span{display:grid;gap:2px;min-width:0}
+.workforce-calendar-person>span strong{font-size:11.5px;overflow-wrap:anywhere}
+.workforce-calendar-person>span small{font-size:9.5px;color:var(--ink-faint);line-height:1.35}
+.workforce-calendar-events{display:grid!important;gap:0!important;padding:0!important;border-top:1px solid var(--line)!important}
+.workforce-calendar-events>div{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line-soft)}
+.workforce-calendar-events>div:first-child{border-top:0}
+.workforce-calendar-events span{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint)}
+.workforce-calendar-events strong{font-size:10.5px;overflow-wrap:anywhere}
+.workforce-calendar-events small{font-size:9.5px;color:var(--ink-faint)}
+.workforce-session-row .row-note,.workforce-compare-row .row-note{margin-top:5px}
+.workforce-data-status{margin-top:14px}
+.leave-request-actions{display:flex;align-items:center;gap:8px}
 .workforce-row-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .workforce-row-actions .btn{width:auto}
 .workforce-setup-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
@@ -3586,4 +3599,6 @@ button.office-config-card:active{background:#EEF5F4}
   .workforce-facts{grid-template-columns:1fr}
   .workforce-setup-actions{display:grid}
   .workforce-setup-actions .btn{width:100%}
+  .workforce-calendar-filters{grid-template-columns:1fr}
+  .workforce-calendar-events>div{grid-template-columns:1fr}
 }
