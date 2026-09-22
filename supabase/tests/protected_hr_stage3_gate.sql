@@ -80,20 +80,6 @@ begin
     v_first,'Stage 3 identifier correction'
   );
 
-  if not exists(
-    select 1 from hr_private.identifiers
-    where id=v_first and status='replaced'
-  ) then
-    raise exception 'Protected HR gate failure: replacement did not preserve prior identifier history.';
-  end if;
-
-  if not exists(
-    select 1 from hr_private.identifiers
-    where id=v_second and status='active' and replaces_id=v_first
-  ) then
-    raise exception 'Protected HR gate failure: replacement identifier is incorrect.';
-  end if;
-
   perform public.hr_protected_record(
     '31000000-0000-4000-8000-000000000001','employment_term',
     '{"term_type":"Fixture term","summary":"Synthetic employment term for security acceptance.","starts_on":"2026-09-01"}'::jsonb,
@@ -113,6 +99,24 @@ begin
   );
 
   v_summary:=public.hr_protected_summary('31000000-0000-4000-8000-000000000001');
+
+  if not exists(
+    select 1
+    from jsonb_array_elements(v_summary->'identifiers') item
+    where item->>'id'=v_first::text and item->>'status'='replaced'
+  ) then
+    raise exception 'Protected HR gate failure: replacement did not preserve prior identifier history.';
+  end if;
+
+  if not exists(
+    select 1
+    from jsonb_array_elements(v_summary->'identifiers') item
+    where item->>'id'=v_second::text
+      and item->>'status'='active'
+      and item->>'replaces_id'=v_first::text
+  ) then
+    raise exception 'Protected HR gate failure: replacement identifier is incorrect.';
+  end if;
 
   if jsonb_array_length(v_summary->'identifiers')<>2
      or jsonb_array_length(v_summary->'employment_terms')<>1
