@@ -749,8 +749,8 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     await page.getByRole("button", { name: "Add milestone dependency", exact: true }).click();
     await expect(page.getByText("Milestone dependency recorded.", { exact: true })).toBeVisible();
 
-    await page.getByLabel("Work dependency successor").selectOption({ label: /TUA-WM5-002/ });
-    await page.getByLabel("Work dependency predecessor").selectOption({ label: /TUA-WM5-001/ });
+    await page.getByLabel("Work dependency successor").selectOption("26000000-0000-4000-8000-000000000012");
+    await page.getByLabel("Work dependency predecessor").selectOption("26000000-0000-4000-8000-000000000011");
     await page.getByLabel("Work dependency reason").fill("Acceptance work dependency");
     await page.getByRole("button", { name: "Add work dependency", exact: true }).click();
     await expect(page.getByText("Work dependency recorded.", { exact: true })).toBeVisible();
