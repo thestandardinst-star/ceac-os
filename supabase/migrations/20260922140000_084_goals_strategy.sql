@@ -127,7 +127,18 @@ grant select,insert,update on public.strategy_delivery_links to authenticated;
 create policy strategy_nodes_read
 on public.strategy_nodes
 for select to authenticated
-using(org_id=public.app_org_id());
+using(
+  org_id=public.app_org_id()
+  and (
+    status<>'draft'
+    or public.app_is_exec()
+    or public.app_has_capability('strategy.manage',null)
+    or (
+      node_type='unit_objective'
+      and unit_id in (select public.app_managed_units())
+    )
+  )
+);
 
 create policy strategy_nodes_insert
 on public.strategy_nodes
@@ -194,7 +205,23 @@ with check(
 create policy strategy_revisions_read
 on public.strategy_node_revisions
 for select to authenticated
-using(org_id=public.app_org_id());
+using(
+  org_id=public.app_org_id()
+  and exists(
+    select 1
+    from public.strategy_nodes n
+    where n.id=strategy_node_id
+      and n.org_id=public.app_org_id()
+      and (
+        public.app_is_exec()
+        or public.app_has_capability('strategy.manage',null)
+        or (
+          n.node_type='unit_objective'
+          and n.unit_id in (select public.app_managed_units())
+        )
+      )
+  )
+);
 
 create policy strategy_delivery_links_read
 on public.strategy_delivery_links
