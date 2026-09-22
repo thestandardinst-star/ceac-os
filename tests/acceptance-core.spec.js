@@ -1114,7 +1114,12 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
   test.setTimeout(180000);
   const dayTypeName = "Acceptance working day";
   const scheduleReason = "Acceptance Stage 9 workforce schedule";
+  const correctionReason = "Acceptance Stage 9 context correction";
   const weekday = ["sun","mon","tue","wed","thu","fri","sat"][new Date().getDay()];
+  const today = new Date();
+  const leaveStart = new Date(today.getTime() + 10 * 86400000);
+  const leaveEnd = new Date(today.getTime() + 11 * 86400000);
+  const iso = (value) => value.toISOString().slice(0, 10);
 
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
@@ -1129,6 +1134,15 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
     await dialog.getByLabel("Day type description").fill("Acceptance day with recorded session context");
     await dialog.getByRole("button", { name: "Record day type", exact: true }).click();
     await expect(page.getByText("Day type recorded.", { exact: true })).toBeVisible();
+    await expect(page.locator(".workforce-data-status")).toContainText(/Visible people:\s*[1-9]/);
+    await expect(page.locator(".workforce-data-status")).toContainText(/Active day types:\s*[1-9]/);
+    await expect(page.getByText(dayTypeName, { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
+    await expect(page.getByText(dayTypeName, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Record schedule", exact: true })).toBeEnabled();
 
     await page.getByRole("button", { name: "Record schedule", exact: true }).click();
     dialog = page.getByRole("dialog");
@@ -1139,12 +1153,68 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
     await dialog.getByRole("button", { name: "Record schedule", exact: true }).click();
     await expect(page.getByText("Workforce schedule recorded.", { exact: true })).toBeVisible();
 
-    await page.getByRole("tab", { name: "Today", exact: true }).click();
+    await page.reload();
+    await go(page, "Workforce");
     const staffCard = page.locator(".workforce-person").filter({ hasText: "Staff Fixture" });
     await expect(staffCard).toBeVisible();
     await expect(staffCard.getByText(dayTypeName, { exact: true })).toBeVisible();
-    await expect(staffCard.getByText("No session recorded", { exact: true })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+    await expect(page.getByLabel("Workforce calendar unit filter")).toBeVisible();
+    await expect(page.getByLabel("Workforce calendar person filter")).toBeVisible();
+    await page.getByLabel("Workforce calendar person filter").selectOption("31000000-0000-4000-8000-000000000001");
+
+    await page.getByRole("tab", { name: "Sessions", exact: true }).click();
+    await expect(page.getByText(/Session history is factual activity context/i)).toBeVisible();
+
+    await page.getByRole("tab", { name: "Recorded differences", exact: true }).click();
+    await expect(page.getByText(/does not convert a missing or different record/i)).toBeVisible();
+
+    await page.getByRole("tab", { name: "Corrections", exact: true }).click();
+    await page.getByRole("button", { name: "Record correction", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Correction person").selectOption("31000000-0000-4000-8000-000000000001");
+    await dialog.getByLabel("Corrected context").fill("Acceptance corrected workforce context");
+    await dialog.getByLabel("Correction reason").fill(correctionReason);
+    await dialog.getByRole("button", { name: "Record correction", exact: true }).click();
+    await expect(page.getByText("Attendance context correction recorded.", { exact: true })).toBeVisible();
+
+    const correctionRow = page.locator(".row").filter({ hasText: correctionReason }).first();
+    await expect(correctionRow).toBeVisible();
+    page.once("dialog", (prompt) => prompt.accept("Acceptance reversal reason"));
+    await correctionRow.getByRole("button", { name: "Reverse correction", exact: true }).click();
+    await expect(page.getByText("Attendance correction reversal recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Corrections", exact: true }).click();
+    await expect(page.locator(".row").filter({ hasText: correctionReason }).first()).toContainText("reversed");
+
+    await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
+    await page.getByRole("button", { name: "Configure leave policy", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await expect(dialog.getByLabel("Policy accrual method")).toHaveValue("");
+    await expect(dialog.getByLabel("Policy carryover method")).toHaveValue("");
+    await expect(dialog.getByLabel("Policy approval route")).toHaveValue("");
+    await expect(dialog.getByRole("button", { name: "Activate confirmed policy", exact: true })).toBeDisabled();
+    await dialog.getByRole("button", { name: "Close dialog", exact: true }).click();
+
     await page.screenshot({ path: "test-artifacts/stage9-workforce-admin.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+    await page.getByRole("button", { name: "Ask for leave", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    const dateInputs = dialog.locator('input[type="date"]');
+    await dateInputs.nth(0).fill(iso(leaveStart));
+    await dateInputs.nth(1).fill(iso(leaveEnd));
+    await dialog.getByPlaceholder("A short reason").fill("Acceptance Stage 9 leave lifecycle");
+    await dialog.getByRole("button", { name: "Send request", exact: true }).click();
+    await expect(page.locator(".leave-request-row").filter({ hasText: "annual leave" }).first()).toContainText("Waiting");
     await context.close();
   }
 
@@ -1155,12 +1225,37 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
     await expect(page.getByRole("tab", { name: "Schedules & policy", exact: true })).toHaveCount(0);
     await page.getByRole("tab", { name: "Corrections", exact: true }).click();
     await expect(page.getByRole("button", { name: "Record correction", exact: true })).toHaveCount(0);
+
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+    const leaveRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: "Annual" }).first();
+    await expect(leaveRow).toBeVisible();
+    page.once("dialog", (prompt) => prompt.accept("Acceptance manager approval"));
+    await leaveRow.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText("Leave decision recorded.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+    const approvedRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: "Approved" }).first();
+    await expect(approvedRow).toBeVisible();
+    page.once("dialog", (prompt) => prompt.accept("Acceptance approval reversal"));
+    await approvedRow.getByRole("button", { name: "Reverse approval", exact: true }).click();
+    await expect(page.getByText("Leave decision recorded.", { exact: true })).toBeVisible();
     await context.close();
   }
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+    const requestRow = page.locator(".leave-request-row").filter({ hasText: "annual leave" }).first();
+    await expect(requestRow).toContainText("Waiting");
+    await requestRow.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(requestRow).toContainText("Cancelled");
+
     await page.getByRole("button", { name: /My workforce context/ }).click();
     await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
     await expect(page.getByText("Staff Fixture", { exact: true }).first()).toBeVisible();

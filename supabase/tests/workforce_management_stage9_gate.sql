@@ -219,7 +219,33 @@ $stage9_attendance$;
 do $stage9_policy$
 declare
   v_policy uuid;
+  v_blocked boolean:=false;
 begin
+  begin
+    perform public.workforce_record_leave_policy(
+      'Stage 9 incomplete policy',
+      current_date,current_date+365,
+      'Acceptance incomplete policy reference',
+      'Stage 9 incomplete activation denial',
+      jsonb_build_array(
+        jsonb_build_object(
+          'leave_kind','annual',
+          'entitlement_amount',20,
+          'entitlement_unit','days',
+          'approval_route','manager_then_admin'
+        )
+      ),
+      true,
+      null
+    );
+  exception when others then
+    v_blocked:=true;
+  end;
+
+  if not v_blocked then
+    raise exception 'Stage 9 gate failure: incomplete policy activated.';
+  end if;
+
   v_policy:=public.workforce_record_leave_policy(
     'Stage 9 acceptance policy',
     current_date,current_date+365,
@@ -233,8 +259,7 @@ begin
         'accrual_method','annual',
         'carryover_method','none',
         'approval_route','manager_then_admin',
-        'opening_balance_required',false,
-        'complete',true
+        'opening_balance_required',false
       )
     ),
     true,
@@ -247,8 +272,126 @@ begin
   ) then
     raise exception 'Stage 9 gate failure: explicit policy activation did not persist.';
   end if;
+
+  if not exists(
+    select 1 from public.leave_policy_rules
+    where policy_version_id=v_policy
+      and leave_kind='annual'
+      and complete
+      and accrual_method='annual'
+      and carryover_method='none'
+      and approval_route='manager_then_admin'
+  ) then
+    raise exception 'Stage 9 gate failure: server did not compute confirmed policy completeness.';
+  end if;
 end
 $stage9_policy$;
+
+reset role;
+
+-- Confirmed manager-then-admin route is enforced as a state machine.
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
+
+do $stage9_routed_leave_request$
+declare
+  v_leave uuid;
+begin
+  v_leave:=public.workforce_request_leave(
+    'annual',current_date+20,current_date+21,'Stage 9 routed leave request'
+  );
+  perform set_config('ceac.stage9_routed_leave_id',v_leave::text,true);
+end
+$stage9_routed_leave_request$;
+
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000002',true);
+
+do $stage9_routed_manager$
+declare
+  v_leave uuid:=nullif(current_setting('ceac.stage9_routed_leave_id',true),'')::uuid;
+begin
+  begin
+    perform public.workforce_leave_action(
+      v_leave,'manager_approved','Direct manager approval should be blocked by confirmed route'
+    );
+    raise exception 'Stage 9 gate failure: manager bypassed manager-then-admin route.';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform public.workforce_leave_action(
+    v_leave,'escalated','Manager step complete; Administration decision required'
+  );
+
+  if not exists(select 1 from public.leave_requests where id=v_leave and status='escalated') then
+    raise exception 'Stage 9 gate failure: manager escalation did not persist.';
+  end if;
+end
+$stage9_routed_manager$;
+
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000003',true);
+
+do $stage9_routed_admin$
+declare
+  v_leave uuid:=nullif(current_setting('ceac.stage9_routed_leave_id',true),'')::uuid;
+begin
+  perform public.workforce_leave_action(
+    v_leave,'admin_approved','Administration approved after manager escalation'
+  );
+
+  if not exists(select 1 from public.leave_requests where id=v_leave and status='approved') then
+    raise exception 'Stage 9 gate failure: Administration approval did not persist.';
+  end if;
+
+  perform public.workforce_leave_action(
+    v_leave,'approval_reversed','Acceptance reversal restores pending review'
+  );
+
+  if not exists(select 1 from public.leave_requests where id=v_leave and status='pending') then
+    raise exception 'Stage 9 gate failure: approval reversal did not restore pending state.';
+  end if;
+
+  if not exists(
+    select 1 from public.leave_request_events
+    where leave_request_id=v_leave and action='approval_reversed'
+      and from_status='approved' and to_status='pending'
+  ) then
+    raise exception 'Stage 9 gate failure: approval reversal history is missing.';
+  end if;
+
+  begin
+    perform public.workforce_leave_action(
+      v_leave,'approval_reversed','A second reversal from pending must fail'
+    );
+    raise exception 'Stage 9 gate failure: invalid repeated approval reversal was accepted.';
+  exception when insufficient_privilege then null;
+  end;
+end
+$stage9_routed_admin$;
+
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
+
+do $stage9_staff_cancel$
+declare
+  v_leave uuid:=nullif(current_setting('ceac.stage9_routed_leave_id',true),'')::uuid;
+begin
+  perform public.workforce_leave_action(
+    v_leave,'cancelled_by_employee','Cancelled by employee after approval reversal'
+  );
+
+  if not exists(select 1 from public.leave_requests where id=v_leave and status='cancelled') then
+    raise exception 'Stage 9 gate failure: eligible employee cancellation did not persist.';
+  end if;
+end
+$stage9_staff_cancel$;
 
 reset role;
 
