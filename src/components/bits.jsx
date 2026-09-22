@@ -140,13 +140,13 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProte
   ];
   if (isAdmin) return [
     { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"],...(canWorkload ? [["workload","Workload"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Attendance"]] },
+    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Workforce"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
   ];
   if (isManager) return [
-    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
+    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["attendance","Workforce"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
@@ -156,7 +156,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProte
 export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
-    units:"Units", people:"People", lifecycle:"Employee lifecycle", "protected-hr":"Protected HR", attendance:"Attendance & leave", reporting:"Reports",
+    units:"Units", people:"People", lifecycle:"Employee lifecycle", "protected-hr":"Protected HR", attendance:"Workforce", reporting:"Reports",
     finance:"Finance", cost:"Cost", strategy:"Strategy", delivery:"Delivery", workload:"Workload", performance:"Performance & development", learning:"Learning", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
