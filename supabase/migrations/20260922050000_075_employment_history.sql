@@ -448,7 +448,7 @@ begin
   if tg_op='DELETE' then return old; end if;
   return new;
 end;
-$;
+$$;
 
 revoke all on function public.sync_employment_from_membership() from public,anon,authenticated;
 
