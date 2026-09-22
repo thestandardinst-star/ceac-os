@@ -1,11 +1,11 @@
 # CEAC OS — Enterprise Expansion Programme Handoff
 
-**Date:** 22 September 2026  
-**Status:** ACTIVE  
-**Repository:** `thestandardinst-star/ceac-os`  
-**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`  
-**Active branch:** `chatgpt/enterprise-expansion-stage-0-2026-09-22`  
-**Current stage:** Stage 0 — Platform baseline and production security closure  
+**Date:** 22 September 2026
+**Status:** ACTIVE
+**Repository:** `thestandardinst-star/ceac-os`
+**Baseline main:** `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce`
+**Active branch:** `chatgpt/enterprise-expansion-stage-0-2026-09-22`
+**Current stage:** Stage 0 — Platform baseline and production security closure
 **Latest known migration on baseline:** 073 — private meeting notes
 
 ## 1. Governing architecture
