@@ -130,6 +130,9 @@ jobs:
       - name: Run Stage 10 Assets & Devices gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/assets_devices_stage10_gate.sql
 
+      - name: Run Stage 11 Compliance & Policy gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/compliance_policy_stage11_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
