@@ -759,7 +759,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
     await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Unit A Programme$/ }).first()).toBeVisible();
     await page.getByRole("button", { name: /Stage 4 Browser Project/ }).first().click();
-    await expect(page.getByText("Acceptance Foundation milestone", { exact: true })).toBeVisible();
+    await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Foundation milestone$/ }).first()).toBeVisible();
     await expect(page.getByText("Acceptance dependency risk", { exact: true })).toBeVisible();
     await expect(page.getByText(/Depends on Stage 5 Dependency Project/)).toBeVisible();
     await expect(page.getByText(/Acceptance Launch milestone depends on Acceptance Foundation milestone/)).toBeVisible();
