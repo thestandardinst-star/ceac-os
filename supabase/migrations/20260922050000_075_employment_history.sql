@@ -357,7 +357,8 @@ declare
   v_old_unit uuid:=old.unit_id;
   v_new_unit uuid:=new.unit_id;
   v_current public.employment_records;
-  v_next record;
+  v_next_unit uuid;
+  v_next_role text;
   v_kind text:='role_changed';
 begin
   if current_setting('ceac.employment_sync',true)='skip' then
@@ -421,18 +422,18 @@ begin
 
   if tg_op='DELETE' then
     if v_current.profile_id is not null and v_current.unit_id=old.unit_id then
-      select um.unit_id,um.role into v_next
+      select um.unit_id,um.role into v_next_unit,v_next_role
       from public.unit_memberships um
       where um.profile_id=v_profile and um.org_id=v_org and um.id<>old.id
       order by case when um.role='manager' then 0 else 1 end,um.created_at
       limit 1;
 
       update public.employment_records
-      set unit_id=v_next.unit_id,
-          membership_role=coalesce(v_next.role,'staff'),
+      set unit_id=v_next_unit,
+          membership_role=coalesce(v_next_role,'staff'),
           manager_profile_id=case
-            when v_next.role='manager' then null
-            else public.employment_manager_for_unit(v_org,v_next.unit_id,v_profile)
+            when v_next_role='manager' then null
+            else public.employment_manager_for_unit(v_org,v_next_unit,v_profile)
           end,
           updated_at=now(),updated_by=v_actor
       where profile_id=v_profile;
@@ -445,9 +446,10 @@ begin
     return old;
   end if;
 
-  return coalesce(new,old);
+  if tg_op='DELETE' then return old; end if;
+  return new;
 end;
-$$;
+$;
 
 revoke all on function public.sync_employment_from_membership() from public,anon,authenticated;
 
