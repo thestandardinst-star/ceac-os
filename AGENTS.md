@@ -6,6 +6,19 @@ staff, unit manager, Administration & HR, Group Pastor.
 Stack: React + Vite (plain JavaScript, no TypeScript) → GitHub → Vercel
 (auto-deploys `main`) → Supabase `efjljhftsesssumtshvp`.
 
+
+## Enterprise expansion programme — read this first
+
+The current whole-system expansion programme is governed by:
+
+1. `docs/handoff/CEAC_OS_ENTERPRISE_EXPANSION_HANDOFF_2026-09-22.md`
+2. `docs/architecture/CEAC_OS_Enterprise_Expansion_Architecture_2026-09-22.md`
+3. the current domain-specific architecture/security document for the work being changed.
+
+The enterprise expansion architecture is the newest approved whole-system sequencing contract. Its stages are gates. Do not start Stage 1 or later work while Stage 0 is open, and do not build a later enterprise stage in parallel with an unfinished earlier stage.
+
+For every consequential feature use this order: purpose → authority → data → sensitive-data classification → lifecycle → audit → reversal → migration/RLS/RPC → tests → UI → acceptance → handoff. A screen is not proof that a feature exists securely.
+
 ## Read the specification before building a screen
 
 `docs/architecture/` holds the real specifications. **Read
