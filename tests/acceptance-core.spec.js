@@ -628,7 +628,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   const employmentDialog = page.getByRole("dialog");
   await expect(employmentDialog.locator(".h2").filter({ hasText: /^Record employment change$/ })).toBeVisible();
   await employmentDialog.getByLabel("Change").selectOption("working_pattern_changed");
-  await employmentDialog.getByLabel("Working pattern").selectOption("flexible");
+  await employmentDialog.getByLabel("Working pattern", { exact: true }).selectOption("flexible");
   await employmentDialog.getByLabel("Reason / context").fill("Acceptance employment history change");
   await employmentDialog.getByRole("button", { name: "Record employment change", exact: true }).click();
   await expect(page.getByText("Working pattern changed", { exact: true }).first()).toBeVisible();
