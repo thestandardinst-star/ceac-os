@@ -1,0 +1,351 @@
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { EmptyState, FieldGroup, LoadingState, ProductNotice, Sheet } from "../components/bits";
+import { humanError } from "../lib/productLanguage";
+
+const TYPE_LABELS = {
+  ministry_direction: "Ministry Direction",
+  ministry_objective: "Ministry Objective",
+  unit_objective: "Unit Objective",
+};
+
+function displayNumber(value) {
+  if (value === null || value === undefined || value === "") return "not recorded";
+  return Number(value).toLocaleString("en-GB", { maximumFractionDigits: 2 });
+}
+
+function blankForm(type, parentId = "", unitId = "") {
+  return {
+    id: "",
+    nodeType: type,
+    parentId,
+    unitId,
+    name: "",
+    statement: "",
+    measurementKind: "descriptive",
+    measureLabel: "",
+    targetValue: "",
+    targetUnit: "",
+    currentValue: "",
+    startsOn: "",
+    targetOn: "",
+    status: "active",
+    reason: "",
+  };
+}
+
+export default function Strategy({ me }) {
+  const [nodes, setNodes] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [form, setForm] = useState(null);
+  const [linkForm, setLinkForm] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
+
+  const capabilities = me.capabilities || [];
+  const canGlobal = Boolean(me.is_exec || capabilities.includes("strategy.manage"));
+  const managedUnitIds = useMemo(
+    () => (me.memberships || []).filter((membership) => membership.role === "manager").map((membership) => membership.unit_id),
+    [me.memberships],
+  );
+
+  useEffect(() => { load(); }, [me.id]);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    const [nodesResult, linksResult, projectsResult, unitsResult] = await Promise.all([
+      supabase.from("strategy_nodes").select("*").eq("org_id", me.org_id).order("created_at"),
+      supabase.from("strategy_delivery_links").select("*").eq("org_id", me.org_id).order("created_at"),
+      supabase.from("projects").select("id,name,lead_unit_id,status").eq("org_id", me.org_id).order("name"),
+      supabase.from("units").select("id,name,code").eq("org_id", me.org_id).eq("active", true).order("name"),
+    ]);
+    const firstError = nodesResult.error || linksResult.error || projectsResult.error || unitsResult.error;
+    if (firstError) {
+      setError(humanError(firstError, "Strategy could not load."));
+      setLoading(false);
+      return;
+    }
+    setNodes(nodesResult.data || []);
+    setLinks(linksResult.data || []);
+    setProjects(projectsResult.data || []);
+    setUnits(unitsResult.data || []);
+    setLoading(false);
+  }
+
+  const directions = nodes.filter((node) => node.node_type === "ministry_direction");
+  const ministriesByParent = useMemo(() => {
+    const out = {};
+    nodes.filter((node) => node.node_type === "ministry_objective").forEach((node) => {
+      (out[node.parent_id] = out[node.parent_id] || []).push(node);
+    });
+    return out;
+  }, [nodes]);
+  const unitsByParent = useMemo(() => {
+    const out = {};
+    nodes.filter((node) => node.node_type === "unit_objective").forEach((node) => {
+      (out[node.parent_id] = out[node.parent_id] || []).push(node);
+    });
+    return out;
+  }, [nodes]);
+
+  function canEdit(node) {
+    if (canGlobal) return true;
+    return node.node_type === "unit_objective" && managedUnitIds.includes(node.unit_id);
+  }
+
+  function openCreate(nodeType, parentId = "", unitId = "") {
+    setError(null);
+    setNotice(null);
+    setForm(blankForm(nodeType, parentId, unitId || (nodeType === "unit_objective" && managedUnitIds.length === 1 ? managedUnitIds[0] : "")));
+  }
+
+  function openEdit(node) {
+    setError(null);
+    setNotice(null);
+    setForm({
+      id: node.id,
+      nodeType: node.node_type,
+      parentId: node.parent_id || "",
+      unitId: node.unit_id || "",
+      name: node.name,
+      statement: node.statement,
+      measurementKind: node.measurement_kind,
+      measureLabel: node.measure_label || "",
+      targetValue: node.target_value ?? "",
+      targetUnit: node.target_unit || "",
+      currentValue: node.current_value ?? "",
+      startsOn: node.starts_on || "",
+      targetOn: node.target_on || "",
+      status: node.status,
+      reason: "",
+    });
+  }
+
+  async function saveNode() {
+    if (!form || !form.name.trim() || !form.statement.trim() || !form.reason.trim()) return;
+    if (form.nodeType !== "ministry_direction" && !form.parentId) return;
+    if (form.nodeType === "unit_objective" && !form.unitId) return;
+    if (form.measurementKind === "numeric" && (form.targetValue === "" || !form.targetUnit.trim())) return;
+
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+
+    const payload = {
+      org_id: me.org_id,
+      node_type: form.nodeType,
+      parent_id: form.nodeType === "ministry_direction" ? null : form.parentId,
+      unit_id: form.nodeType === "unit_objective" ? form.unitId : null,
+      name: form.name.trim(),
+      statement: form.statement.trim(),
+      measurement_kind: form.measurementKind,
+      measure_label: form.measureLabel.trim() || null,
+      target_value: form.measurementKind === "numeric" ? Number(form.targetValue) : null,
+      target_unit: form.measurementKind === "numeric" ? form.targetUnit.trim() : null,
+      current_value: form.measurementKind === "numeric" && form.currentValue !== "" ? Number(form.currentValue) : null,
+      starts_on: form.startsOn || null,
+      target_on: form.targetOn || null,
+      status: form.status,
+      change_reason: form.reason.trim(),
+      updated_by: me.id,
+    };
+
+    let result;
+    if (form.id) {
+      result = await supabase.from("strategy_nodes").update(payload).eq("id", form.id);
+    } else {
+      result = await supabase.from("strategy_nodes").insert({ ...payload, created_by: me.id });
+    }
+
+    setBusy(false);
+    if (result.error) {
+      setError(humanError(result.error, "The strategy record could not be saved."));
+      return;
+    }
+
+    setForm(null);
+    setNotice(form.id ? "Strategy change recorded." : "Strategy record created.");
+    await load();
+  }
+
+  async function saveLink() {
+    if (!linkForm?.nodeId || !linkForm.projectId || !linkForm.reason.trim()) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    const { error: linkError } = await supabase.from("strategy_delivery_links").insert({
+      org_id: me.org_id,
+      strategy_node_id: linkForm.nodeId,
+      project_id: linkForm.projectId,
+      status: "active",
+      change_reason: linkForm.reason.trim(),
+      created_by: me.id,
+      updated_by: me.id,
+    });
+    setBusy(false);
+    if (linkError) {
+      setError(humanError(linkError, "The project could not be linked to this Unit Objective."));
+      return;
+    }
+    setLinkForm(null);
+    setNotice("Project linked to Unit Objective.");
+    await load();
+  }
+
+  async function withdrawLink(link) {
+    const reason = window.prompt("Why is this project no longer linked to this Unit Objective?");
+    if (!reason || reason.trim().length < 3) return;
+    setBusy(true);
+    setError(null);
+    const { error: linkError } = await supabase.from("strategy_delivery_links")
+      .update({ status: "withdrawn", change_reason: reason.trim(), updated_by: me.id })
+      .eq("id", link.id);
+    setBusy(false);
+    if (linkError) {
+      setError(humanError(linkError, "The project link could not be withdrawn."));
+      return;
+    }
+    setNotice("Project link withdrawn. Its history remains on record.");
+    await load();
+  }
+
+  function measurementLine(node) {
+    if (node.measurement_kind === "descriptive") return <div className="small">Descriptive objective — no percentage is generated.</div>;
+    return <div className="small">
+      {node.measure_label ? node.measure_label + " · " : ""}
+      current {displayNumber(node.current_value)} {node.target_unit} · target {displayNumber(node.target_value)} {node.target_unit}
+    </div>;
+  }
+
+  function unitName(id) {
+    return units.find((unit) => unit.id === id)?.name || "Unit";
+  }
+
+  function projectName(id) {
+    return projects.find((project) => project.id === id)?.name || "Project";
+  }
+
+  function NodeActions({ node, allowChild }) {
+    return <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+      {canEdit(node) && <button className="btn btn-ghost btn-sm" onClick={() => openEdit(node)}>Revise</button>}
+      {allowChild === "ministry" && canGlobal && <button className="btn btn-ghost btn-sm" onClick={() => openCreate("ministry_objective", node.id)}>Add Ministry Objective</button>}
+      {allowChild === "unit" && (canGlobal || managedUnitIds.length > 0) && <button className="btn btn-ghost btn-sm" onClick={() => openCreate("unit_objective", node.id)}>Add Unit Objective</button>}
+      {node.node_type === "unit_objective" && canEdit(node) && <button className="btn btn-ghost btn-sm" onClick={() => setLinkForm({ nodeId: node.id, projectId: "", reason: "" })}>Link project</button>}
+    </div>;
+  }
+
+  if (loading) return <div className="body"><LoadingState label="Loading strategy…" /></div>;
+
+  return <div className="body">
+    <div style={{ paddingTop: 26 }}>
+      <div className="eyebrow">Goals & strategy</div>
+      <h1 className="h1">Strategy</h1>
+      <p className="screen-note">Ministry Direction → Ministry Objective → Unit Objective. Descriptive goals stay descriptive; numeric goals always show the result beside its target.</p>
+    </div>
+
+    {error && <ProductNotice tone="error" title="Strategy">{error}</ProductNotice>}
+    {notice && <ProductNotice tone="success" title="Strategy">{notice}</ProductNotice>}
+
+    {canGlobal && <div style={{ marginTop: 16 }}>
+      <button className="btn wide-auto" onClick={() => openCreate("ministry_direction")}>Add Ministry Direction</button>
+    </div>}
+
+    <div className="sec"><span>Strategic hierarchy</span><span>{nodes.length}</span></div>
+    {directions.length === 0 && <EmptyState title="No Ministry Direction recorded">An authorised strategy owner can record the first Ministry Direction without inventing a numeric score.</EmptyState>}
+
+    {directions.map((direction) => <section className="card" key={direction.id} style={{ padding: 18, marginBottom: 14 }}>
+      <div className="eyebrow">{TYPE_LABELS[direction.node_type]} · {direction.status.replaceAll("_", " ")}</div>
+      <h2 className="h2" style={{ marginTop: 5 }}>{direction.name}</h2>
+      <p className="screen-note">{direction.statement}</p>
+      {measurementLine(direction)}
+      <NodeActions node={direction} allowChild="ministry" />
+
+      {(ministriesByParent[direction.id] || []).map((ministry) => <div key={ministry.id} style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line-soft)" }}>
+        <div className="eyebrow">{TYPE_LABELS[ministry.node_type]} · {ministry.status.replaceAll("_", " ")}</div>
+        <h3 className="h2" style={{ marginTop: 4 }}>{ministry.name}</h3>
+        <p className="screen-note">{ministry.statement}</p>
+        {measurementLine(ministry)}
+        <NodeActions node={ministry} allowChild="unit" />
+
+        {(unitsByParent[ministry.id] || []).map((unitObjective) => {
+          const activeLinks = links.filter((link) => link.strategy_node_id === unitObjective.id && link.status === "active");
+          return <div className="row" key={unitObjective.id} style={{ marginTop: 12 }}>
+            <div className="row-t">{unitName(unitObjective.unit_id)} · {unitObjective.name}</div>
+            <div className="row-m">{unitObjective.statement}</div>
+            <div style={{ marginTop: 7 }}>{measurementLine(unitObjective)}</div>
+            <div className="small" style={{ marginTop: 5 }}>Status: {unitObjective.status.replaceAll("_", " ")}</div>
+            {activeLinks.length > 0 && <div style={{ marginTop: 9 }}>
+              <div className="small" style={{ fontWeight: 650 }}>Delivery projects</div>
+              {activeLinks.map((link) => <div key={link.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 5 }}>
+                <span className="small">{projectName(link.project_id)}</span>
+                {canEdit(unitObjective) && <button className="text-action" disabled={busy} onClick={() => withdrawLink(link)}>Withdraw link</button>}
+              </div>)}
+            </div>}
+            <NodeActions node={unitObjective} />
+          </div>;
+        })}
+      </div>)}
+    </section>)}
+
+    {form && <Sheet onClose={() => { if (!busy) setForm(null); }}>
+      <div className="eyebrow">{form.id ? "Revise strategy" : "New strategy record"}</div>
+      <div className="h2">{TYPE_LABELS[form.nodeType]}</div>
+      <p className="screen-note">Every change keeps an attributable historical revision. Descriptive goals never receive generated progress percentages.</p>
+
+      {form.nodeType === "unit_objective" && <FieldGroup label="Unit">
+        <select className="field" aria-label="Strategy unit" value={form.unitId} onChange={(event) => setForm({ ...form, unitId: event.target.value })} disabled={Boolean(form.id)}>
+          <option value="">Choose unit</option>
+          {units.filter((unit) => canGlobal || managedUnitIds.includes(unit.id)).map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
+        </select>
+      </FieldGroup>}
+
+      <FieldGroup label="Name"><input className="field" aria-label="Strategy name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></FieldGroup>
+      <FieldGroup label="Statement"><textarea className="field" aria-label="Strategy statement" rows="4" value={form.statement} onChange={(event) => setForm({ ...form, statement: event.target.value })} /></FieldGroup>
+      <FieldGroup label="Measurement">
+        <select className="field" aria-label="Strategy measurement" value={form.measurementKind} onChange={(event) => setForm({ ...form, measurementKind: event.target.value, targetValue: "", targetUnit: "", currentValue: "" })}>
+          <option value="descriptive">Descriptive — no generated percentage</option>
+          <option value="numeric">Numeric — result and target</option>
+        </select>
+      </FieldGroup>
+      {form.measurementKind === "numeric" && <>
+        <FieldGroup label="Measure label"><input className="field" aria-label="Strategy measure label" value={form.measureLabel} onChange={(event) => setForm({ ...form, measureLabel: event.target.value })} /></FieldGroup>
+        <FieldGroup label="Target value"><input className="field" aria-label="Strategy target value" inputMode="decimal" value={form.targetValue} onChange={(event) => setForm({ ...form, targetValue: event.target.value.replace(/[^0-9.-]/g, "") })} /></FieldGroup>
+        <FieldGroup label="Target unit"><input className="field" aria-label="Strategy target unit" value={form.targetUnit} onChange={(event) => setForm({ ...form, targetUnit: event.target.value })} placeholder="people, outcomes, services…" /></FieldGroup>
+        <FieldGroup label="Current recorded result"><input className="field" aria-label="Strategy current value" inputMode="decimal" value={form.currentValue} onChange={(event) => setForm({ ...form, currentValue: event.target.value.replace(/[^0-9.-]/g, "") })} /></FieldGroup>
+      </>}
+      <FieldGroup label="Starts on"><input className="field" aria-label="Strategy start date" type="date" value={form.startsOn} onChange={(event) => setForm({ ...form, startsOn: event.target.value })} /></FieldGroup>
+      <FieldGroup label="Target date"><input className="field" aria-label="Strategy target date" type="date" value={form.targetOn} onChange={(event) => setForm({ ...form, targetOn: event.target.value })} /></FieldGroup>
+      <FieldGroup label="Status">
+        <select className="field" aria-label="Strategy status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
+          <option value="draft">Draft</option>
+          <option value="active">Active</option>
+          <option value="met">Met</option>
+          <option value="closed">Closed</option>
+        </select>
+      </FieldGroup>
+      <FieldGroup label="Reason / context"><textarea className="field" aria-label="Strategy change reason" rows="3" value={form.reason} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></FieldGroup>
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !form.name.trim() || !form.statement.trim() || !form.reason.trim() || (form.measurementKind === "numeric" && (form.targetValue === "" || !form.targetUnit.trim()))} onClick={saveNode}>
+        {busy ? "Saving…" : form.id ? "Record revision" : "Create strategy record"}
+      </button>
+    </Sheet>}
+
+    {linkForm && <Sheet onClose={() => { if (!busy) setLinkForm(null); }}>
+      <div className="eyebrow">Strategy delivery</div>
+      <div className="h2">Link project</div>
+      <p className="screen-note">This records which existing Project currently supports the Unit Objective. Stage 5 adds programme/portfolio and milestone layers.</p>
+      <FieldGroup label="Project">
+        <select className="field" aria-label="Strategy delivery project" value={linkForm.projectId} onChange={(event) => setLinkForm({ ...linkForm, projectId: event.target.value })}>
+          <option value="">Choose visible project</option>
+          {projects.filter((project) => project.status !== "closed").map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+      </FieldGroup>
+      <FieldGroup label="Reason / context"><textarea className="field" aria-label="Strategy delivery reason" rows="3" value={linkForm.reason} onChange={(event) => setLinkForm({ ...linkForm, reason: event.target.value })} /></FieldGroup>
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !linkForm.projectId || !linkForm.reason.trim()} onClick={saveLink}>{busy ? "Linking…" : "Link project"}</button>
+    </Sheet>}
+  </div>;
+}
