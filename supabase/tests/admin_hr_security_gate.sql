@@ -63,7 +63,14 @@ end $$;
 -- search_path and no anon EXECUTE.
 -- Stage 3 adds two reviewed capability-gated protected-HR RPCs:
 -- hr_protected_summary(uuid) and hr_protected_record(uuid,text,jsonb,uuid,text).
--- Reducing this surface is allowed. Any growth beyond 75 requires another
+-- Stage 7 adds nine reviewed performance-development RPCs:
+-- open_performance_review_cycle, refresh_performance_evidence,
+-- assign_performance_reviewer, record_appraisal_entry,
+-- share_performance_review, close_performance_review_cycle,
+-- record_development_plan_version, record_performance_feedback,
+-- respond_to_performance_feedback.
+-- Each is bound to auth.uid() plus explicit performance/reviewer/self authority.
+-- Reducing this surface is allowed. Any growth beyond 84 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -74,8 +81,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>75 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 75-function ceiling to %.',n;
+  if n>84 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 84-function ceiling to %.',n;
   end if;
 end $$;
 
