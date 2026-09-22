@@ -639,6 +639,22 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: /Staff Fixture/ }).click();
   await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
 
+  await go(page, "Employee lifecycle");
+  await expect(page.getByRole("heading", { name: "Employee lifecycle", exact: true })).toBeVisible();
+  await page.getByLabel("Lifecycle employee").selectOption("31000000-0000-4000-8000-000000000006");
+  await page.getByLabel("Lifecycle type").selectOption("onboarding");
+  await page.getByLabel("Lifecycle reason").fill("Acceptance onboarding lifecycle");
+  await page.getByRole("button", { name: "Start lifecycle case", exact: true }).click();
+  await expect(page.getByText("Employee lifecycle case started.", { exact: true })).toBeVisible();
+  for (let step = 1; step <= 4; step += 1) {
+    await page.getByLabel("Lifecycle completion note").fill("Acceptance lifecycle step " + step);
+    await page.getByRole("button", { name: "Complete current step", exact: true }).click();
+    await expect(page.getByText("Lifecycle step completed.", { exact: true })).toBeVisible();
+  }
+  await page.reload();
+  await expect(page.getByText(/Same Unit Fixture · Onboarding/).first()).toBeVisible();
+  await expect(page.getByText(/Completed · effective/).first()).toBeVisible();
+
   await go(page, "Workflows");
   await expect(page.getByRole("heading", { name: "Workflows", exact: true })).toBeVisible();
   const employmentWorkflow = page.getByRole("button", { name: /Review employment change/ }).first();
@@ -735,7 +751,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "People", "Employee lifecycle", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
