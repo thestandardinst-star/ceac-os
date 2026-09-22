@@ -171,9 +171,15 @@ create table public.leave_policy_rules(
   approval_route text not null check(approval_route in ('manager','admin','manager_then_admin')),
   opening_balance_required boolean not null default false,
   complete boolean not null default false,
-  created_at timestamptz not null default now(),
-  unique(policy_version_id,leave_kind,coalesce(employment_type,''))
+  created_at timestamptz not null default now()
 );
+
+create unique index leave_policy_rules_scope_uidx
+  on public.leave_policy_rules(
+    policy_version_id,
+    leave_kind,
+    coalesce(employment_type,'')
+  );
 
 -- ---------------------------------------------------------------------------
 -- RLS and privileges.
