@@ -56,7 +56,7 @@ language sql
 stable
 security definer
 set search_path=public
-as $
+as $$
   select p.id
   from public.projects p
   where p.org_id=public.app_org_id()
@@ -80,7 +80,7 @@ as $
           )
       )
     );
-$;
+$$;
 
 drop policy if exists projects_read on public.projects;
 create policy projects_read on public.projects
