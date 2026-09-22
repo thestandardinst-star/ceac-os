@@ -49,8 +49,14 @@ export default function AdminProtectedHR({ me }) {
       .eq("org_id",me.org_id)
       .order("full_name");
     if(e){ setError(humanError(e,"Protected HR could not load the employee directory.")); setLoading(false); return; }
-    setPeople(data||[]);
-    if(!profileId && data?.length) setProfileId(data[0].id);
+    const rows=data||[];
+    setPeople(rows);
+    if(!profileId && rows.length){
+      let remembered="";
+      try { remembered=sessionStorage.getItem(`ceac:protected-hr:profile:${me.id}`)||""; } catch {}
+      const next=rows.some(person=>person.id===remembered) ? remembered : rows[0].id;
+      setProfileId(next);
+    }
     setLoading(false);
   }
 
@@ -189,7 +195,7 @@ export default function AdminProtectedHR({ me }) {
       <div className="main-col">
         <div className="card" style={{padding:15}}>
           <FieldGroup label="Employee">
-            <select className="field" aria-label="Protected HR employee" value={profileId} onChange={e=>{setProfileId(e.target.value);resetForm(recordType);}}>
+            <select className="field" aria-label="Protected HR employee" value={profileId} onChange={e=>{const next=e.target.value;setProfileId(next);try{sessionStorage.setItem(`ceac:protected-hr:profile:${me.id}`,next);}catch{}resetForm(recordType);}}>
               {people.map(person=><option key={person.id} value={person.id}>{person.full_name} · {person.email}</option>)}
             </select>
           </FieldGroup>
