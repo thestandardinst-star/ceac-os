@@ -1,3 +1,4 @@
+-- Stage 8 closure check trigger; no SQL behaviour change.
 -- Legacy live-only artifact required to replay immutable migration 037.
 -- This helper exists in the live project but was created outside the recovered
 -- migration ledger before 037 hardened its execution privileges.
