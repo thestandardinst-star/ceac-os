@@ -173,3 +173,12 @@ The verified repair sequence is documented in:
 `docs/security/CEAC_OS_STAGE0_MIGRATION_HISTORY_REPAIR_RUNBOOK_2026-09-22.md`.
 
 After repair, verify remote/local migration alignment through 073 before creating migration 074.
+
+
+### Migration history reconciliation — completed
+
+Production migration history was repaired using Supabase's supported `migration repair` mechanism. The alternate live-only timestamps for 069–072 were marked reverted in the ledger, and the canonical repository timestamps for 069–073 were marked applied. A post-repair `migration list` and the connected Supabase migration API both confirm local/remote alignment through `20260921211500` (073).
+
+No migration SQL was rerun as part of the repair.
+
+Migration 074 is now the current Stage 0 hardening change. It reduces direct authenticated execution of six reviewed internal-only privileged helpers. Production must not receive 074 until the current PR head passes clean replay, account security, Platform Kernel/RLS and browser-role acceptance.
