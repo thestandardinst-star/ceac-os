@@ -92,6 +92,7 @@ grant select,insert,update on hr_private.payment_details to service_role;
 -- touch only their organisation's path and only when explicitly granted protected-HR access.
 drop policy if exists ceac_hr_private_select on storage.objects;
 drop policy if exists ceac_hr_private_insert on storage.objects;
+drop policy if exists ceac_hr_private_delete on storage.objects;
 
 create policy ceac_hr_private_select
 on storage.objects
@@ -106,6 +107,15 @@ create policy ceac_hr_private_insert
 on storage.objects
 for insert to authenticated
 with check (
+  bucket_id='ceac-hr-private'
+  and public.app_has_capability('hr_private.access',null)
+  and (storage.foldername(name))[1]=public.app_org_id()::text
+);
+
+create policy ceac_hr_private_delete
+on storage.objects
+for delete to authenticated
+using (
   bucket_id='ceac-hr-private'
   and public.app_has_capability('hr_private.access',null)
   and (storage.foldername(name))[1]=public.app_org_id()::text
