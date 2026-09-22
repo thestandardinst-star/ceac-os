@@ -227,8 +227,23 @@ export default function Workforce({ me }) {
     const entitlement=policyEntitlement===""?null:Number(policyEntitlement);
     const accrualRate=policyAccrualRate===""?null:Number(policyAccrualRate);
     const carryoverLimit=policyCarryoverLimit===""?null:Number(policyCarryoverLimit);
-    const rules=[{
+    const retainedRules=activeRules
+      .filter((rule)=>rule.leave_kind!==policyKind.trim() || Boolean(rule.employment_type))
+      .map((rule)=>({
+        leave_kind:rule.leave_kind,
+        employment_type:rule.employment_type||null,
+        entitlement_amount:rule.entitlement_amount,
+        entitlement_unit:rule.entitlement_unit,
+        accrual_method:rule.accrual_method,
+        accrual_rate:rule.accrual_rate,
+        carryover_method:rule.carryover_method,
+        carryover_limit:rule.carryover_limit,
+        approval_route:rule.approval_route,
+        opening_balance_required:rule.opening_balance_required,
+      }));
+    const rules=[...retainedRules,{
       leave_kind:policyKind.trim(),
+      employment_type:null,
       entitlement_amount:Number.isFinite(entitlement)?entitlement:null,
       entitlement_unit:policyEntitlementUnit||null,
       accrual_method:policyAccrualMethod||null,
