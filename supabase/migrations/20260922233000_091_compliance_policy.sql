@@ -148,7 +148,6 @@ create table public.compliance_exception_versions(
   supersedes_id uuid references public.compliance_exception_versions(id) on delete restrict,
   actor_id uuid not null references public.profiles(id) on delete restrict,
   created_at timestamptz not null default now(),
-  check(approved_until is null or requested_until is null or approved_until>=current_date - interval '100 years'),
   unique(exception_key,version)
 );
 
@@ -395,6 +394,30 @@ begin
     p_supersedes_id,btrim(p_reason),v_actor
   )
   returning id into v_id;
+
+  if p_state='retired'
+     and p_supersedes_id is not null
+     and jsonb_array_length(coalesce(p_applicability,'[]'::jsonb))=0 then
+    insert into public.compliance_policy_applicability(
+      org_id,policy_version_id,scope_kind,unit_id,profile_id,employment_type
+    )
+    select v_org,v_id,a.scope_kind,a.unit_id,a.profile_id,a.employment_type
+    from public.compliance_policy_applicability a
+    where a.policy_version_id=p_supersedes_id;
+  end if;
+
+  if p_state='retired'
+     and p_supersedes_id is not null
+     and jsonb_array_length(coalesce(p_requirements,'[]'::jsonb))=0 then
+    insert into public.compliance_requirements(
+      org_id,policy_version_id,requirement_code,title,description,
+      acknowledgement_required,evidence_required,evidence_kind,evidence_valid_days
+    )
+    select v_org,v_id,r.requirement_code,r.title,r.description,
+           r.acknowledgement_required,r.evidence_required,r.evidence_kind,r.evidence_valid_days
+    from public.compliance_requirements r
+    where r.policy_version_id=p_supersedes_id;
+  end if;
 
   for v_item in select value from jsonb_array_elements(coalesce(p_applicability,'[]'::jsonb))
   loop
