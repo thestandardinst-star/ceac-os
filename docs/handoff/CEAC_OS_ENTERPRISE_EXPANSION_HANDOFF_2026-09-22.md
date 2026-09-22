@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `d9b8c1703c7f20c233b62553e5e201cc209dacd7`
-**Active branch:** `chatgpt/enterprise-expansion-stage-6-resource-workload-2026-09-22`
-**Current stage:** Stage 6 — Resource & Workload
-**Latest merged migration on main:** 085 — Work Management 2.0; Stage 6 migration 086 is under review
+**Stage 6 merge main:** `af16cc2214fc56e001337f8f6bb830fb8464643a`
+**Active branch:** none — Stage 7 has not started
+**Current stage:** Stage 6 COMPLETE — Stage 7 Performance & Development is next
+**Latest merged migration on main:** 086 — Resource & Workload
 
 ## 1. Governing architecture
 
@@ -187,29 +187,31 @@ Merged into `main`:
 - Stage 0 through Stage 2 via consolidation;
 - Stage 3 Protected HR via clean main-based rebuild;
 - Stage 4 Goals and Strategy via clean main-based rebuild;
-- Stage 5 Work Management 2.0 via PR #33.
+- Stage 5 Work Management 2.0 via PR #33;
+- Stage 6 Resource & Workload via PR #34.
 
-Current merged main after Stage 5: `d9b8c1703c7f20c233b62553e5e201cc209dacd7`.
+Stage 6 merge commit: `af16cc2214fc56e001337f8f6bb830fb8464643a`.
+Final reviewed Stage 6 PR head: `bb15c7074a7fcd5ca2df1173e1fcb38dc0506fd5`.
+Latest merged migration: 086 — Resource & Workload.
 
-Active work is Stage 6 only:
-- PR #34 — Stage 6: Resource and Workload Management;
-- branch `chatgpt/enterprise-expansion-stage-6-resource-workload-2026-09-22`;
-- migration 086 adds append-only planning-capacity and project-commitment history;
-- Stage 7 must not begin until Stage 6 is fully green, product-inspected and merged into `main`.
+Stage 6 is closed. Its exit evidence:
+- CI passed;
+- clean Migration Replay passed;
+- Account Security passed;
+- every cumulative SQL/security gate through Stage 6 passed;
+- append-only capacity/commitment authority, audit and semantic-event evidence passed;
+- Playwright role/browser acceptance passed;
+- persistence/reload and supported mobile-width acceptance passed;
+- exact-head desktop/mobile browser captures were generated and product-inspected;
+- Workload management figures drill to their recorded evidence;
+- no workload score, employee ranking, attendance-derived performance judgement, guessed work estimate or leave-days-to-hours conversion was introduced;
+- Vercel's PR integration reported the Stage 6 preview Ready. Direct fetching of the team-protected preview was unavailable to the connected reviewer tool because that Vercel connection lacks the project team scope; this is a reviewer-tool access limitation, not an unresolved Stage 6 code or deployment failure.
 
-Stage 6 exit evidence must include:
-- CI;
-- clean Migration Replay;
-- Account Security;
-- every cumulative SQL/security gate through Stage 6;
-- Stage 6 audit and semantic-event evidence;
-- browser role acceptance;
-- persistence after reload;
-- desktop/mobile responsive acceptance;
-- deployment validation and a real preview/product inspection;
-- confirmation that no workload score, employee ranking or attendance-derived performance inference has been introduced.
+There is no active enterprise feature branch after this closure update.
 
-After Stage 6 the mandatory order is:
+The next permitted stage is **Stage 7 — Performance & Development**. It has not started. Before creating its branch, inspect GitHub and branch from the latest `main` that includes this closure handoff. Do not branch Stage 7 from PR #34 or any older enterprise branch.
+
+The remaining mandatory order is:
 
 `7 Performance & Development → 8 Learning → 9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
 
