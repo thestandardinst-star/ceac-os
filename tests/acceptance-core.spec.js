@@ -1488,7 +1488,8 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Compliance", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
     const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
     await expect(policyCard).toBeVisible();
@@ -1516,7 +1517,8 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await expect(page.getByText("Compliance exception requested.", { exact: true })).toBeVisible();
 
     await page.reload();
-    await page.locator(".tabs").getByRole("button", { name: "Compliance", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
     await expect(page.locator(".compliance-policy-card").filter({ hasText: policyTitle })).toContainText("Acknowledged");
     await page.getByRole("tab", { name: "My evidence", exact: true }).click();
     await expect(page.locator(".compliance-self-item").filter({ hasText: requirementTitle })).toContainText(evidenceRef);
@@ -1705,7 +1707,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
 
   await go(page, "System rules");
-  await expect(page.getByRole("heading", { name: "Policies & rules", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "System rules", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await page.getByLabel("Policy rule value").fill("6");
   await page.getByLabel("Policy reason").fill("Acceptance policy rule version");
@@ -1775,7 +1777,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });

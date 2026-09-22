@@ -254,18 +254,24 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
       ["settings","Settings"],["me","Me"]
     ] },
   ];
+  const staffGroups = [
+    { label:"Growth", items:[["strategy","Strategy"],["learning","Learning"]] },
+    { label:"Organisation", items:[["assets","Assets"],["compliance","Compliance"]] },
+  ];
+  const staffPrimary = [["home","Home"],["work","Work"],["team","Team"],["me","Me"],["more","More"]];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
   const adminPrimary = [["home","Home"],...(capabilities.includes("people.manage") ? [["people","People"]] : []),["attendance","Workforce"],["reporting","Reports"],["more","More"]];
   const items = isExec
     ? [["home","Home"],["delivery","Delivery"],["announcements","Announcements"],["me","Me"]]
-    : isAdmin ? adminPrimary : isManager ? managerPrimary : tabItems(false);
-  const moreGroups = isAdmin ? adminGroups : managerGroups;
+    : isAdmin ? adminPrimary : isManager ? managerPrimary : staffPrimary;
+  const moreGroups = isAdmin ? adminGroups : isManager ? managerGroups : staffGroups;
   const moreKeys = moreGroups.flatMap((group) => group.items.map(([key]) => key));
-  const moreActive = (isManager || isAdmin) && moreKeys.includes(tab);
-  useEffect(() => { setMoreOpen(false); }, [tab, isManager, isAdmin]);
+  const moreActive = !isExec && moreKeys.includes(tab);
+  const moreRole = isAdmin ? "Administration" : isManager ? "Manager" : "Staff";
+  useEffect(() => { setMoreOpen(false); }, [tab, isManager, isAdmin, isExec]);
   return (<>
-    {(isManager || isAdmin) && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" className="mobile-more-menu" aria-label={isAdmin ? "More Administration destinations" : "More Manager destinations"}>
-      <div className="mobile-more-head"><strong>More</strong><span>{isAdmin ? "Administration" : "Manager"} workspace</span></div>
+    {!isExec && moreOpen && <><button className="menu-bg" aria-label="Close More menu" onClick={() => setMoreOpen(false)} /><div role="menu" className="mobile-more-menu" aria-label={`More ${moreRole} destinations`}>
+      <div className="mobile-more-head"><strong>More</strong><span>{moreRole} workspace</span></div>
       {moreGroups.map((group) => <MobileMenuGroup key={group.label} label={group.label} items={group.items} tab={tab} setTab={setTab} close={() => setMoreOpen(false)} />)}
     </div></>}
     <nav className="tabs" aria-label="Mobile navigation">
