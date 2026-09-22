@@ -49,6 +49,10 @@ Unit Objective
 
 It should add mature project metadata, milestones, dependencies, risks, issues and portfolio reporting without turning CEAC OS into a generic scheduling engine.
 
+## Acceptance correction
+
+- Staff mobile Strategy acceptance uses the mobile tab navigation rather than the hidden desktop sidebar at phone widths.
+
 ## Exit gate
 
 Stage 4 is ready only when:
