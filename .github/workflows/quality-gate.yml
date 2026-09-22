@@ -97,6 +97,9 @@ jobs:
       - name: Run Stage 1E workflow engine gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/workflow_engine_gate.sql
 
+      - name: Run Stage 1F policy rules gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/policy_rules_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
