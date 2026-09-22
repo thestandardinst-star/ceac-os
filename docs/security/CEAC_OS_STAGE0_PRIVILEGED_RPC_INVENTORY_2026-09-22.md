@@ -93,3 +93,29 @@ This file is an inventory, not an approval of every function. Each row must be r
 ## Stage 0 review rule
 
 For every row, verify purpose, legitimate caller, exact read/write scope, caller binding, cross-organisation resistance, audit behaviour, reversibility where applicable, and whether SECURITY DEFINER is still required. Any privilege reduction must be delivered by a reviewed migration plus acceptance tests; do not edit production functions manually.
+
+
+## First least-privilege reduction set
+
+Repository source was scanned directly across the current `src/` and `scripts/` JavaScript/JSX/MJS files rather than relying on GitHub code-search indexing.
+
+The following functions are not called directly by the browser in the current product, are not referenced by RLS policies or views, and are used internally by other privileged functions:
+
+| Function | Current database use | Browser call | Decision |
+|---|---|---|---|
+| `app_can_publish_announcements()` | authority helper for announcement RPCs | no | revoke direct authenticated EXECUTE after migration ledger repair |
+| `app_threshold(uuid,text,numeric)` | internal threshold lookup used by privileged functions | no | revoke direct authenticated EXECUTE after migration ledger repair |
+| `next_close_version(uuid,text,uuid)` | internal project-close version helper | no | revoke direct authenticated EXECUTE after migration ledger repair |
+| `next_work_ref(uuid,uuid)` | internal work-reference generator used by work creation | no | revoke direct authenticated EXECUTE after migration ledger repair |
+| `submit_project_close(uuid)` | internal submit step behind `save_and_submit_project_close` | no | revoke direct authenticated EXECUTE after migration ledger repair |
+| `submit_report(uuid,jsonb)` | internal submit step behind `save_and_submit_report` | no | revoke direct authenticated EXECUTE after migration ledger repair |
+
+All six retain caller/organisation/authority checks in their definitions. Revoking direct browser execution does not remove the function itself; privileged server/database callers retain the ability to invoke it under their own execution authority.
+
+Expected exposed authenticated SECURITY DEFINER surface after this first reduction: **67**, down from **73**.
+
+Do not implement this grant reduction before migration-history reconciliation. It must be delivered as a normal reviewed migration with:
+- clean replay;
+- Platform Kernel gate update from ceiling 73 to ceiling 67;
+- role/RLS tests;
+- browser acceptance proving affected product flows still work.
