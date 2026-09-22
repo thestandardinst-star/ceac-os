@@ -28,6 +28,7 @@ import AdminAudit from "./screens/AdminAudit";
 import AdminAuthority from "./screens/AdminAuthority";
 import AdminEvents from "./screens/AdminEvents";
 import AdminWorkflows from "./screens/AdminWorkflows";
+import AdminPolicies from "./screens/AdminPolicies";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -239,6 +240,7 @@ export default function App() {
     if (tab === "audit" && canViewAudit) return <AdminAudit me={me} />;
     if (tab === "events" && canViewAudit) return <AdminEvents me={me} />;
     if (tab === "workflows" && canUseWorkflows) return <AdminWorkflows me={me} />;
+    if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
