@@ -355,13 +355,19 @@ export default function Workforce({ me }) {
           const ctx=contextFor(row.profile_id);
           const schedule=latestSchedule(row.profile_id);
           const dayType=currentDayType(row.profile_id);
+          const facts=sessionFacts(row.profile_id);
+          const leaveRow=approvedLeave(row.profile_id);
+          const activeCorrections=effectiveCorrections(row.profile_id,today);
           return <article className="card workforce-person" key={row.profile_id}>
             <div className="workforce-person-head"><Avatar name={row.profiles?.full_name} size="sm"/><div><strong>{row.profiles?.full_name}</strong><span>{row.units?.name||"Unit not recorded"} · {row.profiles?.job_title||"Position not recorded"}</span></div><Pill tone={ctx.tone}>{ctx.label}</Pill></div>
             <p>{ctx.detail}</p>
             <div className="workforce-facts">
               <span>Day type <b>{dayType?.name||"Not configured"}</b></span>
-              <span>Expected context <b>{schedule?.expected_start?String(schedule.expected_start).slice(0,5):"Not recorded"}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</b></span>
-              <span>Recorded sessions <b>{sessionsOn(row.profile_id).length}</b></span>
+              <span>Configured clock context <b>{schedule?.expected_start?String(schedule.expected_start).slice(0,5):"Not recorded"}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</b></span>
+              <span>First recorded session <b>{facts.first?clock(facts.first.started_at):"None recorded"}</b></span>
+              <span>Final recorded end <b>{facts.lastEnd?clock(facts.lastEnd):facts.rows.length?"No final end recorded":"None recorded"}</b></span>
+              <span>Approved leave <b>{leaveRow?human(leaveRow.kind):"None recorded"}</b></span>
+              <span>Effective corrections <b>{activeCorrections.length}</b></span>
             </div>
           </article>;
         })}
@@ -370,13 +376,81 @@ export default function Workforce({ me }) {
     </>}
 
     {tab==="calendar"&&<>
-      <div className="sec"><span>Seven-day workforce context</span></div>
+      <div className="sec"><span>Seven-day workforce context</span><span>{calendarPeople.length} visible people</span></div>
+      <div className="workforce-calendar-filters">
+        <FieldGroup label="Unit">
+          <select className="field" aria-label="Workforce calendar unit filter" value={calendarUnit} onChange={(e)=>{setCalendarUnit(e.target.value);setCalendarPerson("");}}>
+            <option value="">All visible units</option>
+            {units.map(([id,name])=><option key={id} value={id}>{name}</option>)}
+          </select>
+        </FieldGroup>
+        <FieldGroup label="Person">
+          <select className="field" aria-label="Workforce calendar person filter" value={calendarPerson} onChange={(e)=>setCalendarPerson(e.target.value)}>
+            <option value="">All visible people</option>
+            {people.filter((row)=>!calendarUnit||row.unit_id===calendarUnit).map((row)=><option key={row.profile_id} value={row.profile_id}>{row.profiles?.full_name}</option>)}
+          </select>
+        </FieldGroup>
+      </div>
       <div className="workforce-calendar">
         {Array.from({length:7},(_,i)=>{
           const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
-          return <section key={date}><header><strong>{niceDay(date)}</strong></header>{people.map((p)=>{const ctx=contextFor(p.profile_id,date);return <div key={p.profile_id}><span>{p.profiles?.full_name}</span><Pill tone={ctx.tone}>{ctx.label}</Pill></div>})}</section>
+          const events=calendarEventsOn(date);
+          return <section key={date}>
+            <header><strong>{niceDay(date)}</strong><small>{events.length?events.length+" calendar item"+(events.length===1?"":"s"):"No shared calendar items"}</small></header>
+            {calendarPeople.map((p)=>{
+              const ctx=contextFor(p.profile_id,date);
+              const facts=sessionFacts(p.profile_id,date);
+              const schedule=latestSchedule(p.profile_id,date);
+              return <div className="workforce-calendar-person" key={p.profile_id}>
+                <span><strong>{p.profiles?.full_name}</strong><small>{currentDayType(p.profile_id,date)?.name||"Schedule not configured"}{schedule?.expected_start?" · configured "+String(schedule.expected_start).slice(0,5):""}{facts.first?" · first recorded "+clock(facts.first.started_at):""}</small></span>
+                <Pill tone={ctx.tone}>{ctx.label}</Pill>
+              </div>;
+            })}
+            {events.length>0&&<div className="workforce-calendar-events">{events.map((event)=><div key={event.id}><span>{event.label}</span><strong>{event.title}</strong><small>{clock(event.at)}</small></div>)}</div>}
+          </section>;
         })}
       </div>
+    </>}
+
+    {tab==="sessions"&&<>
+      <div className="sec"><span>Recorded sessions · last 31 days</span><span>{sessions.length}</span></div>
+      <p className="screen-note">Session history is factual activity context. It is not a performance score and it is not used as payroll time.</p>
+      {sessions.slice(0,160).map((session)=>{
+        const person=peopleById[session.profile_id];
+        const diff=recordedDifferences(session);
+        const sessionCorrections=effectiveCorrections(session.profile_id,isoDay(session.started_at)).filter((row)=>!row.work_session_id||row.work_session_id===session.id);
+        return <div className="row workforce-session-row" key={session.id}>
+          <div className="row-t">{person?.profiles?.full_name||"Employee"}</div>
+          <div className="row-m">{new Date(session.started_at).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})} · {clock(session.started_at)} → {session.ended_at?clock(session.ended_at):"no recorded end"} · {session.place||"place not recorded"}</div>
+          {(diff.length>0||sessionCorrections.length>0)&&<div className="row-note">{diff.length} recorded difference{diff.length===1?"":"s"} · {sessionCorrections.length} effective correction{sessionCorrections.length===1?"":"s"}</div>}
+        </div>;
+      })}
+      {!sessions.length&&<EmptyState compact title="No sessions recorded in this period">Nothing is inferred from the absence of session rows.</EmptyState>}
+    </>}
+
+    {tab==="differences"&&<>
+      <div className="sec"><span>Expected versus recorded today</span></div>
+      <ProductNotice tone="info" title="Descriptive context only">Configured schedule context and recorded activity are shown side by side. CEAC OS does not convert a missing or different record into “absent”, “late”, “underworked” or a performance judgement.</ProductNotice>
+      {people.map((row)=>{
+        const schedule=latestSchedule(row.profile_id);
+        const dayType=currentDayType(row.profile_id);
+        const facts=sessionFacts(row.profile_id);
+        const ctx=contextFor(row.profile_id);
+        return <div className="row workforce-compare-row" key={row.profile_id}>
+          <div className="row-t">{row.profiles?.full_name}</div>
+          <div className="row-m">Scheduled: {dayType?.name||"not configured"}{schedule?.expected_start?" · "+String(schedule.expected_start).slice(0,5):""}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</div>
+          <div className="row-note">Recorded: {facts.first?clock(facts.first.started_at):"no session"}{facts.lastEnd?" → "+clock(facts.lastEnd):facts.rows.length?" · no final end":""} · {ctx.label}</div>
+        </div>;
+      })}
+
+      <div className="sec"><span>Recorded session differences</span><span>{flaggedSessions.length}</span></div>
+      {!office&&<ProductNotice tone="info" title="Office point not configured">Location-based differences stay unavailable until a primary office point exists. Other factual differences still appear.</ProductNotice>}
+      {flaggedSessions.map(({session,differences})=><div className="row" key={session.id}>
+        <div className="row-t">{peopleById[session.profile_id]?.profiles?.full_name||"Employee"}</div>
+        <div className="row-m">{new Date(session.started_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})} · {clock(session.started_at)}</div>
+        {differences.map((difference,index)=><div className="row-note" key={index}>{difference}</div>)}
+      </div>)}
+      {!flaggedSessions.length&&<EmptyState compact title="No recorded session differences">Nothing in the last 31 days matches the factual difference checks.</EmptyState>}
     </>}
 
     {tab==="leave"&&<>
