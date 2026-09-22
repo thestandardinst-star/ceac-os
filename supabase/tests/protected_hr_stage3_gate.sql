@@ -121,6 +121,14 @@ begin
     raise exception 'Protected HR gate failure: protected summary did not return the recorded history.';
   end if;
 
+end
+$admin_flow$;
+
+reset role;
+
+do $audit_evidence$
+declare v_count integer;
+begin
   select count(*) into v_count
   from hr_private.audit_events
   where subject_profile_id='31000000-0000-4000-8000-000000000001'
@@ -129,9 +137,7 @@ begin
     raise exception 'Protected HR gate failure: sensitive access/write audit is incomplete.';
   end if;
 end
-$admin_flow$;
-
-reset role;
+$audit_evidence$;
 
 do $storage_boundary$
 declare n integer;
