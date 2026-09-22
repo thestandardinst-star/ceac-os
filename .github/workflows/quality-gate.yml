@@ -85,6 +85,9 @@ jobs:
       - name: Run Stage 1A employment history gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/employment_history_gate.sql
 
+      - name: Run Stage 1B platform audit gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/platform_audit_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
