@@ -93,7 +93,6 @@ declare
   v_capacity uuid;
   v_commitment uuid;
   v_revision uuid;
-  v_count integer;
 begin
   insert into public.resource_capacity_versions(
     org_id,profile_id,weekly_minutes,effective_on,reason,created_by
@@ -164,6 +163,30 @@ begin
   exception when insufficient_privilege then null;
   end;
 
+  if not exists (
+    select 1
+    from public.resource_project_commitment_versions
+    where id=v_revision and supersedes_id=v_commitment
+  ) then
+    raise exception 'Stage 6 gate failure: commitment revision did not preserve supersession history.';
+  end if;
+
+  perform set_config('ceac.stage6_capacity_id',v_capacity::text,true);
+  perform set_config('ceac.stage6_commitment_id',v_commitment::text,true);
+  perform set_config('ceac.stage6_revision_id',v_revision::text,true);
+end
+$stage6_manager_flow$;
+
+reset role;
+
+-- Audit/event evidence is verified outside the Manager RLS boundary.
+do $stage6_evidence$
+declare
+  v_capacity uuid:=nullif(current_setting('ceac.stage6_capacity_id',true),'')::uuid;
+  v_commitment uuid:=nullif(current_setting('ceac.stage6_commitment_id',true),'')::uuid;
+  v_revision uuid:=nullif(current_setting('ceac.stage6_revision_id',true),'')::uuid;
+  v_count integer;
+begin
   select count(*) into v_count
   from public.platform_events
   where event_type='resource.capacity_changed'
@@ -187,18 +210,8 @@ begin
   if v_count<>1 then
     raise exception 'Stage 6 gate failure: capacity audit event is missing.';
   end if;
-
-  if not exists (
-    select 1
-    from public.resource_project_commitment_versions
-    where id=v_revision and supersedes_id=v_commitment
-  ) then
-    raise exception 'Stage 6 gate failure: commitment revision did not preserve supersession history.';
-  end if;
 end
-$stage6_manager_flow$;
-
-reset role;
+$stage6_evidence$;
 
 -- The person may read their own recorded planning history, but still cannot edit it.
 set local role authenticated;
