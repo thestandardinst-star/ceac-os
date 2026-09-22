@@ -29,6 +29,7 @@ import AdminAuthority from "./screens/AdminAuthority";
 import AdminEvents from "./screens/AdminEvents";
 import AdminWorkflows from "./screens/AdminWorkflows";
 import AdminPolicies from "./screens/AdminPolicies";
+import AdminIntegrations from "./screens/AdminIntegrations";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -201,6 +202,7 @@ export default function App() {
   const canViewAudit = hasCapability("audit.view");
   const canManageAuthority = hasCapability("authority.manage");
   const canUseWorkflows = canViewAudit || canManagePeople || canManageAuthority;
+  const canManageIntegrations = hasCapability("integration.manage");
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -241,6 +243,7 @@ export default function App() {
     if (tab === "events" && canViewAudit) return <AdminEvents me={me} />;
     if (tab === "workflows" && canUseWorkflows) return <AdminWorkflows me={me} />;
     if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
+    if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
