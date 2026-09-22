@@ -26,6 +26,7 @@ import AdminProjects from "./screens/AdminProjects";
 import AdminCalendar from "./screens/AdminCalendar";
 import AdminAudit from "./screens/AdminAudit";
 import AdminAuthority from "./screens/AdminAuthority";
+import AdminEvents from "./screens/AdminEvents";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -234,6 +235,7 @@ export default function App() {
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
     if (tab === "audit" && canViewAudit) return <AdminAudit me={me} />;
+    if (tab === "events" && canViewAudit) return <AdminEvents me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
     if (tab === "settings" && isAdmin) return <OfficeSettings me={me} />;
     return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} />;
