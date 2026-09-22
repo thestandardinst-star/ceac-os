@@ -64,7 +64,7 @@ export default function ResourceWorkload({ me }) {
   const [notice,setNotice]=useState(null);
 
   const capabilities=me.capabilities||[];
-  const orgAuthority=Boolean(me.is_admin||capabilities.includes("resource.manage"));
+  const orgAuthority=capabilities.includes("resource.manage");
   const managedUnitIds=(me.memberships||[]).filter((row)=>row.role==="manager").map((row)=>row.unit_id);
   if(me.role==="manager" && me.unit_id && !managedUnitIds.includes(me.unit_id)) managedUnitIds.push(me.unit_id);
 
