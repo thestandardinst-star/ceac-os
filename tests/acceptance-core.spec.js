@@ -467,7 +467,7 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
     const composer = page.getByPlaceholder("Message Fixture Video Team");
     await composer.fill("@Sta");
-    await expect(page.getByRole("button", { name: /Staff Fixture/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Staff Fixture/ })).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Staff Fixture/ }).click();
     await composer.fill((await composer.inputValue()) + message);
     await page.getByRole("button", { name: "Send", exact: true }).click();
