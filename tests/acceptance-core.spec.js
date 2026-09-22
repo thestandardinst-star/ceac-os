@@ -564,7 +564,7 @@ test("Administration can combine multiple units into one meeting audience", asyn
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Finance", "Reports"];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Finance", "Reports"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
@@ -785,6 +785,43 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
   }
 });
 
+test("Stage 6 Workload keeps capacity components factual and manager-scoped", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Workload");
+    await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not turn these components into an employee score/i)).toBeVisible();
+
+    await page.getByLabel("Workload person").selectOption("31000000-0000-4000-8000-000000000001");
+    await page.getByLabel("Planning hours per week").fill("35");
+    await page.getByLabel("Planning capacity reason").fill("Acceptance Stage 6 planning capacity");
+    await page.getByRole("button", { name: "Record capacity version", exact: true }).click();
+    await expect(page.getByText("Planning capacity recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Workload project").selectOption({ label: "Stage 4 Browser Project" });
+    await page.getByLabel("Project commitment hours per week").fill("10");
+    await page.getByLabel("Project commitment reason").fill("Acceptance Stage 6 project commitment");
+    await page.getByRole("button", { name: "Record commitment version", exact: true }).click();
+    await expect(page.getByText("Project commitment recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await page.getByLabel("Workload person").selectOption("31000000-0000-4000-8000-000000000001");
+    await expect(page.getByText("Acceptance Stage 6 project commitment", { exact: true })).toBeVisible();
+    await expect(page.getByText("35 h", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("10 h / week", { exact: false }).first()).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.goto("/?tab=workload");
+    await expect(page.getByRole("heading", { name: "Workload", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
@@ -958,7 +995,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "Workload", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
@@ -1002,7 +1039,7 @@ test("Administration primary surfaces stay within supported phone widths", async
 
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [
-    ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects", "Delivery"]],
+    ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects", "Delivery", "Workload"]],
     ["admin@ceac.local.test", ["Home", "People", "Attendance", "Reports"]],
     ["exec@ceac.local.test", ["Home", "Delivery", "Announcements", "Me"]],
   ];
