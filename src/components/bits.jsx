@@ -133,7 +133,7 @@ function tabItems(isManager = false) {
   return [["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["me","Me"]];
 }
 
-function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false, canWorkload = false, canPerformance = false, canLearning = false, canAssets = false }) {
+function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false, canWorkload = false, canPerformance = false, canLearning = false, canAssets = false, canCompliance = false }) {
   if (isExec) return [
     { label:"Ministry", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
@@ -141,24 +141,24 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProte
   ];
   if (isAdmin) return [
     { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"],...(canWorkload ? [["workload","Workload"]] : []),...(canAssets ? [["assets","Assets & devices"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Workforce"]] },
+    { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canCompliance ? [["compliance","Compliance"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Workforce"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
-    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","Policies & rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
+    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","System rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
   ];
   if (isManager) return [
-    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["attendance","Workforce"],["assets","Assets & devices"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
+    { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["attendance","Workforce"],["assets","Assets & devices"],["compliance","Compliance"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
     { label:"Personal", items:[["me","Me"]] },
   ];
-  return [{ label:null, items:[["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["assets","Assets"],["me","Me"]] }];
+  return [{ label:null, items:[["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["assets","Assets"],["compliance","Compliance"],["me","Me"]] }];
 }
 
 export function AppTopBar({ me, roleLabel, tab, onProfile }) {
   const titleMap = {
     home: roleLabel === "Administration" ? "Organisation" : roleLabel === "Group Pastor" ? "Ministry" : "Workspace",
     units:"Units", people:"People", lifecycle:"Employee lifecycle", "protected-hr":"Protected HR", attendance:"Workforce", reporting:"Reports",
-    finance:"Finance", cost:"Cost", strategy:"Strategy", delivery:"Delivery", workload:"Workload", performance:"Performance & development", learning:"Learning", assets:"Assets & devices", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"Policies & rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
+    finance:"Finance", cost:"Cost", strategy:"Strategy", delivery:"Delivery", workload:"Workload", performance:"Performance & development", learning:"Learning", assets:"Assets & devices", compliance:"Compliance", announcements:"Announcements", audit:"Audit", events:"System events", workflows:"Workflows", authority:"Authority", policies:"System rules", integrations:"Integrations", settings:"Settings", "admin-projects":"Projects", "admin-calendar":"Calendar",
     work:"Work", team:"Team", projects:"Projects", calendar:"Calendar",
     "manager-finance":"Finance", "manager-reports":"Reports", record:"My work history", me:"Me",
   };
@@ -194,6 +194,7 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
     canPerformance: (me.capability_grants || []).some((grant) => grant.capability === "performance.admin" && !grant.scope_unit_id),
     canLearning: (me.capability_grants || []).some((grant) => grant.capability === "learning.manage" && !grant.scope_unit_id),
     canAssets: (me.capability_grants || []).some((grant) => grant.capability === "asset.manage" && !grant.scope_unit_id),
+    canCompliance: (me.capability_grants || []).some((grant) => grant.capability === "compliance.manage" && !grant.scope_unit_id),
   });
   return (
     <aside className="side">
@@ -234,7 +235,7 @@ function MobileMenuGroup({ label, items, tab, setTab, close }) {
 export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, me = null }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const managerGroups = [
-    { label:"Planning", items:[["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["assets","Assets & devices"],["performance","Performance & development"],["learning","Learning"]] },
+    { label:"Planning", items:[["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["assets","Assets & devices"],["compliance","Compliance"],["performance","Performance & development"],["learning","Learning"]] },
     { label:"Schedule", items:[["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
     { label:"Personal", items:[["me","Me"]] },
@@ -242,13 +243,13 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
   const capabilities = me?.capabilities || [];
   const adminGroups = [
     { label:"Organisation", items:[["strategy","Strategy"],["delivery","Delivery"],...(capabilities.includes("resource.manage") ? [["workload","Workload"]] : []),...(capabilities.includes("asset.manage") ? [["assets","Assets & devices"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
-    { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : []),...((me?.capability_grants || []).some((grant) => grant.capability === "performance.admin" && !grant.scope_unit_id) ? [["performance","Performance & development"]] : []),...((me?.capability_grants || []).some((grant) => grant.capability === "learning.manage" && !grant.scope_unit_id) ? [["learning","Learning"]] : []),...(capabilities.includes("hr_private.access") ? [["protected-hr","Protected HR"]] : [])] },
+    { label:"People", items:[...(capabilities.includes("people.manage") ? [["lifecycle","Employee lifecycle"]] : []),...((me?.capability_grants || []).some((grant) => grant.capability === "performance.admin" && !grant.scope_unit_id) ? [["performance","Performance & development"]] : []),...((me?.capability_grants || []).some((grant) => grant.capability === "learning.manage" && !grant.scope_unit_id) ? [["learning","Learning"]] : []),...((me?.capability_grants || []).some((grant) => grant.capability === "compliance.manage" && !grant.scope_unit_id) ? [["compliance","Compliance"]] : []),...(capabilities.includes("hr_private.access") ? [["protected-hr","Protected HR"]] : [])] },
     { label:"Insight", items:[["cost","Cost"],["finance","Finance"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
     { label:"System", items:[
       ...(capabilities.includes("audit.view") ? [["audit","Audit"],["events","Events"]] : []),
       ...((capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage")) ? [["workflows","Workflows"]] : []),
-      ...(capabilities.includes("authority.manage") ? [["authority","Authority"],["policies","Policies & rules"]] : []),
+      ...(capabilities.includes("authority.manage") ? [["authority","Authority"],["policies","System rules"]] : []),
       ...(capabilities.includes("integration.manage") ? [["integrations","Integrations"]] : []),
       ["settings","Settings"],["me","Me"]
     ] },
