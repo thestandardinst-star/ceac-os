@@ -1,8 +1,8 @@
 # CEAC OS — Stage 0 Privileged RPC Inventory
 
-**Date:** 22 September 2026  
-**Source:** live Supabase project `efjljhftsesssumtshvp`  
-**Purpose:** formal starting inventory for Stage 0 least-privilege review.  
+**Date:** 22 September 2026
+**Source:** live Supabase project `efjljhftsesssumtshvp`
+**Purpose:** formal starting inventory for Stage 0 least-privilege review.
 
 This file is an inventory, not an approval of every function. Each row must be reviewed before Stage 0 closes. Static authority-binding signals below indicate whether the function definition visibly references `auth.uid()` and/or one of the currently approved authority helpers; they do not substitute for function-by-function semantic review.
 
