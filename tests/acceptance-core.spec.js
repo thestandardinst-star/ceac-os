@@ -564,7 +564,7 @@ test("Administration can combine multiple units into one meeting audience", asyn
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Performance & development", "Learning", "Finance", "Reports"];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Assets & devices", "Performance & development", "Learning", "Finance", "Reports"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
@@ -1269,6 +1269,177 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
   }
 });
 
+test("Stage 10 Assets & devices preserves factual custody and lifecycle across roles", async ({ browser }) => {
+  test.setTimeout(180000);
+  const assetCode = "CEAC-ACCEPT-001";
+  const serial = "ACCEPT-SERIAL-001";
+  const today = new Date();
+  const purchase = new Date(today.getTime() - 60 * 86400000).toISOString().slice(0,10);
+  const warranty = new Date(today.getTime() + 305 * 86400000).toISOString().slice(0,10);
+  const expectedReturn = new Date(today.getTime() + 30 * 86400000).toISOString().slice(0,10);
+  const unitA = "20000000-0000-4000-8000-000000000011";
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Assets & devices");
+    await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not remotely wipe, lock, configure or monitor device operating systems/i)).toBeVisible();
+
+    await page.getByRole("button", { name: "Add asset", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset code").fill(assetCode);
+    await dialog.getByLabel("Asset category").fill("Camera");
+    await dialog.getByLabel("Asset manufacturer").fill("Sony");
+    await dialog.getByLabel("Asset model").fill("FX3");
+    await dialog.getByLabel("Asset serial number").fill(serial);
+    await dialog.getByLabel("Asset unit").selectOption(unitA);
+    await dialog.getByLabel("Asset purchase date").fill(purchase);
+    await dialog.getByLabel("Asset purchase vendor").fill("Acceptance Supplier");
+    await dialog.getByLabel("Asset purchase cost").fill("24000");
+    await dialog.getByLabel("Asset purchase currency").fill("GHS");
+    await dialog.getByLabel("Asset warranty expiry").fill(warranty);
+    await dialog.getByLabel("Asset location").fill("Media store");
+    await dialog.getByLabel("Asset condition note").fill("Issued new for acceptance");
+    await dialog.getByLabel("Asset notes").fill("Stage 10 browser acceptance asset");
+    await dialog.getByRole("button", { name: "Add asset", exact: true }).click();
+    await expect(page.getByText("Asset added to inventory.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Assets & devices");
+    const card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("GHS 24,000");
+    await expect(card).toContainText(serial);
+
+    await card.getByRole("button", { name: "Assign", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset assignee").selectOption({ label: "Staff Fixture" });
+    await dialog.getByLabel("Asset assignment unit").selectOption(unitA);
+    await dialog.getByLabel("Asset assignment location").fill("Production desk");
+    await dialog.getByLabel("Asset expected return").fill(expectedReturn);
+    await dialog.getByLabel("Asset assignment condition").fill("Good condition at handover");
+    await dialog.getByLabel("Asset assignment reason").fill("Stage 10 acceptance custody");
+    await dialog.getByRole("button", { name: "Assign asset", exact: true }).click();
+    await expect(page.getByText("Asset assigned.", { exact: true })).toBeVisible();
+    await expect(card).toContainText("Staff Fixture");
+    await page.screenshot({ path: "test-artifacts/stage10-assets-admin.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("button", { name: /My assets/ }).click();
+    await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
+    const card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Staff Fixture");
+    await expect(card.getByRole("button", { name: "Edit details", exact: true })).toHaveCount(0);
+    await page.getByRole("tab", { name: "History", exact: true }).click();
+    await expect(page.getByText("Assigned", { exact: true }).first()).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Stage 10 Staff assets overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage10-assets-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Assets & devices");
+    await expect(page.locator(".asset-card").filter({ hasText: assetCode })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add asset", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Edit details", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "other@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Assets");
+    await expect(page.getByText(assetCode, { exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Assets & devices");
+    let card = page.locator(".asset-card").filter({ hasText: assetCode });
+
+    await card.getByRole("button", { name: "Transfer", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset assignee").selectOption({ label: "Same Unit Fixture" });
+    await dialog.getByLabel("Asset assignment unit").selectOption(unitA);
+    await dialog.getByLabel("Asset assignment location").fill("Same-unit custody");
+    await dialog.getByLabel("Asset assignment reason").fill("Stage 10 acceptance transfer");
+    await dialog.getByRole("button", { name: "Transfer custody", exact: true }).click();
+    await expect(page.getByText("Asset custody transferred.", { exact: true })).toBeVisible();
+
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await card.getByRole("button", { name: "Return", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset return location").fill("Media store");
+    await dialog.getByLabel("Asset return condition").fill("Returned in good condition");
+    await dialog.getByLabel("Asset return reason").fill("Stage 10 acceptance return");
+    await dialog.getByRole("button", { name: "Record return", exact: true }).click();
+    await expect(page.getByText("Asset returned.", { exact: true })).toBeVisible();
+
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await card.getByRole("button", { name: "Start repair", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset lifecycle note").fill("Battery inspection");
+    await dialog.getByLabel("Asset lifecycle reason").fill("Stage 10 acceptance repair");
+    await dialog.getByRole("button", { name: "Record repair started", exact: true }).click();
+    await expect(page.getByText("Repair Started recorded.", { exact: true })).toBeVisible();
+
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await card.getByRole("button", { name: "Warranty claim", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset lifecycle note").fill("Warranty reference AC-10");
+    await dialog.getByLabel("Asset lifecycle reason").fill("Stage 10 acceptance warranty");
+    await dialog.getByRole("button", { name: "Record warranty claimed", exact: true }).click();
+    await expect(page.getByText("Warranty Claimed recorded.", { exact: true })).toBeVisible();
+
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await card.getByRole("button", { name: "Complete repair", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset lifecycle note").fill("Battery inspection completed");
+    await dialog.getByLabel("Asset lifecycle reason").fill("Stage 10 acceptance repair complete");
+    await dialog.getByRole("button", { name: "Record repair completed", exact: true }).click();
+    await expect(page.getByText("Repair Completed recorded.", { exact: true })).toBeVisible();
+
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await card.getByRole("button", { name: "Retire", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Asset lifecycle note").fill("Acceptance lifecycle complete");
+    await dialog.getByLabel("Asset lifecycle reason").fill("Stage 10 acceptance retirement");
+    await dialog.getByRole("button", { name: "Record retired", exact: true }).click();
+    await expect(page.getByText("Retired recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Assets & devices");
+    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    await expect(card).toContainText("Retired");
+    await expect(card).toContainText("GHS 24,000");
+    await expect(card).toContainText(serial);
+
+    await page.getByRole("tab", { name: "History", exact: true }).click();
+    await expect(page.getByText("Transferred", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Returned", { exact: true }).first()).toBeVisible();
+
+    await page.getByRole("tab", { name: "Service & lifecycle", exact: true }).click();
+    await expect(page.getByText("Repair Started", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Warranty Claimed", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Retired", { exact: true }).first()).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await page.goto("/?tab=assets");
+    await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
@@ -1437,7 +1608,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
