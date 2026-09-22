@@ -2,50 +2,7 @@
 
 begin;
 
--- Synthetic delivery records used only inside this rolled-back gate.
-insert into public.projects(
-  id,org_id,kind,lead_unit_id,name,purpose,status,created_by
-) values (
-  '25000000-0000-4000-8000-000000000012',
-  '10000000-0000-4000-8000-000000000010',
-  'project',
-  '20000000-0000-4000-8000-000000000011',
-  'Stage 5 Dependency Project',
-  'Synthetic predecessor project for Stage 5 dependency testing.',
-  'active',
-  '31000000-0000-4000-8000-000000000002'
-);
-
-insert into public.work_items(
-  id,org_id,ref,kind,unit_id,project_id,assignee_id,assigned_by,title,
-  purpose,origin,visibility,confidential,status
-) values
-(
-  '26000000-0000-4000-8000-000000000011',
-  '10000000-0000-4000-8000-000000000010',
-  'TEST-WM5-001','task',
-  '20000000-0000-4000-8000-000000000011',
-  '25000000-0000-4000-8000-000000000011',
-  '31000000-0000-4000-8000-000000000001',
-  '31000000-0000-4000-8000-000000000002',
-  'Stage 5 predecessor work',
-  'Synthetic dependency source.',
-  'assigned','unit',false,'not_started'
-),
-(
-  '26000000-0000-4000-8000-000000000012',
-  '10000000-0000-4000-8000-000000000010',
-  'TEST-WM5-002','task',
-  '20000000-0000-4000-8000-000000000011',
-  '25000000-0000-4000-8000-000000000011',
-  '31000000-0000-4000-8000-000000000006',
-  '31000000-0000-4000-8000-000000000002',
-  'Stage 5 dependent work',
-  'Synthetic dependency target.',
-  'assigned','unit',false,'not_started'
-);
-
-do $stage5_tables$
+-- Stage 5 dependency fixtures are provided by scripts/seed-role-fixtures.mjs.\n\ndo $stage5_tables$
 declare n integer;
 begin
   select count(*) into n
