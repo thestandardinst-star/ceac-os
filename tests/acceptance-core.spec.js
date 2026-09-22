@@ -674,6 +674,117 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
   }
 });
 
+test("Stage 5 Delivery manages programmes, milestones, dependencies and project register without hidden scoring", async ({ browser }) => {
+  test.setTimeout(150000);
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Delivery");
+    await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "New Programme / Portfolio", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Delivery group name").fill("Acceptance Unit A Programme");
+    await dialog.getByLabel("Delivery group purpose").fill("Coordinate the Stage 5 browser delivery journey.");
+    await dialog.getByLabel("Delivery group reason").fill("Acceptance Stage 5 programme");
+    await dialog.getByRole("button", { name: "Create Programme / Portfolio", exact: true }).click();
+    await expect(page.getByText("Programme / Portfolio created.", { exact: true })).toBeVisible();
+    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: /Stage 4 Browser Project/ }).first().click();
+    await page.getByLabel("Delivery project priority").selectOption("high");
+    await page.getByLabel("Delivery project health").selectOption("watch");
+    await page.getByLabel("Delivery metadata reason").fill("Acceptance explicit project health");
+    await page.getByRole("button", { name: "Save project state", exact: true }).click();
+    await expect(page.getByText("Project delivery metadata updated.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Delivery group link").selectOption({ label: "Acceptance Unit A Programme" });
+    await page.getByLabel("Delivery group link reason").fill("Acceptance project belongs to programme");
+    await page.getByRole("button", { name: "Link project", exact: true }).click();
+    await expect(page.getByText("Project linked to Programme / Portfolio.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add milestone", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Milestone name").fill("Acceptance Foundation milestone");
+    await dialog.getByLabel("Milestone description").fill("Foundation delivery checkpoint.");
+    await dialog.getByLabel("Milestone status").selectOption("in_progress");
+    await dialog.getByLabel("Milestone reason").fill("Acceptance first milestone");
+    await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();
+    await expect(page.getByText("Milestone recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add milestone", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Milestone name").fill("Acceptance Launch milestone");
+    await dialog.getByLabel("Milestone description").fill("Launch delivery checkpoint.");
+    await dialog.getByLabel("Milestone reason").fill("Acceptance second milestone");
+    await dialog.getByRole("button", { name: "Save milestone", exact: true }).click();
+
+    const foundation = page.locator(".row").filter({ hasText: "Acceptance Foundation milestone" });
+    await foundation.getByRole("button", { name: "Revise", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Milestone status").selectOption("achieved");
+    await dialog.getByLabel("Milestone reason").fill("Acceptance foundation achieved");
+    await dialog.getByRole("button", { name: "Record milestone revision", exact: true }).click();
+    await expect(page.getByText("Milestone revised.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add risk", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register item title").fill("Acceptance dependency risk");
+    await dialog.getByLabel("Register item description").fill("A predecessor delay could affect launch.");
+    await dialog.getByLabel("Register item severity").selectOption("high");
+    await dialog.getByLabel("Register item likelihood").selectOption("medium");
+    await dialog.getByLabel("Register item response plan").fill("Review predecessor movement weekly.");
+    await dialog.getByLabel("Register item reason").fill("Acceptance Stage 5 risk");
+    await dialog.getByRole("button", { name: "Save risk", exact: true }).click();
+    await expect(page.getByText("Risk recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Project dependency predecessor").selectOption({ label: "Stage 5 Dependency Project" });
+    await page.getByLabel("Project dependency reason").fill("Acceptance project dependency");
+    await page.getByRole("button", { name: "Add project dependency", exact: true }).click();
+    await expect(page.getByText("Project dependency recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Milestone dependency successor").selectOption({ label: "Acceptance Launch milestone" });
+    await page.getByLabel("Milestone dependency predecessor").selectOption({ label: "Acceptance Foundation milestone" });
+    await page.getByLabel("Milestone dependency reason").fill("Acceptance milestone dependency");
+    await page.getByRole("button", { name: "Add milestone dependency", exact: true }).click();
+    await expect(page.getByText("Milestone dependency recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Work dependency successor").selectOption({ label: /TUA-WM5-002/ });
+    await page.getByLabel("Work dependency predecessor").selectOption({ label: /TUA-WM5-001/ });
+    await page.getByLabel("Work dependency reason").fill("Acceptance work dependency");
+    await page.getByRole("button", { name: "Add work dependency", exact: true }).click();
+    await expect(page.getByText("Work dependency recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
+    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: /Stage 4 Browser Project/ }).first().click();
+    await expect(page.getByText("Acceptance Foundation milestone", { exact: true })).toBeVisible();
+    await expect(page.getByText("Acceptance dependency risk", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Depends on Stage 5 Dependency Project/)).toBeVisible();
+    await expect(page.getByText(/Acceptance Launch milestone depends on Acceptance Foundation milestone/)).toBeVisible();
+    await expect(page.getByText(/Stage 5 dependent work depends on Stage 5 predecessor work/)).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Delivery");
+    await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
+    await expect(page.getByText("Acceptance Unit A Programme", { exact: true })).toBeVisible();
+    await expect(page.getByText(/hidden project score/i)).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.goto("/?tab=delivery");
+    await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Me", exact: true })).toBeVisible();
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
