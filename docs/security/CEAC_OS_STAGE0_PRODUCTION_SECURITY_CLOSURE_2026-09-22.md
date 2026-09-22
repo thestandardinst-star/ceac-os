@@ -23,13 +23,14 @@
 - No direct browser Storage policy currently grants access to `ceac-hr-private`.
 - `hr_private.audit_events` has its immutable trigger present.
 - No protected-HCM/payroll-like columns are present in `public.profiles`.
-- Supabase Security Advisor reports 73 signed-in-callable SECURITY DEFINER warnings requiring intentional least-privilege review.
+- Supabase Security Advisor reports 73 signed-in-callable SECURITY DEFINER warnings. Their semantic review is complete; permission reduction remains deferred until migration-history repair.
+- Supabase Security Advisor also reports leaked-password protection disabled. Current Supabase documentation makes that control available on Pro and above.
 - Security Advisor also reports four RLS-enabled/no-policy tables. Two are `hr_private` tables deliberately outside browser schema access; two are reference counters intentionally accessed through authorised RPCs. These remain explicit review items, not automatic defects.
 - GitHub repository rulesets endpoint currently returns no rulesets.
 - Classic branch-protection state cannot be read by the connected GitHub App because it lacks administration permission.
-- Connected Vercel app currently exposes no team/project to this session, so exact Vercel production-deployment verification remains open.
-- Repository-source credential scan found no committed service-role, Vercel, OpenAI, Anthropic, Google-client-secret or Telegram-bot secret patterns. The browser client contains only the expected Supabase publishable key, which is not a server secret.
-- Static review of the 73 authenticated-callable SECURITY DEFINER functions found no function lacking both direct `auth.uid()` binding and the approved authority-helper binding pattern. Semantic least-privilege review remains required before closure.
+- GitHub status for exact baseline main `c17edf2dacc0f554f12a7ed2834ecc2afde1b0ce` records a successful Vercel deployment completed at 2026-09-21T23:56:18Z and points to deployment `3eLwR9ZHG6dRELVN2mXP356y2zQb` under scope `thestandardinst-6345s-projects`. The Vercel connector is not authorised to that team scope, so deployment metadata/browser inspection remains open.
+- Repository-source credential scan found no committed service-role, Vercel, OpenAI, Anthropic, Google-client-secret or Telegram-bot secret patterns. Live application/database source scanning found no application functions/views with detected embedded secret patterns; the only source matches were Supabase extension helper functions. Both active cron jobs were also checked for common embedded-secret patterns with zero matches. The browser client contains only the expected Supabase publishable key, which is not a server secret.
+- The 73 authenticated-callable SECURITY DEFINER functions have now completed semantic classification against current browser RPC use, live RLS-policy references and live function call relationships. See `CEAC_OS_STAGE0_PRIVILEGED_RPC_SEMANTIC_REVIEW_2026-09-22.md`. Six internal-only helpers are candidates for later EXECUTE revocation after migration-history repair; six dormant authority-checked product actions remain retained pending product-use confirmation.
 
 ## Code hardening added on this branch
 
@@ -49,20 +50,20 @@ It blocks:
 
 ## CI evidence
 
-- PR #19 current head has CI green after changed-line hygiene correction.
-- The new Platform Kernel gate passed on clean local migration replay on the first Quality Gate run.
-- Existing RLS, Admin & HR security, and Meeting authority gates passed in that same run.
-- Current-head Quality Gate must still finish green before Stage 0 can close.
+- PR #19 reached a head with both CI and the full Quality Gate green after changed-line hygiene correction.
+- The Platform Kernel gate passes on clean local migration replay.
+- Existing RLS, Admin & HR security, Meeting authority and Playwright role acceptance gates pass in the full Quality Gate.
+- New documentation-only commits on this branch must still retain green CI/Quality Gate before merge.
 
 ## Hard Stage 0 blockers
 
 1. **Migration-history reconciliation** — determine and document how live 069–073 schema was applied and repair migration bookkeeping safely without replaying destructive SQL.
 2. **Repository protection** — enforce PR/required-check rules for `main`; connector cannot perform repository-admin writes.
-3. **Privileged RPC semantic review** — review all 73 authenticated-callable SECURITY DEFINER functions; inventory file created.
-4. **Supabase Auth production settings** — verify leaked-password protection, email confirmation, password policy and privileged-account MFA. Do not guess from database state.
-5. **Secrets review** — verify production/service credentials and least scopes without writing secrets into repository documentation.
-6. **Backup/restore** — perform and document one safe restore test.
-7. **Deployment identity** — connect/inspect the actual Vercel project and tie production deployment to repository commit and database baseline.
+3. **Privileged RPC remediation** — semantic review is complete. Six internal-only helpers are candidates for direct authenticated EXECUTE revocation, but no permission migration may be created until migration-history repair is complete.
+4. **Supabase Auth/plan decision** — Security Advisor confirms leaked-password protection is disabled. The organisation is on Free, and Supabase documents leaked-password protection as Pro-and-above. Email/password configuration and privileged-account MFA still require dashboard/account verification.
+5. **Secrets/ownership review** — repository and live database source scans found no application secret pattern; there are no Edge Functions and the two cron jobs contain no detected embedded secret pattern. Account-level production credential ownership/recovery still requires human verification.
+6. **Backup/restore** — the organisation is on Free; Supabase does not provide automatic daily backups on this plan and recommends off-site CLI database exports. The runbook is ready, but one real production dump and safe non-production restore still must be executed.
+7. **Deployment inspection** — exact main SHA is tied to a successful Vercel deployment through GitHub status metadata. The connected Vercel account lacks authorisation to the deployment team scope, so exact deployment metadata and browser product inspection remain open.
 
 ## Rules until Stage 0 closes
 
