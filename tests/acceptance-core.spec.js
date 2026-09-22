@@ -665,7 +665,7 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await go(page, "Strategy");
+    await page.locator(".tabs").getByRole("button", { name: "Strategy", exact: true }).click();
     await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add Ministry Direction", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Revise", exact: true })).toHaveCount(0);
