@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `d9b8c1703c7f20c233b62553e5e201cc209dacd7`
-**Active branch:** `chatgpt/enterprise-expansion-stage-6-resource-workload-2026-09-22`
-**Current stage:** Stage 6 — Resource & Workload
-**Latest merged migration on main:** 085 — Work Management 2.0; Stage 6 migration 086 is under review
+**Baseline main:** `af16cc2214fc56e001337f8f6bb830fb8464643a`
+**Active branch:** `chatgpt/enterprise-expansion-stage-7-performance-development-2026-09-22`
+**Current stage:** Stage 7 — Performance & Development
+**Latest merged migration on main:** 086 — Resource & Workload; Stage 7 migration 087 is under development
 
 ## 1. Governing architecture
 
@@ -185,36 +185,41 @@ The current PR head has passed CI, Migration Replay, Account Security and the fu
 
 Merged into `main`:
 - Stage 0 through Stage 2 via consolidation;
-- Stage 3 Protected HR via clean main-based rebuild;
-- Stage 4 Goals and Strategy via clean main-based rebuild;
-- Stage 5 Work Management 2.0 via PR #33.
+- Stage 3 Protected HR;
+- Stage 4 Goals and Strategy;
+- Stage 5 Work Management 2.0;
+- Stage 6 Resource & Workload via PR #34.
 
-Current merged main after Stage 5: `d9b8c1703c7f20c233b62553e5e201cc209dacd7`.
+Current merged main after Stage 6: `af16cc2214fc56e001337f8f6bb830fb8464643a`.
+Latest merged migration: 086.
 
-Active work is Stage 6 only:
-- PR #34 — Stage 6: Resource and Workload Management;
-- branch `chatgpt/enterprise-expansion-stage-6-resource-workload-2026-09-22`;
-- migration 086 adds append-only planning-capacity and project-commitment history;
-- Stage 7 must not begin until Stage 6 is fully green, product-inspected and merged into `main`.
+Active work is Stage 7 only:
+- branch `chatgpt/enterprise-expansion-stage-7-performance-development-2026-09-22`;
+- governing contract `docs/architecture/CEAC_OS_STAGE7_PERFORMANCE_DEVELOPMENT_2026-09-22.md`;
+- planned migration 087 extends the existing appraisal/feedback foundation rather than creating a duplicate performance system;
+- Stage 8 must not begin until Stage 7 is fully green, product-inspected and merged.
 
-Stage 6 exit evidence must include:
+Stage 7 exit evidence must include:
 - CI;
 - clean Migration Replay;
 - Account Security;
-- every cumulative SQL/security gate through Stage 6;
-- Stage 6 audit and semantic-event evidence;
-- browser role acceptance;
+- every cumulative SQL/security gate through Stage 7;
+- performance authority/RLS tests;
+- evidence-pack integrity and idempotency;
+- append-only review/development history;
+- audit and semantic-event evidence;
+- Staff/Manager/Admin browser acceptance;
 - persistence after reload;
 - desktop/mobile responsive acceptance;
-- deployment validation and a real preview/product inspection;
-- confirmation that no workload score, employee ranking or attendance-derived performance inference has been introduced.
+- deployment validation/product inspection;
+- confirmation that no score, ranking, attendance-derived judgement or hidden assessment has been introduced.
 
-After Stage 6 the mandatory order is:
+After Stage 7 the mandatory order is:
 
-`7 Performance & Development → 8 Learning → 9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
+`8 Learning → 9 Workforce Management 2.0 → 10 Assets & Devices → 11 Compliance & Policy → 12 Integrations → 13 Payroll (only after CEAC rules are confirmed) → 14 Search & Intelligence → 15 Assistive AI → whole-system inspection → production closure.`
 
-Every stage must branch from the latest merged `main`, complete its architecture/security contract, migrations, cumulative automated gates, UI, browser/responsive acceptance and handoff, then merge before the next branch is created.
+Every stage must branch from the latest merged `main`, complete its architecture/security contract, migrations, cumulative automated gates, UI, browser/responsive acceptance and handoff, then merge before the next stage starts.
 
-Stage 13 is a hard policy gate. Do not infer salary basis, allowances, deductions, SSNIT/PAYE treatment, approval authority, payment process, pay periods, payslip requirements or reversal rules. If those are not formally confirmed, stop before Payroll and request them.
+Stage 13 remains a hard policy gate. Do not infer payroll rules.
 
-The enterprise programme is not complete merely because Stage 15 code exists. Completion requires the final whole-system product inspection, role-by-role acceptance, migration/security verification, deployment inspection, operational recovery/ownership evidence and production closure.
+The enterprise programme is not complete merely because Stage 15 code exists. Completion still requires whole-system inspection and production closure.

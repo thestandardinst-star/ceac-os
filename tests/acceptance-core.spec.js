@@ -564,7 +564,7 @@ test("Administration can combine multiple units into one meeting audience", asyn
 test("Manager primary surfaces stay usable across supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Finance", "Reports"];
+  const destinations = ["Home", "Work", "Team", "Projects", "Calendar", "Strategy", "Delivery", "Workload", "Performance & development", "Finance", "Reports"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
@@ -837,6 +837,162 @@ test("Stage 6 Workload keeps capacity components factual and manager-scoped", as
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     await page.goto("/?tab=workload");
     await expect(page.getByRole("heading", { name: "Workload", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
+test("Stage 7 Reviews & development keeps appraisal evidence factual, visible and human-judged", async ({ browser }) => {
+  test.setTimeout(180000);
+  const cycleName = "Acceptance Stage 7 review";
+  const reflectionText = "I completed the recorded work and want to improve how I plan the next cycle.";
+  const assessmentText = "The recorded outcomes show reliable completion. The next focus is clearer planning before deadlines.";
+  const conversationText = "We reviewed the evidence together and agreed to make weekly commitments explicit before execution.";
+  const planFocus = "Planning before execution";
+  const planOutcome = "Make weekly commitments explicit before work starts.";
+  const planSteps = "Set the week plan on Monday, review it with the manager, and record changes.";
+  const feedbackText = "Keep the planning note attached to the work before execution starts.";
+  const staffReply = "I agree with the next step and will record changes during the week.";
+  const feedbackReply = "Understood. I will keep the planning note with the work record.";
+
+  const today = new Date();
+  const start = new Date(today.getTime() - 30 * 86400000);
+  const iso = (value) => value.toISOString().slice(0, 10);
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Performance & development");
+    await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toBeVisible();
+    await expect(page.getByText(/no employee score or ranking/i)).toBeVisible();
+
+    await page.getByRole("button", { name: "Open review period", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Review period name").fill(cycleName);
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Review period start").fill(iso(start));
+    await dialog.getByLabel("Review period end").fill(iso(today));
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Review period reason").fill("Acceptance Stage 7 evidence-first review");
+    await dialog.getByRole("button", { name: "Open review period", exact: true }).click();
+
+    await expect(page.getByText("Review period opened and factual evidence packs assembled.", { exact: true })).toBeVisible();
+    await expect(page.getByText(cycleName, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Staff Fixture", { exact: true }).first()).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("button", { name: /Reviews & development/ }).click();
+    await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toBeVisible();
+    await expect(page.getByText(cycleName, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/Activity sessions are shown only as context/i)).toBeVisible();
+
+    await page.getByLabel("Employee reflection").fill(reflectionText);
+    await page.getByRole("button", { name: "Submit reflection", exact: true }).click();
+    await expect(page.getByText("Reflection recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel("Employee reflection")).toHaveValue(reflectionText);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Performance & development");
+    await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toBeVisible();
+    const staffCase = page.locator(".performance-case-row").filter({ hasText: "Staff Fixture" });
+    await expect(staffCase).toBeVisible();
+    await staffCase.click();
+    await expect(page.getByText(reflectionText, { exact: true })).toBeVisible();
+
+    await page.getByLabel("Manager assessment").fill(assessmentText);
+    await page.getByRole("button", { name: "Record assessment", exact: true }).click();
+    await expect(page.getByText("Manager assessment recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Review conversation record").fill(conversationText);
+    await page.getByRole("button", { name: "Record conversation", exact: true }).click();
+    await expect(page.getByText("Review conversation recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Create plan", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Development focus").fill(planFocus);
+    await dialog.getByLabel("Development desired outcome").fill(planOutcome);
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Development next steps").fill(planSteps);
+    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByLabel("Development start").fill(iso(today));
+    const target = new Date(today.getTime() + 30 * 86400000);
+    await dialog.getByLabel("Development target").fill(iso(target));
+    await dialog.getByLabel("Development change reason").fill("Acceptance development plan agreed in review");
+    await dialog.getByRole("button", { name: "Record development plan", exact: true }).click();
+    await expect(page.getByText("Development plan recorded.", { exact: true })).toBeVisible();
+
+    await page.getByLabel("Feedback type").selectOption("guidance");
+    await page.getByLabel("Visible feedback").fill(feedbackText);
+    await page.getByRole("button", { name: "Record feedback", exact: true }).click();
+    await expect(page.getByText("Visible feedback recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Mark as shared", exact: true }).click();
+    await expect(page.getByText("Review marked shared.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    const reloadedCase = page.locator(".performance-case-row").filter({ hasText: "Staff Fixture" });
+    await reloadedCase.click();
+    await expect(page.locator(".performance-narrative p").filter({ hasText: assessmentText }).first()).toBeVisible();
+    await expect(page.getByText(planFocus, { exact: true })).toBeVisible();
+    await expect(page.getByText(feedbackText, { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage7-performance-manager.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await page.getByRole("button", { name: /Reviews & development/ }).click();
+    await expect(page.getByText(assessmentText, { exact: true })).toBeVisible();
+    await expect(page.getByText(conversationText, { exact: true })).toBeVisible();
+    await expect(page.getByText(planFocus, { exact: true })).toBeVisible();
+    await expect(page.getByText(feedbackText, { exact: true })).toBeVisible();
+
+    await page.getByLabel("Review response").fill(staffReply);
+    await page.getByRole("button", { name: "Record response", exact: true }).first().click();
+    await expect(page.getByText("Your response was recorded.", { exact: true })).toBeVisible();
+
+    const feedbackCard = page.locator(".performance-feedback-card").filter({ hasText: feedbackText });
+    await feedbackCard.getByRole("button", { name: "Respond", exact: true }).click();
+    await feedbackCard.getByLabel("Feedback response").fill(feedbackReply);
+    await feedbackCard.getByRole("button", { name: "Record response", exact: true }).click();
+    await expect(page.getByText("Your feedback response was recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByText(staffReply, { exact: true })).toBeVisible();
+    await expect(page.getByText(feedbackReply, { exact: true })).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Stage 7 Staff review overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage7-performance-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Performance & development");
+    await page.getByText(cycleName, { exact: true }).first().click();
+    await page.getByRole("button", { name: "Close selected period", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Review period close reason").fill("Acceptance Stage 7 review period completed");
+    await dialog.getByRole("button", { name: "Close review period", exact: true }).click();
+    await expect(page.getByText("Review period closed.", { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText("Closed", { exact: true }).first()).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await page.goto("/?tab=performance");
+    await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toHaveCount(0);
     await context.close();
   }
 });

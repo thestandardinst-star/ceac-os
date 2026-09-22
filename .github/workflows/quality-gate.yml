@@ -118,6 +118,9 @@ jobs:
       - name: Run Stage 6 Resource and Workload gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/resource_workload_stage6_gate.sql
 
+      - name: Run Stage 7 Performance and Development gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/performance_development_stage7_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
@@ -142,4 +145,12 @@ jobs:
         with:
           name: stage6-product-inspection
           path: test-artifacts/stage6-workload-*.png
+          if-no-files-found: ignore
+
+      - name: Upload Stage 7 product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage7-product-inspection
+          path: test-artifacts/stage7-performance-*.png
           if-no-files-found: ignore
