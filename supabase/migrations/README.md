@@ -28,7 +28,7 @@ Before adding another migration:
 5. apply new DDL only through a new migration file;
 6. run RLS/security acceptance after every security-sensitive migration.
 
-The next migration number will be **074**, but it is blocked until Stage 0 migration-history reconciliation is completed and verified.
+The migration-history reconciliation is now complete and verified through 073. Migration **074** is the current Stage 0 hardening migration on PR #19; no later migration should be created until 074 passes all gates and is applied/verified.
 
 
 ## 20 September backend continuation
@@ -113,3 +113,17 @@ A clean local Supabase replay workflow now rebuilds the application schema from 
 - **073** — private meeting notes separated from shared decision records; shared meeting records are decision-only.
 
 The repository timestamps for 069–073 are canonical. Production currently has the correct 073 schema state but its migration ledger does not yet match those canonical timestamps. No migration SQL should be replayed merely to repair that ledger.
+
+
+### 074 — reduce internal privileged RPC surface
+
+Migration `20260922032000_074_reduce_internal_rpc_surface.sql` removes direct `authenticated` EXECUTE from six reviewed internal-only SECURITY DEFINER helpers while preserving service-role/owner execution:
+
+- `app_can_publish_announcements()`
+- `app_threshold(uuid,text,numeric)`
+- `next_close_version(uuid,text,uuid)`
+- `next_work_ref(uuid,uuid)`
+- `submit_project_close(uuid)`
+- `submit_report(uuid,jsonb)`
+
+The Platform Kernel gate now requires the reviewed authenticated SECURITY DEFINER surface to be exactly 67 and explicitly fails if any of those six helpers remains directly executable by `authenticated`.
