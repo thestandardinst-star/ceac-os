@@ -958,7 +958,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "People", "Employee lifecycle", "Protected HR", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
@@ -1002,9 +1002,9 @@ test("Administration primary surfaces stay within supported phone widths", async
 
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [
-    ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects"]],
+    ["manager@ceac.local.test", ["Home", "Work", "Team", "Projects", "Delivery"]],
     ["admin@ceac.local.test", ["Home", "People", "Attendance", "Reports"]],
-    ["exec@ceac.local.test", ["Home", "Announcements", "Me"]],
+    ["exec@ceac.local.test", ["Home", "Delivery", "Announcements", "Me"]],
   ];
 
   for (const [email, destinations] of roles) {
