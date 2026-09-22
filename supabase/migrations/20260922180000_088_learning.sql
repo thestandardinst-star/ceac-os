@@ -1004,7 +1004,7 @@ begin
       'Completed through CEAC OS structured learning.',
       'learning_course',v_assignment.id,v_actor,null,null,null
     )
-    on conflict(learning_assignment_id) do update
+    on conflict(learning_assignment_id) where learning_assignment_id is not null do update
     set completed_on=excluded.completed_on,
         name=excluded.name,
         note=excluded.note,
