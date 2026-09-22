@@ -138,9 +138,9 @@ declare n integer;
 begin
   select count(*) into n from pg_policies
   where schemaname='storage' and tablename='objects'
-    and policyname in ('ceac_hr_private_select','ceac_hr_private_insert');
-  if n<>2 then
-    raise exception 'Protected HR gate failure: expected protected Storage read/upload policies.';
+    and policyname in ('ceac_hr_private_select','ceac_hr_private_insert','ceac_hr_private_delete');
+  if n<>3 then
+    raise exception 'Protected HR gate failure: expected protected Storage read/upload/cleanup policies.';
   end if;
 end
 $storage_boundary$;
