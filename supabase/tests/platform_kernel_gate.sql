@@ -180,7 +180,7 @@ begin
   if not exists (
     select 1
     from supabase_migrations.schema_migrations
-    where version='20260922032000'
+    where version='20260922033628'
   ) then
     raise exception 'Platform Kernel gate failure: local migration history does not contain 074 RPC-surface reduction.';
   end if;
