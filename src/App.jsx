@@ -35,6 +35,7 @@ import AdminProtectedHR from "./screens/AdminProtectedHR";
 import Goals from "./screens/Goals";
 import Strategy from "./screens/Strategy";
 import Delivery from "./screens/Delivery";
+import ResourceWorkload from "./screens/ResourceWorkload";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
@@ -209,6 +210,7 @@ export default function App() {
   const canManageIntegrations = hasCapability("integration.manage");
   const canAccessProtectedHR = hasCapability("hr_private.access");
   const canUseDelivery = isAdmin || isExec || isUnitManager || hasCapability("delivery.manage");
+  const canUseWorkload = isUnitManager || hasCapability("resource.manage");
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -239,6 +241,7 @@ export default function App() {
     if (tab === "announcements") return <Announcements me={me} back={() => go("home")} />;
     if (tab === "strategy") return <Strategy me={me} />;
     if (tab === "delivery" && canUseDelivery) return <Delivery me={me} />;
+    if (tab === "workload" && canUseWorkload) return <ResourceWorkload me={me} />;
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
