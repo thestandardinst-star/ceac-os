@@ -455,26 +455,47 @@ export default function Workforce({ me }) {
 
     {tab==="leave"&&<>
       <div className="sec"><span>Waiting on a decision</span><span>{waitingLeave.length}</span></div>
-      {waitingLeave.map((l)=><div className="row" key={l.id}>
-        <div className="row-t">{l.profiles?.full_name||peopleById[l.profile_id]?.profiles?.full_name||"Employee"} · {l.days} day{Number(l.days)===1?"":"s"} {human(l.kind)}</div>
-        <div className="row-m">{niceDay(l.start_date)} → {niceDay(l.end_date)} · {human(l.status)}</div>
-        {(isManager||canManage)&&<div className="workforce-row-actions">
-          {l.status==="pending"&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"manager_approved")}>Approve</button>}
-          {l.status==="pending"&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"escalated")}>Escalate</button>}
-          {canManage&&l.status==="escalated"&&<button className="btn btn-sm" onClick={()=>leaveAction(l.id,"admin_approved")}>Admin approve</button>}
-          <button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"declined")}>Decline</button>
-        </div>}
-      </div>)}
+      {waitingLeave.map((l)=>{
+        const rule=ruleForLeave(l);
+        const route=rule?.approval_route||null;
+        return <div className="row" key={l.id}>
+          <div className="row-t">{l.profiles?.full_name||peopleById[l.profile_id]?.profiles?.full_name||"Employee"} · {l.days} day{Number(l.days)===1?"":"s"} {human(l.kind)}</div>
+          <div className="row-m">{niceDay(l.start_date)} → {niceDay(l.end_date)} · {human(l.status)} · {route?"Policy route: "+human(route):"No confirmed route for this leave kind"}</div>
+          {(isManager||canManage)&&<div className="workforce-row-actions">
+            {l.status==="pending"&&(route===null||route==="manager")&&(isManager||canManage)&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"manager_approved")}>Approve</button>}
+            {l.status==="pending"&&(route===null||route==="manager_then_admin")&&(isManager||canManage)&&<button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"escalated")}>Escalate</button>}
+            {l.status==="pending"&&canManage&&(route===null||route==="admin")&&<button className="btn btn-sm" onClick={()=>leaveAction(l.id,"admin_approved")}>Admin approve</button>}
+            {l.status==="escalated"&&canManage&&<button className="btn btn-sm" onClick={()=>leaveAction(l.id,"admin_approved")}>Admin approve</button>}
+            <button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(l.id,"declined")}>Decline</button>
+          </div>}
+          {l.status==="pending"&&route==="admin"&&isManager&&!canManage&&<div className="row-note">This confirmed route is Administration approval; the manager has no approval action here.</div>}
+        </div>;
+      })}
       {!waitingLeave.length&&<EmptyState compact title="No leave requests are waiting">New requests will appear here with their recorded history.</EmptyState>}
 
+      <div className="sec"><span>Recent resolved requests</span></div>
+      {leave.filter((row)=>["approved","declined","cancelled"].includes(row.status)).slice(0,60).map((row)=><div className="row" key={row.id}>
+        <div className="row-t">{row.profiles?.full_name||peopleById[row.profile_id]?.profiles?.full_name||"Employee"} · {human(row.kind)} leave</div>
+        <div className="row-m">{niceDay(row.start_date)} → {niceDay(row.end_date)} · {human(row.status)}</div>
+        {canManage&&row.status==="approved"&&<div className="workforce-row-actions"><button className="btn btn-ghost btn-sm" onClick={()=>leaveAction(row.id,"approval_reversed")}>Reverse approval</button></div>}
+      </div>)}
+
       <div className="sec"><span>Decision history</span></div>
-      {leaveEvents.slice(0,80).map((e)=><div className="row" key={e.id}><div className="row-t">{human(e.action)}</div><div className="row-m">{peopleById[e.profile_id]?.profiles?.full_name||"Employee"} · {human(e.from_status||"new")} → {human(e.to_status)} · {new Date(e.created_at).toLocaleString("en-GB")}</div></div>)}
+      {leaveEvents.slice(0,80).map((e)=><div className="row" key={e.id}><div className="row-t">{human(e.action)}</div><div className="row-m">{peopleById[e.profile_id]?.profiles?.full_name||"Employee"} · {human(e.from_status||"new")} → {human(e.to_status)} · {new Date(e.created_at).toLocaleString("en-GB")}</div>{e.reason&&<div className="row-note">{e.reason}</div>}</div>)}
     </>}
 
     {tab==="corrections"&&<>
       <div className="sec"><span>Attendance correction history</span>{canCorrect&&<button className="btn btn-sm" onClick={()=>{setCorrectionPerson(people[0]?.profile_id||"");setCorrectionSheet(true)}}>Record correction</button>}</div>
-      <p className="screen-note">Corrections overlay the factual record. Original work-session rows are not rewritten.</p>
-      {corrections.map((c)=><div className="row" key={c.id}><div className="row-t">{peopleById[c.profile_id]?.profiles?.full_name||"Employee"} · {human(c.correction_type)}</div><div className="row-m">{niceDay(c.work_date)} · {c.reason}</div></div>)}
+      <p className="screen-note">Corrections overlay the factual record. Original work-session rows are not rewritten; reversal is another linked history row.</p>
+      {corrections.map((row)=>{
+        const reversed=row.correction_type!=="reversal"&&reversedCorrectionIds.has(row.id);
+        return <div className="row" key={row.id}>
+          <div className="row-t">{peopleById[row.profile_id]?.profiles?.full_name||"Employee"} · {human(row.correction_type)}{reversed?" · reversed":""}</div>
+          <div className="row-m">{niceDay(row.work_date)} · {row.reason}</div>
+          {row.after_context?.note&&<div className="row-note">{row.after_context.note}</div>}
+          {canCorrect&&row.correction_type!=="reversal"&&!reversed&&<div className="workforce-row-actions"><button className="btn btn-ghost btn-sm" onClick={()=>reverseCorrection(row)}>Reverse correction</button></div>}
+        </div>;
+      })}
       {!corrections.length&&<EmptyState compact title="No attendance corrections recorded">Nothing has been corrected in your visible scope.</EmptyState>}
     </>}
 
@@ -489,7 +510,7 @@ export default function Workforce({ me }) {
       <div className="sec"><span>Day types</span><span>{dayTypes.length}</span></div>
       {dayTypes.map((d)=><div className="row" key={d.id}><div className="row-t">{d.name}</div><div className="row-m">{d.session_expected?"Session ordinarily expected":"Session not ordinarily expected"} · {d.description||"No description"}</div></div>)}
       <div className="sec"><span>Leave policy status</span></div>
-      {activePolicy?<div className="card workforce-policy"><strong>{activePolicy.name}</strong><span>Confirmed {new Date(activePolicy.confirmed_at).toLocaleString("en-GB")}</span>{activeRules.map((r)=><small key={r.id}>{human(r.leave_kind)} · {r.complete?(String(r.entitlement_amount)+" "+r.entitlement_unit):"rule incomplete"} · {human(r.approval_route)}</small>)}</div>:<div className="card small">No confirmed CEAC leave policy is active. Legacy seeded defaults are not used as policy.</div>}
+      {activePolicy?<div className="card workforce-policy"><strong>{activePolicy.name}</strong><span>Confirmed {new Date(activePolicy.confirmed_at).toLocaleString("en-GB")}</span>{activeRules.map((r)=><small key={r.id}>{human(r.leave_kind)} · {r.complete?(String(r.entitlement_amount)+" "+r.entitlement_unit):"rule incomplete"} · accrual {r.accrual_method?human(r.accrual_method):"not configured"} · carry-over {r.carryover_method?human(r.carryover_method):"not configured"} · route {r.approval_route?human(r.approval_route):"not configured"}{r.opening_balance_required?" · opening balance required":""}</small>)}</div>:<div className="card small">No confirmed CEAC leave policy is active. Legacy seeded defaults are not used as policy.</div>}
     </>}
 
     {dayTypeSheet&&<Sheet onClose={()=>!busy&&setDayTypeSheet(false)}>
