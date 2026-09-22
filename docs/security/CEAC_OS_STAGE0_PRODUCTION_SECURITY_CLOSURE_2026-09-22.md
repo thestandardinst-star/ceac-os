@@ -19,11 +19,17 @@
 - Anonymous-callable public SECURITY DEFINER functions: 0.
 - Public SECURITY DEFINER functions without fixed `search_path`: 0.
 - `ceac-hr-private` exists and is private.
+- `anon` and `authenticated` have no USAGE on `hr_private` and no direct SELECT on `hr_private.documents` or `hr_private.audit_events`.
+- No direct browser Storage policy currently grants access to `ceac-hr-private`.
+- `hr_private.audit_events` has its immutable trigger present.
+- No protected-HCM/payroll-like columns are present in `public.profiles`.
 - Supabase Security Advisor reports 73 signed-in-callable SECURITY DEFINER warnings requiring intentional least-privilege review.
 - Security Advisor also reports four RLS-enabled/no-policy tables. Two are `hr_private` tables deliberately outside browser schema access; two are reference counters intentionally accessed through authorised RPCs. These remain explicit review items, not automatic defects.
 - GitHub repository rulesets endpoint currently returns no rulesets.
 - Classic branch-protection state cannot be read by the connected GitHub App because it lacks administration permission.
 - Connected Vercel app currently exposes no team/project to this session, so exact Vercel production-deployment verification remains open.
+- Repository-source credential scan found no committed service-role, Vercel, OpenAI, Anthropic, Google-client-secret or Telegram-bot secret patterns. The browser client contains only the expected Supabase publishable key, which is not a server secret.
+- Static review of the 73 authenticated-callable SECURITY DEFINER functions found no function lacking both direct `auth.uid()` binding and the approved authority-helper binding pattern. Semantic least-privilege review remains required before closure.
 
 ## Code hardening added on this branch
 
@@ -40,6 +46,13 @@ It blocks:
 - loss of private Meeting-note policies;
 - loss of the decision-only Meeting record contract;
 - omission of migration 073 during clean replay.
+
+## CI evidence
+
+- PR #19 current head has CI green after changed-line hygiene correction.
+- The new Platform Kernel gate passed on clean local migration replay on the first Quality Gate run.
+- Existing RLS, Admin & HR security, and Meeting authority gates passed in that same run.
+- Current-head Quality Gate must still finish green before Stage 0 can close.
 
 ## Hard Stage 0 blockers
 
