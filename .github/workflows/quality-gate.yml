@@ -121,6 +121,9 @@ jobs:
       - name: Run Stage 7 Performance and Development gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/performance_development_stage7_gate.sql
 
+      - name: Run Stage 8 Learning gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/learning_stage8_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
@@ -153,4 +156,12 @@ jobs:
         with:
           name: stage7-product-inspection
           path: test-artifacts/stage7-performance-*.png
+          if-no-files-found: ignore
+
+      - name: Upload Stage 8 product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage8-product-inspection
+          path: test-artifacts/stage8-learning-*.png
           if-no-files-found: ignore

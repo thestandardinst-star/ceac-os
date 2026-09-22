@@ -70,7 +70,11 @@ end $$;
 -- record_development_plan_version, record_performance_feedback,
 -- respond_to_performance_feedback.
 -- Each is bound to auth.uid() plus explicit performance/reviewer/self authority.
--- Reducing this surface is allowed. Any growth beyond 84 requires another
+-- Stage 8 adds two reviewed learning RPCs:
+-- learning_complete_module(uuid,uuid) and
+-- learning_admin_action(uuid,text,uuid,text).
+-- The first is self-bound to auth.uid(); the second requires learning.manage.
+-- Reducing this surface is allowed. Any growth beyond 86 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -81,8 +85,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>84 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 84-function ceiling to %.',n;
+  if n>86 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 86-function ceiling to %.',n;
   end if;
 end $$;
 
