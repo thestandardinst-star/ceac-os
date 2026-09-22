@@ -3,12 +3,12 @@
 
 create table public.platform_audit_events (
   id uuid primary key default gen_random_uuid(),
-  org_id uuid not null references public.organisations(id) on delete cascade,
-  actor_id uuid references public.profiles(id) on delete set null,
+  org_id uuid not null references public.organisations(id) on delete restrict,
+  actor_id uuid,
   action text not null,
   resource_type text not null,
   resource_id uuid,
-  subject_profile_id uuid references public.profiles(id) on delete set null,
+  subject_profile_id uuid,
   source_table text not null,
   changed_fields text[] not null default '{}',
   context jsonb not null default '{}'::jsonb check (jsonb_typeof(context)='object'),
@@ -91,7 +91,8 @@ begin
   end if;
 
   if v_org is null then
-    return case when tg_op='DELETE' then old else new end;
+    if tg_op='DELETE' then return old; end if;
+    return new;
   end if;
 
   begin
@@ -114,9 +115,9 @@ begin
     select coalesce(array_agg(k order by k),'{}'::text[])
     into v_changed
     from (
-      select key as k
-      from jsonb_object_keys(v_new) key
-      where (v_old->key) is distinct from (v_new->key)
+      select e.key as k
+      from jsonb_object_keys(v_new) as e(key)
+      where (v_old->e.key) is distinct from (v_new->e.key)
     ) changed;
   end if;
 
