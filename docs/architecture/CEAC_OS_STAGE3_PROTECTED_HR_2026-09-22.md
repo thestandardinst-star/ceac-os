@@ -1,8 +1,8 @@
 # CEAC OS — Stage 3 Protected HR
 
-**Date:** 22 September 2026  
-**Status:** IMPLEMENTATION CONTRACT  
-**Programme stage:** 3 — Protected HR  
+**Date:** 22 September 2026
+**Status:** IMPLEMENTATION CONTRACT
+**Programme stage:** 3 — Protected HR
 **Base:** Stage 2 green head `48bbbf0f2e9ae4bc5d89ffc01766659f5775649e`
 
 ## Purpose
