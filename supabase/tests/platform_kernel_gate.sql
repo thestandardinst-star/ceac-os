@@ -57,10 +57,10 @@ begin
 end
 $definer_search_path$;
 
--- 73 signed-in callable definers is the reviewed ceiling inherited from the
--- Admin/HR + Rooms/Meeting security gates. Reductions are welcome. Growth is
--- blocked until the same PR deliberately updates the security review.
-do $definer_ceiling$
+-- Stage 0 semantic review identified six internal-only helpers that do not
+-- need direct authenticated execution. Migration 074 reduces the reviewed
+-- browser-callable SECURITY DEFINER surface from 73 to 67.
+do $definer_surface$
 declare n integer;
 begin
   select count(*) into n
@@ -69,11 +69,21 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>73 then
-    raise exception 'Platform Kernel gate failure: authenticated SECURITY DEFINER surface grew from the reviewed ceiling of 73 to %.',n;
+
+  if n<>67 then
+    raise exception 'Platform Kernel gate failure: expected 67 authenticated SECURITY DEFINER functions after migration 074, found %.',n;
+  end if;
+
+  if has_function_privilege('authenticated','public.app_can_publish_announcements()','EXECUTE')
+     or has_function_privilege('authenticated','public.app_threshold(uuid,text,numeric)','EXECUTE')
+     or has_function_privilege('authenticated','public.next_close_version(uuid,text,uuid)','EXECUTE')
+     or has_function_privilege('authenticated','public.next_work_ref(uuid,uuid)','EXECUTE')
+     or has_function_privilege('authenticated','public.submit_project_close(uuid)','EXECUTE')
+     or has_function_privilege('authenticated','public.submit_report(uuid,jsonb)','EXECUTE') then
+    raise exception 'Platform Kernel gate failure: an internal-only privileged helper remains directly executable by authenticated.';
   end if;
 end
-$definer_ceiling$;
+$definer_surface$;
 
 -- Protected HR is deliberately outside browser-exposed public data.
 do $hr_boundary$
@@ -164,19 +174,18 @@ begin
 end
 $meeting_private_notes$;
 
--- Clean replay must record the current immutable migration in the local
--- migration ledger. This protects future work from accidentally omitting 073.
-do $migration_073$
+-- Clean replay must record the current immutable Stage 0 migration.
+do $migration_074$
 begin
   if not exists (
     select 1
     from supabase_migrations.schema_migrations
-    where version='20260921211500'
+    where version='20260922032000'
   ) then
-    raise exception 'Platform Kernel gate failure: local migration history does not contain 073 private meeting notes.';
+    raise exception 'Platform Kernel gate failure: local migration history does not contain 074 RPC-surface reduction.';
   end if;
 end
-$migration_073$;
+$migration_074$;
 
 rollback;
 
