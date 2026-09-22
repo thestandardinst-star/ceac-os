@@ -168,7 +168,7 @@ create table public.leave_policy_rules(
   accrual_rate numeric,
   carryover_method text check(carryover_method is null or carryover_method in ('none','limited','full','manual')),
   carryover_limit numeric,
-  approval_route text not null check(approval_route in ('manager','admin','manager_then_admin')),
+  approval_route text check(approval_route is null or approval_route in ('manager','admin','manager_then_admin')),
   opening_balance_required boolean not null default false,
   complete boolean not null default false,
   created_at timestamptz not null default now()
@@ -573,6 +573,7 @@ declare
   v_from text;
   v_to text;
   v_allowed boolean:=false;
+  v_route text;
 begin
   if v_actor is null then raise exception 'Sign in to update leave.' using errcode='42501'; end if;
   if p_action not in ('manager_approved','escalated','admin_approved','declined','cancelled_by_employee','approval_reversed','decision_corrected') then
@@ -592,27 +593,72 @@ begin
   from public.employment_records
   where profile_id=v_request.profile_id and org_id=v_org;
 
+  select r.approval_route into v_route
+  from public.leave_policy_versions p
+  join public.leave_policy_rules r on r.policy_version_id=p.id
+  where p.org_id=v_org
+    and p.state='active'
+    and r.complete
+    and r.leave_kind=v_request.kind
+    and (r.employment_type is null or r.employment_type=v_record.employment_type)
+  order by case when r.employment_type=v_record.employment_type then 0 else 1 end
+  limit 1;
+
+  v_from:=v_request.status;
+
   if p_action='cancelled_by_employee' then
-    v_allowed:=v_actor=v_request.profile_id and v_request.status in ('pending','escalated');
+    v_allowed:=v_actor=v_request.profile_id and v_from in ('pending','escalated');
     v_to:='cancelled';
-  elsif p_action in ('admin_approved','approval_reversed','decision_corrected') then
-    v_allowed:=public.app_has_capability('workforce.manage',null);
-    v_to:=case p_action when 'admin_approved' then 'approved' when 'approval_reversed' then 'pending' else v_request.status end;
-  else
+
+  elsif p_action='manager_approved' then
+    v_allowed:=(
+      public.app_has_capability('workforce.manage',null)
+      or (v_record.unit_id is not null and v_record.unit_id in (select public.app_managed_units()))
+    )
+    and v_from='pending'
+    and (v_route is null or v_route='manager');
+    v_to:='approved';
+
+  elsif p_action='escalated' then
+    v_allowed:=(
+      public.app_has_capability('workforce.manage',null)
+      or (v_record.unit_id is not null and v_record.unit_id in (select public.app_managed_units()))
+    )
+    and v_from='pending'
+    and (v_route is null or v_route='manager_then_admin');
+    v_to:='escalated';
+
+  elsif p_action='admin_approved' then
     v_allowed:=public.app_has_capability('workforce.manage',null)
-      or (v_record.unit_id is not null and v_record.unit_id in (select public.app_managed_units()));
-    v_to:=case p_action
-      when 'manager_approved' then 'approved'
-      when 'escalated' then 'escalated'
-      when 'declined' then 'declined'
-      else v_request.status end;
+      and (
+        (v_route='admin' and v_from='pending')
+        or (v_route='manager_then_admin' and v_from='escalated')
+        or (v_route is null and v_from in ('pending','escalated'))
+      );
+    v_to:='approved';
+
+  elsif p_action='declined' then
+    v_allowed:=(
+      public.app_has_capability('workforce.manage',null)
+      or (v_record.unit_id is not null and v_record.unit_id in (select public.app_managed_units()))
+    )
+    and v_from in ('pending','escalated');
+    v_to:='declined';
+
+  elsif p_action='approval_reversed' then
+    v_allowed:=public.app_has_capability('workforce.manage',null) and v_from='approved';
+    v_to:='pending';
+
+  elsif p_action='decision_corrected' then
+    v_allowed:=public.app_has_capability('workforce.manage',null)
+      and v_from in ('approved','declined','cancelled');
+    v_to:=v_from;
   end if;
 
   if not v_allowed then
-    raise exception 'You do not have authority for this leave action.' using errcode='42501';
+    raise exception 'That leave action is not permitted from the current state or approval route.'
+      using errcode='42501';
   end if;
-
-  v_from:=v_request.status;
 
   update public.leave_requests
   set status=v_to,
@@ -662,6 +708,14 @@ declare
   v_version integer;
   v_id uuid;
   v_rule jsonb;
+  v_complete boolean;
+  v_entitlement numeric;
+  v_entitlement_unit text;
+  v_accrual_method text;
+  v_accrual_rate numeric;
+  v_carryover_method text;
+  v_carryover_limit numeric;
+  v_approval_route text;
 begin
   if v_actor is null or not public.app_has_capability('workforce.manage',null) then
     raise exception 'You do not have authority to configure leave policy.' using errcode='42501';
@@ -674,6 +728,9 @@ begin
   end if;
   if jsonb_typeof(coalesce(p_rules,'[]'::jsonb))<>'array' then
     raise exception 'Policy rules must be a JSON array.';
+  end if;
+  if p_activate and jsonb_array_length(coalesce(p_rules,'[]'::jsonb))=0 then
+    raise exception 'An active leave policy requires at least one complete confirmed rule.';
   end if;
 
   if p_supersedes_id is not null then
@@ -691,47 +748,69 @@ begin
     v_version:=1;
   end if;
 
-  if p_activate then
-    update public.leave_policy_versions
-    set state='retired'
-    where org_id=v_org and state='active';
-  end if;
-
   insert into public.leave_policy_versions(
     org_id,policy_key,version,name,effective_from,effective_to,state,supersedes_id,
     source_reference,reason,confirmed_by,confirmed_at,created_by
   ) values (
     v_org,v_key,v_version,btrim(p_name),p_effective_from,p_effective_to,
-    case when p_activate then 'active' else 'draft' end,p_supersedes_id,
+    'draft',p_supersedes_id,
     nullif(btrim(coalesce(p_source_reference,'')),''),btrim(p_reason),
-    case when p_activate then v_actor else null end,
-    case when p_activate then now() else null end,
-    v_actor
+    null,null,v_actor
   )
   returning id into v_id;
 
   for v_rule in select value from jsonb_array_elements(p_rules)
   loop
+    if length(btrim(coalesce(v_rule->>'leave_kind','')))<2 then
+      raise exception 'Every leave-policy rule needs a leave kind.';
+    end if;
+
+    v_entitlement:=nullif(v_rule->>'entitlement_amount','')::numeric;
+    v_entitlement_unit:=nullif(v_rule->>'entitlement_unit','');
+    v_accrual_method:=nullif(v_rule->>'accrual_method','');
+    v_accrual_rate:=nullif(v_rule->>'accrual_rate','')::numeric;
+    v_carryover_method:=nullif(v_rule->>'carryover_method','');
+    v_carryover_limit:=nullif(v_rule->>'carryover_limit','')::numeric;
+    v_approval_route:=nullif(v_rule->>'approval_route','');
+
+    v_complete:=
+      v_entitlement is not null
+      and v_entitlement>=0
+      and v_entitlement_unit is not null
+      and v_accrual_method is not null
+      and v_carryover_method is not null
+      and v_approval_route is not null
+      and (v_accrual_method<>'monthly' or v_accrual_rate is not null)
+      and (v_carryover_method<>'limited' or v_carryover_limit is not null);
+
     insert into public.leave_policy_rules(
       org_id,policy_version_id,leave_kind,employment_type,
       entitlement_amount,entitlement_unit,accrual_method,accrual_rate,
       carryover_method,carryover_limit,approval_route,opening_balance_required,complete
     ) values (
       v_org,v_id,btrim(v_rule->>'leave_kind'),nullif(btrim(coalesce(v_rule->>'employment_type','')),''),
-      nullif(v_rule->>'entitlement_amount','')::numeric,nullif(v_rule->>'entitlement_unit',''),
-      nullif(v_rule->>'accrual_method',''),nullif(v_rule->>'accrual_rate','')::numeric,
-      nullif(v_rule->>'carryover_method',''),nullif(v_rule->>'carryover_limit','')::numeric,
-      coalesce(nullif(v_rule->>'approval_route',''),'manager_then_admin'),
+      v_entitlement,v_entitlement_unit,v_accrual_method,v_accrual_rate,
+      v_carryover_method,v_carryover_limit,v_approval_route,
       coalesce((v_rule->>'opening_balance_required')::boolean,false),
-      coalesce((v_rule->>'complete')::boolean,false)
+      v_complete
     );
   end loop;
 
-  if p_activate and exists(
-    select 1 from public.leave_policy_rules
-    where policy_version_id=v_id and not complete
-  ) then
-    raise exception 'Only complete leave rules can be activated.';
+  if p_activate then
+    if exists(
+      select 1 from public.leave_policy_rules
+      where policy_version_id=v_id and not complete
+    ) then
+      raise exception 'Only fully configured leave rules can be activated.';
+    end if;
+
+    update public.leave_policy_versions
+    set state='retired'
+    where org_id=v_org and state='active';
+
+    update public.leave_policy_versions
+    set state='active',confirmed_by=v_actor,confirmed_at=now()
+    where id=v_id;
   end if;
 
   return v_id;
