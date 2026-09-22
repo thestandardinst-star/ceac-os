@@ -106,7 +106,12 @@ begin
     join pg_class c on c.oid=t.tgrelid
     join pg_namespace ns on ns.oid=c.relnamespace
     where ns.nspname='public' and c.relname='unit_memberships'
-      and t.tgname='unit_memberships_sync_employment_history' and not t.tgisinternal
+      and t.tgname in (
+        'unit_memberships_sync_employment_history_insert',
+        'unit_memberships_sync_employment_history_update',
+        'unit_memberships_sync_employment_history_delete'
+      )
+      and not t.tgisinternal
   ) then
     raise exception 'Employment history gate failure: membership history trigger is missing.';
   end if;
