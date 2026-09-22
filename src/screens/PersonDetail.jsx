@@ -82,7 +82,7 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
           .eq("profile_id", profileId).eq("work_items.unit_id", me.unit_id)
           .gte("submitted_at", since.toISOString()).order("submitted_at", { ascending: false }),
         supabase.from("feedback_notes")
-          .select("id, note, created_at, profiles!feedback_notes_author_id_fkey(full_name)")
+          .select("id, note, kind, occurred_on, created_at, profiles!feedback_notes_author_id_fkey(full_name)")
           .eq("profile_id", profileId).order("created_at", { ascending: false }),
         supabase.from("sub_team_members").select("sub_team_id, sub_teams!inner(name, unit_id)")
           .eq("profile_id", profileId).eq("sub_teams.unit_id", me.unit_id),
@@ -115,8 +115,14 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
   async function addFeedback() {
     setBusy(true); setError(null);
     try {
-      const { error: insertError } = await supabase.from("feedback_notes").insert({
-        org_id: me.org_id, profile_id: profileId, author_id: me.id, note: note.trim(),
+      const { error: insertError } = await supabase.rpc("record_performance_feedback", {
+        p_profile_id: profileId,
+        p_kind: "observation",
+        p_note: note.trim(),
+        p_occurred_on: new Date().toISOString().slice(0, 10),
+        p_work_item_id: null,
+        p_project_id: null,
+        p_strategy_node_id: null,
       });
       if (insertError) throw insertError;
       setNote(""); await load();
