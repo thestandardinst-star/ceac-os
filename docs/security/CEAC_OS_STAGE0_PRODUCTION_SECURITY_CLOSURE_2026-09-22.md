@@ -77,3 +77,28 @@ Do not:
 ## Stage 0 exit evidence
 
 Stage 0 closes only when every blocker above has an evidence-backed PASS and the handoff is updated. Stage 1 starts from the reviewed post-Stage-0 main, never from this branch or a stale branch.
+
+
+## Post-074 live verification
+
+Production migration 074 has been applied and independently verified.
+
+- live migration ledger records `074_reduce_internal_rpc_surface`;
+- authenticated-callable public SECURITY DEFINER count is now **67**;
+- direct authenticated EXECUTE is false for all six reviewed internal-only helpers;
+- Supabase Security Advisor now reports 67 signed-in-callable SECURITY DEFINER warnings instead of 73;
+- current final branch gates pass clean replay, Account Security, Platform Kernel/RLS, Meeting authority and Playwright role acceptance.
+
+## Privileged-account MFA finding
+
+Live Auth/profile inspection shows:
+
+- total Auth users: 6;
+- confirmed-email users: 6;
+- privileged profiles (`is_admin` or `is_exec`): 2;
+- privileged profiles with a verified MFA factor: 0;
+- privileged profiles without a verified MFA factor: 2.
+
+Stage 0 therefore cannot claim privileged-account MFA closure yet. MFA enrollment must be completed by the affected account holders and then re-verified. This is an account-holder action, not a database migration.
+
+The project remains on Supabase Free. Leaked-password protection remains unavailable on the current plan; this is a documented plan limitation rather than an unverified setting.
