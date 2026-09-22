@@ -47,7 +47,7 @@ export default function Work({ me, isManager = false, openItem }) {
     sessionStorage.setItem(viewKey, JSON.stringify({ mode, statusFilter }));
   }, [viewKey, mode, statusFilter]);
 
-  async function load() {
+  async function load(nextMode = mode, nextStatusFilter = statusFilter) {
     setLoading(true);
     setLoadError(null);
     setItems([]);
@@ -56,13 +56,13 @@ export default function Work({ me, isManager = false, openItem }) {
       .select("id,ref,title,kind,status,due_at,visibility,origin,expected_outcome,projects(name)")
       .eq("assignee_id", me.id);
 
-    if (mode === "assigned") query = query.eq("visibility", "unit").eq("origin", "assigned");
-    if (mode === "agreed") query = query.eq("visibility", "unit").eq("origin", "self_created");
-    if (mode === "private") query = query.eq("visibility", "private");
+    if (nextMode === "assigned") query = query.eq("visibility", "unit").eq("origin", "assigned");
+    if (nextMode === "agreed") query = query.eq("visibility", "unit").eq("origin", "self_created");
+    if (nextMode === "private") query = query.eq("visibility", "private");
 
-    if (statusFilter === "active") query = query.in("status", ["not_started", "in_progress", "returned"]);
-    else if (statusFilter === "completed") query = query.in("status", ["completed", "self_certified"]);
-    else query = query.eq("status", statusFilter);
+    if (nextStatusFilter === "active") query = query.in("status", ["not_started", "in_progress", "returned"]);
+    else if (nextStatusFilter === "completed") query = query.in("status", ["completed", "self_certified"]);
+    else query = query.eq("status", nextStatusFilter);
 
     const { data, error } = await query.order("due_at", { ascending: true, nullsFirst: false });
     if (error) {
@@ -132,7 +132,7 @@ export default function Work({ me, isManager = false, openItem }) {
       setNotice(createVisibility === "private"
         ? `${created.ref} added as private work. Only you can see it.`
         : `${created.ref} added to your agreed work. It appears immediately in your record.`);
-      await load();
+      await load(createVisibility === "private" ? "private" : "agreed", "active");
     } catch (error) {
       setLoadError(humanError(error, "The work could not be added."));
     } finally {
