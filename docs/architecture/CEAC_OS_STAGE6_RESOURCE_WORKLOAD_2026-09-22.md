@@ -1,8 +1,8 @@
 # CEAC OS — Stage 6 Resource & Workload Management
 
-**Date:** 22 September 2026  
-**Status:** IMPLEMENTATION CONTRACT  
-**Programme stage:** 6 — Resource & Workload  
+**Date:** 22 September 2026
+**Status:** IMPLEMENTATION CONTRACT
+**Programme stage:** 6 — Resource & Workload
 **Base main:** `d9b8c1703c7f20c233b62553e5e201cc209dacd7`
 
 ## 1. Purpose
