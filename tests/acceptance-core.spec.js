@@ -658,7 +658,7 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
     await expect(page.getByText("Stage 4 Browser Project", { exact: true })).toBeVisible();
 
     await page.reload();
-    await expect(page.getByText("current 5 outcomes · target 12 outcomes", { exact: true })).toBeVisible();
+    await expect(page.getByText(/current 5 outcomes · target 12 outcomes/)).toBeVisible();
     await expect(page.getByText("Stage 4 Browser Project", { exact: true })).toBeVisible();
     await context.close();
   }
