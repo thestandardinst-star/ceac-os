@@ -240,6 +240,13 @@ declare
 begin
   if tg_op<>'UPDATE' then return new; end if;
 
+  -- Internal ordered-step advancement changes only pending -> ready.
+  -- Keep it narrow and reset the marker immediately after the nested update.
+  if current_setting('ceac.lifecycle_internal',true)='advance'
+     and old.state='pending' and new.state='ready' then
+    return new;
+  end if;
+
   if old.org_id is distinct from new.org_id
      or old.lifecycle_case_id is distinct from new.lifecycle_case_id
      or old.position is distinct from new.position
@@ -285,9 +292,11 @@ begin
   limit 1;
 
   if v_next is not null then
+    perform set_config('ceac.lifecycle_internal','advance',true);
     update public.employee_lifecycle_steps
     set state='ready'
     where id=v_next;
+    perform set_config('ceac.lifecycle_internal','',true);
     return new;
   end if;
 
