@@ -31,6 +31,7 @@ import AdminWorkflows from "./screens/AdminWorkflows";
 import AdminPolicies from "./screens/AdminPolicies";
 import AdminIntegrations from "./screens/AdminIntegrations";
 import AdminLifecycle from "./screens/AdminLifecycle";
+import AdminProtectedHR from "./screens/AdminProtectedHR";
 import Goals from "./screens/Goals";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
@@ -204,6 +205,7 @@ export default function App() {
   const canManageAuthority = hasCapability("authority.manage");
   const canUseWorkflows = canViewAudit || canManagePeople || canManageAuthority;
   const canManageIntegrations = hasCapability("integration.manage");
+  const canAccessProtectedHR = hasCapability("hr_private.access");
   const overlay = itemId || assigning || goalId || person || projectId || roomContext || meetingId || meetingDraft;
 
   function startAssignment(context = {}) {
@@ -238,6 +240,7 @@ export default function App() {
     if (tab === "attendance" && isAdmin) return <Attendance me={me} />;
     if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
     if (tab === "lifecycle" && canManagePeople) return <AdminLifecycle me={me} />;
+    if (tab === "protected-hr" && canAccessProtectedHR) return <AdminProtectedHR me={me} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
