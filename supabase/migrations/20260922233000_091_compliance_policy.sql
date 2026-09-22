@@ -241,9 +241,40 @@ on public.compliance_policy_applicability
 for select to authenticated
 using(
   org_id=public.app_org_id()
-  and exists(
-    select 1 from public.compliance_policy_versions p
-    where p.id=compliance_policy_applicability.policy_version_id
+  and (
+    public.app_has_capability('compliance.manage',null)
+    or scope_kind='organisation'
+    or (
+      scope_kind='person'
+      and (
+        profile_id=auth.uid()
+        or exists(
+          select 1 from public.employment_records er
+          where er.profile_id=compliance_policy_applicability.profile_id
+            and er.org_id=public.app_org_id()
+            and er.unit_id in (select public.app_managed_units())
+        )
+      )
+    )
+    or (
+      scope_kind='unit'
+      and (
+        unit_id in (
+          select er.unit_id from public.employment_records er
+          where er.profile_id=auth.uid() and er.org_id=public.app_org_id()
+        )
+        or unit_id in (select public.app_managed_units())
+      )
+    )
+    or (
+      scope_kind='employment_type'
+      and exists(
+        select 1 from public.employment_records er
+        where er.profile_id=auth.uid()
+          and er.org_id=public.app_org_id()
+          and er.employment_type=compliance_policy_applicability.employment_type
+      )
+    )
   )
 );
 
@@ -252,9 +283,12 @@ on public.compliance_requirements
 for select to authenticated
 using(
   org_id=public.app_org_id()
-  and exists(
-    select 1 from public.compliance_policy_versions p
-    where p.id=compliance_requirements.policy_version_id
+  and (
+    public.app_has_capability('compliance.manage',null)
+    or exists(
+      select 1 from public.compliance_policy_applicability a
+      where a.policy_version_id=compliance_requirements.policy_version_id
+    )
   )
 );
 
