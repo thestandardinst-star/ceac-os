@@ -639,6 +639,26 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: /Staff Fixture/ }).click();
   await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
 
+  await go(page, "Workflows");
+  await expect(page.getByRole("heading", { name: "Workflows", exact: true })).toBeVisible();
+  const employmentWorkflow = page.getByRole("button", { name: /Review employment change/ }).first();
+  await expect(employmentWorkflow).toBeVisible();
+  await employmentWorkflow.click();
+  await page.getByLabel("Workflow review note").fill("Acceptance workflow review");
+  await page.getByRole("button", { name: "Complete step", exact: true }).click();
+  await expect(page.getByText("Workflow step completed.", { exact: true })).toBeVisible();
+
+  await go(page, "Authority");
+  await expect(page.getByRole("heading", { name: "Authority", exact: true })).toBeVisible();
+  await page.getByLabel("Authority person").selectOption({ label: /Staff Fixture/ });
+  await page.getByLabel("Capability").selectOption("performance.admin");
+  await page.getByLabel("Grant reason").fill("Acceptance temporary performance authority");
+  await page.getByRole("button", { name: "Grant capability", exact: true }).click();
+  await expect(page.getByText("Capability granted.", { exact: true })).toBeVisible();
+  await page.getByLabel("Revocation reason").fill("Acceptance authority cleanup");
+  await page.getByRole("button", { name: "Revoke", exact: true }).click();
+  await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
+
   await go(page, "Audit");
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
   await expect(page.getByText("Recent changes", { exact: true })).toBeVisible();
@@ -690,7 +710,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Settings"];
+  const destinations = ["Home", "People", "Attendance", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
