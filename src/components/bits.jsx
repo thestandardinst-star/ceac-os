@@ -252,7 +252,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
     ] },
   ];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
-  const adminPrimary = [["home","Home"],...(capabilities.includes("people.manage") ? [["people","People"]] : []),["attendance","Attendance"],["reporting","Reports"],["more","More"]];
+  const adminPrimary = [["home","Home"],...(capabilities.includes("people.manage") ? [["people","People"]] : []),["attendance","Workforce"],["reporting","Reports"],["more","More"]];
   const items = isExec
     ? [["home","Home"],["delivery","Delivery"],["announcements","Announcements"],["me","Me"]]
     : isAdmin ? adminPrimary : isManager ? managerPrimary : tabItems(false);
