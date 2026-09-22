@@ -33,6 +33,7 @@ import AdminIntegrations from "./screens/AdminIntegrations";
 import AdminLifecycle from "./screens/AdminLifecycle";
 import AdminProtectedHR from "./screens/AdminProtectedHR";
 import Goals from "./screens/Goals";
+import Strategy from "./screens/Strategy";
 import ManagerProjects from "./screens/ManagerProjects";
 import ManagerCalendar from "./screens/ManagerCalendar";
 import ManagerFinance from "./screens/ManagerFinance";
@@ -234,6 +235,7 @@ export default function App() {
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={openItem} openProject={openProject} />;
     if (tab === "record") return <Record me={me} openItem={openItem} />;
     if (tab === "announcements") return <Announcements me={me} back={() => go("home")} />;
+    if (tab === "strategy") return <Strategy me={me} />;
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
     if (tab === "finance" && isAdmin) return <Finance me={me} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
