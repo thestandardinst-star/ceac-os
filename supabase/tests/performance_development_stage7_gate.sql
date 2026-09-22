@@ -33,7 +33,10 @@ $stage7_tables$;
 
 do $stage7_privileges$
 begin
-  if has_table_privilege('anon','public.appraisal_evidence_items','SELECT')
+  if has_table_privilege('anon','public.appraisal_cycles','SELECT')
+     or has_table_privilege('anon','public.appraisals','SELECT')
+     or has_table_privilege('anon','public.feedback_notes','SELECT')
+     or has_table_privilege('anon','public.appraisal_evidence_items','SELECT')
      or has_table_privilege('anon','public.appraisal_entries','SELECT')
      or has_table_privilege('anon','public.development_plan_versions','SELECT')
      or has_table_privilege('anon','public.feedback_responses','SELECT') then
