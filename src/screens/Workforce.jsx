@@ -92,7 +92,7 @@ export default function Workforce({ me }) {
     const datasets=[
       ["people", supabase.from("employment_records").select("profile_id,unit_id,manager_profile_id,employment_type,working_pattern,profiles!employment_records_profile_id_fkey(full_name,job_title,active),units(name)").eq("org_id",me.org_id).eq("employment_status","active")],
       ["sessions", supabase.from("work_sessions").select("id,profile_id,started_at,ended_at,place,end_reason,flags,lat,lng,ip").gte("started_at",since).order("started_at",{ascending:false})],
-      ["leave", supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles(full_name)").order("start_date",{ascending:false})],
+      ["leave", supabase.from("leave_requests").select("id,profile_id,kind,start_date,end_date,days,status,reason,requested_at,decided_by,decided_at,decision_note,profiles!leave_requests_profile_id_fkey(full_name)").order("start_date",{ascending:false})],
       ["leave history", supabase.from("leave_request_events").select("*").order("created_at",{ascending:false})],
       ["day types", supabase.from("workforce_day_types").select("*").eq("active",true).order("name")],
       ["schedules", supabase.from("workforce_schedule_versions").select("*").order("created_at",{ascending:false})],
