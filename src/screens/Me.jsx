@@ -79,15 +79,21 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   const policyConfigured = Boolean(leavePolicy);
   const annualRule = leavePolicyRules.find((rule) => rule.leave_kind === "annual" && rule.complete);
   const sickRule = leavePolicyRules.find((rule) => rule.leave_kind === "sick" && rule.complete);
-  const annualEntitlement = annualRule?.entitlement_unit === "days" ? Number(annualRule.entitlement_amount || 0) : null;
-  const sickEntitlement = sickRule?.entitlement_unit === "days" ? Number(sickRule.entitlement_amount || 0) : null;
+  const simpleBalanceRule = (rule) => Boolean(
+    rule
+    && rule.entitlement_unit === "days"
+    && !rule.opening_balance_required
+    && (rule.accrual_method === "annual" || rule.accrual_method === "none")
+    && rule.carryover_method === "none"
+  );
+  const annualEntitlement = simpleBalanceRule(annualRule) ? Number(annualRule.entitlement_amount || 0) : null;
+  const sickEntitlement = simpleBalanceRule(sickRule) ? Number(sickRule.entitlement_amount || 0) : null;
   const currentYear = new Date().getFullYear();
   const approvedThisYear = myRequests.filter((request) =>
     request.status === "approved" && new Date(request.start_date + "T00:00:00").getFullYear() === currentYear
   );
   const annualTaken = approvedThisYear.filter((request) => request.kind === "annual").reduce((sum, request) => sum + Number(request.days || 0), 0);
   const sickTaken = approvedThisYear.filter((request) => request.kind === "sick").reduce((sum, request) => sum + Number(request.days || 0), 0);
-  const carryover = 0;
   const annualLeft = annualEntitlement === null ? null : annualEntitlement - annualTaken;
   const sickLeft = sickEntitlement === null ? null : sickEntitlement - sickTaken;
   const activeGoals = goals.filter((goal) => goal.status === "active");
@@ -113,6 +119,20 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       setSheet(null); setKind("annual"); setStartDate(""); setEndDate(""); setReason("");
       await load();
     } catch (error) { setMessage(humanError(error, "CEAC could not save that change.")); }
+    finally { setBusy(false); }
+  }
+
+  async function cancelLeave(id) {
+    setBusy(true); setMessage(null);
+    try {
+      const { error } = await supabase.rpc("workforce_leave_action", {
+        p_leave_request_id: id,
+        p_action: "cancelled_by_employee",
+        p_reason: "Cancelled by employee",
+      });
+      if (error) throw error;
+      await load();
+    } catch (error) { setMessage(humanError(error, "That leave request could not be cancelled.")); }
     finally { setBusy(false); }
   }
 
@@ -272,9 +292,10 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       </div>
 
       {!policyConfigured && <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>}
+      {policyConfigured && (annualLeft === null || sickLeft === null) && <ProductNotice tone="info" title="Some balances are unavailable">A confirmed policy exists, but CEAC OS only calculates a remaining balance when the relevant rule has explicit day entitlement, a supported accrual method, no carry-over, and no unresolved opening-balance requirement.</ProductNotice>}
       <div className="leave-summary">
-        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual entitlement not configured" : "annual days left"}</span></div>
-        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick entitlement not configured" : "sick days left"}</span></div>
+        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual balance unavailable" : "annual days left"}</span></div>
+        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick balance unavailable" : "sick days left"}</span></div>
       </div>
 
       {myRequests.length > 0 && <>
@@ -284,9 +305,12 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
             <strong>{request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
             <span>{dateOnly(request.start_date)} — {dateOnly(request.end_date)}</span>
           </div>
-          <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" ? "p-brick" : "p-amber"}`}>
-            {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "escalated" ? "With admin" : "Waiting"}
-          </span>
+          <div className="leave-request-actions">
+            <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" || request.status === "cancelled" ? "p-brick" : "p-amber"}`}>
+              {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "cancelled" ? "Cancelled" : request.status === "escalated" ? "With admin" : "Waiting"}
+            </span>
+            {(request.status === "pending" || request.status === "escalated") && <button className="text-action" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</button>}
+          </div>
         </div>)}
       </>}
     </div>}
