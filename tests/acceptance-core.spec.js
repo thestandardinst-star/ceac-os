@@ -780,7 +780,7 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     await page.goto("/?tab=delivery");
     await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Me", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Goals & development", exact: true })).toBeVisible();
     await context.close();
   }
 });
