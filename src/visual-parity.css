@@ -246,3 +246,133 @@ body{color:var(--vp-text)}
 .reference-today-card{padding:12px}.reference-today-row{width:100%;border:0;border-top:1px solid #edf1f5;background:transparent;display:grid;grid-template-columns:29px 1fr auto;gap:8px;align-items:center;text-align:left;padding:12px 0 2px}
 .reference-today-row>span:nth-child(2) strong{display:block;color:#1a2b42;font-size:9.5px}.reference-today-row>span:nth-child(2) small{display:block;color:#8b96a5;font-size:8px;margin-top:2px}.reference-today-row>b{font-size:8px;color:#1769df;background:#edf5ff;border-radius:999px;padding:5px 8px}
 @media(max-width:900px){.reference-focus-grid{margin-right:0;grid-template-columns:1fr}.reference-focus-card{grid-template-columns:96px 1fr}.reference-focus-card>button{grid-column:1/-1;width:100%}.reference-focus-art{height:96px}.reference-today-card{display:none}}
+
+
+/* Visual parity pass 2: remove legacy desktop width caps and lock the approved composition. */
+@media(min-width:981px){
+  .app{max-width:none!important;margin:0!important;width:100%!important;display:block!important}
+  .app-workspace{margin-left:226px!important;width:calc(100% - 226px)!important}
+  .app-content{width:100%!important;max-width:none!important;padding:14px 18px 80px!important}
+  .app-content>.body,
+  .staff-app .app-content>.body,
+  .manager-app .app-content>.body,
+  .office-app .app-content>.body,
+  .executive-app .app-content>.body{
+    width:100%!important;max-width:none!important;margin:0!important;padding:14px 0 50px!important;
+  }
+
+  .staff-command-surface,.manager-command-surface,.admin-command-surface,.executive-command-surface{
+    margin-right:322px!important;
+  }
+
+  .reference-focus-row{
+    margin:0 322px 12px 0;
+    display:grid;grid-template-columns:minmax(0,1.58fr) minmax(245px,.72fr);gap:10px;
+  }
+  .reference-focus-card,.reference-today-card{
+    min-width:0;background:#fff;border:1px solid var(--vp-line);border-radius:12px;
+    box-shadow:0 5px 16px rgba(36,60,93,.05);
+  }
+  .reference-focus-card{
+    display:grid;grid-template-columns:148px minmax(0,1fr) auto;align-items:center;gap:15px;padding:14px;
+  }
+  .reference-focus-media{
+    height:112px;border-radius:11px;display:grid;place-items:center;align-content:center;gap:7px;
+    color:#d9e7f7;background:
+      radial-gradient(circle at 72% 24%,rgba(237,156,75,.55),transparent 23%),
+      linear-gradient(145deg,#101b2a 0%,#253b4c 52%,#09131f 100%);
+    overflow:hidden;position:relative;
+  }
+  .reference-focus-media:after{
+    content:"";position:absolute;inset:auto -10% -30% 25%;height:80%;transform:rotate(-8deg);
+    background:linear-gradient(135deg,transparent 0 25%,rgba(89,147,178,.48) 26% 48%,transparent 49%);
+  }
+  .reference-focus-media span{font-size:9px;font-weight:850;letter-spacing:.18em;position:relative;z-index:1}
+  .reference-focus-main{min-width:0}
+  .reference-focus-label{
+    display:inline-flex;border-radius:999px;padding:4px 8px;background:#fff0ee;color:#ef635c;
+    font-size:8px;font-weight:850;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;
+  }
+  .reference-focus-main h2{font-size:17px;line-height:1.15;letter-spacing:-.025em;margin:0;color:#14243a}
+  .reference-focus-main p{font-size:9.5px;color:#8692a2;margin:5px 0 12px}
+  .reference-focus-progress{height:6px;border-radius:99px;background:#e9eef4;overflow:hidden;max-width:260px}
+  .reference-focus-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#13ad7b,#35c999)}
+  .reference-focus-main small{display:block;font-size:8px;color:#7c8999;margin-top:5px;text-transform:capitalize}
+  .reference-focus-actions button{
+    white-space:nowrap;border-radius:10px;background:#0f2742;color:#fff;padding:11px 14px;
+    font-size:10px;font-weight:780;box-shadow:0 7px 15px rgba(15,39,66,.15)
+  }
+  .reference-focus-actions button b{margin-left:8px}
+  .reference-focus-actions>span{font-size:9px;color:#7f8c9b}
+
+  .reference-today-card{padding:13px}
+  .reference-today-row{
+    width:100%;display:grid;grid-template-columns:48px 26px 1fr;align-items:center;gap:7px;
+    padding:8px 0;text-align:left;border-top:1px solid #eef2f6;
+  }
+  .reference-today-row time{font-size:8px;color:#617187}
+  .reference-today-row strong{display:block;font-size:9px;color:#192b42}
+  .reference-today-row small{display:block;font-size:7.5px;color:#8995a4;margin-top:2px}
+
+  .staff-app .staff-home-dashboard{
+    margin-right:322px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:10px!important;margin-top:0!important;align-items:start!important;
+  }
+  .staff-app .staff-home-dashboard>.home-panel{
+    grid-column:auto!important;padding:13px!important;border:1px solid var(--vp-line)!important;
+    background:#fff!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(38,65,99,.045)!important;
+  }
+  .staff-app .staff-home-dashboard>.home-panel-priority{grid-column:1!important;grid-row:1!important}
+  .staff-app .staff-home-dashboard>.home-panel-waiting{grid-column:2!important;grid-row:1!important}
+  .staff-app .staff-home-dashboard>.home-panel-coming{grid-column:3!important;grid-row:1!important}
+  .staff-app .staff-home-dashboard>.home-panel-movement{grid-column:1/3!important;grid-row:2!important}
+  .staff-app .staff-home-dashboard>.home-panel-secondary{grid-column:auto!important}
+  .staff-app .staff-home-dashboard>.home-panel-week{grid-column:1/4!important}
+  .staff-app .reference-module-strip{margin-top:11px!important}
+
+  .manager-app .home-dashboard{
+    margin-right:322px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:10px!important;margin-top:0!important;align-items:start!important;
+  }
+  .manager-app .home-dashboard>.home-panel{grid-column:auto!important;padding:13px!important}
+  .manager-app .home-panel-priority{grid-column:1!important}
+  .manager-app .home-panel-projects{grid-column:2!important}
+  .manager-app .home-panel-waiting{grid-column:3!important}
+  .manager-app .home-panel-pulse{grid-column:1/2!important}
+  .manager-app .home-panel-week{grid-column:2/4!important}
+  .manager-app .reference-module-strip{margin-right:322px!important}
+
+  .office-app .admin-pulse-grid{
+    margin-right:322px!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  .office-app .admin-home-section{margin-right:322px!important}
+  .office-app .admin-home-grid{margin-right:322px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .office-app .admin-home-grid>.admin-home-section{margin-right:0!important}
+}
+
+/* Reference hero copy is dark over the light scenic portion; older premium rules made it white. */
+.app-content .staff-command-surface .h1,
+.app-content .manager-command-surface .h1,
+.app-content .admin-command-surface .h1,
+.app-content .executive-command-surface .h1{color:#071321!important}
+.app-content .staff-command-surface .screen-note,
+.app-content .manager-command-surface .screen-note,
+.app-content .admin-command-surface .screen-note,
+.app-content .executive-command-surface .screen-note{color:#34475e!important}
+.app-content .staff-command-surface .staff-home-context,
+.app-content .manager-command-surface .manager-command-context,
+.app-content .admin-command-surface .admin-command-context,
+.app-content .executive-command-surface .executive-command-context{color:#50637a!important}
+
+/* Keep right-hand summary cards readable on top of the darker scenic end. */
+.staff-command-surface .staff-work-status,
+.manager-command-surface .manager-command-stats,
+.admin-command-surface .admin-command-stats,
+.executive-command-surface .executive-command-stats{color:#fff!important}
+
+/* Dense reference rhythm */
+@media(min-width:1280px){
+  .premium-side{width:226px!important}
+  .premium-topbar{padding-left:20px!important;padding-right:20px!important}
+  .app-content{padding-left:18px!important;padding-right:18px!important}
+}
