@@ -303,7 +303,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
       <div className="app-workspace">
         <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} onMessages={() => go("messages")} />
         <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} onNavigate={go} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onMessages={() => go("messages")} onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
