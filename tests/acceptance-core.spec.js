@@ -1925,7 +1925,7 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
     await go(page, "Compliance");
     await expect(page.getByText("Acceptance workplace safety policy", { exact: true }).first()).toBeVisible();
     await page.getByRole("tab", { name: "My evidence", exact: true }).click();
-    await expect(page.getByText("ACCEPT-CERT-001", { exact: true })).toBeVisible();
+    await expect(page.locator(".compliance-self-item").filter({ hasText: "Acceptance safety certificate" })).toContainText("Verified");
     await context.close();
   }
 
