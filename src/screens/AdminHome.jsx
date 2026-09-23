@@ -3,7 +3,7 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocusPanel } from "../components/ReferenceDashboard";
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
