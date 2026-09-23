@@ -226,3 +226,8 @@ body{color:var(--vp-text)}
   }
   .body table{display:block;overflow-x:auto;white-space:nowrap}
 }
+
+.premium-topbar-date{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:178px;line-height:1.25}
+.premium-topbar-date strong{font-size:9px;color:#293b51;font-weight:760;white-space:nowrap}
+.premium-topbar-date small{font-size:8px;color:#8a96a5;margin-top:2px}
+@media(max-width:1180px){.premium-topbar-date{display:none}}
