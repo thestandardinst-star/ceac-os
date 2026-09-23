@@ -3,8 +3,9 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocusPanel } from "../components/ReferenceDashboard";
 
-export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits }) {
+export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -196,9 +197,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   async function decideLeave(request, decision) {
     setBusy(true); setMsg(null);
     try {
-      const { error } = await supabase.from("leave_requests").update({
-        status:decision, decided_by:me.id, decided_at:new Date().toISOString(),
-      }).eq("id",request.id);
+      const { error } = await supabase.rpc("workforce_leave_action", {
+        p_leave_request_id: request.id,
+        p_action: decision === "declined" ? "declined" : "admin_approved",
+        p_reason: "Administration dashboard decision",
+      });
       if (error) throw error;
       await load();
     } catch (error) { setMsg(humanError(error, "The leave decision could not be saved.")); }
@@ -226,6 +229,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         <div><strong>{today.headcount}</strong><span>People on record</span></div>
       </div>
     </section>
+
+    <DashboardCalendar meetings={meetings} />
+
+    <ReferenceFocusPanel item={mine[0] || null} meetings={meetings} openItem={openItem} openMeeting={openMeeting} />
 
     {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
     {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
@@ -370,6 +377,15 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         </div>)}
       </div>
     </section>
+
+    <ReferenceModuleStrip items={[
+      {label:"People",icon:"people",note:"People and employment.",onClick:()=>go?.("people")},
+      {label:"Work",icon:"work",note:"Organisation work.",onClick:()=>go?.("work")},
+      {label:"Time & Leave",icon:"time",note:"Workforce operations.",onClick:()=>go?.("attendance")},
+      {label:"Finance",icon:"finance",note:"Budgets, spend and income.",onClick:()=>go?.("finance")},
+      {label:"Reports",icon:"reports",note:"Organisation reporting.",onClick:()=>go?.("reporting")},
+      {label:"Control Center",icon:"control",note:"Authority and settings.",onClick:()=>go?.("settings")},
+    ]}/>
 
     {inviting && <Sheet onClose={() => { setInviting(null); setMsg(null); }}>
       <div className="eyebrow">People & access</div>

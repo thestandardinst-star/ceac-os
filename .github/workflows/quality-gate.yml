@@ -265,3 +265,12 @@ jobs:
           name: redesign-r7-product-inspection
           path: test-artifacts/redesign-r7-*.png
           if-no-files-found: ignore
+
+
+      - name: Upload full visual parity inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-parity-all-pages
+          path: test-artifacts/visual-parity-*.png
+          if-no-files-found: ignore

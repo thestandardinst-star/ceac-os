@@ -239,7 +239,7 @@ export default function OfficeSettings({ me, openWorkforce }) {
           </button>
           <div className="office-config-card is-deferred"><span>Salary structure</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
           <div className="office-config-card is-deferred"><span>Payroll approval chain</span><strong>Awaiting CEAC policy</strong><small>Not enabled yet</small></div>
-          <div className="office-config-card is-deferred"><span>Protected HR storage</span><strong>Security foundation ready</strong><small>Protected fields are not enabled yet</small></div>
+          <div className="office-config-card is-deferred"><span>Protected HR storage</span><strong>Security foundation ready</strong><small>Protected HR is active and access-controlled</small></div>
         </div>
       </section>
     </div>

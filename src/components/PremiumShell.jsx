@@ -87,7 +87,7 @@ function PremiumMark() {
   return <span className="premium-brand-mark" aria-hidden="true"><i/><i/></span>;
 }
 
-export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange, onMessages }) {
+export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange, onMessages, onCreateWork, onCreateMeeting }) {
   const nav = navFor({ me, isAdmin, isExec, isManager });
   const role = roleName({ isAdmin, isExec, isManager });
   return <aside className="side premium-side">
@@ -104,6 +104,15 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
       </button>)}
       {onMessages && !nav.some((item)=>item.key==="messages") && <button className="premium-nav-message" onClick={onMessages}><PremiumIcon name="messages"/><span>Messages</span></button>}
     </nav>
+    {(onCreateWork || onCreateMeeting || onMessages) && <section className="reference-quick-create" aria-label="Quick create">
+      <small>Quick create</small>
+      <div className="reference-quick-grid">
+        {onCreateWork && <button onClick={onCreateWork}><PremiumIcon name="work" size={15}/><span>New work</span></button>}
+        {onCreateMeeting && <button onClick={onCreateMeeting}><PremiumIcon name="calendar" size={15}/><span>New meeting</span></button>}
+        {onMessages && <button onClick={onMessages}><PremiumIcon name="messages" size={15}/><span>Open room</span></button>}
+        <button onClick={()=>setTab(isAdmin ? "people" : isManager ? "projects" : "me")}><PremiumIcon name={isAdmin ? "people" : isManager ? "projects" : "hub"} size={15}/><span>{isAdmin ? "Person" : isManager ? "Project" : "Profile"}</span></button>
+      </div>
+    </section>}
     <div className="premium-side-spacer"/>
     <div className="premium-side-profile">
       <span className="premium-avatar">{(me.full_name || "C").trim().slice(0,1).toUpperCase()}</span>
@@ -129,12 +138,23 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
   const [query,setQuery]=useState("");
   const [searchOpen,setSearchOpen]=useState(false);
   const [createOpen,setCreateOpen]=useState(false);
+  const [clock,setClock]=useState(()=>new Date());
   const rootRef=useRef(null);
   const nav=useMemo(()=>navFor({ me, isAdmin, isExec, isManager }),[me,isAdmin,isExec,isManager]);
+  useEffect(()=>{ const timer=setInterval(()=>setClock(new Date()),60000); return ()=>clearInterval(timer); },[]);
   useEffect(()=>{
     function down(e){ if(rootRef.current && !rootRef.current.contains(e.target)){ setSearchOpen(false); setCreateOpen(false); } }
+    function keydown(e){
+      if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k"){
+        e.preventDefault();
+        setSearchOpen(true);
+        rootRef.current?.querySelector(".premium-search-wrap input")?.focus();
+      }
+      if(e.key==="Escape"){ setSearchOpen(false); setCreateOpen(false); }
+    }
     document.addEventListener("pointerdown",down);
-    return ()=>document.removeEventListener("pointerdown",down);
+    document.addEventListener("keydown",keydown);
+    return ()=>{document.removeEventListener("pointerdown",down);document.removeEventListener("keydown",keydown);};
   },[]);
   const current=nav.find(item=>item.key===tab);
   return <header className="desktop-topbar premium-topbar" ref={rootRef}>
@@ -155,7 +175,10 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
         </div>}
       </div>}
       {onMessages && <button className="premium-icon-button" aria-label="Open messages" onClick={onMessages}><PremiumIcon name="messages"/></button>}
-      <button className="premium-icon-button" aria-label="Notifications"><PremiumIcon name="bell"/></button>
+      <div className="premium-topbar-date" aria-label="Current date and time">
+        <strong>{clock.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</strong>
+        <small>Accra · {clock.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</small>
+      </div>
       <button className="premium-profile-button" onClick={onProfile} aria-label="Open profile">
         <span className="premium-avatar">{(me?.full_name || "C").trim().slice(0,1).toUpperCase()}</span>
         <span><strong>{me?.full_name || "Account"}</strong><small>{me?.unit_name || roleLabel}</small></span>

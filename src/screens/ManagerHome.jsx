@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { DashboardCalendar, ReferenceFocusPanel, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -37,7 +38,7 @@ function ActionRow({ item, openItem, tone = "neutral" }) {
   );
 }
 
-export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign }) {
+export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign, go }) {
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -317,9 +318,12 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     setBusy(true); setError(null);
     try {
       const status = decision === "declined" ? "declined" : Number(request.days) > leaveLimit ? "escalated" : "approved";
-      const { error: updateError } = await supabase.from("leave_requests").update({
-        status, decided_by: me.id, decided_at: new Date().toISOString(), decision_note: comment.trim() || null,
-      }).eq("id", request.id);
+      const action = status === "escalated" ? "escalated" : status === "declined" ? "declined" : "manager_approved";
+      const { error: updateError } = await supabase.rpc("workforce_leave_action", {
+        p_leave_request_id: request.id,
+        p_action: action,
+        p_reason: comment.trim() || "Manager dashboard decision",
+      });
       if (updateError) throw updateError;
       setSheet(null); setComment(""); await load();
     } catch (err) { setError(humanError(err, "The leave decision could not be saved.")); }
@@ -381,6 +385,10 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <div><strong>{projects.length}</strong><span>Projects attention</span></div>
         </div>
       </section>
+      <DashboardCalendar meetings={upcomingMeetings} />
+
+      <ReferenceFocusPanel item={submissions[0]?.work_items || mine[0] || null} meetings={upcomingMeetings} openItem={openItem} openMeeting={openMeeting} />
+
       {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
       {loading && <LoadingState label="Loading Manager Home…" />}
 
@@ -642,6 +650,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => answerBlocker(sheet.item, "disputed")}>{busy ? "Saving..." : "Send response"}</button>
       </Sheet>}
       </div>}
+
+      <ReferenceModuleStrip items={[
+        {label:"Work",icon:"work",note:"Assigned and delegated work.",onClick:()=>go?.("work")},
+        {label:"Team",icon:"team",note:"People, workload and context.",onClick:()=>go?.("team")},
+        {label:"Projects",icon:"projects",note:"Delivery and milestones.",onClick:()=>go?.("projects")},
+        {label:"Budget",icon:"finance",note:"Requests and unit position.",onClick:()=>go?.("manager-finance")},
+        {label:"Reports",icon:"reports",note:"Evidence and reporting.",onClick:()=>go?.("manager-reports")},
+      ]}/>
     </div>
   );
 }

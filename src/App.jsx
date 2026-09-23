@@ -245,10 +245,10 @@ export default function App() {
 
   function pageForTab() {
     if (tab === "home") {
-      if (me.is_exec) return <ExecutiveHome me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
-      if (me.is_admin) return <AdminHome me={me} openItem={openItem} openMeeting={openMeeting} scheduleMeeting={startMeeting} openSettings={() => go("settings")} openUnits={() => go("units")} />;
-      if (isManager) return <ManagerHome me={me} openItem={openItem} openProject={openProject} openMeeting={openMeeting} scheduleMeeting={startMeeting} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} />;
-      return <Home me={me} session={session} setSession={setSession} openItem={openItem} openMeeting={openMeeting} openRoom={openRoom} openWork={() => go("work")} openMe={() => go("me")} openAnnouncements={() => go("announcements")} />;
+      if (me.is_exec) return <ExecutiveHome me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} go={go} />;
+      if (me.is_admin) return <AdminHome me={me} openItem={openItem} openMeeting={openMeeting} scheduleMeeting={startMeeting} openSettings={() => go("settings")} openUnits={() => go("units")} go={go} />;
+      if (isManager) return <ManagerHome me={me} openItem={openItem} openProject={openProject} openMeeting={openMeeting} scheduleMeeting={startMeeting} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={() => startAssignment()} go={go} />;
+      return <Home me={me} session={session} setSession={setSession} openItem={openItem} openMeeting={openMeeting} openRoom={openRoom} openWork={() => go("work")} openMe={() => go("me")} openAnnouncements={() => go("announcements")} openTeam={() => go("team")} openCalendar={() => go("staff-calendar")} />;
     }
     if (tab === "team") return isManager
       ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />
@@ -303,7 +303,7 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
       <div className="app-workspace">
         <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} onMessages={() => go("messages")} />
         <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} onNavigate={go} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onMessages={() => go("messages")} onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />

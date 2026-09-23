@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 420" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#eef7ff"/>
+    <stop offset=".44" stop-color="#d8e9f2"/>
+    <stop offset=".67" stop-color="#f6cf9a"/>
+    <stop offset="1" stop-color="#183f53"/>
+  </linearGradient>
+  <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#6f919b"/>
+    <stop offset="1" stop-color="#385d67"/>
+  </linearGradient>
+  <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#305c61"/>
+    <stop offset="1" stop-color="#143d43"/>
+  </linearGradient>
+  <radialGradient id="sun">
+    <stop offset="0" stop-color="#fffbe8" stop-opacity=".98"/>
+    <stop offset=".28" stop-color="#ffd98e" stop-opacity=".86"/>
+    <stop offset="1" stop-color="#ffd98e" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="blur"><feGaussianBlur stdDeviation="16"/></filter>
+</defs>
+<rect width="1600" height="420" fill="url(#sky)"/>
+<circle cx="1120" cy="92" r="120" fill="url(#sun)" filter="url(#blur)"/>
+<path d="M0 294 L180 230 320 268 490 180 610 250 755 142 910 238 1085 116 1250 218 1440 148 1600 232 1600 420 0 420Z" fill="url(#far)" opacity=".74"/>
+<path d="M0 342 L165 288 320 326 475 247 620 312 760 230 910 308 1090 214 1250 300 1420 232 1600 302 1600 420 0 420Z" fill="url(#near)" opacity=".94"/>
+<path d="M0 371 C250 325 420 392 650 345 C880 300 1090 366 1300 318 C1420 288 1510 301 1600 316 L1600 420 0 420Z" fill="#173943"/>
+<rect width="1600" height="420" fill="url(#sky)" opacity=".08"/>
+<path d="M0 410 C280 372 520 414 770 382 C1050 346 1260 394 1600 350" fill="none" stroke="#d8f0ee" stroke-opacity=".2" stroke-width="12"/>
+</svg>
