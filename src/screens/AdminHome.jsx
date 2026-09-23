@@ -232,6 +232,8 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
     <DashboardCalendar meetings={meetings} />
 
+    <ReferenceFocusPanel item={mine[0] || null} meetings={meetings} openItem={openItem} openMeeting={openMeeting} />
+
     {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
     {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
 
