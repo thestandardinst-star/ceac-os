@@ -4,7 +4,7 @@
 **Branch:** `chatgpt/ceac-experience-recovery-architecture-2026-09-23`
 **Baseline:** frozen Stage 11 head `b96aee835a1b08233ef7dc552d7bebc5568ca36b`
 **R6 closure head:** `3e3a20454128dd46ef1adaed18c393646fb2874f`
-**Status:** R7 TECHNICAL GATE RUNNING; LIVE PREVIEW ACCEPTANCE NOT YET RECORDED
+**Status:** R7 + PRODUCTION HARDENING FINAL INTEGRATION GATE PENDING
 
 ## Closure scope
 
@@ -17,8 +17,8 @@ R7 closes the redesign programme only when all of the following are true:
 - basic interactive-control accessibility inspection is green;
 - reduced-motion preference is respected;
 - build/performance output is inspected and recorded;
-- a live deployed preview is inspected;
-- product-owner acceptance is recorded.
+- a live deployed preview is inspected, **or an explicit product-owner waiver is recorded when provider access prevents inspection**;
+- product-owner acceptance/waiver is recorded.
 
 ## R0–R6 state entering R7
 
@@ -48,6 +48,24 @@ Vite reports the single JavaScript chunk as larger than 500 kB minified. This is
 
 ## External live-preview gate
 
-The programme must not be described as fully R7-complete until the exact final R7 head has a reachable deployed preview and that preview is inspected. GitHub/Vercel currently reports a Vercel build-rate-limit failure for recent redesign heads, and the connected Vercel account currently exposes no authorised teams. This is an external deployment/authorisation gate, not a reason to weaken the R7 definition.
+GitHub/Vercel reported a build-rate-limit failure for redesign heads and the connected Vercel account exposed no authorised teams.
 
-Do not merge this redesign programme while this live-preview gate remains unresolved.
+On 23 September 2026 the product owner explicitly instructed the programme to skip Step 2 and continue the closure corridor. The deployed-preview inspection is therefore recorded as an **owner-approved waiver**, not as a passed deployed-product inspection.
+
+All repository, migration, SQL/RLS, Account Security and browser acceptance gates remain mandatory.
+
+## Closure hardening
+
+The corridor identified and fixed:
+- fail-closed Supabase environment configuration;
+- browser security headers while preserving CEAC geolocation/voice capabilities;
+- production dependency audit enforcement;
+- Finance cross-organisation authority-path exposure;
+- Finance cancellation immutability;
+- spend-reversal aggregation;
+- missing human surfaces for the existing Administration → Finance → Group Pastor approval/fulfilment contract;
+- explicit end-to-end finance and cross-module journey pressure tests.
+
+Full detail: `docs/handoff/CEAC_OS_CLOSURE_HARDENING_AUDIT_2026-09-23.md`.
+
+Do not merge until the exact final integration head is green across all mandatory repository gates.
