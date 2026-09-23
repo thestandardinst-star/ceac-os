@@ -1,23 +1,24 @@
 # CEAC OS — instructions for coding agents
 
-## PREMIUM REDESIGN PROGRAMME — READ THIS BEFORE ANY UI WORK
+## PREMIUM REDESIGN IS MERGED AND LOCKED — STAGE 12 ACTIVE
 
-The product owner has explicitly replaced the current visible product direction with the premium redesign programme on this branch.
+The premium redesign R0–R7 and production-hardening corridor are merged to `main` at baseline `8416a7db37391c1533ef8d85374836537c44317f`.
 
-Before changing any route, role shell, navigation, page composition, styling, iconography, messaging surface or interaction pattern, read in this order:
+Before changing any role surface or visual system, read:
+1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`;
+2. `docs/design/CEAC_OS_PREMIUM_REDESIGN_R6_ROUTE_AUDIT_2026-09-23.md`;
+3. this file in full.
 
-1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`
-2. `docs/handoff/CEAC_OS_PREMIUM_REDESIGN_HANDOFF_2026-09-23.md`
-3. this file in full;
-4. the existing security/data/domain contract for the capability being surfaced.
+The approved visual/product architecture remains binding. Do not change its icons, palette, role shells, information architecture or interaction direction unless the product owner explicitly approves a design change.
 
-The premium redesign contract supersedes conflicting older **UX/navigation/visual** decisions on this redesign branch. It does **not** supersede security, RLS, data-integrity, audit, protected-HR, work-behaviour or capability-authority contracts.
+**Current active enterprise stage: Stage 12 — Integrations.**
 
-The approved master mockup and the source-of-truth document are binding. Do not substitute icons, palette, information architecture, role composition or generic admin-template UI because it is easier to implement. Any deliberate visual/product deviation requires explicit product-owner approval and a contract update first.
+Before any Stage 12 implementation, also read:
+1. `docs/architecture/CEAC_OS_STAGE12_INTEGRATIONS_2026-09-23.md`;
+2. `docs/architecture/CEAC_OS_STAGE1G_INTEGRATION_GATEWAY_2026-09-22.md`;
+3. `docs/handoff/CEAC_OS_ENTERPRISE_EXPANSION_HANDOFF_2026-09-22.md`.
 
-The redesign sequence is R0 shell/design foundation → R1 Staff → R2 Manager → R3 Administration/HR → R4 Group Pastor/CEO → R5 communication consolidation → R6 whole-system visual consistency → R7 closure. Do not run multiple redesign tranches in parallel.
-
-**Stage 12 remains paused while the redesign programme is active unless the product owner explicitly resumes enterprise expansion.**
+Stage 12 must extend Stage 1G. A Connected Apps card, provider name or pasted meeting link is not a completed integration. No provider secret/token may be browser-readable.
 
 
 A staff operating system for CEAC, a church in Accra. Four surfaces:
