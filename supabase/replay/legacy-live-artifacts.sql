@@ -1,3 +1,4 @@
+-- Verification-only trigger for Stage 11 post-merge Account Security and Migration Replay. No executable change.
 -- Stage 8 closure check trigger; no SQL behaviour change.
 -- Legacy live-only artifact required to replay immutable migration 037.
 -- This helper exists in the live project but was created outside the recovered
