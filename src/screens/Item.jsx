@@ -376,12 +376,15 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         </div>
       </header>
 
-      {item.project_id && openRoom && <button className="work-room-entry" onClick={() => openRoom({
-        kind: "project",
-        projectId: item.project_id,
+      {openRoom && (item.project_id || item.sub_team_id || item.unit_id) && <button className="work-room-entry" onClick={() => openRoom({
+        ...(item.project_id
+          ? { kind: "project", projectId: item.project_id }
+          : item.sub_team_id
+            ? { kind: "sub_team", subTeamId: item.sub_team_id }
+            : { kind: "unit", unitId: item.unit_id }),
         reference: { object_type: "work_item", object_id: item.id, label: `${item.ref} · ${item.title}` },
       })}>
-        <span><strong>Discuss in Project Room</strong><small>Open the project conversation with this work linked.</small></span>
+        <span><strong>{item.project_id ? "Discuss in Project Room" : item.sub_team_id ? "Discuss in Sub-team Room" : "Discuss in Team Room"}</strong><small>Open the relevant conversation with this work linked.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
 

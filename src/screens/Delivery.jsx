@@ -299,11 +299,12 @@ export default function Delivery({ me }) {
 
   if(loading) return <div className="body"><LoadingState label="Loading delivery management…" /></div>;
 
+  const executiveSurface=Boolean(me.is_exec);
   return <div className="body">
     <div style={{paddingTop:26}}>
-      <div className="eyebrow">Work Management 2.0</div>
-      <h1 className="h1">Delivery</h1>
-      <p className="screen-note">Programmes, portfolios, milestones, dependencies, risks and issues. Health is an explicit management state; CEAC OS does not generate a hidden project score.</p>
+      <div className="eyebrow">{executiveSurface ? "Major initiatives" : "Work Management 2.0"}</div>
+      <h1 className="h1">{executiveSurface ? "Portfolio" : "Delivery"}</h1>
+      <p className="screen-note">{executiveSurface ? "Major programmes and projects, their milestones, dependencies, risks and explicitly recorded health. CEAC OS does not generate a hidden project score." : "Programmes, portfolios, milestones, dependencies, risks and issues. Health is an explicit management state; CEAC OS does not generate a hidden project score."}</p>
     </div>
 
     {error&&<ProductNotice tone="error" title="Delivery">{error}</ProductNotice>}

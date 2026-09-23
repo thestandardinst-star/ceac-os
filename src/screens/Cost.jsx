@@ -141,13 +141,13 @@ export default function Cost({ me }) {
   return (
     <div className="body">
       <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Cost</h1>
-        <p className="screen-note">What each unit was given, what it has spent, beside what it delivered. Press a unit to see every line.</p>
+        <div className="eyebrow">Finance · actual spend</div>\n        <h1 className="h1">Expenses</h1>
+        <p className="screen-note">Record and inspect actual departmental spending with the source record kept beside every entry. Budgets remain planning records, not bank balances.</p>
       </div>
 
       {canEnter && (
         <button className="btn wide-auto" style={{ marginTop: 16 }}
-          onClick={() => { setSheet("batch"); setMsg(null); }}>Enter a batch of spending</button>)}
+          onClick={() => { setSheet("batch"); setMsg(null); }}>Record expenses</button>)}
 
       <div className="flag flag-green">
         <h4>Where these figures come from</h4>

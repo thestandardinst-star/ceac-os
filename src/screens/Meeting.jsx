@@ -11,7 +11,13 @@ function whenLabel(value) {
   });
 }
 
-export default function Meeting({ me, meetingId, back, goAssign, openItem, openProject }) {
+function providerLabel(meeting) {
+  if (meeting?.provider === "zoom") return "Zoom";
+  if (/^https:\/\/meet\.google\.com\//i.test(meeting?.join_url || "")) return "Google Meet";
+  return "Other meeting link";
+}
+
+export default function Meeting({ me, meetingId, back, goAssign, openItem, openProject, openRoom }) {
   const [meeting, setMeeting] = useState(null);
   const [records, setRecords] = useState([]);
   const [links, setLinks] = useState([]);
@@ -168,12 +174,17 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       <div className="meeting-time">{whenLabel(meeting.starts_at)}{meeting.ends_at ? ` → ${whenLabel(meeting.ends_at)}` : ""}</div>
       <div className="meeting-status-row">
         {statusPill(meeting.status)}
-        <span>{meeting.provider === "zoom" ? "Zoom" : "External meeting"}</span>
+        <span>{providerLabel(meeting)}</span>
       </div>
       {meeting.location && <div className="meeting-location">{meeting.location}</div>}
       {meeting.join_url && meeting.status !== "cancelled" && <a className="meeting-join" href={meeting.join_url} target="_blank" rel="noreferrer">
-        Join {meeting.provider === "zoom" ? "Zoom" : "meeting"} <span aria-hidden="true">↗</span>
+        Join {providerLabel(meeting)} <span aria-hidden="true">↗</span>
       </a>}
+      {openRoom && meeting.scope !== "organisation" && <button className="btn btn-ghost btn-sm" onClick={() => openRoom(meeting.scope === "project"
+        ? { kind:"project", projectId:meeting.project_id }
+        : { kind:"unit", unitId:meeting.unit_id })}>
+        Open meeting discussion
+      </button>}
     </header>
 
     {error && <div className="flag flag-brick"><h4>Could not complete that</h4>{error}</div>}
@@ -252,7 +263,7 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
 
     <div className="meeting-provider-note">
       <strong>Meeting provider boundary</strong>
-      <span>CEAC stores the operational record. Video transport remains with {meeting.provider === "zoom" ? "Zoom" : "the external provider"}. Provider secrets are not exposed in this page.</span>
+      <span>CEAC stores the operational record. Video transport remains with {providerLabel(meeting)}. A pasted link is not presented as a CEAC-created provider integration.</span>
     </div>
   </div>;
 }

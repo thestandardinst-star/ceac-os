@@ -141,8 +141,13 @@ export default function StaffTeam({ me, openRoom }) {
         <strong>{team.length}</strong><span>people</span>
         {unitHeads[0]?.profiles && <><i /> <span>{unitHeads[0].profiles.full_name}, Unit Head</span></>}
       </div>
+      <nav className="team-primary-tabs" aria-label="Team areas">
+        <button onClick={() => document.getElementById("team-people")?.scrollIntoView({ behavior:"smooth", block:"start" })}>People</button>
+        {openRoom && <button onClick={openRoom}>Room</button>}
+        <button onClick={() => document.getElementById("team-resources")?.scrollIntoView({ behavior:"smooth", block:"start" })}>Resources</button>
+      </nav>
       {openRoom && <button className="team-room-entry" onClick={openRoom}>
-        <span><strong>Unit Room</strong><small>Coordinate with {me.unit_name}</small></span>
+        <span><strong>Unit Room</strong><small>Messages, mentions and coordination for {me.unit_name}</small></span>
         <b aria-hidden="true">→</b>
       </button>}
     </div>
@@ -194,6 +199,7 @@ export default function StaffTeam({ me, openRoom }) {
         </div>)}
       </Section>}
 
+      <div id="team-people" className="team-scroll-anchor" />
       <Section
         title="People"
         meta={`${team.length} in ${me.unit_name}`}
@@ -220,6 +226,7 @@ export default function StaffTeam({ me, openRoom }) {
         </div>)}
       </Section>}
 
+      <div id="team-resources" className="team-scroll-anchor" />
       {resources.length > 0 && <Section
         title="Unit resources"
         meta={`${resources.length} shared ${resources.length === 1 ? "reference" : "references"}`}

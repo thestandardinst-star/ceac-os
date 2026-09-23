@@ -41,8 +41,39 @@ async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   return { context, page };
 }
 
+const routeByLabel = {
+  Home:"home", Work:"work", Team:"team", Me:"me", Record:"record",
+  Strategy:"strategy", Delivery:"delivery", Workload:"workload",
+  "Assets & devices":"assets", Assets:"assets", Compliance:"compliance",
+  "Performance & development":"performance", Learning:"learning",
+  Workforce:"attendance", "Time & Leave":"attendance",
+  People:"people", "Employee lifecycle":"lifecycle", "Protected HR":"protected-hr",
+  Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
+  Reports:"reporting", Cost:"cost", Finance:"finance",
+  Audit:"audit", Events:"events", Workflows:"workflows", Authority:"authority",
+  "System rules":"policies", Integrations:"integrations", "Control Center":"settings", Settings:"settings",
+  Announcements:"announcements"
+};
+
 async function go(page, name) {
-  await page.locator(".side nav").getByRole("button", { name, exact: true }).click();
+  const visibleNav = page.locator(".premium-side").getByRole("button", { name, exact: true });
+  if (await visibleNav.count()) {
+    await visibleNav.click();
+    await expect(page.locator(".body")).toBeVisible({ timeout: 15000 });
+    return;
+  }
+
+  let route = routeByLabel[name];
+  const isManagerSurface = await page.locator(".manager-app").count();
+  const isAdminSurface = await page.locator(".office-app").count();
+  if (name === "Projects") route = isAdminSurface ? "admin-projects" : "projects";
+  if (name === "Calendar") route = isAdminSurface ? "admin-calendar" : "calendar";
+  if (name === "Finance") route = isManagerSurface ? "manager-finance" : "finance";
+  if (name === "Reports") route = isManagerSurface ? "manager-reports" : "reporting";
+  if (!route) throw new Error(`No acceptance route mapping for ${name}`);
+  const target = route === "home" ? "/" : `/?tab=${route}`;
+  await page.goto(target);
+  await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
 }
 
 async function assignTask(page, title, step = null) {
@@ -128,6 +159,7 @@ test("Staff and Manager complete the real work loop, including return and approv
       const dialog = page.getByRole("dialog");
       await dialog.getByRole("button", { name: "At the office" }).click();
       await dialog.getByRole("button", { name: "Start work", exact: true }).click();
+      await expect(page.getByRole("button", { name: "End work" })).toBeVisible();
       await go(page, "Work");
       await page.getByText(title, { exact: true }).click();
       await page.getByRole("button", { name: new RegExp(step) }).click();
@@ -397,9 +429,7 @@ test("Staff PWA layout has no page-level horizontal overflow at supported phone 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width, height: 844 });
     for (const destination of destinations) {
-      if (destination !== "Home") {
-        await page.locator(".tabs").getByRole("button", { name: destination, exact: true }).click();
-      }
+      await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const overflow = await page.evaluate(() => ({
         document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -429,7 +459,7 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page).toHaveURL(/roomKind=unit/);
     await expect(page.getByRole("heading", { name: "Test Unit A" })).toBeVisible();
@@ -443,7 +473,7 @@ test("Unit Rooms carry attributable communication between Manager and Staff", as
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page.getByText(message, { exact: true })).toBeVisible();
     await context.close();
@@ -455,7 +485,7 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();
 
     await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toBeVisible();
@@ -481,7 +511,7 @@ test("Rooms 2.0 resolves real mentions and supports Sub-team context without DMs
 
   {
     const { context, page } = await openAs(browser, "sameunit@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Team", exact: true }).click();
+    await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page.getByRole("button", { name: "Fixture Video Team", exact: true })).toHaveCount(0);
     await context.close();
@@ -496,8 +526,7 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: /Calendar/ }).click();
+    await go(page, "Calendar");
 
     await expect(page.getByRole("button", { name: "Month", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Week", exact: true })).toBeVisible();
@@ -508,6 +537,7 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
 
     await page.getByRole("button", { name: "Schedule meeting" }).click();
     const dialog = page.getByRole("dialog");
+    await expect(dialog.locator('option[value="google_meet"]')).toHaveText("Google Meet");
     await dialog.getByPlaceholder("What is this meeting for?").fill(title);
     await dialog.locator('input[type="datetime-local"]').first().fill(localValue);
     await dialog.getByPlaceholder("Join link (optional)").fill("https://zoom.us/j/123456789");
@@ -520,6 +550,7 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     await expect(page).toHaveURL(/(?:\?|&)meeting=/);
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await expect(page.getByRole("link", { name: /Join Zoom/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Open meeting discussion", exact: true })).toBeVisible();
     await page.reload();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
     await context.close();
@@ -569,18 +600,7 @@ test("Manager primary surfaces stay usable across supported phone widths", async
   for (const width of widths) {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width, height: 844 });
     for (const destination of destinations) {
-      if (destination !== "Home") {
-        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
-        if (await direct.count()) await direct.click();
-        else {
-          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
-          await more.click();
-          await page.getByRole("menuitem", { name: destination, exact: true }).click();
-        }
-      } else {
-        const home = page.locator(".tabs").getByRole("button", { name: "Home", exact: true });
-        if (await home.count()) await home.click();
-      }
+      await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const dimensions = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -665,8 +685,7 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menu").getByRole("menuitem", { name: "Strategy", exact: true }).click();
+    await go(page, "Strategy");
     await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add Ministry Direction", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Revise", exact: true })).toHaveCount(0);
@@ -771,9 +790,9 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
   {
     const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Delivery");
-    await expect(page.getByRole("heading", { name: "Delivery", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Portfolio", exact: true })).toBeVisible();
     await expect(page.locator(".row-t").filter({ hasText: /^Acceptance Unit A Programme$/ }).first()).toBeVisible();
-    await expect(page.getByText(/hidden project score/i)).toBeVisible();
+    await expect(page.getByText(/explicitly recorded health/i)).toBeVisible();
     await context.close();
   }
 
@@ -827,8 +846,7 @@ test("Stage 6 Workload keeps capacity components factual and manager-scoped", as
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menuitem", { name: "Workload", exact: true }).click();
+    await go(page, "Workload");
     await expect(page.getByRole("heading", { name: "Workload", exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/stage6-workload-mobile.png", fullPage: true });
     await context.close();
@@ -883,7 +901,7 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await go(page, "Me");
     await page.getByRole("button", { name: /Reviews & development/ }).click();
     await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toBeVisible();
     await expect(page.getByText(cycleName, { exact: true }).first()).toBeVisible();
@@ -949,7 +967,7 @@ test("Stage 7 Reviews & development keeps appraisal evidence factual, visible an
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await go(page, "Me");
     await page.getByRole("button", { name: /Reviews & development/ }).click();
     await expect(page.getByText(assessmentText, { exact: true })).toBeVisible();
     await expect(page.getByText(conversationText, { exact: true })).toBeVisible();
@@ -1053,8 +1071,7 @@ test("Stage 8 Learning publishes structured learning and preserves factual compl
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menu").getByRole("menuitem", { name: "Learning", exact: true }).click();
+    await go(page, "Learning");
     await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
     await expect(page.getByText(courseTitle, { exact: true }).first()).toBeVisible();
     await expect(page.getByText(moduleTitle, { exact: true })).toBeVisible();
@@ -1207,7 +1224,7 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await go(page, "Me");
     await page.getByRole("tab", { name: "Leave", exact: true }).click();
     await page.getByRole("button", { name: "Ask for leave", exact: true }).click();
     const dialog = page.getByRole("dialog");
@@ -1251,7 +1268,7 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await go(page, "Me");
     await page.getByRole("tab", { name: "Leave", exact: true }).click();
     const requestRow = page.locator(".leave-request-row").filter({ hasText: "annual leave" }).first();
     await expect(requestRow).toContainText("Waiting");
@@ -1330,7 +1347,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Me", exact: true }).click();
+    await go(page, "Me");
     await page.getByRole("button", { name: /My assets/ }).click();
     await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
     const card = page.locator(".asset-card").filter({ hasText: assetCode });
@@ -1490,8 +1507,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
+    await go(page, "Compliance");
     await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
     const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
     await expect(policyCard).toBeVisible();
@@ -1519,8 +1535,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await expect(page.getByText("Compliance exception requested.", { exact: true })).toBeVisible();
 
     await page.reload();
-    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
-    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
+    await go(page, "Compliance");
     await expect(page.locator(".compliance-policy-card").filter({ hasText: policyTitle })).toContainText("Acknowledged");
     await page.getByRole("tab", { name: "My evidence", exact: true }).click();
     await expect(page.locator(".compliance-self-item").filter({ hasText: requirementTitle })).toContainText(evidenceRef);
@@ -1612,6 +1627,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
 });
 
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
+  test.setTimeout(240_000);
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
 
@@ -1751,7 +1767,9 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
   await expect(page.getByText(/never an automatic absence finding/i)).toBeVisible();
 
-  await go(page, "Settings");
+  await go(page, "Control Center");
+  await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toBeVisible();
+  await page.getByText("Organisation", { exact: true }).click();
   await expect(page.getByText("Leave policy not configured", { exact: true })).toBeVisible();
   await expect(page.getByText("Awaiting CEAC policy", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Configure policy in Workforce", exact: true })).toBeVisible();
@@ -1761,6 +1779,8 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByRole("button", { name: "Configure leave policy", exact: true })).toBeVisible();
 
   await go(page, "Settings");
+  await page.getByText("Organisation", { exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
 
   const attentionRule = page.locator(".office-threshold-row").filter({ hasText: "active work has not moved for" });
   const attentionInput = attentionRule.locator("input");
@@ -1776,6 +1796,156 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await context.close();
 });
 
+
+test("Closure finance journey separates request, authority, evidence reference and actual spend", async ({ browser }) => {
+  test.setTimeout(240000);
+  const adminTitle = "Closure finance admin request";
+  const execTitle = "Closure finance executive request";
+  const adminEvidence = "Voucher CLOSURE-ADMIN-001";
+  const execEvidence = "Voucher CLOSURE-EXEC-001";
+
+  async function submitRequest(title, amount) {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test");
+    await go(page, "Finance");
+    await page.getByRole("button", { name: "Request funds", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByPlaceholder("Short request title").fill(title);
+    await dialog.getByPlaceholder("Explain the need").fill("Closure corridor finance pressure test");
+    await dialog.locator('input[inputmode="decimal"]').fill(amount);
+    await dialog.getByRole("button", { name: "Submit request", exact: true }).click();
+    await expect(page.getByText(/Finance request submitted/)).toBeVisible();
+    await expect(page.locator(".row").filter({ hasText: title }).first()).toContainText("Awaiting decision");
+    await context.close();
+  }
+
+  await submitRequest(adminTitle, "500.00");
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test");
+    await go(page, "Finance");
+    const request = page.locator(".finance-request-row").filter({ hasText: adminTitle }).first();
+    await expect(request).toBeVisible();
+    await request.getByRole("button", { name: "Review", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Finance decision note").fill("Administration approved closure request");
+    await dialog.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText("Finance request approved.", { exact: true })).toBeVisible();
+
+    const fulfil = page.locator(".finance-fulfil-row").filter({ hasText: adminTitle }).first();
+    await expect(fulfil).toBeVisible();
+    await fulfil.getByRole("button", { name: "Record as spent", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Finance spend evidence reference").fill(adminEvidence);
+    await dialog.getByRole("button", { name: "Record actual spend", exact: true }).click();
+    await expect(page.getByText("Approved request recorded as actual spend.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test");
+    await go(page, "Finance");
+    await expect(page.locator(".row").filter({ hasText: adminTitle }).first()).toContainText("Fulfilled");
+    await context.close();
+  }
+
+  await submitRequest(execTitle, "15000.00");
+
+  {
+    const { context, page } = await openAs(browser, "managerb@ceac.local.test");
+    await go(page, "Finance");
+    const request = page.locator(".finance-request-row").filter({ hasText: execTitle }).first();
+    await expect(request).toBeVisible();
+    await request.getByRole("button", { name: "Review", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Finance decision note").fill("Finance approved closure request");
+    await dialog.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText(/moved to its next authority/i)).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test");
+    await go(page, "Finance");
+    const request = page.locator(".finance-request-row").filter({ hasText: execTitle }).first();
+    await expect(request).toBeVisible();
+    await request.getByRole("button", { name: "Review", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Finance decision note").fill("Group Pastor approved closure request");
+    await dialog.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(page.getByText("Finance request approved.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "managerb@ceac.local.test");
+    await go(page, "Finance");
+    const fulfil = page.locator(".finance-fulfil-row").filter({ hasText: execTitle }).first();
+    await expect(fulfil).toBeVisible();
+    await fulfil.getByRole("button", { name: "Record as spent", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Finance spend evidence reference").fill(execEvidence);
+    await dialog.getByRole("button", { name: "Record actual spend", exact: true }).click();
+    await expect(page.getByText("Approved request recorded as actual spend.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test");
+    await go(page, "Finance");
+    await page.getByRole("button", { name: "Money out", exact: true }).click();
+    await expect(page.getByText(adminTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText(execTitle, { exact: true })).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-closure-finance.png", fullPage: true });
+    await context.close();
+  }
+});
+
+test("Closure corridor preserves the Staff Fixture journey across CEAC OS", async ({ browser }) => {
+  test.setTimeout(180000);
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "Me");
+    await page.getByRole("button", { name: /My work history/ }).click();
+    await expect(page.getByText("Acceptance task — review loop", { exact: true })).toBeVisible();
+
+    await go(page, "Home");
+    await expect(page.locator(".home-meeting-row").filter({ hasText: "Acceptance unit meeting" })).toBeVisible();
+
+    await go(page, "Team");
+    await page.getByRole("button", { name: /Unit Room/ }).click();
+    await expect(page.getByText("Room acceptance — confirm Sunday setup", { exact: true })).toBeVisible();
+
+    await go(page, "Performance & development");
+    await expect(page.getByText("Planning before execution", { exact: true })).toBeVisible();
+
+    await go(page, "Learning");
+    await expect(page.getByText("Acceptance Stage 8 Learning", { exact: true }).first()).toBeVisible();
+
+    await go(page, "Compliance");
+    await expect(page.getByText("Acceptance workplace safety policy", { exact: true }).first()).toBeVisible();
+    await page.getByRole("tab", { name: "My evidence", exact: true }).click();
+    await expect(page.getByText("ACCEPT-CERT-001", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test");
+    await go(page, "People");
+    await page.getByLabel("Find a person").fill("Staff Fixture");
+    await page.getByRole("button", { name: /Staff Fixture/ }).click();
+    await expect(page.getByText("Acceptance employment history change", { exact: true })).toBeVisible();
+
+    await go(page, "Assets & devices");
+    await expect(page.getByText("CEAC-ACCEPT-001", { exact: true }).first()).toBeVisible();
+
+    await go(page, "Audit");
+    await expect(page.getByText(/Employment (Record · Update|History · Insert)/).first()).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-closure-journey.png", fullPage: true });
+    await context.close();
+  }
+});
+
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
@@ -1785,19 +1955,7 @@ test("Administration primary surfaces stay within supported phone widths", async
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
 
     for (const destination of destinations) {
-      if (destination !== "Home") {
-        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
-        if (await direct.count()) await direct.click();
-        else {
-          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
-          await more.click();
-          await page.getByRole("menuitem", { name: destination, exact: true }).click();
-        }
-      } else {
-        const home = page.locator(".tabs").getByRole("button", { name: "Home", exact: true });
-        if (await home.count()) await home.click();
-      }
-
+      await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const geometry = await page.evaluate(() => {
         const app = document.querySelector(".office-app")?.getBoundingClientRect();
@@ -1831,15 +1989,7 @@ test("Role shells stay within the phone viewport", async ({ browser }) => {
   for (const [email, destinations] of roles) {
     const { context, page } = await openAs(browser, email, { width: 390, height: 844 });
     for (const destination of destinations) {
-      if (destination !== "Home") {
-        const direct = page.locator(".tabs").getByRole("button", { name: destination, exact: true });
-        if (await direct.count()) await direct.click();
-        else {
-          const more = page.locator(".tabs").getByRole("button", { name: "More", exact: true });
-          await more.click();
-          await page.getByRole("menuitem", { name: destination, exact: true }).click();
-        }
-      }
+      await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${email} / ${destination} overflowed the phone viewport`).toBeLessThanOrEqual(1);

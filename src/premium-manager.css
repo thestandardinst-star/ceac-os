@@ -1,0 +1,200 @@
+/* CEAC OS Premium Redesign — R2 Manager
+   Manager is a team command centre: decisions, delegation, people, delivery and money.
+*/
+.manager-app .app-content>.body{max-width:1280px!important;margin:0 auto!important}
+.manager-app .manager-home,.manager-app .manager-team,.manager-app .manager-person-detail,
+.manager-app .manager-projects,.manager-app .manager-calendar,.manager-app .manager-finance,
+.manager-app .manager-reports,.manager-app .manager-work{padding-top:14px!important}
+
+.manager-command-surface{
+  position:relative;overflow:hidden;border-radius:22px!important;padding:26px 28px!important;
+  background:
+    radial-gradient(circle at 90% 15%,rgba(78,125,255,.17),transparent 25%),
+    radial-gradient(circle at 83% 42%,rgba(149,101,245,.09),transparent 24%),
+    linear-gradient(135deg,#111f32 0%,#172d4e 58%,#13223b 100%)!important;
+  color:#fff!important;border:0!important;box-shadow:0 22px 55px rgba(24,42,69,.14)!important;
+}
+.manager-command-surface .h1{color:#fff!important;font-size:35px!important}
+.manager-command-surface .screen-note{color:#a7b7cb!important}
+.manager-command-context,.manager-command-context span,.manager-command-context time{color:#90a3bb!important}
+.manager-command-action{box-shadow:0 8px 22px rgba(12,93,249,.24)!important}
+.manager-command-stats{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1px!important;
+  margin-top:22px!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.09)!important;
+  border-radius:14px!important;overflow:hidden!important;
+}
+.manager-command-stats>div{background:rgba(5,17,33,.23)!important;padding:13px 15px!important}
+.manager-command-stats strong{color:#fff!important;font-size:19px!important}
+.manager-command-stats span{color:#9fb0c4!important;font-size:9px!important}
+
+.manager-app .home-dashboard{
+  display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr)!important;
+  gap:14px!important;margin-top:15px!important;align-items:start;
+}
+.manager-app .home-panel{
+  margin:0!important;border:1px solid #e2e7ee!important;border-radius:16px!important;background:#fff!important;
+  padding:17px!important;box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
+}
+.manager-app .home-panel-priority{grid-column:1}
+.manager-app .home-panel-projects{grid-column:2}
+.manager-app .home-panel-waiting{grid-column:1}
+.manager-app .home-panel-pulse{grid-column:2}
+.manager-app .home-panel-week{grid-column:1/-1}
+.manager-app .home-section-head{margin-bottom:9px!important}
+.manager-app .home-section-head h2{font-size:16px!important;color:#172b43!important}
+.manager-app .home-kicker{color:#8190a3!important;letter-spacing:.12em!important}
+.manager-app .home-action-row,.manager-app .home-project-row,.manager-app .home-blocker-row,
+.manager-app .home-panel>.row{
+  border:0!important;border-top:1px solid #edf0f4!important;border-radius:0!important;
+  box-shadow:none!important;background:transparent!important;padding:12px 2px!important;
+}
+.manager-app .home-action-row:first-of-type,.manager-app .home-project-row:first-of-type{border-top:0!important}
+.manager-app .home-stat-grid{gap:7px!important}
+.manager-app .home-stat{
+  border:1px solid #e7ebf0!important;background:#f8fafc!important;border-radius:11px!important;
+  box-shadow:none!important;min-height:72px!important;
+}
+.manager-app .home-stat b{font-size:19px!important;color:#18324e!important}
+.manager-app .home-stat span{font-size:9px!important;color:#77869a!important}
+.manager-app .home-progress{background:#edf1f6!important;border-radius:99px!important;height:5px!important}
+.manager-app .home-progress>span{background:linear-gradient(90deg,#0c5df9,#6498f9)!important}
+.manager-app .home-quiet{border-radius:11px!important;background:#f8fafc!important;color:#78879a!important}
+
+/* Manager Work */
+.manager-work{max-width:1080px!important}
+.manager-page-header{
+  display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding:8px 0 18px;
+}
+.manager-page-header .h1{font-size:34px!important;margin:5px 0 7px!important}
+.manager-page-header .screen-note{max-width:660px}
+.manager-work-tabs{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 14px;
+}
+.manager-work-tabs button{
+  border:1px solid #e0e6ee;background:#fff;border-radius:13px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;
+  color:#687a90;text-align:left;box-shadow:0 5px 17px rgba(35,53,79,.035);
+}
+.manager-work-tabs button span{font-size:11px;font-weight:700}
+.manager-work-tabs button b{
+  min-width:26px;height:26px;border-radius:999px;background:#f0f3f7;color:#6e7d8f;display:flex;align-items:center;justify-content:center;font-size:9px;
+}
+.manager-work-tabs button.on{border-color:#bad1ff;background:#f5f8ff;color:#0c5df9;box-shadow:0 7px 22px rgba(12,93,249,.08)}
+.manager-work-tabs button.on b{background:#0c5df9;color:#fff}
+.manager-work-list{border:1px solid #e1e7ee;border-radius:15px;overflow:hidden;background:#fff;box-shadow:0 9px 28px rgba(35,53,79,.045)}
+.manager-work-row{
+  width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;padding:14px 15px;display:grid;
+  grid-template-columns:minmax(0,1fr) 180px 110px;gap:16px;align-items:center;text-align:left;
+}
+.manager-work-row:last-child{border-bottom:0}
+.manager-work-row:hover,.manager-review-row:hover{background:#f8fbff}
+.manager-work-row.attention{box-shadow:inset 3px 0 #fcaf2e}
+.manager-work-main strong{display:block;color:#172b42;font-size:12px}
+.manager-work-main span,.manager-work-main small,.manager-work-owner span,.manager-work-owner small{display:block;color:#8090a3;font-size:9px;margin-top:3px}
+.manager-work-owner{text-align:right}
+.manager-work-state{justify-self:end}
+.manager-review-row{
+  width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;padding:13px 15px;display:grid;
+  grid-template-columns:36px minmax(0,1fr) auto;gap:11px;align-items:center;text-align:left;
+}
+.manager-review-row:last-child{border-bottom:0}
+.manager-review-avatar{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:#0c5df9;font-size:10px;font-weight:800;
+}
+.manager-review-row strong{display:block;color:#1c3149;font-size:11px}
+.manager-review-row small,.manager-review-row em{display:block;color:#8492a3;font-size:9px;margin-top:3px;font-style:normal}
+.manager-work-empty{padding:28px;text-align:center}
+.manager-work-empty strong{display:block;color:#31465f;font-size:12px}
+.manager-work-empty span{display:block;color:#8b97a7;font-size:9px;margin-top:4px}
+.manager-work-footnote{color:#8996a6;font-size:9px;line-height:1.5;margin:10px 2px}
+
+/* Team */
+.manager-app .manager-team{max-width:1080px!important}
+.manager-app .manager-page-intro{padding:8px 0 16px!important}
+.manager-app .manager-page-intro .h1{font-size:34px!important;letter-spacing:-.045em!important}
+.manager-app .manager-room-entry{
+  border:1px solid #d9e5f6!important;background:linear-gradient(135deg,#f3f8ff,#f7fbff 60%,#f0faf8)!important;
+  border-radius:15px!important;box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
+}
+.manager-app .manager-team>.sec{margin-top:18px!important}
+.manager-app .manager-team>.card,
+.manager-app .manager-team .row{
+  border-color:#e2e7ee!important;border-radius:12px!important;background:#fff!important;box-shadow:0 5px 18px rgba(35,53,79,.035)!important;
+}
+.manager-app .manager-team .row:hover{border-color:#cfdaea!important}
+
+/* Person workspace */
+.manager-person-detail{max-width:1050px!important}
+.manager-person-detail>.back{margin-bottom:16px!important}
+.manager-person-detail>.h1{font-size:35px!important;letter-spacing:-.045em!important}
+.manager-person-detail .person-orientation-grid{
+  display:grid!important;grid-template-columns:repeat(3,1fr)!important;border:1px solid #e1e7ee!important;border-radius:15px!important;
+  background:#fff!important;overflow:hidden!important;box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
+}
+.manager-person-detail .person-orientation-grid>div{border:0!important;border-right:1px solid #edf0f4!important;background:#fff!important;padding:16px!important}
+.manager-person-detail .person-orientation-grid>div:last-child{border-right:0!important}
+.manager-person-detail .person-orientation-grid strong{font-size:21px!important;color:#18324e!important}
+.manager-person-detail .person-orientation-grid span{color:#7b899b!important}
+.manager-person-detail .metric-grid{gap:8px!important}
+.manager-person-detail .metric{
+  border:1px solid #e4e9ef!important;border-radius:12px!important;background:#f9fbfd!important;box-shadow:none!important;
+}
+.manager-person-detail>.row,.manager-person-detail>div>.row{
+  border-color:#e4e9ef!important;border-radius:12px!important;background:#fff!important;box-shadow:0 4px 16px rgba(35,53,79,.03)!important;
+}
+
+/* Projects */
+.manager-projects{max-width:1180px!important}
+.manager-projects .project-detail-hero,.manager-projects .project-command-surface{
+  border-radius:20px!important;overflow:hidden!important;
+}
+.manager-projects .row,.manager-projects .card{border-color:#e2e7ee!important;box-shadow:0 5px 18px rgba(35,53,79,.035)!important}
+
+/* Calendar */
+.manager-calendar{max-width:1180px!important}
+.manager-calendar .calendar-shell,.manager-calendar .card{border-color:#e2e7ee!important;box-shadow:0 7px 22px rgba(35,53,79,.035)!important}
+
+/* Budget */
+.manager-finance{max-width:1120px!important}
+.manager-finance>.h1,.manager-finance .h1{font-size:34px!important}
+.manager-finance-position-grid{gap:10px!important}
+.manager-finance-position-card{
+  border:1px solid #e1e7ee!important;border-radius:15px!important;background:#fff!important;
+  box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
+}
+.manager-finance-position-facts{gap:1px!important;background:#edf0f4!important}
+.manager-finance-position-facts button{background:#fff!important;border:0!important}
+.manager-finance .finance-section{border:1px solid #e2e7ee!important;border-radius:13px!important;background:#fff!important;overflow:hidden!important}
+
+/* Reports */
+.manager-reports{max-width:1180px!important}
+.manager-reports .metric-grid{gap:8px!important}
+.manager-reports .metric{
+  border:1px solid #e3e8ee!important;border-radius:12px!important;background:#fff!important;box-shadow:0 5px 18px rgba(35,53,79,.035)!important;
+}
+.manager-reports .report-analysis-toggle{
+  border:1px solid #e1e7ee!important;border-radius:13px!important;background:#f8fafc!important;
+}
+
+@media(max-width:980px){
+  .manager-app .home-dashboard{grid-template-columns:1fr!important}
+  .manager-app .home-panel-priority,.manager-app .home-panel-projects,.manager-app .home-panel-waiting,.manager-app .home-panel-pulse,.manager-app .home-panel-week{grid-column:1!important}
+  .manager-work-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .manager-work-row{grid-template-columns:minmax(0,1fr) auto}
+  .manager-work-owner{display:none}
+}
+@media(max-width:620px){
+  .manager-command-surface{padding:20px 17px!important;border-radius:18px!important}
+  .manager-command-surface .h1{font-size:28px!important}
+  .manager-command-head{display:block!important}
+  .manager-command-action{margin-top:14px!important}
+  .manager-command-stats strong{font-size:16px!important}
+  .manager-command-stats span{font-size:8px!important}
+  .manager-page-header{display:block}
+  .manager-page-header>.btn{margin-top:12px}
+  .manager-work-tabs{grid-template-columns:1fr 1fr;gap:6px}
+  .manager-work-tabs button{padding:10px}
+  .manager-work-row{grid-template-columns:minmax(0,1fr) auto;padding:12px 11px}
+  .manager-work-state{justify-self:end}
+  .manager-person-detail .person-orientation-grid{grid-template-columns:1fr!important}
+  .manager-person-detail .person-orientation-grid>div{border-right:0!important;border-bottom:1px solid #edf0f4!important}
+}

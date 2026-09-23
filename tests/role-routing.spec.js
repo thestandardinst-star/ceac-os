@@ -9,110 +9,54 @@ async function openAs(browser, email) {
   await page.getByPlaceholder("Work email").fill(email);
   await page.getByPlaceholder("Password").fill(rolePassword);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.locator(".side")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".premium-side")).toBeVisible({ timeout: 15000 });
   return { context, page };
 }
 
-test("Staff navigation stays inside the employee boundary", async ({ browser }) => {
+test("Staff navigation stays focused on the employee workspace", async ({ browser }) => {
   const { context, page } = await openAs(browser, "staff@ceac.local.test");
-  const nav = page.locator(".side nav");
-  await expect(nav).toContainText("Home");
-  await expect(nav).toContainText("Work");
-  await expect(nav).toContainText("Team");
-  await expect(nav).not.toContainText("Record");
-  await expect(nav).not.toContainText("Units");
-  await expect(nav).not.toContainText("Reporting");
-  await expect(nav).not.toContainText("Audit");
-  await expect(nav).not.toContainText("Authority");
-  await expect(nav).not.toContainText("Events");
-  await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("System rules");
-  await expect(nav).not.toContainText("Integrations");
-  await expect(nav).not.toContainText("Employee lifecycle");
-  await expect(nav).not.toContainText("Delivery");
-  await expect(nav).not.toContainText("Workload");
-  await expect(nav).not.toContainText("Performance & development");
-  await expect(nav).toContainText("Learning");
-  await expect(nav).toContainText("Assets");
-  await expect(nav).toContainText("Compliance");
+  const nav = page.locator(".premium-side nav");
+  for (const label of ["Today","Work","Team","Calendar","Messages","My Hub"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
+  }
+  for (const label of ["Units","People","Time & Leave","Finance","Reports","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Delivery","Workload","Performance & development","Compliance"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toHaveCount(0);
+  }
   await context.close();
 });
 
-test("Manager gets Manager destinations but not Administration authoring", async ({ browser }) => {
+test("Manager gets a team command centre, not Administration authoring", async ({ browser }) => {
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
-  const nav = page.locator(".side nav");
-  await expect(nav).toContainText("My work");
-  await expect(nav).toContainText("Projects");
-  await expect(nav).toContainText("Calendar");
-  await expect(nav).toContainText("Reports");
-  await expect(nav).not.toContainText("Units");
-  await expect(nav).not.toContainText("People");
-  await expect(nav).toContainText("Workforce");
-  await expect(nav).not.toContainText("Audit");
-  await expect(nav).not.toContainText("Authority");
-  await expect(nav).not.toContainText("Events");
-  await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("System rules");
-  await expect(nav).not.toContainText("Integrations");
-  await expect(nav).not.toContainText("Employee lifecycle");
-  await expect(nav).toContainText("Delivery");
-  await expect(nav).toContainText("Workload");
-  await expect(nav).toContainText("Performance & development");
-  await expect(nav).toContainText("Learning");
-  await expect(nav).toContainText("Assets & devices");
-  await expect(nav).toContainText("Compliance");
+  const nav = page.locator(".premium-side nav");
+  for (const label of ["Overview","Work","Team","Projects","Calendar","Budget","Reports","Messages"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
+  }
+  for (const label of ["People","Time & Leave","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Protected HR"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toHaveCount(0);
+  }
   await context.close();
 });
 
-test("Administration gets Administration authoring", async ({ browser }) => {
+test("Administration exposes operations, not internal architecture modules", async ({ browser }) => {
   const { context, page } = await openAs(browser, "admin@ceac.local.test");
-  const nav = page.locator(".side nav");
-  await expect(nav).toContainText("Units");
-  await expect(nav).toContainText("People");
-  await expect(nav).toContainText("Workforce");
-  await expect(nav).toContainText("Reports");
-  await expect(nav).toContainText("Audit");
-  await expect(nav).toContainText("Authority");
-  await expect(nav).toContainText("Events");
-  await expect(nav).toContainText("Workflows");
-  await expect(nav).toContainText("System rules");
-  await expect(nav).toContainText("Integrations");
-  await expect(nav).toContainText("Employee lifecycle");
-  await expect(nav).toContainText("Delivery");
-  await expect(nav).toContainText("Workload");
-  await expect(nav).toContainText("Performance & development");
-  await expect(nav).toContainText("Learning");
-  await expect(nav).toContainText("Assets & devices");
-  await expect(nav).toContainText("Compliance");
-  await expect(nav).toContainText("Settings");
+  const nav = page.locator(".premium-side nav");
+  for (const label of ["Overview","People","Work","Time & Leave","Finance","Reports","Control Center","Messages"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
+  }
+  for (const label of ["Employee lifecycle","Protected HR","Audit","Authority","Events","Workflows","System rules","Integrations","Delivery","Workload","Performance & development","Learning","Assets & devices","Compliance"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toHaveCount(0);
+  }
   await context.close();
 });
 
-test("Group Pastor has a dedicated non-Admin navigation boundary", async ({ browser }) => {
+test("Group Pastor has an executive navigation boundary", async ({ browser }) => {
   const { context, page } = await openAs(browser, "exec@ceac.local.test");
-  const nav = page.locator(".side nav");
-  await expect(nav).toContainText("Home");
-  await expect(nav).toContainText("Announcements");
-  await expect(nav).toContainText("Me");
-  await expect(nav).not.toContainText("Units");
-  await expect(nav).not.toContainText("People");
-  await expect(nav).not.toContainText("Workforce");
-  await expect(nav).not.toContainText("Cost");
-  await expect(nav).not.toContainText("Finance");
-  await expect(nav).not.toContainText("Reporting");
-  await expect(nav).not.toContainText("Audit");
-  await expect(nav).not.toContainText("Authority");
-  await expect(nav).not.toContainText("Events");
-  await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("System rules");
-  await expect(nav).not.toContainText("Integrations");
-  await expect(nav).not.toContainText("Employee lifecycle");
-  await expect(nav).toContainText("Delivery");
-  await expect(nav).not.toContainText("Workload");
-  await expect(nav).not.toContainText("Performance & development");
-  await expect(nav).not.toContainText("Learning");
-  await expect(nav).not.toContainText("Assets");
-  await expect(nav).not.toContainText("Compliance");
-  await expect(nav).not.toContainText("Settings");
+  const nav = page.locator(".premium-side nav");
+  for (const label of ["Overview","Work","Ministry","Portfolio","Organisation","Finance","Reports","Messages"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
+  }
+  for (const label of ["My Hub","People","Time & Leave","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Protected HR","Learning","Assets","Compliance"]) {
+    await expect(nav.getByRole("button", { name:label, exact:true })).toHaveCount(0);
+  }
   await context.close();
 });

@@ -133,6 +133,9 @@ jobs:
       - name: Run Stage 11 Compliance & Policy gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/compliance_policy_stage11_gate.sql
 
+      - name: Run production hardening gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/production_hardening_gate.sql
+
       - name: Install Playwright runner
         run: |
           npm install --no-save @playwright/test@1.55.0
@@ -197,4 +200,68 @@ jobs:
         with:
           name: stage11-product-inspection
           path: test-artifacts/stage11-compliance-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R0 premium redesign product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r0-product-inspection
+          path: test-artifacts/redesign-r0-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R1 Staff product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r1-product-inspection
+          path: test-artifacts/redesign-r1-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R2 Manager product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r2-product-inspection
+          path: test-artifacts/redesign-r2-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R3 Administration product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r3-product-inspection
+          path: test-artifacts/redesign-r3-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R4 Executive product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r4-product-inspection
+          path: test-artifacts/redesign-r4-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R5 Communication product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r5-product-inspection
+          path: test-artifacts/redesign-r5-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R6 whole-system consistency inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r6-product-inspection
+          path: test-artifacts/redesign-r6-*.png
+          if-no-files-found: ignore
+
+      - name: Upload R7 closure inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redesign-r7-product-inspection
+          path: test-artifacts/redesign-r7-*.png
           if-no-files-found: ignore

@@ -6,7 +6,7 @@ import { Sheet, statusPill, FieldGroup, ProductNotice, LoadingState } from "../c
 
 const MODES = [
   ["assigned", "Assigned"],
-  ["agreed", "My agreed work"],
+  ["agreed", "Agreed"],
   ["private", "Private"],
 ];
 
