@@ -130,3 +130,99 @@ body{color:var(--vp-text)}
 
 .manager-command-action{position:relative!important;z-index:4!important}
 .manager-command-stats{pointer-events:none!important}
+
+
+/* Full-app parity layer: all routed screens inherit the approved workspace language */
+.app-content>.body:not(.staff-home):not(.manager-home):not(.admin-home):not(.executive-home){
+  width:100%;max-width:1480px;margin:0 auto;
+}
+.app-content>.body:not(.staff-home):not(.manager-home):not(.admin-home):not(.executive-home)>.eyebrow:first-child,
+.app-content>.body:not(.staff-home):not(.manager-home):not(.admin-home):not(.executive-home)>div:first-child>.eyebrow:first-child{
+  color:#6d7f94!important;font-size:9px!important;font-weight:800!important;letter-spacing:.08em!important;text-transform:uppercase!important
+}
+.app-content>.body:not(.staff-home):not(.manager-home):not(.admin-home):not(.executive-home)>.h1,
+.premium-page-head .h1,.premium-page-heading .h1,.staff-page-intro .h1,.manager-page-header .h1,.manager-page-intro .h1,
+.admin-page-header .h1,.exec-page-head .h1,.person-identity-header .h1,.project-detail-hero .h1{
+  color:#0f2036!important;font-size:25px!important;line-height:1.08!important;letter-spacing:-.03em!important;font-weight:780!important
+}
+.premium-page-head,.premium-page-heading,.staff-page-intro,.manager-page-header,.manager-page-intro,.admin-page-header,.exec-page-head,
+.person-identity-header,.project-detail-hero,.project-command-surface{
+  background:linear-gradient(135deg,#fff 0%,#f8fbff 58%,#eef5fb 100%)!important;
+  border:1px solid var(--vp-line)!important;border-radius:14px!important;
+  padding:17px 18px!important;margin:0 0 12px!important;box-shadow:0 6px 22px rgba(30,61,98,.05)!important
+}
+.premium-page-head .screen-note,.premium-page-heading .screen-note,.staff-page-intro .screen-note,.manager-page-header .screen-note,
+.manager-page-intro .screen-note,.admin-page-header .screen-note,.exec-page-head .screen-note,.person-identity-header .screen-note{
+  color:#738197!important;font-size:10.5px!important;max-width:780px!important
+}
+.body>.sec,.premium-section-head{
+  margin-top:15px!important;margin-bottom:8px!important;padding:0 2px!important;
+  color:#31465f!important;font-size:10px!important;font-weight:800!important;letter-spacing:.02em!important
+}
+.body>.card,.body>.panel,.body>.row,.premium-surface,.team-section,.personal-area,.finance-section,
+.calendar-shell,.workforce-calendar,.report-leadership-overview,.report-outstanding-section,.exec-finance-panel,.exec-report-hero{
+  background:#fff!important;border:1px solid var(--vp-line)!important;border-radius:12px!important;
+  box-shadow:0 4px 14px rgba(33,61,96,.04)!important
+}
+.body>.row,.premium-list-row,.inbox-row,.manager-work-row,.manager-review-row,.admin-work-row,.admin-review-row,.exec-list>button,.exec-report-row{
+  min-height:54px!important;background:#fff!important;border-color:#edf2f6!important;
+}
+.body button.row:hover,.premium-list-row:hover,.inbox-row:hover,.manager-work-row:hover,.manager-review-row:hover,.admin-work-row:hover,.exec-list>button:hover{
+  background:#f8fbff!important
+}
+.manager-work-tabs,.admin-work-tabs,.workforce-tabs,.exec-tabs,.status-filter{
+  display:flex!important;gap:5px!important;padding:4px!important;background:#edf3f8!important;border:1px solid #e2e9f1!important;border-radius:10px!important
+}
+.manager-work-tabs button,.admin-work-tabs button,.workforce-tabs button,.exec-tabs button,.status-filter button{
+  border:0!important;background:transparent!important;border-radius:7px!important;color:#67768a!important;font-size:10px!important;font-weight:750!important;padding:7px 10px!important
+}
+.manager-work-tabs button.on,.admin-work-tabs button.on,.workforce-tabs button.on,.exec-tabs button.on,.status-filter button.on{
+  background:#fff!important;color:#146af0!important;box-shadow:0 2px 8px rgba(43,70,104,.08)!important
+}
+.metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.control-grid,.exec-org-grid{
+  gap:10px!important
+}
+.metric,.finance-currency-card,.finance-unit-card,.manager-finance-position-card,.exec-currency-card,.workforce-person,.control-card,.exec-org-grid article{
+  background:#fff!important;border:1px solid var(--vp-line)!important;border-radius:11px!important;box-shadow:0 4px 12px rgba(33,61,96,.035)!important
+}
+.metric b,.finance-currency-card strong,.manager-finance-position-card strong,.exec-currency-card strong{color:#132840!important}
+.control-card{padding:13px!important;transition:.14s ease!important}.control-card:hover{transform:translateY(-1px);border-color:#cfdceb!important;box-shadow:0 8px 20px rgba(38,67,103,.07)!important}
+.control-card-icon{background:#edf5ff!important;color:#1677ff!important;border-radius:8px!important}
+.people-directory-name strong,.work-list-main strong,.manager-work-main strong,.admin-work-main strong,.inbox-copy>b{color:#172a41!important}
+.people-directory-context,.work-list-main span,.work-list-main small,.manager-work-main span,.manager-work-main small,.admin-work-main small,.inbox-context{color:#8490a0!important}
+.staff-calendar-layout,.manager-calendar .calendar-shell{background:#fff!important;border:1px solid var(--vp-line)!important;border-radius:12px!important;box-shadow:0 5px 16px rgba(36,63,96,.04)!important}
+.staff-calendar-day{border-color:#edf1f5!important}.staff-calendar-day.today{background:#f2f7ff!important;box-shadow:inset 0 0 0 1px #aacaff!important}
+.staff-calendar-event{border-radius:6px!important}
+.work-list-row,.team-person-row,.team-compact-row,.team-resource-row,.goal-card,.reminder-row,.leave-request-row,.info-row{
+  border-color:#edf1f5!important
+}
+.split{gap:12px!important}.split>.main-col,.split>.side-col{min-width:0}
+.sheet{border-radius:18px 18px 0 0!important;background:#fff!important;box-shadow:0 -18px 48px rgba(16,38,65,.18)!important}
+.sheet-bg,.menu-bg{backdrop-filter:blur(4px)!important;background:rgba(7,21,38,.28)!important}
+.field,.body input:not([type="checkbox"]):not([type="radio"]),.body select,.body textarea{
+  border:1px solid #dce5ef!important;border-radius:9px!important;background:#fff!important;color:#1c3047!important
+}
+.field:focus,.body input:focus,.body select:focus,.body textarea:focus{border-color:#77aaf7!important;box-shadow:0 0 0 3px rgba(34,116,238,.10)!important;outline:none!important}
+.body table{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--vp-line);border-radius:11px;overflow:hidden}
+.body th{background:#f7f9fc;color:#64748a;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:10px;text-align:left}
+.body td{padding:10px;border-top:1px solid #edf1f5;color:#253950;font-size:10px}
+.product-notice{border-radius:10px!important}
+.flag{border-radius:10px!important}
+.back{color:#1c69dd!important;font-weight:750!important}
+.text-action{color:#1769df!important;font-weight:750!important}
+.manager-person-detail,.manager-projects,.manager-calendar,.manager-finance,.manager-reports,.manager-work,
+.staff-work,.staff-team,.staff-record,.staff-me,.admin-work,.workforce,.finance,.reports,.control-center{
+  width:100%!important;max-width:none!important
+}
+
+@media(max-width:900px){
+  .app-content>.body:not(.staff-home):not(.manager-home):not(.admin-home):not(.executive-home){max-width:none}
+  .premium-page-head,.premium-page-heading,.staff-page-intro,.manager-page-header,.manager-page-intro,.admin-page-header,.exec-page-head,
+  .person-identity-header,.project-detail-hero,.project-command-surface{padding:14px!important;border-radius:12px!important}
+  .premium-page-head .h1,.premium-page-heading .h1,.staff-page-intro .h1,.manager-page-header .h1,.manager-page-intro .h1,
+  .admin-page-header .h1,.exec-page-head .h1,.person-identity-header .h1,.project-detail-hero .h1{font-size:21px!important}
+  .metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.control-grid,.exec-org-grid{
+    grid-template-columns:1fr!important
+  }
+  .body table{display:block;overflow-x:auto;white-space:nowrap}
+}
