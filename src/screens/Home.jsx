@@ -384,6 +384,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       dueText={primaryNextItem ? dueLabel(primaryNextItem.due_at) : ""}
     />}
 
+    <ReferenceFocusPanel item={primaryNextItem} meetings={upcomingMeetings} openItem={openItem} openMeeting={openMeeting} />
+
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
       CEAC OS has paused the running duration until you confirm what happened. It will not record continuous overnight work by itself.
@@ -495,7 +497,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         })}
       </section>}
 
-      {(dueSoon.length > 0 || upcomingMeetings.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel" aria-labelledby="staff-soon-heading">
+      {(dueSoon.length > 0 || upcomingMeetings.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel home-panel-coming" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
         {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
         {upcomingMeetings.map((meeting) => <button key={meeting.id} className="row home-work-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
