@@ -5,7 +5,7 @@ import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus, ReferenceFocusPanel } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
