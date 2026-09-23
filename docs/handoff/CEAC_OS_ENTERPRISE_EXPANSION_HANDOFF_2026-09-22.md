@@ -3,10 +3,10 @@
 **Date:** 22 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `b8d32f0a6a28716b1eb178feab160ca45bad1e17`
-**Active branch:** `chatgpt/enterprise-expansion-stage-10-assets-devices-2026-09-22`
-**Current stage:** Stage 10 — Assets & Devices
-**Latest merged migration on main:** 089 — Workforce Management 2.0; Stage 10 migration 090 is under development
+**Baseline main:** `ec2801895c66dfec082d04901b4743bfeb9a2c4c`
+**Active branch:** `chatgpt/enterprise-expansion-stage-11-compliance-policy-2026-09-22`
+**Current stage:** Stage 11 — Compliance & Policy Management
+**Latest merged migration on main:** 090 — Assets & Devices; Stage 11 migration 091 is under development
 
 ## 1. Governing architecture
 
@@ -245,3 +245,24 @@ Stage 10 contract:
 `docs/architecture/CEAC_OS_STAGE10_ASSETS_DEVICES_2026-09-22.md`
 
 No Stage 11 work may begin until Stage 10 is green and merged.
+
+
+## Stage 10 closure / Stage 11 activation — 22 September 2026
+
+Stage 10 Assets & Devices merged through PR #40.
+
+- merged main: `ec2801895c66dfec082d04901b4743bfeb9a2c4c`;
+- migration 090 is canonical on main;
+- CI, Migration Replay, Account Security, all cumulative SQL/security gates through Stage 10 and the full Playwright role/acceptance suite passed on the final Stage 10 head;
+- Stage 10 Administration desktop and Staff-mobile product-inspection artifacts were generated and inspected;
+- Vercel preview generation was provider-rate-limited; the product owner has explicitly instructed that inaccessible Vercel preview inspection must not block programme progression;
+- Stage 10 added a visible Assets & devices workspace with inventory, purchase/warranty, custody and service/retirement lifecycle while deliberately excluding OS-level MDM.
+
+Stage 11 is now the only active enterprise-expansion stage.
+
+Stage 11 contract:
+`docs/architecture/CEAC_OS_STAGE11_COMPLIANCE_POLICY_2026-09-22.md`
+
+The existing Stage 1F Policies & rules engine remains system configuration; Stage 11 Compliance is a separate human policy/evidence/exception workflow.
+
+No Stage 12 work may begin until Stage 11 is green and merged.

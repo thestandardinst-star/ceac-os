@@ -26,7 +26,7 @@ test("Staff navigation stays inside the employee boundary", async ({ browser }) 
   await expect(nav).not.toContainText("Authority");
   await expect(nav).not.toContainText("Events");
   await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("System rules");
   await expect(nav).not.toContainText("Integrations");
   await expect(nav).not.toContainText("Employee lifecycle");
   await expect(nav).not.toContainText("Delivery");
@@ -34,6 +34,7 @@ test("Staff navigation stays inside the employee boundary", async ({ browser }) 
   await expect(nav).not.toContainText("Performance & development");
   await expect(nav).toContainText("Learning");
   await expect(nav).toContainText("Assets");
+  await expect(nav).toContainText("Compliance");
   await context.close();
 });
 
@@ -51,7 +52,7 @@ test("Manager gets Manager destinations but not Administration authoring", async
   await expect(nav).not.toContainText("Authority");
   await expect(nav).not.toContainText("Events");
   await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("System rules");
   await expect(nav).not.toContainText("Integrations");
   await expect(nav).not.toContainText("Employee lifecycle");
   await expect(nav).toContainText("Delivery");
@@ -59,6 +60,7 @@ test("Manager gets Manager destinations but not Administration authoring", async
   await expect(nav).toContainText("Performance & development");
   await expect(nav).toContainText("Learning");
   await expect(nav).toContainText("Assets & devices");
+  await expect(nav).toContainText("Compliance");
   await context.close();
 });
 
@@ -73,7 +75,7 @@ test("Administration gets Administration authoring", async ({ browser }) => {
   await expect(nav).toContainText("Authority");
   await expect(nav).toContainText("Events");
   await expect(nav).toContainText("Workflows");
-  await expect(nav).toContainText("Policies & rules");
+  await expect(nav).toContainText("System rules");
   await expect(nav).toContainText("Integrations");
   await expect(nav).toContainText("Employee lifecycle");
   await expect(nav).toContainText("Delivery");
@@ -81,6 +83,7 @@ test("Administration gets Administration authoring", async ({ browser }) => {
   await expect(nav).toContainText("Performance & development");
   await expect(nav).toContainText("Learning");
   await expect(nav).toContainText("Assets & devices");
+  await expect(nav).toContainText("Compliance");
   await expect(nav).toContainText("Settings");
   await context.close();
 });
@@ -101,7 +104,7 @@ test("Group Pastor has a dedicated non-Admin navigation boundary", async ({ brow
   await expect(nav).not.toContainText("Authority");
   await expect(nav).not.toContainText("Events");
   await expect(nav).not.toContainText("Workflows");
-  await expect(nav).not.toContainText("Policies & rules");
+  await expect(nav).not.toContainText("System rules");
   await expect(nav).not.toContainText("Integrations");
   await expect(nav).not.toContainText("Employee lifecycle");
   await expect(nav).toContainText("Delivery");
@@ -109,6 +112,7 @@ test("Group Pastor has a dedicated non-Admin navigation boundary", async ({ brow
   await expect(nav).not.toContainText("Performance & development");
   await expect(nav).not.toContainText("Learning");
   await expect(nav).not.toContainText("Assets");
+  await expect(nav).not.toContainText("Compliance");
   await expect(nav).not.toContainText("Settings");
   await context.close();
 });

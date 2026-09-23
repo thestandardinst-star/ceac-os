@@ -17,8 +17,8 @@ begin
   end if;
 
   select count(*) into n from public.capability_definitions;
-  if n<>15 then
-    raise exception 'Capability authority gate failure: expected 15 canonical capabilities after Stage 10 asset authority, found %.',n;
+  if n<>16 then
+    raise exception 'Capability authority gate failure: expected 16 canonical capabilities after Stage 11 compliance authority, found %.',n;
   end if;
 
   if not exists(
@@ -40,6 +40,13 @@ begin
     where capability='asset.manage'
   ) then
     raise exception 'Capability authority gate failure: Stage 10 asset.manage capability is missing.';
+  end if;
+
+  if not exists(
+    select 1 from public.capability_definitions
+    where capability='compliance.manage'
+  ) then
+    raise exception 'Capability authority gate failure: Stage 11 compliance.manage capability is missing.';
   end if;
 end
 $authority_tables$;

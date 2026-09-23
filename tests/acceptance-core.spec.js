@@ -665,7 +665,8 @@ test("Goals and Strategy preserves factual hierarchy and manager authority", asy
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Strategy", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Strategy", exact: true }).click();
     await expect(page.getByText("Acceptance ministry direction", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add Ministry Direction", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Revise", exact: true })).toHaveCount(0);
@@ -1052,7 +1053,8 @@ test("Stage 8 Learning publishes structured learning and preserves factual compl
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    await page.locator(".tabs").getByRole("button", { name: "Learning", exact: true }).click();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Learning", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
     await expect(page.getByText(courseTitle, { exact: true }).first()).toBeVisible();
     await expect(page.getByText(moduleTitle, { exact: true })).toBeVisible();
@@ -1440,6 +1442,175 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
   }
 });
 
+test("Stage 11 Compliance records policies, acknowledgement, evidence and exceptions without scoring", async ({ browser }) => {
+  test.setTimeout(180000);
+  const policyTitle = "Acceptance workplace safety policy";
+  const requirementTitle = "Acceptance safety certificate";
+  const evidenceRef = "ACCEPT-CERT-001";
+  const today = new Date();
+  const expiry = new Date(today.getTime() + 365 * 86400000).toISOString().slice(0,10);
+  const requestedUntil = new Date(today.getTime() + 30 * 86400000).toISOString().slice(0,10);
+  const approvedUntil = new Date(today.getTime() + 14 * 86400000).toISOString().slice(0,10);
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Compliance");
+    await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not calculate an employee compliance score/i)).toBeVisible();
+
+    await page.getByRole("button", { name: "Publish policy", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance policy title").fill(policyTitle);
+    await dialog.getByLabel("Compliance policy category").fill("Safety");
+    await dialog.getByLabel("Compliance policy summary").fill("Acceptance policy for factual compliance workflow testing.");
+    await dialog.getByLabel("Compliance policy body").fill("Read, acknowledge and provide the required safety evidence.");
+    await dialog.getByLabel("Compliance policy expiry").fill(expiry);
+    await dialog.getByLabel("Compliance policy source").fill("Acceptance approved source");
+    await dialog.getByRole("button", { name: "Add applicability", exact: true }).click();
+
+    await dialog.getByLabel("Compliance requirement code").fill("SAFE");
+    await dialog.getByLabel("Compliance requirement title").fill(requirementTitle);
+    await dialog.getByLabel("Compliance requirement description").fill("Submit the currently valid safety certificate reference.");
+    await dialog.getByText("Evidence required", { exact: true }).click();
+    await dialog.getByLabel("Compliance evidence kind").fill("certificate");
+    await dialog.getByLabel("Compliance evidence valid days").fill("365");
+    await dialog.getByRole("button", { name: "Add requirement", exact: true }).click();
+    await dialog.getByLabel("Compliance policy reason").fill("Stage 11 browser acceptance publication");
+    await dialog.getByRole("button", { name: "Publish policy", exact: true }).click();
+    await expect(page.getByText("Compliance policy published.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Compliance");
+    const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
+    await expect(policyCard).toBeVisible();
+    await expect(policyCard).toContainText("Entire organisation");
+    await expect(policyCard).toContainText("Active");
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
+    const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
+    await expect(policyCard).toBeVisible();
+    await policyCard.getByRole("button", { name: "Acknowledge policy", exact: true }).click();
+    await expect(page.getByText("Policy acknowledgement recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("tab", { name: "My evidence", exact: true }).click();
+    const evidenceCard = page.locator(".compliance-self-item").filter({ hasText: requirementTitle });
+    await expect(evidenceCard).toContainText("No evidence submitted");
+    await evidenceCard.getByRole("button", { name: "Submit evidence", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance evidence reference").fill(evidenceRef);
+    await dialog.getByLabel("Compliance evidence note").fill("Stage 11 browser acceptance evidence");
+    await dialog.getByLabel("Compliance evidence expiry date").fill(expiry);
+    await dialog.getByRole("button", { name: "Submit evidence", exact: true }).click();
+    await expect(page.getByText("Compliance evidence submitted.", { exact: true })).toBeVisible();
+
+    await page.getByRole("tab", { name: "My exceptions", exact: true }).click();
+    const exceptionCard = page.locator(".compliance-self-item").filter({ hasText: requirementTitle });
+    await exceptionCard.getByRole("button", { name: "Request exception", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance exception reason").fill("Temporary Stage 11 browser acceptance exception");
+    await dialog.getByLabel("Compliance exception requested until").fill(requestedUntil);
+    await dialog.getByRole("button", { name: "Request exception", exact: true }).click();
+    await expect(page.getByText("Compliance exception requested.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await page.locator(".tabs").getByRole("button", { name: "More", exact: true }).click();
+    await page.getByRole("menu").getByRole("menuitem", { name: "Compliance", exact: true }).click();
+    await expect(page.locator(".compliance-policy-card").filter({ hasText: policyTitle })).toContainText("Acknowledged");
+    await page.getByRole("tab", { name: "My evidence", exact: true }).click();
+    await expect(page.locator(".compliance-self-item").filter({ hasText: requirementTitle })).toContainText(evidenceRef);
+    await page.getByRole("tab", { name: "My exceptions", exact: true }).click();
+    await expect(page.locator(".compliance-self-item").filter({ hasText: requirementTitle })).toContainText("Requested");
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Stage 11 Staff compliance overflowed the 390px viewport").toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/stage11-compliance-staff-mobile.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Compliance");
+    await page.getByRole("tab", { name: "Evidence", exact: true }).click();
+    const evidenceRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(evidenceRow).toBeVisible();
+    await expect(evidenceRow).toContainText(evidenceRef);
+    await expect(evidenceRow.getByRole("button", { name: "Review evidence", exact: true })).toHaveCount(0);
+
+    await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
+    const exceptionRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(exceptionRow).toBeVisible();
+    await expect(exceptionRow.getByRole("button", { name: "Decide exception", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Compliance");
+    await page.getByRole("tab", { name: "Evidence", exact: true }).click();
+    let row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await row.getByRole("button", { name: "Review evidence", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance evidence decision").selectOption("verified");
+    await dialog.getByLabel("Compliance evidence reviewer note").fill("Acceptance evidence verified by Administration");
+    await dialog.getByRole("button", { name: "Record evidence decision", exact: true }).click();
+    await expect(page.getByText("Evidence review recorded.", { exact: true })).toBeVisible();
+    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(row).toContainText("Verified");
+
+    await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
+    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await row.getByRole("button", { name: "Decide exception", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance exception decision", { exact: true }).selectOption("approved");
+    await dialog.getByLabel("Compliance exception approved until").fill(approvedUntil);
+    await dialog.getByLabel("Compliance exception decision note").fill("Acceptance exception approved temporarily");
+    await dialog.getByRole("button", { name: "Record exception decision", exact: true }).click();
+    await expect(page.getByText("Exception decision recorded.", { exact: true })).toBeVisible();
+
+    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(row).toContainText("Approved");
+    await row.getByRole("button", { name: "Resolve exception", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Compliance exception decision note").fill("Acceptance exception resolved");
+    await dialog.getByRole("button", { name: "Resolve exception", exact: true }).click();
+    await expect(page.getByText("Exception decision recorded.", { exact: true })).toBeVisible();
+
+    await page.reload();
+    await go(page, "Compliance");
+    await page.getByRole("tab", { name: "Evidence", exact: true }).click();
+    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(row).toContainText("Verified");
+    await expect(row.getByText(/Evidence history · 2/)).toBeVisible();
+
+    await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
+    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    await expect(row).toContainText("Resolved");
+    await expect(row.getByText(/Exception history · 3/)).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/stage11-compliance-admin.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "other@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Compliance");
+    await expect(page.getByText(policyTitle, { exact: true })).toBeVisible();
+    await expect(page.getByText("Staff Fixture", { exact: true })).toHaveCount(0);
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await page.goto("/?tab=compliance");
+    await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
 test("Administration surfaces use policy-safe HR states and real employee records", async ({ browser }) => {
   test.setTimeout(150000);
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
@@ -1537,7 +1708,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: "Revoke", exact: true }).click();
   await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
 
-  await go(page, "Policies & rules");
+  await go(page, "System rules");
   await expect(page.getByRole("heading", { name: "Policies & rules", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await page.getByLabel("Policy rule value").fill("6");
@@ -1608,7 +1779,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "Policies & rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
