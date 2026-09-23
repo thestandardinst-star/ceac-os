@@ -52,19 +52,29 @@ async function signIn(page,email,app){
   await expect(page.locator(app)).toBeVisible({timeout:15000});
 }
 
+async function inspectRoutes(page,role,config,routes){
+  for(const [tab,label] of routes){
+    const url=tab==="home"?"/":"/?tab="+encodeURIComponent(tab);
+    await page.goto(url);
+    await expect(page.locator(config.app)).toBeVisible({timeout:15000});
+    await expect(page.locator(".app-content")).toBeVisible();
+    await expect(page.locator(".body").first()).toBeVisible({timeout:15000});
+    await page.waitForTimeout(250);
+    await page.screenshot({path:"test-artifacts/visual-parity-"+role+"-"+label+".png",fullPage:true});
+  }
+}
+
 for(const [role,config] of Object.entries(roleRoutes)){
-  test(role+" visual inventory",async({page})=>{
-    test.setTimeout(120000);
-    await page.setViewportSize({width:1440,height:960});
-    await signIn(page,config.email,config.app);
-    for(const [tab,label] of config.routes){
-      const url=tab==="home"?"/":"/?tab="+encodeURIComponent(tab);
-      await page.goto(url);
-      await expect(page.locator(config.app)).toBeVisible({timeout:15000});
-      await expect(page.locator(".app-content")).toBeVisible();
-      await expect(page.locator(".body").first()).toBeVisible({timeout:15000});
-      await page.waitForTimeout(250);
-      await page.screenshot({path:"test-artifacts/visual-parity-"+role+"-"+label+".png",fullPage:true});
-    }
+  const routeGroups=role==="administration"
+    ? [config.routes.slice(0,10),config.routes.slice(10)]
+    : [config.routes];
+
+  routeGroups.forEach((routes,index)=>{
+    const suffix=routeGroups.length>1 ? " "+(index+1) : "";
+    test(role+" visual inventory"+suffix,async({page})=>{
+      await page.setViewportSize({width:1440,height:960});
+      await signIn(page,config.email,config.app);
+      await inspectRoutes(page,role,config,routes);
+    });
   });
 }
