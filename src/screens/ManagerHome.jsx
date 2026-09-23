@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceFocusPanel, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -386,6 +386,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         </div>
       </section>
       <DashboardCalendar meetings={upcomingMeetings} />
+
+      <ReferenceFocusPanel item={submissions[0]?.work_items || mine[0] || null} meetings={upcomingMeetings} openItem={openItem} openMeeting={openMeeting} />
 
       {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
       {loading && <LoadingState label="Loading Manager Home…" />}
