@@ -97,3 +97,41 @@ export function ReferenceFocus({ item, meeting, onOpenItem, onOpenMeeting, dueTe
     </article>
   </section>;
 }
+
+
+export function ReferenceFocusPanel({ item=null, meetings=[], openItem, openMeeting }) {
+  const schedule=(meetings||[]).slice(0,4);
+  const due=item?.due_at ? new Date(item.due_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "No due date";
+  const statusLabel=(item?.status||"not_started").replaceAll("_"," ");
+  const progress=item?.status==="completed"||item?.status==="self_certified" ? 100
+    : item?.status==="in_review" ? 84
+      : item?.status==="in_progress" ? 58
+        : item?.status==="returned" ? 42
+          : item?.status==="waiting_on" ? 36 : 18;
+  return <section className="reference-focus-row" aria-label="Next work and today's schedule">
+    <article className="reference-focus-card">
+      <div className="reference-focus-media" aria-hidden="true">
+        <PremiumIcon name="work" size={28}/>
+        <span>CEAC</span>
+      </div>
+      <div className="reference-focus-main">
+        <div className="reference-focus-label">Next up</div>
+        <h2>{item?.title || "Your next CEAC work"}</h2>
+        <p>{item ? (item.ref ? item.ref+" · "+due : due) : "Nothing urgent is assigned right now."}</p>
+        <div className="reference-focus-progress"><span style={{width:progress+"%"}}/></div>
+        <small>{item ? statusLabel : "Clear"}</small>
+      </div>
+      <div className="reference-focus-actions">
+        {item ? <button onClick={()=>openItem?.(item.id)}>Continue work <b>→</b></button> : <span>You're clear</span>}
+      </div>
+    </article>
+    <article className="reference-today-card">
+      <div className="reference-card-head"><strong>Today's schedule</strong><small>{schedule.length ? schedule.length+" items" : "Clear"}</small></div>
+      {schedule.length ? schedule.map((meeting,index)=><button key={meeting.id} onClick={()=>openMeeting?.(meeting.id)} className="reference-today-row">
+        <time>{new Date(meeting.starts_at).toLocaleTimeString("en-GB",{timeZone:"Africa/Accra",hour:"2-digit",minute:"2-digit"})}</time>
+        <span className={"reference-schedule-icon tone-"+(index%4)}><PremiumIcon name="calendar" size={14}/></span>
+        <span><strong>{meeting.title}</strong><small>{meeting.provider==="zoom"?"Zoom":meeting.provider==="google_meet"?"Google Meet":"Meeting"}</small></span>
+      </button>) : <div className="reference-empty">No meetings recorded today.</div>}
+    </article>
+  </section>;
+}
