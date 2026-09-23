@@ -2,10 +2,6 @@ name: Migration Replay
 
 on:
   pull_request:
-    paths:
-      - "supabase/migrations/**"
-      - "supabase/replay/**"
-      - ".github/workflows/migration-replay.yml"
   workflow_dispatch:
 
 jobs:
