@@ -1709,7 +1709,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByText("Capability revoked.", { exact: true })).toBeVisible();
 
   await go(page, "System rules");
-  await expect(page.getByRole("heading", { name: "System rules", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Policies & rules", exact: true })).toBeVisible();
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await page.getByLabel("Policy rule value").fill("6");
   await page.getByLabel("Policy reason").fill("Acceptance policy rule version");
