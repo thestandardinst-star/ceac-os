@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { DashboardCalendar } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 import { StatusDistribution, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 
-export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
+export default function ExecutiveHome({ me, openMeeting, scheduleMeeting, go }) {
   const [x, setX] = useState({ doneWeek: 0, donePreviousWeek: 0, objectives: 0, objectiveAttention: 0, projects: 0, blocked: 0, review: 0 });
   const [loading, setLoading] = useState(true);
   const [meetings, setMeetings] = useState([]);
@@ -159,6 +159,15 @@ export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
         <div className="row-m">Objective status is recorded explicitly; this does not infer why an objective is in that state.</div>
       </div>
     </>}
+
+    <ReferenceModuleStrip items={[
+      {label:"Work",icon:"work",note:"Delegated work and decisions.",onClick:()=>go?.("work")},
+      {label:"Ministry",icon:"ministry",note:"Goals and strategy.",onClick:()=>go?.("strategy")},
+      {label:"Portfolio",icon:"portfolio",note:"Projects and delivery.",onClick:()=>go?.("delivery")},
+      {label:"Organisation",icon:"organisation",note:"Organisation overview.",onClick:()=>go?.("exec-organisation")},
+      {label:"Finance",icon:"finance",note:"Financial oversight.",onClick:()=>go?.("exec-finance")},
+      {label:"Reports",icon:"reports",note:"Leadership reporting.",onClick:()=>go?.("exec-reports")},
+    ]}/>
 
     <p className="screen-note">The figures above come from recorded CEAC work. Finished output uses the canonical Task/Deliverable completion contract.</p>
   </div>;
