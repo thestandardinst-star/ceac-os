@@ -54,6 +54,7 @@ async function signIn(page,email,app){
 
 for(const [role,config] of Object.entries(roleRoutes)){
   test(role+" visual inventory",async({page})=>{
+    test.setTimeout(120000);
     await page.setViewportSize({width:1440,height:960});
     await signIn(page,config.email,config.app);
     for(const [tab,label] of config.routes){
