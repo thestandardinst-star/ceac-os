@@ -72,3 +72,28 @@ export function ReferenceModuleStrip({ items=[] }) {
     </div>
   </section>;
 }
+
+
+export function ReferenceFocus({ item, meeting, onOpenItem, onOpenMeeting, dueText }) {
+  return <section className="reference-focus-grid">
+    <article className="reference-focus-card">
+      <div className="reference-focus-art" aria-hidden="true"><span>Next up</span></div>
+      <div className="reference-focus-copy">
+        <small>Next up</small>
+        <strong>{item?.title || "Your next CEAC work"}</strong>
+        <span>{item?.ref || "No urgent work is recorded right now."}</span>
+        {item && <div className="reference-focus-progress"><i/><i/><i/></div>}
+        <div className="reference-focus-meta">{item ? (dueText || "Open your work record") : "You are clear for the moment."}</div>
+      </div>
+      {item && <button onClick={()=>onOpenItem?.(item.id)}>Continue work <b>→</b></button>}
+    </article>
+    <article className="reference-today-card">
+      <div className="reference-card-head"><strong>Today's schedule</strong><small>{meeting ? "Next" : "Clear"}</small></div>
+      {meeting ? <button className="reference-today-row" onClick={()=>onOpenMeeting?.(meeting.id)}>
+        <span className="reference-schedule-icon tone-2"><PremiumIcon name="calendar" size={15}/></span>
+        <span><strong>{meeting.title}</strong><small>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",hour:"2-digit",minute:"2-digit"})}{meeting.provider ? " · "+meeting.provider.replaceAll("_"," ") : ""}</small></span>
+        <b>Join</b>
+      </button> : <div className="reference-empty">No upcoming meeting is recorded.</div>}
+    </article>
+  </section>;
+}
