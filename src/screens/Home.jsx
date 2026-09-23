@@ -5,7 +5,7 @@ import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus, ReferenceFocusPanel } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -384,8 +384,6 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       dueText={primaryNextItem ? dueLabel(primaryNextItem.due_at) : ""}
     />}
 
-    <ReferenceFocusPanel item={primaryNextItem} meetings={upcomingMeetings} openItem={openItem} openMeeting={openMeeting} />
-
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
       CEAC OS has paused the running duration until you confirm what happened. It will not record continuous overnight work by itself.
@@ -430,7 +428,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
 
       <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse home-panel-empty"}`} aria-labelledby="staff-next-heading">
         <div className="home-section-head">
-          <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Your next move</h2></div>
+          <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Needs your attention</h2></div>
           {attention > 0 && <span className="home-count home-count-attention">{attention}</span>}
         </div>
         {nextMoveItems.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone={item.status === "returned" || isOverdue(item.due_at) ? "danger" : "info"} />)}
@@ -454,12 +452,13 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         </>}
       </section>
 
-      {(waitingReviews.length > 0 || waitingDependencies.length > 0) && <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
+      <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
         <div className="home-section-head">
           <div><div className="home-kicker">Already moved from your side</div><h2 id="staff-waiting-heading">Waiting on others</h2></div>
           <span className="home-count">{waitingReviews.length + waitingDependencies.length}</span>
         </div>
 
+        {waitingReviews.length === 0 && waitingDependencies.length === 0 && <div className="home-quiet">Nothing is waiting on someone else right now.</div>}
         {waitingReviews.length > 0 && <div className="home-subhead">Waiting for manager review</div>}
         {waitingReviews.map((item) => {
           const follow = reviewFollowupState(item);
@@ -495,10 +494,11 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
             </div>
           </div>;
         })}
-      </section>}
+      </section>
 
-      {(dueSoon.length > 0 || upcomingMeetings.length > 0 || calendarEvents.length > 0 || birthdays.length > 0 || upcomingLeave.length > 0) && <section className="home-panel home-panel-coming" aria-labelledby="staff-soon-heading">
+      <section className="home-panel home-panel-coming" aria-labelledby="staff-soon-heading">
         <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
+        {dueSoon.length === 0 && upcomingMeetings.length === 0 && calendarEvents.length === 0 && birthdays.length === 0 && upcomingLeave.length === 0 && <div className="home-quiet">Nothing is scheduled in the next few days.</div>}
         {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
         {upcomingMeetings.map((meeting) => <button key={meeting.id} className="row home-work-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
           <div className="row-t">{meeting.title}</div>
@@ -517,7 +517,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
           <div className="row-t">Your approved {request.kind} leave begins</div>
           <div className="row-m">{new Date(`${request.start_date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
         </div>)}
-      </section>}
+      </section>
 
       {announcements.length > 0 && <details className="home-panel home-panel-secondary">
         <summary className="home-secondary-summary">
