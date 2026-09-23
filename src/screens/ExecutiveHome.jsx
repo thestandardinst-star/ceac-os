@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { DashboardCalendar } from "../components/ReferenceDashboard";
 import { StatusDistribution, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 
 export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
@@ -87,6 +88,8 @@ export default function ExecutiveHome({ me, openMeeting, scheduleMeeting }) {
         <div><strong>{x.blocked}</strong><span>Open blockers</span></div>
       </div>}
     </section>
+
+    <DashboardCalendar meetings={meetings} />
 
     {!loading && !error && <section className="executive-intelligence-grid">
       <article className="executive-intelligence-card">
