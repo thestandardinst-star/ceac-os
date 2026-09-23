@@ -5,7 +5,7 @@ import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -375,6 +375,14 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     </section>
 
     <DashboardCalendar meetings={upcomingMeetings} events={calendarEvents} leave={upcomingLeave} />
+
+    {!loading && !loadFailed && <ReferenceFocus
+      item={primaryNextItem}
+      meeting={nextMeeting}
+      onOpenItem={openItem}
+      onOpenMeeting={openMeeting}
+      dueText={primaryNextItem ? dueLabel(primaryNextItem.due_at) : ""}
+    />}
 
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
