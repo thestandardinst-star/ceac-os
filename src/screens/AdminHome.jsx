@@ -3,9 +3,9 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 
-export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits }) {
+export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -375,6 +375,15 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         </div>)}
       </div>
     </section>
+
+    <ReferenceModuleStrip items={[
+      {label:"People",icon:"people",note:"People and employment.",onClick:()=>go?.("people")},
+      {label:"Work",icon:"work",note:"Organisation work.",onClick:()=>go?.("work")},
+      {label:"Time & Leave",icon:"time",note:"Workforce operations.",onClick:()=>go?.("attendance")},
+      {label:"Finance",icon:"finance",note:"Budgets, spend and income.",onClick:()=>go?.("finance")},
+      {label:"Reports",icon:"reports",note:"Organisation reporting.",onClick:()=>go?.("reporting")},
+      {label:"Control Center",icon:"control",note:"Authority and settings.",onClick:()=>go?.("settings")},
+    ]}/>
 
     {inviting && <Sheet onClose={() => { setInviting(null); setMsg(null); }}>
       <div className="eyebrow">People & access</div>
