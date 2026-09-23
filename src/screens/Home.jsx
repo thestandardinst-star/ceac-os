@@ -5,6 +5,7 @@ import { startWork, endWork, reconcileWorkSession } from "../lib/session";
 import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -47,7 +48,7 @@ function WorkRow({ item, openItem, tone = "neutral" }) {
   </button>;
 }
 
-export default function Home({ me, session, setSession, openItem, openMeeting, openRoom, openWork, openMe, openAnnouncements }) {
+export default function Home({ me, session, setSession, openItem, openMeeting, openRoom, openWork, openMe, openAnnouncements, openTeam, openCalendar }) {
   const [items, setItems] = useState([]);
   const [completedThisWeek, setCompletedThisWeek] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -373,6 +374,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     </nav>
     </section>
 
+    <DashboardCalendar meetings={upcomingMeetings} events={calendarEvents} leave={upcomingLeave} />
+
     {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
       <h4>You still have a work session open from an earlier day</h4>
       CEAC OS has paused the running duration until you confirm what happened. It will not record continuous overnight work by itself.
@@ -541,6 +544,14 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         </div>
       </details>
     </div>}
+
+    <ReferenceModuleStrip items={[
+      {label:"Work",icon:"work",note:"Get things done.",onClick:openWork},
+      {label:"Team",icon:"team",note:"Your people and context.",onClick:openTeam},
+      {label:"Calendar",icon:"calendar",note:"Meetings and dates.",onClick:openCalendar},
+      {label:"My Hub",icon:"hub",note:"Goals, leave and records.",onClick:openMe},
+      {label:"Announcements",icon:"messages",note:"CEAC updates.",onClick:openAnnouncements},
+    ]}/>
 
     {ask && <Sheet onClose={() => setAsk(false)}>
       <div className="h2">Where are you working?</div>
