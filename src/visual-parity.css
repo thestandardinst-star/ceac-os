@@ -127,3 +127,6 @@ body{color:var(--vp-text)}
   .premium-mobile-topbar{background:#081b30!important;color:#fff!important;border-bottom:0!important}.premium-mobile-brand strong{color:#fff!important}
   .premium-tabs{background:#fff!important;border-top:1px solid #e2e8f0!important;box-shadow:0 -8px 24px rgba(34,55,82,.07)!important}
 }
+
+.manager-command-action{position:relative!important;z-index:4!important}
+.manager-command-stats{pointer-events:none!important}
