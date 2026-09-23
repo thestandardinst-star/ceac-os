@@ -108,9 +108,9 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
       <small>Quick create</small>
       <div className="reference-quick-grid">
         {onCreateWork && <button onClick={onCreateWork}><PremiumIcon name="work" size={15}/><span>New work</span></button>}
-        {onCreateMeeting && <button onClick={onCreateMeeting}><PremiumIcon name="calendar" size={15}/><span>Meeting</span></button>}
-        {onMessages && <button onClick={onMessages}><PremiumIcon name="messages" size={15}/><span>Room</span></button>}
-        <button onClick={()=>setTab(isAdmin ? "people" : isManager ? "projects" : "me")}><PremiumIcon name={isAdmin ? "people" : isManager ? "projects" : "hub"} size={15}/><span>{isAdmin ? "Person" : isManager ? "Project" : "My Hub"}</span></button>
+        {onCreateMeeting && <button onClick={onCreateMeeting}><PremiumIcon name="calendar" size={15}/><span>New meeting</span></button>}
+        {onMessages && <button onClick={onMessages}><PremiumIcon name="messages" size={15}/><span>Open room</span></button>}
+        <button onClick={()=>setTab(isAdmin ? "people" : isManager ? "projects" : "me")}><PremiumIcon name={isAdmin ? "people" : isManager ? "projects" : "hub"} size={15}/><span>{isAdmin ? "Person" : isManager ? "Project" : "Profile"}</span></button>
       </div>
     </section>}
     <div className="premium-side-spacer"/>
@@ -158,7 +158,7 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
   return <header className="desktop-topbar premium-topbar" ref={rootRef}>
     <div className="premium-search-wrap">
       <PremiumIcon name="search" size={19}/>
-      <input value={query} onFocus={()=>setSearchOpen(true)} onChange={(e)=>{setQuery(e.target.value);setSearchOpen(true);}} placeholder="Go to work, people, projects…" aria-label="Go to a workspace"/>
+      <input value={query} onFocus={()=>setSearchOpen(true)} onChange={(e)=>{setQuery(e.target.value);setSearchOpen(true);}} placeholder="Search your workspace…" aria-label="Search your workspace"/>
       <kbd>⌘ K</kbd>
       {searchOpen && <SearchPalette query={query} nav={nav} onNavigate={onNavigate} onMessages={onMessages} close={()=>setSearchOpen(false)}/>}
     </div>
