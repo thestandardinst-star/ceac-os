@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar } from "../components/ReferenceDashboard";
+import { DashboardCalendar, ReferenceModuleStrip } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -38,7 +38,7 @@ function ActionRow({ item, openItem, tone = "neutral" }) {
   );
 }
 
-export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign }) {
+export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign, go }) {
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
@@ -599,6 +599,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <div className="row-note">{new Date(movement.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
         </button>)}
       </section>}
+
+      <ReferenceModuleStrip items={[
+        {label:"Work",icon:"work",note:"Assigned and delegated work.",onClick:()=>go?.("work")},
+        {label:"Team",icon:"team",note:"People, workload and context.",onClick:()=>go?.("team")},
+        {label:"Projects",icon:"projects",note:"Delivery and milestones.",onClick:()=>go?.("projects")},
+        {label:"Budget",icon:"finance",note:"Requests and unit position.",onClick:()=>go?.("manager-finance")},
+        {label:"Reports",icon:"reports",note:"Evidence and reporting.",onClick:()=>go?.("manager-reports")},
+      ]}/>
 
       {sheet?.type === "work-review" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
         <div className="eyebrow">Evidence-first review</div>
