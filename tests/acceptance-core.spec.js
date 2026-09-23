@@ -1566,7 +1566,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await row.getByRole("button", { name: "Decide exception", exact: true }).click();
     dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Compliance exception decision").selectOption("approved");
+    await dialog.getByLabel("Compliance exception decision", { exact: true }).selectOption("approved");
     await dialog.getByLabel("Compliance exception approved until").fill(approvedUntil);
     await dialog.getByLabel("Compliance exception decision note").fill("Acceptance exception approved temporarily");
     await dialog.getByRole("button", { name: "Record exception decision", exact: true }).click();
