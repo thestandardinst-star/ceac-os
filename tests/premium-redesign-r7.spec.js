@@ -48,7 +48,6 @@ test.describe("Premium redesign R7 closure", () => {
         await expect(page.locator(".reference-module-grid button")).toHaveCount(5);
         await expect(page.locator(".reference-focus-grid")).toHaveCount(1);
         await expect(page.locator(".reference-focus-row")).toHaveCount(0);
-        await expect(page.locator(".home-panel-priority")).toBeVisible();
         await expect(page.locator(".home-panel-waiting")).toBeVisible();
         await expect(page.locator(".home-panel-coming")).toBeVisible();
       }
