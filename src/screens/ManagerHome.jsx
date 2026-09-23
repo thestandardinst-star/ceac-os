@@ -318,11 +318,11 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     setBusy(true); setError(null);
     try {
       const status = decision === "declined" ? "declined" : Number(request.days) > leaveLimit ? "escalated" : "approved";
-      const action = status === "escalated" ? "escalate" : status === "declined" ? "decline" : "approve";
+      const action = status === "escalated" ? "escalated" : status === "declined" ? "declined" : "manager_approved";
       const { error: updateError } = await supabase.rpc("workforce_leave_action", {
-        p_request_id: request.id,
+        p_leave_request_id: request.id,
         p_action: action,
-        p_note: comment.trim() || null,
+        p_reason: comment.trim() || "Manager dashboard decision",
       });
       if (updateError) throw updateError;
       setSheet(null); setComment(""); await load();
