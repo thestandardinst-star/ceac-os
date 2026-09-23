@@ -301,3 +301,51 @@ Governing Stage 12 contract:
 Stage 12 must extend Stage 1G rather than building a duplicate connector framework. Provider auth/tokens remain server-side; scopes/capabilities are explicit; outbound delivery must be idempotent/retry-safe; inbound webhooks must be authenticated/duplicate-safe; Connected Apps must reflect real connection state.
 
 No Stage 13 work may begin until Stage 12 is fully green, inspected and merged. Stage 13 remains separately blocked until CEAC payroll policy is formally confirmed.
+
+## Production database reconciliation — 23 September 2026
+
+A read-only whole-system audit discovered that the connected live Supabase project
+`efjljhftsesssumtshvp` had stopped at canonical migration
+`20260922120000_082_employee_lifecycle` while repository main had already reached
+migration 092.
+
+This production drift has now been reconciled safely.
+
+Safety procedure completed:
+- inspected canonical migrations 083–092 from verified main `8416a7db37391c1533ef8d85374836537c44317f`;
+- confirmed no non-transactional migration statements in the missing sequence;
+- dry-ran the complete 083→092 sequence against live production inside a rollback-only transaction;
+- created private rollback schema `ceac_reconcile_backup_20260923`;
+- denied `public`, `anon` and `authenticated` access to that backup schema;
+- snapshotted the pre-migration business tables modified in place;
+- applied canonical migrations 083→092 sequentially using their exact repository versions;
+- verified every migration immediately after application;
+- compared pre/post row counts for existing business tables: no row loss was detected;
+- ran the live production-hardening SQL gate successfully;
+- verified representative Stage 4–11 public tables have RLS enabled and no anonymous SELECT/INSERT/UPDATE/DELETE privileges.
+
+Live migration head is now:
+`20260923101500_092_production_hardening_finance_integrity`.
+
+Verified live structures now include:
+- Stage 3 Protected HR;
+- Stage 4 Goals & Strategy;
+- Stage 5 Work Management 2.0;
+- Stage 6 Resource & Workload;
+- Stage 7 Performance & Development;
+- Stage 8 Learning;
+- Stage 9 Workforce Management 2.0;
+- Stage 10 Assets & Devices;
+- Stage 11 Compliance & Policy;
+- migration 092 Finance production hardening.
+
+The code/database migration drift is therefore CLOSED.
+
+Remaining release gate:
+- the connected Vercel account still cannot independently expose the deployment/project environment to this session;
+- before provider implementation starts, prove the exact production deployment of main
+  `8416a7db37391c1533ef8d85374836537c44317f` is configured against Supabase project
+  `efjljhftsesssumtshvp` and complete a live role-by-role browser inspection.
+
+Stage 12 provider implementation remains frozen until that deployment identity check is recorded.
+
