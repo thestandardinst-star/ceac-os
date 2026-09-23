@@ -1,9 +1,9 @@
 # CEAC OS — Closure & Production Hardening Audit
 
-**Date:** 23 September 2026  
-**Programme:** Premium redesign closure corridor  
-**Branch:** `chatgpt/ceac-experience-recovery-architecture-2026-09-23`  
-**Stage 11 merged baseline:** `732cc5a9e9d24e7085a65d8069bba73502190ad8`  
+**Date:** 23 September 2026
+**Programme:** Premium redesign closure corridor
+**Branch:** `chatgpt/ceac-experience-recovery-architecture-2026-09-23`
+**Stage 11 merged baseline:** `732cc5a9e9d24e7085a65d8069bba73502190ad8`
 **Status:** FINAL INTEGRATION GATE PENDING
 
 ## 1. Closure rule
