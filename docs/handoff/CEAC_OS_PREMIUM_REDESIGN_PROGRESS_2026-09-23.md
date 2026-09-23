@@ -3,7 +3,7 @@
 **Date:** 23 September 2026
 **Branch:** `chatgpt/ceac-experience-recovery-architecture-2026-09-23`
 **Programme PR:** #43
-**Status:** ACTIVE — R7 closure gate
+**Status:** ACTIVE — R7 + production hardening final integration gate
 
 ## R0 — Design Foundation / Shell
 **Status:** COMPLETE
@@ -44,8 +44,12 @@ Global Messages, contextual rooms, work conversations, meeting discussion entry,
 The route/experience audit is recorded in `docs/design/CEAC_OS_PREMIUM_REDESIGN_R6_ROUTE_AUDIT_2026-09-23.md`. Mobile More now derives only from approved role shells rather than exposing the legacy architecture catalogue. Full CI, Account Security, cumulative Stage 1–11 Quality Gate and R6 browser inspection are green.
 
 ## R7 — Closure
-**Status:** TECHNICAL GATE RUNNING
+**Status:** FINAL INTEGRATION GATE PENDING
 
-R7 adds explicit accessibility/reduced-motion checks and records performance output. Final completion still requires the exact R7 head to pass the cumulative gate and a reachable live preview to be inspected and accepted.
+R7 accessibility/reduced-motion work is complete. The closure corridor additionally fixes confirmed environment, security-header and Finance-integrity/operability defects and adds end-to-end journey pressure tests.
+
+The product owner explicitly waived the inaccessible Vercel live-preview inspection after the provider rate-limit/authorisation block. The waiver is not represented as a passed deployment inspection.
+
+Final completion requires the exact reconciled R7 + hardening head to pass CI, Migration Replay, Account Security and the cumulative Quality Gate.
 
 Stage 12 remains paused. Do not merge the redesign programme until R7 is fully closed.
