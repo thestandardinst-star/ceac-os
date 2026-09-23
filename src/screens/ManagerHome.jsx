@@ -602,14 +602,6 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         </button>)}
       </section>}
 
-      <ReferenceModuleStrip items={[
-        {label:"Work",icon:"work",note:"Assigned and delegated work.",onClick:()=>go?.("work")},
-        {label:"Team",icon:"team",note:"People, workload and context.",onClick:()=>go?.("team")},
-        {label:"Projects",icon:"projects",note:"Delivery and milestones.",onClick:()=>go?.("projects")},
-        {label:"Budget",icon:"finance",note:"Requests and unit position.",onClick:()=>go?.("manager-finance")},
-        {label:"Reports",icon:"reports",note:"Evidence and reporting.",onClick:()=>go?.("manager-reports")},
-      ]}/>
-
       {sheet?.type === "work-review" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
         <div className="eyebrow">Evidence-first review</div>
         <div className="h2" style={{ marginTop: 5 }}>{sheet.item.work_items.title}</div>
@@ -658,6 +650,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => answerBlocker(sheet.item, "disputed")}>{busy ? "Saving..." : "Send response"}</button>
       </Sheet>}
       </div>}
+
+      <ReferenceModuleStrip items={[
+        {label:"Work",icon:"work",note:"Assigned and delegated work.",onClick:()=>go?.("work")},
+        {label:"Team",icon:"team",note:"People, workload and context.",onClick:()=>go?.("team")},
+        {label:"Projects",icon:"projects",note:"Delivery and milestones.",onClick:()=>go?.("projects")},
+        {label:"Budget",icon:"finance",note:"Requests and unit position.",onClick:()=>go?.("manager-finance")},
+        {label:"Reports",icon:"reports",note:"Evidence and reporting.",onClick:()=>go?.("manager-reports")},
+      ]}/>
     </div>
   );
 }
