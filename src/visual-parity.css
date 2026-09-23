@@ -376,3 +376,12 @@ body{color:var(--vp-text)}
   .premium-topbar{padding-left:20px!important;padding-right:20px!important}
   .app-content{padding-left:18px!important;padding-right:18px!important}
 }
+
+@media(min-width:981px){
+  .manager-app .home-dashboard>.reference-module-strip{
+    grid-column:1 / -1!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0!important;
+  }
+}
