@@ -40,9 +40,17 @@ test.describe("Premium redesign R7 closure", () => {
         : ".executive-command-surface";
       await expect(page.locator(command)).toBeVisible();
 
+      const heroBackground = await page.locator(command).evaluate((el) => getComputedStyle(el).backgroundImage);
+      expect(heroBackground).toContain("ceac-hero-landscape.svg");
+
       if (label === "Staff") {
         await expect(page.locator(".reference-module-strip")).toBeVisible();
         await expect(page.locator(".reference-module-grid button")).toHaveCount(5);
+        await expect(page.locator(".reference-focus-grid")).toHaveCount(1);
+        await expect(page.locator(".reference-focus-row")).toHaveCount(0);
+        await expect(page.locator(".home-panel-priority")).toBeVisible();
+        await expect(page.locator(".home-panel-waiting")).toBeVisible();
+        await expect(page.locator(".home-panel-coming")).toBeVisible();
       }
 
       const unnamed = await page.evaluate(() => [...document.querySelectorAll("button,a,input,select,textarea")]
