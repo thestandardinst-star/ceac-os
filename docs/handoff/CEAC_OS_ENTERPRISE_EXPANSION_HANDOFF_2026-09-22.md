@@ -1,12 +1,12 @@
 # CEAC OS — Enterprise Expansion Programme Handoff
 
-**Date:** 22 September 2026
+**Date:** 23 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `ec2801895c66dfec082d04901b4743bfeb9a2c4c`
-**Active branch:** `chatgpt/enterprise-expansion-stage-11-compliance-policy-2026-09-22`
-**Current stage:** Stage 11 — Compliance & Policy Management
-**Latest merged migration on main:** 090 — Assets & Devices; Stage 11 migration 091 is under development
+**Baseline main:** `8416a7db37391c1533ef8d85374836537c44317f`
+**Active branch:** `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-23`
+**Current stage:** Stage 12 — Integrations
+**Latest merged migration on main:** 092 — Production hardening / finance integrity; Stage 12 has not created migration 093 yet
 
 ## 1. Governing architecture
 
@@ -266,3 +266,38 @@ Stage 11 contract:
 The existing Stage 1F Policies & rules engine remains system configuration; Stage 11 Compliance is a separate human policy/evidence/exception workflow.
 
 No Stage 12 work may begin until Stage 11 is green and merged.
+
+
+## Stage 11 + Premium R0–R7 closure / Stage 12 activation — 23 September 2026
+
+Stage 11 Compliance & Policy Management merged to main at:
+`732cc5a9e9d24e7085a65d8069bba73502190ad8`.
+
+The premium redesign and production-hardening corridor then reconciled directly onto that merged Stage 11 baseline and passed, on frozen head `fdd159c7de36ce011fd1ca38ff4e0fe9bab1a9f8`:
+- CI, including high-severity dependency audit and production build;
+- clean Migration Replay through migration 092;
+- Account Security;
+- cumulative SQL/RLS, Platform Kernel, meeting authority and Stage 1A–11 gates;
+- production-hardening SQL gate;
+- complete Playwright role/acceptance suite;
+- R0–R7 inspection generation.
+
+The frozen validated tree was merged to main as verified-signed commit:
+`8416a7db37391c1533ef8d85374836537c44317f`.
+
+The merge commit tree is exactly the same tree as the frozen tested head:
+`43801ddc942e49e9d26ace25f8fe4fa97ebb5f14`.
+
+The product owner explicitly waived inaccessible Vercel live-preview inspection after provider build-rate-limit / connector-authorisation prevented direct inspection. This is recorded as a waiver, not a passed deployment inspection.
+
+Stage 12 is now the only active enterprise-expansion stage.
+
+Active Stage 12 branch:
+`chatgpt/enterprise-expansion-stage-12-integrations-2026-09-23`
+
+Governing Stage 12 contract:
+`docs/architecture/CEAC_OS_STAGE12_INTEGRATIONS_2026-09-23.md`
+
+Stage 12 must extend Stage 1G rather than building a duplicate connector framework. Provider auth/tokens remain server-side; scopes/capabilities are explicit; outbound delivery must be idempotent/retry-safe; inbound webhooks must be authenticated/duplicate-safe; Connected Apps must reflect real connection state.
+
+No Stage 13 work may begin until Stage 12 is fully green, inspected and merged. Stage 13 remains separately blocked until CEAC payroll policy is formally confirmed.
