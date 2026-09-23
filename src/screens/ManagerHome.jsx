@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { DashboardCalendar } from "../components/ReferenceDashboard";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -317,9 +318,12 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     setBusy(true); setError(null);
     try {
       const status = decision === "declined" ? "declined" : Number(request.days) > leaveLimit ? "escalated" : "approved";
-      const { error: updateError } = await supabase.from("leave_requests").update({
-        status, decided_by: me.id, decided_at: new Date().toISOString(), decision_note: comment.trim() || null,
-      }).eq("id", request.id);
+      const action = status === "escalated" ? "escalate" : status === "declined" ? "decline" : "approve";
+      const { error: updateError } = await supabase.rpc("workforce_leave_action", {
+        p_request_id: request.id,
+        p_action: action,
+        p_note: comment.trim() || null,
+      });
       if (updateError) throw updateError;
       setSheet(null); setComment(""); await load();
     } catch (err) { setError(humanError(err, "The leave decision could not be saved.")); }
@@ -381,6 +385,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <div><strong>{projects.length}</strong><span>Projects attention</span></div>
         </div>
       </section>
+      <DashboardCalendar meetings={upcomingMeetings} />
+
       {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
       {loading && <LoadingState label="Loading Manager Home…" />}
 
