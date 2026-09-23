@@ -138,8 +138,10 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
   const [query,setQuery]=useState("");
   const [searchOpen,setSearchOpen]=useState(false);
   const [createOpen,setCreateOpen]=useState(false);
+  const [clock,setClock]=useState(()=>new Date());
   const rootRef=useRef(null);
   const nav=useMemo(()=>navFor({ me, isAdmin, isExec, isManager }),[me,isAdmin,isExec,isManager]);
+  useEffect(()=>{ const timer=setInterval(()=>setClock(new Date()),60000); return ()=>clearInterval(timer); },[]);
   useEffect(()=>{
     function down(e){ if(rootRef.current && !rootRef.current.contains(e.target)){ setSearchOpen(false); setCreateOpen(false); } }
     function keydown(e){
@@ -173,7 +175,10 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
         </div>}
       </div>}
       {onMessages && <button className="premium-icon-button" aria-label="Open messages" onClick={onMessages}><PremiumIcon name="messages"/></button>}
-      <button className="premium-icon-button" aria-label="Notifications"><PremiumIcon name="bell"/></button>
+      <div className="premium-topbar-date" aria-label="Current date and time">
+        <strong>{clock.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</strong>
+        <small>Accra · {clock.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</small>
+      </div>
       <button className="premium-profile-button" onClick={onProfile} aria-label="Open profile">
         <span className="premium-avatar">{(me?.full_name || "C").trim().slice(0,1).toUpperCase()}</span>
         <span><strong>{me?.full_name || "Account"}</strong><small>{me?.unit_name || roleLabel}</small></span>
