@@ -9,7 +9,9 @@ import Item from "./screens/Item";
 import Record from "./screens/Record";
 import MeScreen from "./screens/Me";
 import ManagerHome from "./screens/ManagerHome";
+import ManagerWork from "./screens/ManagerWork";
 import AdminHome from "./screens/AdminHome";
+import AdminWork from "./screens/AdminWork";
 import Units from "./screens/Units";
 import People from "./screens/People";
 import Workforce from "./screens/Workforce";
@@ -17,11 +19,18 @@ import Cost from "./screens/Cost";
 import Finance from "./screens/Finance";
 import Reports from "./screens/Reports";
 import ExecutiveHome from "./screens/ExecutiveHome";
+import ExecutiveWork from "./screens/ExecutiveWork";
+import ExecutiveOrganisation from "./screens/ExecutiveOrganisation";
+import ExecutiveFinance from "./screens/ExecutiveFinance";
+import ExecutiveReports from "./screens/ExecutiveReports";
 import Assign from "./screens/Assign";
 import Team from "./screens/Team";
 import PersonDetail from "./screens/PersonDetail";
 import StaffTeam from "./screens/StaffTeam";
+import StaffCalendar from "./screens/StaffCalendar";
+import Inbox from "./screens/Inbox";
 import OfficeSettings from "./screens/OfficeSettings";
+import ControlCenter from "./screens/ControlCenter";
 import AdminProjects from "./screens/AdminProjects";
 import AdminCalendar from "./screens/AdminCalendar";
 import AdminAudit from "./screens/AdminAudit";
@@ -48,7 +57,7 @@ import Announcements from "./screens/Announcements";
 import Room from "./screens/Room";
 import Meeting from "./screens/Meeting";
 import MeetingScheduler from "./components/MeetingScheduler";
-import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./components/bits";
+import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./components/PremiumShell";
 import AuthFrame from "./components/AuthFrame";
 
 function routeFromLocation() {
@@ -244,11 +253,21 @@ export default function App() {
     if (tab === "team") return isManager
       ? <Team me={me} openPerson={(id, focus) => setPerson({ id, focus })} goAssign={startAssignment} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />
       : <StaffTeam me={me} openRoom={() => openRoom({ kind: "unit", unitId: me.unit_id })} />;
-    if (tab === "work") return <Work me={me} isManager={isUnitManager} openItem={openItem} />;
+    if (tab === "work") {
+      if (isExec) return <ExecutiveWork me={me} openItem={openItem} goAssign={startAssignment} />;
+      if (isAdmin) return <AdminWork me={me} openItem={openItem} goAssign={startAssignment} />;
+      if (isUnitManager) return <ManagerWork me={me} openItem={openItem} goAssign={startAssignment} />;
+      return <Work me={me} isManager={false} openItem={openItem} />;
+    }
+    if (tab === "staff-calendar" && isStaff) return <StaffCalendar me={me} openItem={openItem} openMeeting={openMeeting} />;
+    if (tab === "messages") return <Inbox me={me} openRoom={openRoom} openAnnouncements={() => go("announcements")} />;
     if (tab === "projects" && isUnitManager) return <ManagerProjects me={me} openItem={openItem} goAssign={startAssignment} openMeeting={openMeeting} scheduleMeeting={startMeeting} openRoom={(projectId, reference) => openRoom({ kind: "project", projectId, reference })} />;
     if (tab === "calendar" && isUnitManager) return <ManagerCalendar me={me} openItem={openItem} openProject={openProject} openMeeting={openMeeting} scheduleMeeting={startMeeting} openPerson={(id, focus) => setPerson({ id, focus })} />;
     if (tab === "manager-finance" && isUnitManager) return <ManagerFinance me={me} openProject={openProject} />;
     if (tab === "manager-reports" && isUnitManager) return <ManagerReports me={me} openItem={openItem} openProject={openProject} />;
+    if (tab === "exec-organisation" && isExec) return <ExecutiveOrganisation me={me} />;
+    if (tab === "exec-finance" && isExec) return <ExecutiveFinance me={me} />;
+    if (tab === "exec-reports" && isExec) return <ExecutiveReports me={me} />;
     if (tab === "record") return <Record me={me} openItem={openItem} />;
     if (tab === "announcements") return <Announcements me={me} back={() => go("home")} />;
     if (tab === "strategy") return <Strategy me={me} />;
@@ -259,7 +278,7 @@ export default function App() {
     if (tab === "assets" && canUseAssets) return <Assets me={me} />;
     if (tab === "compliance" && canUseCompliance) return <Compliance me={me} />;
     if (tab === "cost" && isAdmin) return <Cost me={me} />;
-    if (tab === "finance" && isAdmin) return <Finance me={me} />;
+    if (tab === "finance" && isAdmin) return <Finance me={me} openExpenses={() => go("cost")} />;
     if (tab === "reporting" && isAdmin) return <Reports me={me} />;
     if (tab === "attendance" && canUseWorkforce) return <Workforce me={me} />;
     if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
@@ -274,8 +293,9 @@ export default function App() {
     if (tab === "policies" && canManageAuthority) return <AdminPolicies me={me} />;
     if (tab === "integrations" && canManageIntegrations) return <AdminIntegrations me={me} />;
     if (tab === "authority" && canManageAuthority) return <AdminAuthority me={me} refreshMe={boot} />;
-    if (tab === "settings" && isAdmin) return <OfficeSettings me={me} openWorkforce={() => go("attendance")} />;
-    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} openWorkforce={() => go("attendance")} openAssets={() => go("assets")} openCompliance={() => go("compliance")} />;
+    if (tab === "settings" && isAdmin) return <ControlCenter me={me} go={go} />;
+    if (tab === "office-settings" && isAdmin) return <OfficeSettings me={me} openWorkforce={() => go("attendance")} />;
+    return <MeScreen me={me} openGoal={setGoalId} openRecord={() => go("record")} openPerformance={() => go("performance")} openWorkforce={() => go("attendance")} openLearning={() => go("learning")} openAssets={() => go("assets")} openCompliance={() => go("compliance")} />;
   }
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
@@ -283,10 +303,10 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} />
+      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} />
       <div className="app-workspace">
-        <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} />
-        <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} />
+        <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} onMessages={() => go("messages")} />
+        <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} onNavigate={go} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onMessages={() => go("messages")} onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
         {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
           <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
             {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
@@ -312,10 +332,10 @@ export default function App() {
             : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={openItem} openProject={openProject} back={() => setPerson(null)} />
             : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={openItem} openProject={openProject} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} onRoomChange={openRoom} />
             : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); openMeeting(id); }} />
-            : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} />
+            : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} openRoom={openRoom} />
             : pageForTab()}
         </main>
-        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} />}
+        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} onMessages={() => go("messages")} />}
       </div>
     </div>);
 }

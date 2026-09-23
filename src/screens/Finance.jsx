@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { Sheet, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
+import FinanceRequestQueue from "../components/FinanceRequestQueue";
 
 // Finance — the whole church in one place. In, out, and what is moving
 // between departments.
@@ -16,9 +17,13 @@ const CURRENCIES = [["GHS","GHS — Ghana cedi"],["USD","USD — US dollar"],["G
 // grouped by currency and shown side by side instead.
 const money = (minor, cur) => (cur || "GHS") + " " + (Number(minor || 0) / 100).toLocaleString("en-GH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const toMinor = (s) => Math.round(parseFloat(String(s).replace(/[^0-9.]/g, "")) * 100);
-function sumByCurrency(rows) {
+function sumByCurrency(rows, { reversals = false } = {}) {
   const by = {};
-  rows.forEach((r) => { const c = r.currency || "GHS"; by[c] = (by[c] || 0) + Number(r.amount_minor || 0); });
+  rows.forEach((r) => {
+    const c = r.currency || "GHS";
+    const amount = Number(r.amount_minor || 0);
+    by[c] = (by[c] || 0) + (reversals && r.reverses_id ? -amount : amount);
+  });
   return by;
 }
 function showTotals(by) {
@@ -30,7 +35,7 @@ function showTotals(by) {
 const TABS = [["overview","Overview"],["in","Money in"],["out","Money out"],["moving","Between departments"]];
 const SOURCES = [["offering","Offering"],["partnership","Partnership"],["donation","Donation"],["event","Event"],["other","Other"]];
 
-export default function Finance({ me }) {
+export default function Finance({ me, openExpenses }) {
   const [tab, setTab] = useState("overview");
   const [units, setUnits] = useState([]);
   const [income, setIncome] = useState([]);
@@ -80,7 +85,7 @@ export default function Finance({ me }) {
   }
 
   const nameOf = (id) => { const u = units.find((x) => x.id === id); return u ? u.name : "Central church funds"; };
-  const inBy = sumByCurrency(income), outBy = sumByCurrency(spend), budBy = sumByCurrency(budgets);
+  const inBy = sumByCurrency(income), outBy = sumByCurrency(spend, { reversals: true }), budBy = sumByCurrency(budgets);
   const diffBy = {};
   [...new Set([...Object.keys(inBy), ...Object.keys(outBy)])].forEach((c) => { diffBy[c] = (inBy[c] || 0) - (outBy[c] || 0); });
   const unconfirmed = transfers.filter((t) => t.state === "sent");
@@ -156,6 +161,7 @@ export default function Finance({ me }) {
         </div>)}
 
       {tab === "overview" && (<>
+        <FinanceRequestQueue me={me} authority="admin" canFulfil title="Requests needing Administration" />
         <SectionHeader eyebrow={String(year)} title="Financial position by currency" />
         <div className="finance-currency-grid">
           {financeCurrencies.length === 0 && <EmptyState compact title="No finance records yet">Income, spend and budget records will build this view automatically.</EmptyState>}
@@ -182,7 +188,7 @@ export default function Finance({ me }) {
         <SectionHeader eyebrow="Departments" title="Where money is moving" />
         <div className="finance-unit-grid">
         {units.map((u) => {
-          const outB = sumByCurrency(spend.filter((s) => s.unit_id === u.id));
+          const outB = sumByCurrency(spend.filter((s) => s.unit_id === u.id), { reversals: true });
           const gotB = sumByCurrency(transfers.filter((x) => x.to_unit_id === u.id && x.state === "confirmed"));
           const budB = sumByCurrency(budgets.filter((b) => b.unit_id === u.id));
           const out = Object.keys(outB).length, got = Object.keys(gotB).length, bud = Object.keys(budB).length;
@@ -198,7 +204,7 @@ export default function Finance({ me }) {
         })}
         </div>
         {units.every((u) => !spend.some((s) => s.unit_id === u.id)) &&
-          <EmptyState compact title="No department spend recorded">Cost entries will appear here once they are recorded against a unit.</EmptyState>}
+          <EmptyState compact title="No department spend recorded">Expense entries will appear here once they are recorded against a department.</EmptyState>}
       </>)}
 
       {tab === "in" && (<>
@@ -221,7 +227,7 @@ export default function Finance({ me }) {
 
       {tab === "out" && (<>
         <div className="sec"><span>Money spent</span><span>{showTotals(outBy)}</span></div>
-        <p className="small" style={{ marginBottom: 6 }}>Spending is entered on the Cost screen, against the department it belongs to.</p>
+        <div className="finance-expense-intro"><p className="small">Actual spend stays separate from requests and transfers. Record an expense against the department and source record it belongs to.</p>{openExpenses&&<button className="btn btn-ghost btn-sm" onClick={openExpenses}>Open Expenses</button>}</div>
         {spend.length === 0 && <div className="card small">Nothing recorded yet.</div>}
         {spend.sort((a, b) => b.spent_on.localeCompare(a.spent_on)).slice(0, 120).map((s) => (
           <div key={s.id} className="row">

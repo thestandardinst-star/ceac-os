@@ -241,11 +241,12 @@ export default function Strategy({ me }) {
 
   if (loading) return <div className="body"><LoadingState label="Loading strategy…" /></div>;
 
+  const executiveSurface=Boolean(me.is_exec);
   return <div className="body">
     <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">Goals & strategy</div>
-      <h1 className="h1">Strategy</h1>
-      <p className="screen-note">Ministry Direction → Ministry Objective → Unit Objective. Descriptive goals stay descriptive; numeric goals always show the result beside its target.</p>
+      <div className="eyebrow">{executiveSurface ? "Ministry direction" : "Goals & strategy"}</div>
+      <h1 className="h1">{executiveSurface ? "Ministry" : "Strategy"}</h1>
+      <p className="screen-note">{executiveSurface ? "Direction, ministry objectives and the unit objectives carrying them forward. Results are shown only where they are explicitly recorded." : "Ministry Direction → Ministry Objective → Unit Objective. Descriptive goals stay descriptive; numeric goals always show the result beside its target."}</p>
     </div>
 
     {error && <ProductNotice tone="error" title="Strategy">{error}</ProductNotice>}

@@ -14,6 +14,20 @@ const orgId = "10000000-0000-4000-8000-000000000010";
 const unitA = "20000000-0000-4000-8000-000000000011";
 const unitB = "20000000-0000-4000-8000-000000000012";
 
+// Closure hardening fixtures: Test Unit B acts as Finance so the browser suite
+// can prove the real multi-stage request authority path without bypassing RLS.
+const financeUnit = await service.from("units").update({ handles_finance: true }).eq("id", unitB);
+assert.equal(financeUnit.error, null, financeUnit.error?.message);
+
+const financeRules = await service.from("finance_approval_rules").upsert({
+  org_id: orgId,
+  currency: "GHS",
+  no_request_below_minor: 0,
+  admin_limit_minor: 100000,
+  finance_limit_minor: 1000000,
+}, { onConflict: "org_id,currency" });
+assert.equal(financeRules.error, null, financeRules.error?.message);
+
 const users = [
   { id: "31000000-0000-4000-8000-000000000001", email: "staff@ceac.local.test", name: "Staff Fixture", unit: unitA, role: "staff" },
   { id: "31000000-0000-4000-8000-000000000002", email: "manager@ceac.local.test", name: "Manager Fixture", unit: unitA, role: "manager" },

@@ -1,0 +1,175 @@
+/* CEAC OS Premium Redesign — R3 Administration & HR
+   Administration is an organisation operations console: action queues, employee workspaces,
+   time & leave, finance, reporting and a contained Control Center.
+*/
+.office-app .app-content>.body{max-width:1280px!important;margin:0 auto!important}
+.office-app .h1{font-size:34px!important;letter-spacing:-.045em!important}
+.office-app .screen-note{max-width:760px}
+
+/* Administration overview */
+.office-app .admin-command-surface{
+  position:relative;overflow:hidden;border-radius:22px!important;padding:27px 29px!important;
+  background:
+    radial-gradient(circle at 92% 16%,rgba(45,125,255,.15),transparent 25%),
+    radial-gradient(circle at 82% 60%,rgba(12,177,103,.08),transparent 30%),
+    linear-gradient(135deg,#111f32,#172d4d 62%,#132238)!important;
+  color:#fff;border:0!important;box-shadow:0 22px 56px rgba(25,43,70,.14)!important;
+}
+.office-app .admin-command-surface .h1{color:#fff!important;font-size:36px!important;margin:4px 0 8px!important}
+.office-app .admin-command-surface .screen-note{color:#a8b7ca!important}
+.office-app .admin-command-context{display:flex;justify-content:space-between;gap:16px;color:#8fa3ba!important;font-size:9px!important}
+.office-app .admin-command-stats{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:1px!important;
+  margin-top:22px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;overflow:hidden!important;
+  background:rgba(255,255,255,.1)!important;
+}
+.office-app .admin-command-stats>div{padding:13px 14px!important;background:rgba(5,18,34,.24)!important}
+.office-app .admin-command-stats strong{display:block;color:#fff!important;font-size:19px!important}
+.office-app .admin-command-stats span{display:block;margin-top:2px;color:#99abc0!important;font-size:9px!important}
+.office-app .admin-home-section{
+  margin-top:14px!important;padding:17px!important;border:1px solid #e1e7ee!important;border-radius:16px!important;
+  background:#fff!important;box-shadow:0 7px 24px rgba(35,53,79,.038)!important;
+}
+.office-app .admin-pulse-grid{gap:10px!important}
+.office-app .admin-pulse-card{border:1px solid #e5eaf0!important;border-radius:13px!important;background:#fafbfd!important;box-shadow:none!important}
+.office-app .admin-action-row,.office-app .admin-evidence-row{
+  border:0!important;border-top:1px solid #edf0f4!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+.office-app .admin-action-row:first-of-type,.office-app .admin-evidence-row:first-of-type{border-top:0!important}
+
+/* Admin work */
+.admin-work{max-width:1160px!important}
+.admin-page-header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;padding:8px 0 18px}
+.admin-page-header .h1{margin:5px 0 7px!important}
+.admin-work-tabs{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px;
+}
+.admin-work-tabs button{
+  border:1px solid #dfe6ee;background:#fff;border-radius:13px;padding:13px 14px;
+  display:flex;align-items:center;justify-content:space-between;color:#697a90;text-align:left;
+  box-shadow:0 5px 18px rgba(35,53,79,.035);cursor:pointer;
+}
+.admin-work-tabs button span{font-size:11px;font-weight:720}
+.admin-work-tabs button b{
+  min-width:27px;height:27px;padding:0 7px;border-radius:99px;display:flex;align-items:center;justify-content:center;
+  background:#f0f3f7;color:#697789;font-size:9px;
+}
+.admin-work-tabs button.on{border-color:#b8d0ff;background:#f5f8ff;color:#0c5df9}
+.admin-work-tabs button.on b{background:#0c5df9;color:#fff}
+.admin-work-list{
+  border:1px solid #e0e6ee;border-radius:15px;background:#fff;overflow:hidden;box-shadow:0 9px 28px rgba(35,53,79,.04);
+}
+.admin-work-row{
+  width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;padding:13px 15px;
+  display:grid;grid-template-columns:minmax(0,1fr) 190px 105px auto;gap:16px;align-items:center;text-align:left;cursor:pointer;
+}
+.admin-work-row:hover,.admin-review-row:hover{background:#f8fbff}
+.admin-work-row:last-child,.admin-review-row:last-child{border-bottom:0}
+.admin-work-row.attention{box-shadow:inset 3px 0 #fcaf2e}
+.admin-work-main strong,.admin-work-unit strong{display:block;color:#1b3048;font-size:11px}
+.admin-work-main small,.admin-work-main em,.admin-work-unit small,.admin-work-due{display:block;color:#8290a1;font-size:9px;font-style:normal;margin-top:3px}
+.admin-review-row{
+  width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;padding:13px 15px;
+  display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:11px;align-items:center;text-align:left;cursor:pointer;
+}
+.admin-review-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:#0c5df9;font-size:10px;font-weight:800}
+.admin-review-row strong{display:block;color:#1d3048;font-size:11px}.admin-review-row small{display:block;color:#8492a3;font-size:9px;margin-top:3px}
+.admin-work-empty{padding:28px;text-align:center}.admin-work-empty strong{display:block;color:#31465f;font-size:12px}.admin-work-empty span,.admin-work-footnote{display:block;color:#8996a6;font-size:9px;margin-top:4px}
+
+/* People directory + employee workspace */
+.office-app .people-search-row{
+  margin-top:16px;padding:14px;border:1px solid #e1e7ee;border-radius:14px;background:#fff;
+  box-shadow:0 7px 24px rgba(35,53,79,.035);
+}
+.office-app .people-directory-row{
+  border:0!important;border-top:1px solid #edf0f4!important;border-radius:0!important;background:#fff!important;
+  padding:13px 12px!important;box-shadow:none!important;transition:background .16s ease;
+}
+.office-app .people-directory-row:hover{background:#f8fbff!important}
+.office-app .people-directory-name strong{font-size:12px!important;color:#172b43!important}
+.office-app .people-directory-context{color:#8090a3!important;font-size:9px!important}
+.office-app .person-identity-header{
+  padding:22px 24px!important;border:0!important;border-radius:20px!important;
+  background:linear-gradient(135deg,#122139,#183251)!important;color:#fff!important;box-shadow:0 20px 50px rgba(25,43,70,.12)!important;
+}
+.office-app .person-identity-header .h1{color:#fff!important}
+.office-app .person-identity-header .screen-note,.office-app .person-identity-header .eyebrow{color:#a8b8ca!important}
+.office-app .person-identity-state .flag{border-color:rgba(255,255,255,.12)!important}
+.office-app .split{gap:14px!important}
+.office-app .main-col,.office-app .side-col{min-width:0}
+.office-app .metric-grid{gap:8px!important}
+.office-app .metric{
+  border:1px solid #e3e8ef!important;border-radius:12px!important;background:#fff!important;box-shadow:0 5px 18px rgba(35,53,79,.03)!important;
+}
+
+/* Workforce / Time & Leave */
+.office-app .workforce-page{max-width:1220px!important}
+.office-app .workforce-tabs{
+  position:sticky;top:82px;z-index:8;display:flex!important;gap:5px!important;padding:7px!important;margin:15px 0!important;
+  border:1px solid #e1e6ed!important;border-radius:13px!important;background:rgba(255,255,255,.94)!important;backdrop-filter:blur(12px);
+  box-shadow:0 7px 22px rgba(35,53,79,.04)!important;overflow:auto;
+}
+.office-app .workforce-tabs button{white-space:nowrap;border:0!important;border-radius:9px!important;background:transparent!important;color:#758498!important;font-size:10px!important;padding:9px 11px!important}
+.office-app .workforce-tabs button.on{background:#0f1723!important;color:#fff!important}
+.office-app .workforce-grid{gap:10px!important}
+.office-app .workforce-person{
+  border:1px solid #e3e8ef!important;border-radius:14px!important;background:#fff!important;box-shadow:0 6px 20px rgba(35,53,79,.035)!important;
+}
+.office-app .workforce-facts{gap:1px!important;background:#edf0f4!important;border-radius:10px!important;overflow:hidden!important}
+.office-app .workforce-facts span{background:#fafbfd!important}
+.office-app .workforce-calendar{border-color:#e2e7ee!important;border-radius:14px!important;overflow:hidden!important}
+.office-app .workforce-setup-actions{gap:7px!important}
+
+/* Finance + Expenses */
+.office-app .finance-page-intro,.office-app .reporting-page-intro{padding:8px 0 10px!important}
+.office-app .finance-currency-grid,.office-app .finance-unit-grid{gap:10px!important}
+.office-app .finance-currency-card,.office-app .finance-unit-card,.office-app .report-period-card{
+  border:1px solid #e2e7ee!important;border-radius:15px!important;background:#fff!important;box-shadow:0 7px 24px rgba(35,53,79,.035)!important;
+}
+.office-app .finance-currency-facts{gap:1px!important;background:#edf0f4!important;border-radius:11px!important;overflow:hidden!important}
+.office-app .finance-expense-intro{
+  margin:10px 0 12px;padding:12px 13px;border:1px solid #dbe6f5;border-radius:12px;background:#f6f9ff;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.office-app .finance-expense-intro .small{margin:0!important;color:#6f7f93!important}
+.office-app .body>.row{border-color:#e4e9ef!important;border-radius:11px!important;background:#fff!important}
+.office-app .report-leadership-overview,.office-app .report-outstanding-section{
+  border:1px solid #e2e7ee!important;border-radius:15px!important;background:#fff!important;box-shadow:0 7px 24px rgba(35,53,79,.035)!important;
+}
+
+/* Control Center */
+.control-center{max-width:1120px!important}
+.control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.control-card{
+  border:1px solid #e0e6ee;background:#fff;border-radius:15px;padding:15px;
+  display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:13px;align-items:center;text-align:left;cursor:pointer;
+  box-shadow:0 7px 24px rgba(35,53,79,.035);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.control-card:hover{transform:translateY(-1px);border-color:#bfd2ef;box-shadow:0 11px 30px rgba(35,53,79,.07)}
+.control-card-icon{width:42px;height:42px;border-radius:12px;background:#eef4ff;color:#0c5df9;display:flex;align-items:center;justify-content:center}
+.control-card-copy strong{display:block;color:#182d46;font-size:12px}.control-card-copy small{display:block;color:#7d8b9c;font-size:9px;line-height:1.45;margin-top:4px}
+.control-card-side{text-align:right}.control-card-side b{display:block;color:#5b6d83;font-size:9px}.control-card-side em{display:block;color:#0c5df9;font-size:9px;font-style:normal;margin-top:5px;font-weight:700}
+.control-advanced{margin-top:17px;padding:17px;border:1px solid #e2e7ee;border-radius:16px;background:#fff}
+.control-advanced h2{font-size:15px;margin:3px 0 5px;color:#1b3049}.control-advanced p{margin:0 0 12px;color:#8190a2;font-size:9px}
+.control-advanced>div:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.control-advanced button{border:1px solid #e6eaf0;background:#fafbfd;border-radius:12px;padding:12px;text-align:left;cursor:pointer}
+.control-advanced button strong{display:block;color:#253950;font-size:11px}.control-advanced button small{display:block;color:#8591a2;font-size:9px;line-height:1.4;margin-top:3px}.control-advanced button b{display:block;color:#0c5df9;font-size:9px;margin-top:8px}
+
+@media(max-width:980px){
+  .office-app .admin-command-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .admin-work-tabs,.control-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-work-row{grid-template-columns:minmax(0,1fr) 105px auto}.admin-work-unit{display:none}
+  .office-app .workforce-tabs{top:64px}
+}
+@media(max-width:620px){
+  .office-app .admin-command-surface{padding:20px 17px!important;border-radius:18px!important}
+  .office-app .admin-command-surface .h1{font-size:29px!important}
+  .admin-page-header{display:block}.admin-page-header>.btn{margin-top:12px}
+  .admin-work-tabs,.control-grid{grid-template-columns:1fr 1fr;gap:6px}
+  .admin-work-tabs button{padding:10px}
+  .admin-work-row{grid-template-columns:minmax(0,1fr) auto;padding:11px}.admin-work-due{display:none}
+  .office-app .split{display:block!important}
+  .office-app .finance-expense-intro{display:block}.office-app .finance-expense-intro .btn{margin-top:8px}
+  .control-card{grid-template-columns:38px minmax(0,1fr)}.control-card-side{grid-column:2;text-align:left}.control-card-icon{width:38px;height:38px}
+  .control-advanced>div:last-child{grid-template-columns:1fr}
+}

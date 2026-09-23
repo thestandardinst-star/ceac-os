@@ -4,7 +4,7 @@ import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
 
-export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce, openAssets, openCompliance }) {
+export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce, openLearning, openAssets, openCompliance }) {
   const [profile, setProfile] = useState(me);
   const [leavePolicy, setLeavePolicy] = useState(null);
   const [leavePolicyRules, setLeavePolicyRules] = useState([]);
@@ -224,29 +224,33 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
     {message && !sheet && <ProductNotice tone={message.startsWith("Saved") ? "success" : "error"} title={message.startsWith("Saved") ? "Saved" : "Could not complete that"}>{message}</ProductNotice>}
     <div className="staff-page-intro">
       <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1">{profile.preferred_name || profile.full_name}</h1>
-      <p className="screen-note">{profile.job_title || "Staff"} · your goals, leave and personal details.</p>
+      <h1 className="h1">My Hub</h1>
+      <p className="screen-note">{profile.preferred_name || profile.full_name} · {profile.job_title || "Staff"} · your development, time away, equipment, policies and personal record.</p>
     </div>
 
-    <div className="personal-entry-stack">
-      <button className="personal-history-entry" type="button" onClick={() => openRecord?.()}>
-        <span><strong>My work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
+    <div className="personal-entry-stack hub-entry-grid">
+      <button className="personal-history-entry" aria-label="My work history" type="button" onClick={() => openRecord?.()}>
+        <span><strong>Work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
         <b aria-hidden="true">→</b>
       </button>
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openPerformance?.()}>
-        <span><strong>Reviews & development</strong><small>Your review evidence, reflection, manager assessment, responses and development plan.</small></span>
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="Reviews & development" type="button" onClick={() => openPerformance?.()}>
+        <span><strong>Development</strong><small>Your review evidence, reflection, feedback and development plan.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openWorkforce?.()}>
-        <span><strong>My workforce context</strong><small>Your schedule, recorded session context, leave history and attendance corrections.</small></span>
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My workforce context" type="button" onClick={() => openWorkforce?.()}>
+        <span><strong>Time & leave</strong><small>Your schedule, recorded work-session context, leave and corrections.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openAssets?.()}>
-        <span><strong>My assets</strong><small>CEAC equipment currently in your custody and your recorded custody history.</small></span>
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="Learning" type="button" onClick={() => openLearning?.()}>
+        <span><strong>Learning</strong><small>Assigned learning, resources and factual completion history.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" type="button" onClick={() => openCompliance?.()}>
-        <span><strong>My compliance</strong><small>Applicable policies, acknowledgements, evidence and exception history.</small></span>
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My assets" type="button" onClick={() => openAssets?.()}>
+        <span><strong>Equipment</strong><small>CEAC equipment currently in your custody and your recorded custody history.</small></span>
+        <b aria-hidden="true">→</b>
+      </button>}
+      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My compliance" type="button" onClick={() => openCompliance?.()}>
+        <span><strong>Policies & requirements</strong><small>Policies that apply to you, acknowledgements, evidence and exceptions.</small></span>
         <b aria-hidden="true">→</b>
       </button>}
     </div>

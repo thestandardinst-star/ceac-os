@@ -1,5 +1,17 @@
 # CEAC OS — Claude continuation instructions
 
+## Premium redesign is the active UI programme
+
+Before any UI work, read:
+1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`
+2. `docs/handoff/CEAC_OS_PREMIUM_REDESIGN_HANDOFF_2026-09-23.md`
+3. `AGENTS.md` in full.
+
+Do not rebuild from the old sidebar or old screen composition. Do not invent a different icon family, color direction, role shell or visual system. The premium redesign source of truth supersedes conflicting older UX/navigation/visual text on this redesign branch while all existing security/data contracts remain binding.
+
+Do not touch the frozen Stage 11 branch from redesign work. Do not start Stage 12 unless the product owner explicitly resumes enterprise expansion. Continue only the active redesign tranche recorded in the handoff.
+
+
 Before changing this repository, read `AGENTS.md` in full. It contains the binding product, security and build rules for CEAC OS.
 
 For the enterprise expansion, also read:

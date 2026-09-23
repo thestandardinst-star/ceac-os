@@ -1,5 +1,25 @@
 # CEAC OS — instructions for coding agents
 
+## PREMIUM REDESIGN PROGRAMME — READ THIS BEFORE ANY UI WORK
+
+The product owner has explicitly replaced the current visible product direction with the premium redesign programme on this branch.
+
+Before changing any route, role shell, navigation, page composition, styling, iconography, messaging surface or interaction pattern, read in this order:
+
+1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`
+2. `docs/handoff/CEAC_OS_PREMIUM_REDESIGN_HANDOFF_2026-09-23.md`
+3. this file in full;
+4. the existing security/data/domain contract for the capability being surfaced.
+
+The premium redesign contract supersedes conflicting older **UX/navigation/visual** decisions on this redesign branch. It does **not** supersede security, RLS, data-integrity, audit, protected-HR, work-behaviour or capability-authority contracts.
+
+The approved master mockup and the source-of-truth document are binding. Do not substitute icons, palette, information architecture, role composition or generic admin-template UI because it is easier to implement. Any deliberate visual/product deviation requires explicit product-owner approval and a contract update first.
+
+The redesign sequence is R0 shell/design foundation → R1 Staff → R2 Manager → R3 Administration/HR → R4 Group Pastor/CEO → R5 communication consolidation → R6 whole-system visual consistency → R7 closure. Do not run multiple redesign tranches in parallel.
+
+**Stage 12 remains paused while the redesign programme is active unless the product owner explicitly resumes enterprise expansion.**
+
+
 A staff operating system for CEAC, a church in Accra. Four surfaces:
 staff, unit manager, Administration & HR, Group Pastor.
 

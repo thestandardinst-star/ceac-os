@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://efjljhftsesssumtshvp.supabase.co";
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_CVq1sCY0Z4-o9Us4Y6RaUw_53FUHQj-";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("CEAC OS is missing its Supabase deployment configuration.");
+}
 
 export const supabase = createClient(
   supabaseUrl,

@@ -3,6 +3,7 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Sheet, FieldGroup, ProductNotice, LoadingState, ProgressMeter, EmptyState, SectionHeader } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import FinanceRequestQueue from "../components/FinanceRequestQueue";
 
 const money=(minor,cur)=>`${cur} ${(Number(minor||0)/100).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 function totals(rows){const out={}; rows.forEach(r=>{if(!r.currency)return; out[r.currency]=(out[r.currency]||0)+Number(r.amount_minor||0);}); return out;}
@@ -12,22 +13,24 @@ function MoneyLines({title,values,empty,onOpen}){const keys=Object.keys(values).
 export default function ManagerFinance({me,openProject}){
  const [budgets,setBudgets]=useState([]),[spend,setSpend]=useState([]),[transfers,setTransfers]=useState([]),[projects,setProjects]=useState([]),[positions,setPositions]=useState([]),[requests,setRequests]=useState([]);
  const [error,setError]=useState(null),[loading,setLoading]=useState(true),[drill,setDrill]=useState(null);
+ const [financeHandler,setFinanceHandler]=useState(false);
  const [sheet,setSheet]=useState(null),[busy,setBusy]=useState(false),[notice,setNotice]=useState(null);
  const [requestTitle,setRequestTitle]=useState(""),[requestJustification,setRequestJustification]=useState(""),[requestAmount,setRequestAmount]=useState(""),[requestCurrency,setRequestCurrency]=useState("GHS"),[requestNeededBy,setRequestNeededBy]=useState(""),[requestProject,setRequestProject]=useState("");
  const year=new Date().getFullYear();
  useEffect(()=>{load();},[me.id,me.unit_id]);
  async function load(){
   setLoading(true);setError(null);
-  const [b,s,t,p,pos,req]=await Promise.all([
+  const [b,s,t,p,pos,req,u]=await Promise.all([
    supabase.from("budgets").select("id,unit_id,project_id,year,amount_minor,currency,note").eq("unit_id",me.unit_id).eq("year",year),
    supabase.from("spend_lines").select("id,unit_id,project_id,spent_on,description,amount_minor,currency,reverses_id").eq("unit_id",me.unit_id),
    supabase.from("internal_transfers").select("id,from_unit_id,to_unit_id,amount_minor,currency,sent_on,purpose,state,response_note").or(`from_unit_id.eq.${me.unit_id},to_unit_id.eq.${me.unit_id}`),
    supabase.from("projects").select("id,name,lead_unit_id,project_units(unit_id)"),
    supabase.rpc("unit_budget_position",{p_unit_id:me.unit_id,p_year:year}),
-   supabase.from("finance_requests").select("id,project_id,title,justification,amount_minor,currency,needed_by,state,created_at,decided_at,fulfilled_spend_id").eq("unit_id",me.unit_id).order("created_at",{ascending:false})
+   supabase.from("finance_requests").select("id,project_id,title,justification,amount_minor,currency,needed_by,state,created_at,decided_at,fulfilled_spend_id").eq("unit_id",me.unit_id).order("created_at",{ascending:false}),
+   supabase.from("units").select("handles_finance").eq("id",me.unit_id).single()
   ]);
-  const e=[b.error,s.error,t.error,p.error,pos.error,req.error].find(Boolean); if(e){setError(humanError(e,"Finance could not be loaded."));setLoading(false);return;}
-  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setRequests(req.data||[]);setLoading(false);
+  const e=[b.error,s.error,t.error,p.error,pos.error,req.error,u.error].find(Boolean); if(e){setError(humanError(e,"Finance could not be loaded."));setLoading(false);return;}
+  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setRequests(req.data||[]);setFinanceHandler(Boolean(u.data?.handles_finance));setLoading(false);
  }
 
  function amountToMinor(value){
@@ -134,6 +137,7 @@ export default function ManagerFinance({me,openProject}){
   </div>)}
   {requests.length===0&&<div className="card small">No finance requests are recorded for this unit.</div>}
   <p className="small" style={{marginTop:12}}>These figures are CEAC OS records, not a bank balance. Managers cannot post or edit Finance entries from this screen.</p>
+  {financeHandler&&<FinanceRequestQueue me={me} authority="finance" canFulfil title="Requests needing Finance" />}
 
   {sheet==="request"&&<Sheet onClose={()=>!busy&&setSheet(null)}>
    <div className="eyebrow">Finance request</div>

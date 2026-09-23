@@ -168,7 +168,10 @@ export default function MeetingScheduler({
         p_agenda: agenda.trim() || null,
         p_starts_at: new Date(startsAt).toISOString(),
         p_ends_at: endsAt ? new Date(endsAt).toISOString() : null,
-        p_provider: provider,
+        // Google Meet is a visible provider choice even before a connected-app
+        // capability exists. The existing safe meeting contract stores pasted
+        // Meet links as external links; it does not pretend CEAC created them.
+        p_provider: provider === "google_meet" ? "external" : provider,
         p_join_url: joinUrl.trim() || null,
         p_location: location.trim() || null,
         p_audience: audience.map(({ type, id }) => ({ type, id: id || null })),
@@ -257,6 +260,7 @@ export default function MeetingScheduler({
 
           <div className="meeting-provider-grid">
             <select className="field" value={provider} onChange={(e) => setProvider(e.target.value)}>
+              <option value="google_meet">Google Meet</option>
               <option value="zoom">Zoom</option>
               <option value="external">Other meeting link</option>
             </select>
