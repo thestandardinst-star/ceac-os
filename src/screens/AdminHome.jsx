@@ -198,9 +198,9 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
     setBusy(true); setMsg(null);
     try {
       const { error } = await supabase.rpc("workforce_leave_action", {
-        p_request_id: request.id,
-        p_action: decision === "declined" ? "decline" : "approve",
-        p_note: null,
+        p_leave_request_id: request.id,
+        p_action: decision === "declined" ? "declined" : "admin_approved",
+        p_reason: "Administration dashboard decision",
       });
       if (error) throw error;
       await load();
