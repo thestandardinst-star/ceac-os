@@ -17,7 +17,8 @@ test.describe("Premium redesign R1 Staff",()=>{
     const {context,page}=await openStaff(browser);
     await expect(page.getByRole("heading",{name:/Good (morning|afternoon|evening), Staff/})).toBeVisible();
     await expect(page.locator(".staff-command-surface")).toBeVisible();
-    await expect(page.getByText("Your next move",{exact:true})).toBeVisible();
+    await expect(page.locator(".reference-focus-grid")).toBeVisible();
+    await expect(page.getByText("Next up",{exact:true}).first()).toBeVisible();
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-today.png",fullPage:true});
     await context.close();
   });
