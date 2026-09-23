@@ -3,6 +3,7 @@ import { supabase, inviteByEmail } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { DashboardCalendar } from "../components/ReferenceDashboard";
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits }) {
   const [units, setUnits] = useState([]);
@@ -196,9 +197,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   async function decideLeave(request, decision) {
     setBusy(true); setMsg(null);
     try {
-      const { error } = await supabase.from("leave_requests").update({
-        status:decision, decided_by:me.id, decided_at:new Date().toISOString(),
-      }).eq("id",request.id);
+      const { error } = await supabase.rpc("workforce_leave_action", {
+        p_request_id: request.id,
+        p_action: decision === "declined" ? "decline" : "approve",
+        p_note: null,
+      });
       if (error) throw error;
       await load();
     } catch (error) { setMsg(humanError(error, "The leave decision could not be saved.")); }
@@ -226,6 +229,8 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         <div><strong>{today.headcount}</strong><span>People on record</span></div>
       </div>
     </section>
+
+    <DashboardCalendar meetings={meetings} />
 
     {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
     {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
