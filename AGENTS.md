@@ -198,3 +198,36 @@ canonical — never derive a code from the initials of a unit name.
 
 - **Payroll**: which allowances and deductions beyond SSNIT and PAYE.
 - **Leave entitlement by contract type**: one org-wide figure today.
+
+## Continuing without Claude
+
+Everything needed is in the repository. No step requires asking Claude.
+
+1. `docs/architecture/CEAC_OS_Experience_Data_Architecture_v2.md` — every
+   design and product decision, in build sequence, with the reasoning.
+2. `docs/reference/manager-overview.html` — the approved visual target.
+   Open it in a browser and match it.
+3. `src/components/primitives/` — the six built primitives. `System →
+   Primitives` in the app demonstrates each against live data.
+4. `docs/QUESTIONS_FOR_CEAC.md` — the remaining open questions. They are
+   not gates for the redesign; build with the documented defaults and keep
+   the switches reversible.
+
+Before adding a migration, inspect the repository and production migration
+history, use the next available version, and keep the schema change inside
+the staged PR that requires it. Never invent CEAC policy to justify a migration.
+## Before designing or rebuilding any screen
+
+Read `docs/architecture/CEAC_OS_Experience_Data_Architecture_v2.md`.
+
+It records a page-by-page review of all 58 screens and every design and
+product decision taken since. Two findings drive it: only 1 screen
+contains a chart, none contains a table, and 12 primitives are used over
+2,000 times — so every screen renders as cards of form fields whatever
+its job.
+
+Build the missing primitives first (table, chart with a mandatory
+chart/table toggle, linked stat, dense queue row, icon set, map). Until
+they exist, any redesign becomes cards again.
+
+Part 11 lists two open questions that do not block the redesign. Use the documented defaults; do not invent additional CEAC policy.
