@@ -16,6 +16,18 @@ const accraDateKey = (value) => {
   const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   return `${byType.year}-${byType.month}-${byType.day}`;
 };
+const googleStamp = (value) => new Date(value).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+function googleCalendarUrl(event) {
+  const start = new Date(event.startsAt);
+  const end = event.endsAt ? new Date(event.endsAt) : new Date(start.getTime() + 60 * 60000);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${googleStamp(start)}/${googleStamp(end)}`,
+    details: "CEAC OS meeting. Open CEAC OS for the authoritative meeting record.",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
 
 export default function ManagerCalendar({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson }) {
   const [view,setView]=useState("month");
@@ -99,6 +111,8 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
         title:meeting.title,
         meetingId:meeting.id,
         meetingStatus:meeting.status,
+        startsAt:meeting.starts_at,
+        endsAt:meeting.ends_at,
         meta:`${scopeLabel} meeting · ${participantCount} participant${participantCount===1?"":"s"} · ${providerLabel}`,
       });
     });
@@ -114,10 +128,22 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
   const visible=filter==="all"?events:events.filter(e=>e.type===filter);
   const move=(n)=>setCursor(view==="month"?new Date(cursor.getFullYear(),cursor.getMonth()+n,1):addDays(cursor,n*7));
   const heading=view==="month"?`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`:`${labelDate(dateKey(days[0]))} – ${labelDate(dateKey(days[6]))}`;
+  const googleMeetings=events
+    .filter((event)=>event.type==="meetings"&&event.meetingStatus!=="cancelled"&&event.startsAt&&new Date(event.startsAt)>=new Date())
+    .sort((a,b)=>new Date(a.startsAt)-new Date(b.startsAt))
+    .slice(0,3);
 
   return <div className="body manager-calendar">
     <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Meetings, project dates, task deadlines, approved leave and ministry activity in one place.</p></div>
     <button className="btn wide-auto manager-calendar-create" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</button>
+    <section className="card" style={{ marginTop:12, padding:15 }} aria-label="Google Calendar">
+      <div className="row-t">Your Google Calendar</div>
+      <p className="screen-note" style={{ marginBottom:10 }}>Automatic personal sync is not connected yet because CEAC OS does not hold a Google authorisation for your account. You can add CEAC meetings yourself from here without giving Administration access to your calendar.</p>
+      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+        <a className="btn btn-ghost btn-sm" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Open Google Calendar</a>
+        {googleMeetings.map((meeting)=><a key={meeting.id} className="btn btn-ghost btn-sm" href={googleCalendarUrl(meeting)} target="_blank" rel="noreferrer">Add {meeting.title}</a>)}
+      </div>
+    </section>
     {error&&<ProductNotice tone="error" title="Could not load the calendar">{error}</ProductNotice>}
     <div className="manager-calendar-toolbar">
       <div className="calendar-view-toggle" role="group" aria-label="Calendar view">
