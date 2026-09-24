@@ -82,7 +82,11 @@ end $$;
 -- compliance_submit_evidence, compliance_review_evidence,
 -- compliance_request_exception and compliance_exception_action.
 -- Self-service actions bind to auth.uid(); decision actions require compliance.manage.
--- Reducing this surface is allowed. Any growth beyond 102 requires another
+-- Migration 094 adds two reviewed self-service account RPCs:
+-- my_sessions() and my_account_activity(integer). They expose only the
+-- signed-in person's own sessions/audit activity, accept no target-person
+-- identifier, revoke anon/PUBLIC execution, and bind rows to auth.uid().
+-- Reducing this surface is allowed. Any growth beyond 104 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -93,8 +97,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>102 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 102-function ceiling to %.',n;
+  if n>104 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 104-function ceiling to %.',n;
   end if;
 end $$;
 
@@ -121,6 +125,43 @@ begin
   end if;
 end
 $rpc_authority$;
+
+-- Migration 094 self-service account RPC review. These two functions are
+-- deliberately SECURITY DEFINER because auth.sessions and the audit source are
+-- not directly browser-readable. Keep the callable surface exact and own-data-only.
+do $account_self_service$
+declare
+  v_sessions oid;
+  v_activity oid;
+  v_sessions_def text;
+  v_activity_def text;
+begin
+  v_sessions := to_regprocedure('public.my_sessions()');
+  v_activity := to_regprocedure('public.my_account_activity(integer)');
+
+  if v_sessions is null or v_activity is null then
+    raise exception 'Security gate failure: account self-service RPC(s) are missing.';
+  end if;
+
+  if not has_function_privilege('authenticated',v_sessions,'EXECUTE')
+     or not has_function_privilege('authenticated',v_activity,'EXECUTE') then
+    raise exception 'Security gate failure: account self-service RPC(s) are not available to signed-in users.';
+  end if;
+
+  if has_function_privilege('anon',v_sessions,'EXECUTE')
+     or has_function_privilege('anon',v_activity,'EXECUTE') then
+    raise exception 'Security gate failure: account self-service RPC(s) are callable by anon.';
+  end if;
+
+  select pg_get_functiondef(v_sessions) into v_sessions_def;
+  select pg_get_functiondef(v_activity) into v_activity_def;
+
+  if v_sessions_def not ilike '%s.user_id = auth.uid()%'
+     or v_activity_def not ilike '%e.actor_id = auth.uid() or e.subject_profile_id = auth.uid()%' then
+    raise exception 'Security gate failure: account self-service RPC(s) are not visibly bound to auth.uid().';
+  end if;
+end
+$account_self_service$;
 
 -- Migration 067 changes default privileges. Prove a new function is not
 -- silently exposed to signed-in or anonymous users.
