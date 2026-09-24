@@ -57,7 +57,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
   const [submissions, setSubmissions] = useState([]);
   const [leave, setLeave] = useState([]);
   const [blockers, setBlockers] = useState([]);
-  const [team, setTeam] = useState({ present: [], leave: [], notStarted: [], completed: [], submitted: [] });
+  const [team, setTeam] = useState({ present: [], working: [], leave: [], notStarted: [], completed: [], submitted: [] });
   const [mine, setMine] = useState([]);
   const [projects, setProjects] = useState([]);
   const [upcomingProjects, setUpcomingProjects] = useState([]);
@@ -121,7 +121,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           .select("id, ref, title, status, due_at").eq("assignee_id", me.id)
           .not("status", "in", "(completed,self_certified,cancelled)"),
         supabase.from("leave_settings").select("manager_approval_limit").eq("org_id", me.org_id).maybeSingle(),
-        supabase.from("work_sessions").select("profile_id, started_at")
+        supabase.from("work_sessions").select("profile_id, started_at, ended_at")
           .gte("started_at", today.toISOString()).lt("started_at", tomorrow.toISOString()),
         supabase.from("work_items")
           .select("id, ref, title, status, due_at, completed_at, assignee_id")
@@ -190,6 +190,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
 
       const sessions = requireResult(sessionResult, "Presence");
       const presentIds = new Set(sessions.map((session) => session.profile_id));
+      const workingIds = new Set(sessions.filter((session) => !session.ended_at).map((session) => session.profile_id));
       const approvedLeaveResult = memberIds.size ? await supabase.from("leave_requests")
         .select("profile_id").in("profile_id", [...memberIds]).eq("status", "approved")
         .lte("start_date", dateKey(today)).gte("end_date", dateKey(today)) : { data: [], error: null };
@@ -212,12 +213,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       setTeam({
         leave: people.filter((person) => leaveIds.has(person.id)),
         present: people.filter((person) => !leaveIds.has(person.id) && presentIds.has(person.id)),
+        working: people.filter((person) => !leaveIds.has(person.id) && workingIds.has(person.id)),
         notStarted: people.filter((person) => !leaveIds.has(person.id) && !presentIds.has(person.id)),
         completed: todayOutput,
         submitted: submittedWork,
       });
 
-      const recentCompleted = requireResult(recentCompletedResult, "Recent completed work")
+      const recentCompletedRows = requireResult(recentCompletedResult, "Recent completed work");
+      const recentCompleted = recentCompletedRows
         .map((item) => ({ key: `completed-${item.id}`, type: "completed", at: item.completed_at, itemId: item.id, title: `${item.ref} · ${item.title}`, detail: `${item.profiles?.full_name || "Team member"} completed this work` }));
       const recentSubmissionRows = requireResult(recentSubmissionResult, "Recent submissions");
       const recentSubmitted = recentSubmissionRows
@@ -228,7 +231,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
 
       const latestSunday = previousOrSameWeekday(today, 0);
       const latestMidweek = previousOrSameWeekday(today, 3);
-      const completedRows = tasks.filter((item) => ["completed", "self_certified"].includes(item.status));
+      const completedRows = recentCompletedRows;
       setServiceDayData([
         {
           label: "Completed outputs",
@@ -436,8 +439,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           {blockers.length > 0 && <Stat icon="hand" label="Stuck on others" value={blockers.length}
                 tone="slow"
                 onOpen={() => document.getElementById("manager-stuck-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
-          {team.present.length > 0 && <Stat icon="people" label="Working now" value={team.present.length} sub={`of ${team.present.length + team.leave.length + team.notStarted.length}`}
-                onOpen={() => { setDrill({ zone: "team", title: "Working now", people: true, rows: team.present }); document.getElementById("manager-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />}
+          {team.working.length > 0 && <Stat icon="people" label="Working now" value={team.working.length} sub={`of ${team.present.length + team.leave.length + team.notStarted.length}`}
+                onOpen={() => { setDrill({ zone: "team", title: "Working now", people: true, rows: team.working }); document.getElementById("manager-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />}
           {budgetStatValue && <Stat icon="finance" label="Budget left" value={budgetStatValue}
                 onOpen={() => go?.("manager-finance")} />}
         </StatRow>
