@@ -385,23 +385,13 @@ test("Typed work can be created and reaches the Staff work surface", async ({ br
 
 test("Recurring ministry numbers flow from a unit record to the Group Pastor overview", async ({ browser }) => {
   const numberName = "Acceptance first timers";
-  const valueLabel = "People received";
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
     await go(page, "Reports");
     await expect(page.getByText("Recurring numbers", { exact: true })).toBeVisible();
-    const existing = page.getByText(numberName, { exact: true });
-    if (!(await existing.count())) {
-      await page.getByRole("button", { name: "Add number" }).click();
-      const dialog = page.getByRole("dialog");
-      await dialog.getByPlaceholder("e.g. First timers").fill(numberName);
-      await dialog.getByPlaceholder("e.g. People received").fill(valueLabel);
-      await dialog.getByRole("button", { name: "Add number" }).click();
-      await expect(page.getByText(numberName, { exact: true })).toBeVisible();
-    }
-
     const card = page.locator(".admin-unit-summary").filter({ hasText: numberName });
+    await expect(card).toBeVisible();
     await card.getByRole("button", { name: "Record" }).click();
     const recordDialog = page.getByRole("dialog");
     await recordDialog.locator('input[type="number"]').fill("17");
