@@ -75,6 +75,7 @@ function CostSummary({ rows, emptyText = "No project cost has been recorded." })
 
 export default function ManagerProjects({ me, initialProjectId = null, openItem, goAssign, openRoom, openMeeting, scheduleMeeting, back }) {
   const [projects, setProjects] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [selectedId, setSelectedId] = useState(initialProjectId);
   const [detail, setDetail] = useState(null);
   const [canCreate, setCanCreate] = useState(false);
@@ -85,7 +86,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   const [error, setError] = useState(null);
   const [area, setArea] = useState("overview");
 
-  useEffect(() => { loadList(); }, [me.id, me.unit_id]);
+  useEffect(() => { loadList(); loadProposals(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
   useEffect(() => {
     if (!selectedId) { setArea("overview"); return; }
@@ -96,6 +97,36 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     if (selectedId) sessionStorage.setItem(`ceac-project-area:${me.id}:${selectedId}`, area);
   }, [selectedId, me.id, area]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
+
+  async function loadProposals() {
+    const result = await supabase.from("project_proposals")
+      .select("id,name,purpose,starts_on,ends_on,state,project_id,review_note,created_at,proposed_by,profiles!project_proposals_proposed_by_fkey(full_name)")
+      .eq("unit_id", me.unit_id)
+      .order("created_at", { ascending: false });
+    if (result.error) {
+      if (!String(result.error.message || "").includes("project_proposals")) setError(humanError(result.error, "Project proposals could not be loaded."));
+      return;
+    }
+    setProposals(result.data || []);
+  }
+
+  async function decideProposal(proposal, decision) {
+    setBusy(true); setError(null);
+    try {
+      const { data: projectId, error } = await supabase.rpc("decide_project_proposal", {
+        p_proposal_id: proposal.id,
+        p_decision: decision,
+        p_note: decision === "approved" ? "Confirmed by Unit Head" : "Not confirmed by Unit Head",
+      });
+      if (error) throw error;
+      await Promise.all([loadList(), loadProposals()]);
+      if (decision === "approved" && projectId) setSelectedId(projectId);
+    } catch (error) {
+      setError(humanError(error, "The project proposal decision could not be saved."));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function loadList() {
     setLoadingList(true);
@@ -364,6 +395,18 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>
     {canCreate && <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => setSheet({ type: "project" })}>Create project</button>}
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
+    {proposals.filter((proposal) => proposal.state === "submitted").length > 0 && <section style={{ marginTop: 16 }}>
+      <div className="sec"><span>Project proposals needing confirmation</span><span>{proposals.filter((proposal) => proposal.state === "submitted").length}</span></div>
+      {proposals.filter((proposal) => proposal.state === "submitted").map((proposal) => <div className="row" key={proposal.id}>
+        <div className="row-t">{proposal.name}</div>
+        <div className="row-m">Proposed by {proposal.profiles?.full_name || "Staff"}{proposal.starts_on ? ` · starts ${proposal.starts_on}` : ""}</div>
+        <div className="row-note">{proposal.purpose}</div>
+        <div style={{ display:"flex", gap:8, marginTop:9 }}>
+          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => decideProposal(proposal, "declined")}>Decline</button>
+          <button className="btn btn-sm" disabled={busy} onClick={() => decideProposal(proposal, "approved")}>Confirm project</button>
+        </div>
+      </div>)}
+    </section>}
     {loadingList && <LoadingState label="Loading projects…" />}
     {!loadingList && <><div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
     {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
