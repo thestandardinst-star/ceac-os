@@ -136,6 +136,9 @@ jobs:
       - name: Run Experience Stage 5 project register gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/project_register_experience_stage5_gate.sql
 
+      - name: Run Experience Stage 6 finance gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/experience_stage6_finance_gate.sql
+
       - name: Run production hardening gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/production_hardening_gate.sql
 
