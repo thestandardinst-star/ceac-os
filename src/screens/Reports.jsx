@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { Sheet, ProgressMeter, StatusDistribution, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
+import { Chart, Stat, StatRow } from "../components/primitives";
 
 // Administration's reporting screen. Two jobs, both Rebecca's:
 //
@@ -16,6 +17,8 @@ import { Sheet, ProgressMeter, StatusDistribution, ProductNotice, EmptyState, Se
 // People already covers what one person did, and no separate workflow was
 // ever defined for a person report.
 const KINDS = [["week","Weekly"],["month","Monthly"],["project","Project"],["year","Yearly"]];
+
+function jump(id) { const el = typeof document !== "undefined" && document.getElementById(id); if (el) el.scrollIntoView({ behavior:"smooth", block:"start" }); }
 
 export default function Reports({ me }) {
   const [periods, setPeriods] = useState([]);
@@ -136,15 +139,26 @@ export default function Reports({ me }) {
             { key:"draft", label:"Started", value:drafting.length, tone:"attention" },
             { key:"missing", label:"Nothing yet", value:missing.length, tone:"neutral" },
           ]} />
-          <div className="report-leadership-facts">
-            <div><b>{filed.length}</b><span>submitted</span></div>
-            <div><b>{drafting.length}</b><span>drafts</span></div>
-            <div><b>{missing.length}</b><span>outstanding</span></div>
-            <div><b>{filed.filter((u) => byUnit[u.id]?.challenges).length}</b><span>reports with challenges</span></div>
-          </div>
+          <StatRow>
+            <Stat icon="reports" label="Submitted" value={filed.length} onOpen={() => jump("report-submitted")} />
+            <Stat icon="record" label="Drafts" value={drafting.length} onOpen={() => jump("report-outstanding")} />
+            <Stat icon="warning" label="Outstanding" value={missing.length} tone={missing.length ? "slow" : "ink"} onOpen={() => jump("report-outstanding")} />
+            <Stat icon="warning" label="Challenges recorded" value={filed.filter((u) => byUnit[u.id]?.challenges).length} onOpen={() => jump("report-submitted")} />
+          </StatRow>
+          <Chart
+            kind="donut"
+            title="Reporting coverage"
+            data={[
+              { label:"Filed", value:filed.length },
+              { label:"Draft", value:drafting.length },
+              { label:"Nothing yet", value:missing.length },
+            ]}
+            series={[{ key:"value",label:"Units" }]}
+            ariaLabel="Reporting coverage by unit"
+          />
         </section>
 
-        <SectionHeader eyebrow="Submitted reports" title="What units reported" count={filed.length} />
+        <div id="report-submitted"><SectionHeader eyebrow="Submitted reports" title="What units reported" count={filed.length} /></div>
         {filed.length === 0 && <EmptyState compact title="Nobody has filed yet">Submitted unit reports will appear here with their narrative and recorded challenges.</EmptyState>}
         <div className="report-unit-grid">
           {filed.map((u) => {
@@ -160,7 +174,7 @@ export default function Reports({ me }) {
           })}
         </div>
 
-        <section className="report-outstanding-section">
+        <section className="report-outstanding-section" id="report-outstanding">
           <SectionHeader eyebrow="Follow-up" title="Still outstanding" count={drafting.length + missing.length} />
           {drafting.length === 0 && missing.length === 0
             ? <EmptyState compact title="Every unit has filed">There is no reporting follow-up required for this period.</EmptyState>

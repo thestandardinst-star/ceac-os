@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 function humanize(value = "") {
   return String(value)
@@ -111,20 +112,18 @@ export default function AdminAudit({ me }) {
     <div className="split" style={{ marginTop: 18 }}>
       <div className="main-col">
         <div className="sec"><span>Recent changes</span><span>{shown.length}</span></div>
-        {shown.map((event) => <div className="row" key={event.id}>
-          <div className="row-t">{humanize(event.action)}</div>
-          <div className="row-m">
-            {actors[event.actor_id] || "System"} · {auditTime(event.created_at)}
-          </div>
-          <div className="row-m" style={{ marginTop: 5 }}>
-            {humanize(event.resource_type)}
-            {event.resource_id ? " · " + event.resource_id.slice(0, 8) : ""}
-          </div>
-          {(event.changed_fields || []).length > 0 && <div className="small" style={{ marginTop: 7 }}>
-            Changed: {event.changed_fields.map(humanize).join(", ")}
-          </div>}
-        </div>)}
-        {shown.length === 0 && <EmptyState title="No audit events match">Change the filters or search term.</EmptyState>}
+        <Table
+          rows={shown}
+          empty="No audit events match."
+          exportName="ceac-audit"
+          columns={[
+            { key:"created_at",label:"When",width:150,render:(row)=>auditTime(row.created_at) },
+            { key:"actor_id",label:"Who",render:(row)=>actors[row.actor_id] || "System" },
+            { key:"action",label:"Action",render:(row)=>humanize(row.action) },
+            { key:"resource_type",label:"Record",render:(row)=>humanize(row.resource_type) + (row.resource_id ? " · " + row.resource_id.slice(0,8) : "") },
+            { key:"changed_fields",label:"Changed",render:(row)=>(row.changed_fields || []).length ? row.changed_fields.map(humanize).join(", ") : "—",csv:(row)=>(row.changed_fields||[]).join("; ") },
+          ]}
+        />
       </div>
 
       <div className="side-col">

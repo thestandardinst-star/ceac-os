@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { Sheet } from "../components/bits";
+import { Table } from "../components/primitives";
 
 // Cost. Spec section 10 — what does this unit cost, and what did it
 // produce, on the same screen.
@@ -126,15 +127,18 @@ export default function Cost({ me }) {
         <h1 className="h1" style={{ marginTop: 6 }}>{u ? u.name : "Unit"}</h1>
         <p className="screen-note">Every line of spending recorded for this unit this year.</p>
         <div className="sec"><span>Spending</span><span>{rows.length}</span></div>
-        {rows.length === 0 && <div className="card small">Nothing has been entered for this unit yet.</div>}
-        {rows.map((s) => (
-          <div key={s.id} className="row">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <div className="row-t">{s.description}</div>
-              <div className="row-t">{money(s.amount_minor, s.currency)}</div>
-            </div>
-            <div className="row-m">{dateOnly(s.spent_on)}{s.source_note ? " · from " + s.source_note : ""}</div>
-          </div>))}
+        <Table
+          rows={rows}
+          empty="Nothing has been entered for this unit yet."
+          exportName={`ceac-${(u?.name || "unit").toLowerCase().replace(/[^a-z0-9]+/g,"-")}-spend`}
+          columns={[
+            { key:"spent_on",label:"Date",width:110,render:(row)=>dateOnly(row.spent_on) },
+            { key:"description",label:"What for" },
+            { key:"source_note",label:"Source",render:(row)=>row.source_note || "—" },
+            { key:"amount_minor",label:"Amount",align:"right",render:(row)=>money(row.amount_minor,row.currency),sortValue:(row)=>Number(row.amount_minor)||0,csv:(row)=>(Number(row.amount_minor)/100).toFixed(2) },
+            { key:"currency",label:"Currency",width:90 },
+          ]}
+        />
       </div>);
   }
 

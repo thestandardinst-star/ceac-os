@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { QueueRow, byOldest } from "../components/primitives";
 
 function stamp(value) {
   if (!value) return "—";
@@ -98,11 +99,11 @@ export default function AdminWorkflows({ me }) {
     [runs]
   );
 
-  const shownSteps = steps.filter((step) => {
+  const shownSteps = byOldest(steps.filter((step) => {
     if (filter === "ready") return step.state === "ready";
     if (filter === "completed") return step.state === "completed";
     return true;
-  });
+  }), "created_at");
 
   const selectedStep = steps.find((step) => step.id === selectedStepId) || null;
   const selectedRun = selectedStep ? runsById[selectedStep.workflow_run_id] : null;
@@ -153,21 +154,18 @@ export default function AdminWorkflows({ me }) {
         {shownSteps.map((step) => {
           const run = runsById[step.workflow_run_id];
           const definition = run ? definitionsById[run.workflow_definition_id] : null;
-          return <button className="row row-button" key={step.id} onClick={() => setSelectedStepId(step.id)}>
-            <div className="row-t">{step.label}</div>
-            <div className="row-m">
-              {definition?.label || "Workflow"} · {humanize(step.state)}
-              {step.required_capability ? " · " + step.required_capability : ""}
-            </div>
-            <div className="row-m" style={{ marginTop: 5 }}>
-              {run?.subject_profile_id ? people[run.subject_profile_id] || "Person" : humanize(run?.aggregate_type || "record")}
-              {" · started " + stamp(run?.started_at)}
-            </div>
-            {step.state === "completed" && <div className="small" style={{ marginTop: 6 }}>
-              {step.outcome || "Completed"} · {stamp(step.completed_at)}
-              {step.completed_by ? " · " + (people[step.completed_by] || "Authorised user") : ""}
-            </div>}
-          </button>;
+          const subject = run?.subject_profile_id ? people[run.subject_profile_id] || "Person" : humanize(run?.aggregate_type || "record");
+          return <QueueRow
+            key={step.id}
+            since={step.created_at || run?.started_at}
+            title={step.label}
+            meta={`${definition?.label || "Workflow"} · ${subject}${step.required_capability ? " · " + step.required_capability : ""}`}
+            openLabel={step.label}
+            onOpen={() => setSelectedStepId(step.id)}
+            actions={step.state === "ready"
+              ? <button className="btn btn-ghost btn-sm" onClick={() => setSelectedStepId(step.id)}>Review</button>
+              : <span className="pill p-grey">{step.outcome || "Completed"}</span>}
+          />;
         })}
         {shownSteps.length === 0 && <EmptyState title={filter === "ready" ? "No workflow action is waiting" : "No workflows match"}>New matching business events will appear here automatically.</EmptyState>}
       </div>
