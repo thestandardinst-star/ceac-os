@@ -482,7 +482,7 @@ export default function ManagerReports({ me, openItem }) {
     {error && <ProductNotice tone="error" title="Could not complete reporting">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Report updated">{notice}</ProductNotice>}
 
-    <MinistryNumbers me={me} allowConfigure />
+    <MinistryNumbers me={me} />
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
       {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
