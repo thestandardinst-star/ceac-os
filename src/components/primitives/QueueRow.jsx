@@ -21,7 +21,8 @@ export default function QueueRow({ since, title, meta, amount, actions, onOpen }
         {age.tone === "late" && <Icon name="clock" size={13} />}
         {age.text}
       </span>
-      <button type="button" className="qrow-main" onClick={onOpen} disabled={!onOpen}>
+      <button type="button" className="qrow-main" onClick={onOpen} disabled={!onOpen}
+              aria-label={onOpen ? "Open queue item" : undefined}>
         <span className="qrow-t">{title}</span>
         {meta && <span className="qrow-m">{meta}</span>}
       </button>
