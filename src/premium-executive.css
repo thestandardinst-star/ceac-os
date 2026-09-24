@@ -32,12 +32,7 @@
 @media(max-width:760px){.exec-currency-grid{grid-template-columns:1fr}.exec-currency-facts{grid-template-columns:1fr 1fr}}
 
 /* Shared final visual-parity overrides consolidated here to preserve the last-loaded cascade. */
-/* Visual Parity Recovery — binding reference supplied 23 Sep 2026 */
-:root{
-  --vp-navy:#07192d;--vp-navy-2:#0d2744;--vp-blue:#1677ff;--vp-blue-2:#095ee8;
-  --vp-surface:#fff;--vp-bg:#f2f6fb;--vp-line:#e4ebf4;--vp-text:#102038;--vp-muted:#718096;
-  --vp-shadow:0 14px 38px rgba(21,46,83,.08);--vp-radius:16px;
-}
+/* Visual parity rules now consume the canonical CEAC premium tokens. */
 html,body,#root{min-height:100%;background:var(--ceac-bg)}
 body{color:var(--ceac-text)}
 .app{background:var(--ceac-bg)}
