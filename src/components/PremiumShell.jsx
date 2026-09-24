@@ -69,6 +69,7 @@ function adminNav(me) {
     { key:"finance", label:"Finance", icon:"finance" },
     { key:"reporting", label:"Reports", icon:"reports" },
     { key:"settings", label:"Control Center", icon:"control" },
+    { key:"primitives", label:"Primitives", icon:"control" },
     { key:"account", label:"Your account", icon:"hub" },
   ];
 }
