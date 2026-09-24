@@ -86,7 +86,11 @@ end $$;
 -- my_sessions() and my_account_activity(integer). They expose only the
 -- signed-in person's own sessions/audit activity, accept no target-person
 -- identifier, revoke anon/PUBLIC execution, and bind rows to auth.uid().
--- Reducing this surface is allowed. Any growth beyond 104 requires another
+-- Migration 095 adds one reviewed ministry-number definition RPC:
+-- create_ministry_number(uuid,text,text). It keeps recurring_operations
+-- direct writes closed and grants definition authority only to a Unit Head
+-- for their managed unit or Administration.
+-- Reducing this surface is allowed. Any growth beyond 105 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -97,8 +101,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>104 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 104-function ceiling to %.',n;
+  if n>105 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 105-function ceiling to %.',n;
   end if;
 end $$;
 
@@ -162,6 +166,45 @@ begin
   end if;
 end
 $account_self_service$;
+
+-- Migration 095 ministry-number definition review. Definition authority is
+-- intentionally narrower than occurrence recording: Unit Heads may define a
+-- number only for a managed unit; Administration may define one for any unit.
+-- Direct browser writes to recurring_operations remain closed.
+do $ministry_number_definition$
+declare
+  v_oid oid;
+  v_def text;
+  v_write_policies integer;
+begin
+  v_oid := to_regprocedure('public.create_ministry_number(uuid,text,text)');
+  if v_oid is null then
+    raise exception 'Security gate failure: create_ministry_number RPC is missing.';
+  end if;
+
+  if not has_function_privilege('authenticated',v_oid,'EXECUTE')
+     or has_function_privilege('anon',v_oid,'EXECUTE') then
+    raise exception 'Security gate failure: create_ministry_number execution grants are not authenticated-only.';
+  end if;
+
+  select pg_get_functiondef(v_oid) into v_def;
+  if v_def not ilike '%p_unit_id in (select app_managed_units())%'
+     or v_def not ilike '%app_is_admin()%'
+     or v_def not ilike '%insert into recurring_operations%' then
+    raise exception 'Security gate failure: create_ministry_number does not visibly enforce reviewed unit-manager/Admin authority.';
+  end if;
+
+  select count(*) into v_write_policies
+  from pg_policies
+  where schemaname='public'
+    and tablename='recurring_operations'
+    and cmd in ('INSERT','UPDATE','DELETE','ALL');
+
+  if v_write_policies<>0 then
+    raise exception 'Security gate failure: recurring_operations direct browser write policy was reopened.';
+  end if;
+end
+$ministry_number_definition$;
 
 -- Migration 067 changes default privileges. Prove a new function is not
 -- silently exposed to signed-in or anonymous users.
