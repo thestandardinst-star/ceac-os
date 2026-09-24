@@ -160,6 +160,7 @@ export default function AdminWorkflows({ me }) {
             since={step.created_at || run?.started_at}
             title={step.label}
             meta={`${definition?.label || "Workflow"} · ${subject}${step.required_capability ? " · " + step.required_capability : ""}`}
+            openLabel={step.label}
             onOpen={() => setSelectedStepId(step.id)}
             actions={step.state === "ready"
               ? <button className="btn btn-ghost btn-sm" onClick={() => setSelectedStepId(step.id)}>Review</button>
