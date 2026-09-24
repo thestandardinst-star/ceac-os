@@ -161,7 +161,7 @@ export default function Chart({
             ))}
           </div>
         )}
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAsTable((v) => !v}>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAsTable((v) => !v)}>
           <Icon name={asTable ? "chart" : "table"} size={14} />
           {asTable ? " Show as chart" : " Show as table"}
         </button>
