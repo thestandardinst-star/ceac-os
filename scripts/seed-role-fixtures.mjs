@@ -204,6 +204,52 @@ const stage5Work = await service.from("work_items").insert([
 ]);
 assert.equal(stage5Work.error, null, stage5Work.error?.message);
 
+
+// Stage 3 ministry-number fixture: configuration is created as recurring work,
+// while recording goes through record_routine_occurrence().
+const ministryWorkId = "26000000-0000-4000-8000-000000000013";
+const ministryOperationId = "27000000-0000-4000-8000-000000000013";
+const ministryWork = await service.from("work_items").insert({
+  id: ministryWorkId,
+  org_id: orgId,
+  ref: "TUA-MIN-001",
+  kind: "routine",
+  unit_id: unitA,
+  assignee_id: users[0].id,
+  assigned_by: users[1].id,
+  title: "Acceptance first timers",
+  purpose: "Record the factual recurring ministry number.",
+  origin: "assigned",
+  visibility: "unit",
+  confidential: false,
+  status: "not_started",
+});
+assert.equal(ministryWork.error, null, ministryWork.error?.message);
+
+const ministryOperation = await service.from("recurring_operations").insert({
+  id: ministryOperationId,
+  org_id: orgId,
+  unit_id: unitA,
+  work_item_id: ministryWorkId,
+  name: "Acceptance first timers",
+  cadence: "Daily",
+  records_value: true,
+  value_label: "People received",
+  active: true,
+  starts_on: "2026-01-01",
+  schedule_kind: "daily",
+});
+assert.equal(ministryOperation.error, null, ministryOperation.error?.message);
+
+const ministrySchedule = await service.from("routine_schedule_versions").insert({
+  operation_id: ministryOperationId,
+  version: 1,
+  effective_from: "2026-01-01",
+  schedule_kind: "daily",
+  created_by: users[1].id,
+});
+assert.equal(ministrySchedule.error, null, ministrySchedule.error?.message);
+
 // The Admin acceptance suite must exercise a real deterministic attention rule.
 // Production organisations receive these through their setup data; the isolated
 // local fixture needs its own row because org-scoped rows are not copied across.
