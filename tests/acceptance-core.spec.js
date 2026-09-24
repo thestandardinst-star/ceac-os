@@ -383,6 +383,32 @@ test("Typed work can be created and reaches the Staff work surface", async ({ br
   await staff.context.close();
 });
 
+test("Recurring ministry numbers flow from a unit record to the Group Pastor overview", async ({ browser }) => {
+  const numberName = "Acceptance first timers";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test");
+    await go(page, "Reports");
+    await expect(page.getByText("Recurring numbers", { exact: true })).toBeVisible();
+    const card = page.locator(".admin-unit-summary").filter({ hasText: numberName });
+    await expect(card).toBeVisible();
+    await card.getByRole("button", { name: "Record" }).click();
+    const recordDialog = page.getByRole("dialog");
+    await recordDialog.locator('input[type="number"]').fill("17");
+    await recordDialog.getByRole("button", { name: "Record number" }).click();
+    await expect(page.getByText(`${numberName} recorded.`, { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test");
+    await expect(page.getByText("What CEAC recorded", { exact: true })).toBeVisible();
+    await expect(page.getByText(numberName, { exact: true })).toBeVisible();
+    await expect(page.getByText(/17 People received/)).toBeVisible();
+    await context.close();
+  }
+});
+
 test("Mobile Staff and desktop Admin/Executive surfaces render without obvious regression", async ({ browser }) => {
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });

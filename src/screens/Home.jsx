@@ -6,6 +6,7 @@ import { since, dueLabel, isOverdue } from "../lib/time";
 import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus } from "../components/ReferenceDashboard";
+import MinistryNumbers from "../components/MinistryNumbers";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -554,6 +555,8 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         </div>
       </details>
     </div>}
+
+    <MinistryNumbers me={me} compact />
 
     <ReferenceModuleStrip items={[
       {label:"Work",icon:"work",note:"Get things done.",onClick:openWork},

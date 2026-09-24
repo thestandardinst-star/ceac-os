@@ -59,7 +59,7 @@ $definer_search_path$;
 
 -- Stage 0 semantic review identified six internal-only helpers that do not
 -- need direct authenticated execution. Migration 074 reduces the reviewed
--- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92. Stage 10 adds four reviewed asset RPCs gated by asset.manage, bringing the surface to 96. Stage 11 adds six reviewed compliance RPCs with self-bound submission/acknowledgement and compliance.manage decision authority, bringing the surface to 102. Migration 094 adds two reviewed self-service account RPCs, my_sessions() and my_account_activity(integer), bringing the reviewed surface to 104. Both are authenticated-only and bind their rows directly to auth.uid().
+-- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92. Stage 10 adds four reviewed asset RPCs gated by asset.manage, bringing the surface to 96. Stage 11 adds six reviewed compliance RPCs with self-bound submission/acknowledgement and compliance.manage decision authority, bringing the surface to 102. Migration 094 adds two reviewed self-service account RPCs, my_sessions() and my_account_activity(integer), bringing the reviewed surface to 104. Both are authenticated-only and bind their rows directly to auth.uid(). Migration 095 adds create_ministry_number(uuid,text,text) and record_ministry_number(uuid,date,numeric,text), bringing the reviewed surface to 106; both are authenticated-only, keep direct ministry-table writes closed, and separate scheduleless ministry-number authority from typed-work Routine authority.
 do $definer_surface$
 declare n integer;
 begin
@@ -70,8 +70,8 @@ begin
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
 
-  if n<>104 then
-    raise exception 'Platform Kernel gate failure: expected 104 authenticated SECURITY DEFINER functions after reviewed migration 094 account RPCs, found %.',n;
+  if n<>106 then
+    raise exception 'Platform Kernel gate failure: expected 106 authenticated SECURITY DEFINER functions after reviewed migration 095 ministry RPCs, found %.',n;
   end if;
 
   if to_regprocedure('public.my_sessions()') is null
@@ -89,6 +89,40 @@ begin
   if pg_get_functiondef('public.my_sessions()'::regprocedure) not ilike '%s.user_id = auth.uid()%'
      or pg_get_functiondef('public.my_account_activity(integer)'::regprocedure) not ilike '%e.actor_id = auth.uid() or e.subject_profile_id = auth.uid()%' then
     raise exception 'Platform Kernel gate failure: migration 094 account RPC(s) are not visibly bound to auth.uid().';
+  end if;
+
+  if to_regprocedure('public.create_ministry_number(uuid,text,text)') is null
+     or to_regprocedure('public.record_ministry_number(uuid,date,numeric,text)') is null then
+    raise exception 'Platform Kernel gate failure: reviewed migration 095 ministry RPC(s) are missing.';
+  end if;
+
+  if not has_function_privilege('authenticated','public.create_ministry_number(uuid,text,text)','EXECUTE')
+     or not has_function_privilege('authenticated','public.record_ministry_number(uuid,date,numeric,text)','EXECUTE')
+     or has_function_privilege('anon','public.create_ministry_number(uuid,text,text)','EXECUTE')
+     or has_function_privilege('anon','public.record_ministry_number(uuid,date,numeric,text)','EXECUTE') then
+    raise exception 'Platform Kernel gate failure: migration 095 ministry RPC execution grants are not authenticated-only.';
+  end if;
+
+  if pg_get_functiondef('public.create_ministry_number(uuid,text,text)'::regprocedure) not ilike '%p_unit_id in (select app_managed_units())%'
+     or pg_get_functiondef('public.create_ministry_number(uuid,text,text)'::regprocedure) not ilike '%app_is_admin()%'
+     or pg_get_functiondef('public.create_ministry_number(uuid,text,text)'::regprocedure) not ilike '%insert into recurring_operations%' then
+    raise exception 'Platform Kernel gate failure: create_ministry_number does not match reviewed Unit Head/Admin authority.';
+  end if;
+
+  if pg_get_functiondef('public.record_ministry_number(uuid,date,numeric,text)'::regprocedure) not ilike '%ro.unit_id in (select app_my_units())%'
+     or pg_get_functiondef('public.record_ministry_number(uuid,date,numeric,text)'::regprocedure) not ilike '%ro.unit_id in (select app_managed_units())%'
+     or pg_get_functiondef('public.record_ministry_number(uuid,date,numeric,text)'::regprocedure) not ilike '%ro.work_item_id is not null%'
+     or pg_get_functiondef('public.record_ministry_number(uuid,date,numeric,text)'::regprocedure) not ilike '%insert into operation_occurrences%' then
+    raise exception 'Platform Kernel gate failure: record_ministry_number does not match reviewed scheduleless unit authority.';
+  end if;
+
+  if exists (
+    select 1 from pg_policies
+    where schemaname='public'
+      and tablename in ('recurring_operations','operation_occurrences')
+      and cmd in ('INSERT','UPDATE','DELETE','ALL')
+  ) then
+    raise exception 'Platform Kernel gate failure: direct ministry-table writes were reopened.';
   end if;
 
   if has_function_privilege('authenticated','public.app_can_publish_announcements()','EXECUTE')
