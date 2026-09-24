@@ -167,6 +167,7 @@ begin
        or new.org_id is distinct from old.org_id
        or new.project_id is distinct from old.project_id
        or new.unit_id is distinct from old.unit_id
+       or new.currency is distinct from old.currency
        or new.created_by is distinct from old.created_by
        or new.created_at is distinct from old.created_at then
       raise exception 'Register identity and ownership are immutable.';
@@ -418,11 +419,26 @@ security definer
 set search_path=public
 as $$
 begin
-  if new.project_id is not null and not exists (
-    select 1 from public.projects p
-    where p.id=new.project_id and p.org_id=new.org_id
-  ) then
-    raise exception 'Transfer project is outside this organisation.';
+  if new.project_id is not null then
+    if not exists (
+      select 1 from public.projects p
+      where p.id=new.project_id and p.org_id=new.org_id
+    ) then
+      raise exception 'Transfer project is outside this organisation.';
+    end if;
+    if new.from_unit_id is null or not exists (
+      select 1 from public.projects p
+      where p.id=new.project_id
+        and (
+          p.lead_unit_id=new.from_unit_id
+          or exists (
+            select 1 from public.project_units pu
+            where pu.project_id=p.id and pu.unit_id=new.from_unit_id
+          )
+        )
+    ) then
+      raise exception 'A project remittance must originate from a unit in that project.';
+    end if;
   end if;
   return new;
 end;
