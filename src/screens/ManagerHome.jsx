@@ -5,6 +5,7 @@ import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import { DashboardCalendar, ReferenceFocusPanel, ReferenceModuleStrip } from "../components/ReferenceDashboard";
+import { Stat, StatRow, QueueRow, Chart } from "../components/primitives";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -21,6 +22,20 @@ function startOfWeek(date = new Date()) {
 function dateKey(date) {
   const pad = (value) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function previousOrSameWeekday(date, weekday) {
+  const value = startOfDay(date);
+  value.setDate(value.getDate() - ((value.getDay() - weekday + 7) % 7));
+  return value;
+}
+
+function happenedOn(value, date) {
+  return Boolean(value) && dateKey(new Date(value)) === dateKey(date);
+}
+
+function moneyMinor(minor, currency) {
+  return `${currency} ${(Number(minor || 0) / 100).toLocaleString("en-GH", { maximumFractionDigits: 2 })}`;
 }
 
 function requireResult(result, label) {
@@ -50,6 +65,8 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
   const [week, setWeek] = useState({ due: [], completed: [], overdue: [] });
   const [recentMovement, setRecentMovement] = useState([]);
   const [routines, setRoutines] = useState([]);
+  const [financePositions, setFinancePositions] = useState([]);
+  const [serviceDayData, setServiceDayData] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [followupAlerts, setFollowupAlerts] = useState([]);
   const [leaveLimit, setLeaveLimit] = useState(5);
@@ -89,7 +106,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           .neq("profile_id", me.id)
           .order("submitted_at", { ascending: true }),
         supabase.from("leave_requests")
-          .select("id, profile_id, kind, start_date, end_date, days, status, reason, profiles!leave_requests_profile_id_fkey(full_name)")
+          .select("id, profile_id, kind, start_date, end_date, days, status, reason, requested_at, profiles!leave_requests_profile_id_fkey(full_name)")
           .eq("status", "pending").order("requested_at", { ascending: true }),
         supabase.from("blockers")
           .select("id, party_text, note, since, state, work_item_id, party_unit_id, profiles!blockers_claimed_by_fkey(full_name), units(name), work_items!inner(id, ref, title)")
@@ -202,11 +219,28 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
 
       const recentCompleted = requireResult(recentCompletedResult, "Recent completed work")
         .map((item) => ({ key: `completed-${item.id}`, type: "completed", at: item.completed_at, itemId: item.id, title: `${item.ref} · ${item.title}`, detail: `${item.profiles?.full_name || "Team member"} completed this work` }));
-      const recentSubmitted = requireResult(recentSubmissionResult, "Recent submissions")
+      const recentSubmissionRows = requireResult(recentSubmissionResult, "Recent submissions");
+      const recentSubmitted = recentSubmissionRows
         .map((row) => ({ key: `submitted-${row.id}`, type: "submitted", at: row.submitted_at, itemId: row.work_items.id, title: `${row.work_items.ref} · ${row.work_items.title}`, detail: `${row.profiles?.full_name || "Team member"} submitted this work` }));
       setRecentMovement([...recentCompleted, ...recentSubmitted]
         .sort((left, right) => new Date(right.at) - new Date(left.at))
         .slice(0, 6));
+
+      const latestSunday = previousOrSameWeekday(today, 0);
+      const latestMidweek = previousOrSameWeekday(today, 3);
+      const completedRows = tasks.filter((item) => ["completed", "self_certified"].includes(item.status));
+      setServiceDayData([
+        {
+          label: "Completed outputs",
+          sunday: completedRows.filter((item) => happenedOn(item.completed_at, latestSunday)).length,
+          midweek: completedRows.filter((item) => happenedOn(item.completed_at, latestMidweek)).length,
+        },
+        {
+          label: "Submissions",
+          sunday: recentSubmissionRows.filter((row) => happenedOn(row.submitted_at, latestSunday)).length,
+          midweek: recentSubmissionRows.filter((row) => happenedOn(row.submitted_at, latestMidweek)).length,
+        },
+      ]);
 
       const requestResult = await supabase.from("work_requests")
         .select("work_item_id,request_state,responsible_unit_id, work_items!inner(id,ref,title,due_at,status,assigned_by)")
@@ -221,6 +255,12 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         .not("work_item_id", "is", null)
         .order("name");
       setRoutines(requireResult(routineResult, "Routines"));
+
+      const financePositionResult = await supabase.rpc("unit_budget_position", {
+        p_unit_id: me.unit_id,
+        p_year: today.getFullYear(),
+      });
+      setFinancePositions(requireResult(financePositionResult, "Unit financial position"));
 
       const tasks = requireResult(weekResult, "This week");
       setWeek({
@@ -267,7 +307,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     }
   }
 
-  async function openReview(submission) {
+  async function openReview(submission, decision = null) {
     setError(null);
     setComment("");
     setReturnItems([]);
@@ -281,7 +321,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       return;
     }
     setReturnItems(result.data || []);
-    setSheet({ type: "work-review", item: submission, decision: null });
+    setSheet({ type: "work-review", item: submission, decision });
   }
 
   function toggleReturnItem(id) {
@@ -356,9 +396,19 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
 
   const reviewFollowupByWork = new Map(followupAlerts.filter((alert) => alert.kind === "review_followup").map((alert) => [alert.subject_id, alert]));
   const blockerFollowupAlerts = followupAlerts.filter((alert) => alert.kind === "blocker_followup");
-  const waitingCount = submissions.length + leave.length + blockerFollowupAlerts.length;
+  const decisionRows = [
+    ...submissions.map((item) => ({ type: "submission", since: item.submitted_at, item })),
+    ...leave.map((item) => ({ type: "leave", since: item.requested_at, item })),
+    ...blockerFollowupAlerts.map((item) => ({ type: "followup", since: item.last_seen_at, item })),
+  ].sort((left, right) => new Date(left.since || 0) - new Date(right.since || 0));
+  const waitingCount = decisionRows.length;
   const incomingBlockers = blockers.filter((blocker) => blocker.direction === "incoming");
   const outgoingBlockers = blockers.filter((blocker) => blocker.direction === "outgoing");
+  const budgetPositions = financePositions.filter((row) => Number(row.budget_minor || 0) > 0);
+  const budgetStatValue = budgetPositions.length === 1
+    ? moneyMinor(budgetPositions[0].remaining_minor, budgetPositions[0].currency)
+    : budgetPositions.length > 1 ? `${budgetPositions.length} currencies` : null;
+  const serviceDayHasData = serviceDayData.some((row) => Number(row.sunday) > 0 || Number(row.midweek) > 0);
   const drillRows = drill?.rows || [];
   const ownTone = (item) => item.status === "returned" || isOverdue(item.due_at)
     ? "danger"
@@ -375,15 +425,22 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
             <div className="manager-command-context"><span>{me.unit_name}</span><time>{managerDate}</time></div>
             <div className="eyebrow">Unit command</div>
             <h1 className="h1">{managerGreeting}, {me.full_name.split(" ")[0]}</h1>
-            <p className="screen-note">Decisions first. Then check team movement, delivery and dependencies.</p>
+            <p className="screen-note">{waitingCount ? `${waitingCount} thing${waitingCount === 1 ? "" : "s"} need you. Oldest first.` : "Nothing needs your decision right now."}</p>
           </div>
           <button className="btn manager-command-action" onClick={goAssign}>Give out work</button>
         </div>
-        <div className="manager-command-stats" aria-label="Current manager attention">
-          <div><strong>{waitingCount}</strong><span>Need decision</span></div>
-          <div><strong>{blockers.length}</strong><span>Open blockers</span></div>
-          <div><strong>{projects.length}</strong><span>Projects attention</span></div>
-        </div>
+        <StatRow>
+          {waitingCount > 0 && <Stat icon="gavel" label="Needs decision" value={waitingCount}
+                tone="late"
+                onOpen={() => document.getElementById("manager-waiting-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
+          {blockers.length > 0 && <Stat icon="hand" label="Stuck on others" value={blockers.length}
+                tone="slow"
+                onOpen={() => document.getElementById("manager-stuck-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
+          {team.present.length > 0 && <Stat icon="people" label="Working now" value={team.present.length} sub={`of ${team.present.length + team.leave.length + team.notStarted.length}`}
+                onOpen={() => { setDrill({ zone: "team", title: "Working now", people: true, rows: team.present }); document.getElementById("manager-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />}
+          {budgetStatValue && <Stat icon="finance" label="Budget left" value={budgetStatValue}
+                onOpen={() => go?.("manager-finance")} />}
+        </StatRow>
       </section>
       <DashboardCalendar meetings={upcomingMeetings} />
 
@@ -399,43 +456,62 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <span className="home-count home-count-attention">{waitingCount}</span>
       </div>
       {waitingCount === 0 && <div className="home-quiet home-quiet-success">Nothing needs your decision right now.</div>}
-      {submissions.map((submission) => (
-        <div key={submission.id} className="row home-action-row">
-          <div className="home-row-label">Work review</div>
-          <div className="row-t">{submission.work_items.title}</div>
-          <div className="row-m">{submission.work_items.ref} · {submission.profiles?.full_name || "—"} · work to review</div>
-          {reviewFollowupByWork.has(submission.work_items.id) && <div className="followup-note">Follow-up received · {new Date(reviewFollowupByWork.get(submission.work_items.id).last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>}
-          {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
-          {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
-          <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open full work</button>
-            <button className="btn btn-sm" onClick={() => openReview(submission)}>Review</button>
-          </div>
-        </div>
-      ))}
-      {blockerFollowupAlerts.map((alert) => {
+      {decisionRows.map((decision) => {
+        if (decision.type === "submission") {
+          const submission = decision.item;
+          return <div key={`submission-${submission.id}`} className="row home-action-row">
+            <QueueRow since={submission.submitted_at}
+              title={submission.work_items.title}
+              meta={(submission.work_items.ref || "") + " · " + (submission.profiles?.full_name || "—")}
+              onOpen={() => openItem(submission.work_items.id)}
+              actions={<>
+                <button className="btn btn-ghost btn-sm" onClick={() => openReview(submission, "returned")}>Send back</button>
+                <button className="btn btn-sm" onClick={() => openReview(submission, "completed")}>Approve</button>
+              </>} />
+            {reviewFollowupByWork.has(submission.work_items.id) && <div className="followup-note">Follow-up received · {new Date(reviewFollowupByWork.get(submission.work_items.id).last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>}
+            {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
+            {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
+          </div>;
+        }
+        if (decision.type === "leave") {
+          const request = decision.item;
+          return <div key={`leave-${request.id}`} className="row home-action-row">
+            <QueueRow since={request.requested_at}
+              title={(request.profiles?.full_name || "—") + " · " + request.days + " day" + (Number(request.days) === 1 ? "" : "s") + " " + request.kind + " leave"}
+              meta={request.start_date + " → " + request.end_date}
+              actions={<>
+                <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "declined" })}>Decline</button>
+                <button className="btn btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "approved" })}>{Number(request.days) > leaveLimit ? "Escalate" : "Approve"}</button>
+              </>} />
+            {request.reason && <div className="row-note">&ldquo;{request.reason}&rdquo;</div>}
+            {Number(request.days) > leaveLimit && <div className="row-note" style={{ color: "var(--amber)" }}>Over {leaveLimit} days — approval escalates to Administration.</div>}
+          </div>;
+        }
+        const alert = decision.item;
         const blocker = blockers.find((row) => row.id === alert.subject_id);
-        return <div key={alert.id} className="row home-action-row">
-          <div className="home-row-label">Dependency follow-up</div>
-          <div className="row-t">{alert.message}</div>
-          <div className="row-m">{new Date(alert.last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-          {blocker && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open related work</button>}
+        return <div key={`followup-${alert.id}`} className="row home-action-row">
+          <QueueRow since={alert.last_seen_at}
+            title={alert.message}
+            meta="Dependency follow-up"
+            onOpen={blocker ? () => openItem(blocker.work_item_id) : undefined}
+            actions={blocker ? <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button> : null} />
         </div>;
       })}
-      {leave.map((request) => (
-        <div key={request.id} className="row home-action-row">
-          <div className="home-row-label">Leave decision</div>
-          <div className="row-t">{request.profiles?.full_name || "—"} · {request.days} day{Number(request.days) === 1 ? "" : "s"} {request.kind} leave</div>
-          <div className="row-m">{request.start_date} → {request.end_date}</div>
-          {request.reason && <div className="row-note">&ldquo;{request.reason}&rdquo;</div>}
-          {Number(request.days) > leaveLimit && <div className="row-note" style={{ color: "var(--amber)" }}>Over {leaveLimit} days — approval escalates to Administration.</div>}
-          <div style={{ display: "flex", gap: 7, marginTop: 11 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "declined" })}>Decline</button>
-            <button className="btn btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "approved" })}>{Number(request.days) > leaveLimit ? "Escalate" : "Approve"}</button>
-          </div>
-        </div>
-      ))}
       </section>
+
+      {serviceDayHasData && <section className="home-panel" aria-labelledby="manager-service-day-heading">
+        <div className="home-section-head">
+          <div><div className="home-kicker">Recorded movement</div><h2 id="manager-service-day-heading">Sunday vs midweek</h2></div>
+        </div>
+        <p className="home-context-note">The latest Sunday and Wednesday are compared as factual work movement, not as a performance score.</p>
+        <Chart
+          kind="pairedBar"
+          title="Recorded movement"
+          data={serviceDayData}
+          series={[{ key: "sunday", label: "Sunday" }, { key: "midweek", label: "Midweek" }]}
+          ariaLabel="Sunday versus midweek recorded work movement"
+        />
+      </section>}
 
       <section className="home-panel home-panel-projects" aria-labelledby="manager-projects-heading">
       <div className="home-section-head">
