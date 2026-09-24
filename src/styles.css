@@ -3671,3 +3671,77 @@ button.office-config-card:active{background:#EEF5F4}
   .compliance-actions{display:grid;grid-template-columns:1fr}
   .compliance-actions .btn{width:100%}
 }
+
+/* ---------------------------------------------------------------
+   Design primitives. Added rather than replacing: existing screens
+   keep working while they are rebuilt wave by wave.
+
+   Contrast raised throughout. --act is the one colour that means
+   "act on this" and is used for nothing else — the old palette put a
+   muted green button on a near-white card and it was invisible.
+   --------------------------------------------------------------- */
+:root{
+  --ink:#1D2320;--ink-soft:#4A534D;--ink-faint:#6E7872;
+  --line:#D7DAD4;--line-soft:#E6E8E3;
+  --act:#1F6F4A;--act-soft:#E4F0EA;--act-ink:#124A31;
+  --late:#A33A2D;--late-soft:#F7E6E2;
+  --slow:#8A6516;--slow-soft:#F8F0DE;
+  --num:"Instrument Sans",system-ui,sans-serif;
+}
+
+.icon{display:inline-block;vertical-align:-2px;flex:none}
+
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:14px 0}
+.stat{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px 13px;transition:border-color .12s}
+.stat:hover{border-color:var(--ink-faint)}
+.stat-l{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft)}
+.stat-v{display:block;font-size:25px;font-weight:600;letter-spacing:-.02em;margin-top:3px;
+  font-variant-numeric:tabular-nums}
+.stat-sub{font-size:14px;font-weight:400;color:var(--ink-faint)}
+.tone-late{color:var(--late)}.tone-slow{color:var(--slow)}.tone-act{color:var(--act)}
+
+.qrow{display:grid;grid-template-columns:62px minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+.qrow:last-child{border-bottom:0}
+.qlist{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.qrow-age{display:flex;align-items:center;gap:3px;font-size:11.5px;font-weight:600;
+  font-variant-numeric:tabular-nums}
+.age-late{color:var(--late)}.age-slow{color:var(--slow)}.age-quiet{color:var(--ink-faint)}
+.qrow-main{text-align:left;min-width:0;background:none;padding:0}
+.qrow-t{display:block;font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+.qrow-m{display:block;font-size:12px;color:var(--ink-faint);margin-top:1px}
+.qrow-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qrow-act{display:flex;gap:6px;white-space:nowrap}
+
+.tbl-wrap{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.tbl-top{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line);
+  font-size:12px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
+.tbl th button{padding:9px 12px;width:100%;text-align:inherit;font:inherit;color:inherit}
+.tbl th.sorted{color:var(--ink)}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--line-soft)}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr.clickable{cursor:pointer}
+.tbl tr.clickable:hover{background:var(--line-soft)}
+
+.ch{margin:6px 0}
+.ch-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.ch-legend{display:flex;gap:14px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap}
+.ch-legend span{display:flex;align-items:center;gap:5px}
+.ch-legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.ch-grid{stroke:var(--line-soft);stroke-width:1}
+.ch-tick{fill:var(--ink-faint);font-size:11px}
+.ch-donut{display:flex;justify-content:center;padding:8px 0}
+
+.mapwrap{width:100%}
+
+@media (max-width:520px){
+  .qrow{grid-template-columns:54px minmax(0,1fr);row-gap:6px}
+  .qrow-amt,.qrow-act{grid-column:2}
+  .stat-v{font-size:22px}
+}
