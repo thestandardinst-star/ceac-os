@@ -144,7 +144,7 @@ function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProte
     { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canCompliance ? [["compliance","Compliance"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Workforce"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
-    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","System rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["me","Me"]] },
+    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","System rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["primitives","Primitives"],["me","Me"]] },
   ];
   if (isManager) return [
     { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["attendance","Workforce"],["assets","Assets & devices"],["compliance","Compliance"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
