@@ -330,11 +330,14 @@ export default function App() {
                 initialMeetingTitle={assigning.meetingTitle}
                 initialMeetingOn={assigning.meetingOn}
                 initialMeetingNote={assigning.meetingNote}
+                initialTitle={assigning.title}
+                initialSourceRoomId={assigning.sourceRoomId}
+                initialSourceMessageId={assigning.sourceMessageId}
                 back={() => setAssigning(null)} />
             : projectId && isUnitManager ? <ManagerProjects me={me} initialProjectId={projectId} openItem={openItem} goAssign={startAssignment} openMeeting={openMeeting} scheduleMeeting={startMeeting} openRoom={(id, reference) => openRoom({ kind: "project", projectId: id, reference })} back={closeUrlOverlay} />
             : goalId ? <Goals id={goalId} me={me} back={() => setGoalId(null)} />
             : person && isManager ? <PersonDetail me={me} profileId={person.id} focus={person.focus} openItem={openItem} openProject={openProject} back={() => setPerson(null)} />
-            : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={openItem} openProject={openProject} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} onRoomChange={openRoom} />
+            : roomContext ? <Room me={me} context={roomContext} back={closeRoom} openItem={openItem} openProject={openProject} scheduleMeeting={startMeeting} openAnnouncements={() => go("announcements")} onRoomChange={openRoom} startWorkFromMessage={isManager ? startAssignment : null} />
             : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); openMeeting(id); }} />
             : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} openRoom={openRoom} />
             : pageForTab()}

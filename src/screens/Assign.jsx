@@ -26,7 +26,7 @@ const WORK_INTENTS = [
   ["meeting_outcome", "Follow up from a meeting", "Turn an agreed meeting action into accountable work."],
 ];
 
-export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "", initialMeetingId = "", initialKind = "", initialMeetingTitle = "", initialMeetingOn = "", initialMeetingNote = "" }) {
+export default function Assign({ me, back, initialProjectId = "", initialObjectiveId = "", initialPhaseId = "", initialSubTeamId = "", initialMeetingId = "", initialKind = "", initialMeetingTitle = "", initialMeetingOn = "", initialMeetingNote = "", initialTitle = "", initialSourceRoomId = "", initialSourceMessageId = "" }) {
   const [people, setPeople] = useState([]);
   const [subTeams, setSubTeams] = useState([]);
   const [approvedLeave, setApprovedLeave] = useState([]);
@@ -34,7 +34,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [objectives, setObjectives] = useState([]);
   const [phases, setPhases] = useState([]);
   const [units, setUnits] = useState([]);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initialTitle);
   const [purpose, setPurpose] = useState("");
   const [instructions, setInstructions] = useState("");
   const [expectedOutcome, setExpectedOutcome] = useState("");
@@ -67,6 +67,9 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [done, setDone] = useState(null);
   const [voiceHint, setVoiceHint] = useState(null);
   const [voiceProposal, setVoiceProposal] = useState(null);
+  const [recipeSteps, setRecipeSteps] = useState([]);
+  const [recipeSource, setRecipeSource] = useState(null);
+  const [traceWarning, setTraceWarning] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
@@ -79,8 +82,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     if (initialMeetingTitle) setMeetingTitle(initialMeetingTitle);
     if (initialMeetingOn) setMeetingOn(initialMeetingOn);
     if (initialMeetingNote) setMeetingNote(initialMeetingNote);
-  }, [initialProjectId, initialObjectiveId, initialPhaseId, initialSubTeamId, initialKind, initialMeetingTitle, initialMeetingOn, initialMeetingNote]);
+    if (initialTitle) setTitle(initialTitle);
+  }, [initialProjectId, initialObjectiveId, initialPhaseId, initialSubTeamId, initialKind, initialMeetingTitle, initialMeetingOn, initialMeetingNote, initialTitle]);
   useEffect(() => { loadProjectContext(); }, [project]);
+  useEffect(() => {
+    if (kind !== "task" || title.trim().length < 4) { setRecipeSteps([]); setRecipeSource(null); return; }
+    const timer = setTimeout(() => loadRecipeSuggestion(title), 250);
+    return () => clearTimeout(timer);
+  }, [kind, title, me.unit_id]);
 
   async function load() {
     if (!me.unit_id) return;
@@ -107,6 +116,30 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     const { data: p, error: projectError } = await supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)").order("name");
     if (projectError) { setErr(projectError.message); return; }
     setProjects((p || []).filter((row) => row.lead_unit_id === me.unit_id || (row.project_units || []).some((unit) => unit.unit_id === me.unit_id)));
+  }
+
+  function normaliseWorkTitle(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  async function loadRecipeSuggestion(candidateTitle) {
+    const normalized = normaliseWorkTitle(candidateTitle);
+    if (!normalized) { setRecipeSteps([]); setRecipeSource(null); return; }
+    const result = await supabase.from("work_items")
+      .select("id,title,completed_at,checklist_items(label,position)")
+      .eq("unit_id", me.unit_id)
+      .eq("kind", "task")
+      .in("status", ["completed","self_certified"])
+      .order("completed_at", { ascending: false, nullsFirst: false })
+      .limit(40);
+    if (result.error) { setRecipeSteps([]); setRecipeSource(null); return; }
+    const prior = (result.data || []).find((row) =>
+      normaliseWorkTitle(row.title) === normalized && (row.checklist_items || []).length > 0
+    );
+    if (!prior) { setRecipeSteps([]); setRecipeSource(null); return; }
+    const ordered = [...prior.checklist_items].sort((a,b) => a.position-b.position).map((row) => row.label).filter(Boolean);
+    setRecipeSteps(ordered);
+    setRecipeSource(prior);
   }
 
   async function loadProjectContext() {
@@ -185,8 +218,22 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
     if (result.error) throw new Error(`Meeting link: ${result.error.message}`);
   }
 
+  async function linkSourceMessage(work) {
+    if (!initialSourceRoomId || !initialSourceMessageId || !work?.id) return;
+    const result = await supabase.rpc("send_room_message", {
+      p_room_id: initialSourceRoomId,
+      p_body: `Created ${work.ref} from this message.`,
+      p_reply_to_id: initialSourceMessageId,
+      p_refs: [{ object_type: "work_item", object_id: work.id, label: `${work.ref} · ${title.trim()}` }],
+      p_mention_ids: [],
+    });
+    if (result.error) {
+      setTraceWarning("The work was created, but CEAC could not attach the trace-back message in the Room.");
+    }
+  }
+
   async function create() {
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setTraceWarning(null);
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
@@ -203,7 +250,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           p_objective_id: project && objective ? objective : null,
           p_responsibility_id: null,
           p_purpose: purpose.trim() || null,
-          p_expected_outcome: expectedOutcome.trim(),
+          p_expected_outcome: expectedOutcome.trim() || null,
           p_due_at: due ? new Date(due).toISOString() : null,
           p_visibility: "unit",
           p_confidential: false,
@@ -393,7 +440,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         p_unit_id: me.unit_id,
         p_assignee_id: assignee,
         p_title: title.trim(),
-        p_expected_outcome: expectedOutcome.trim(),
+        p_expected_outcome: expectedOutcome.trim() || null,
         p_sub_team_id: subTeam || null,
         p_project_id: project || null,
         p_objective_id: project && objective ? objective : null,
@@ -407,6 +454,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       });
       if (taskError) throw taskError;
       await linkMeeting(created.id);
+      await linkSourceMessage(created);
       setDone(created.ref);
       setTitle(""); setPurpose(""); setInstructions(""); setExpectedOutcome("");
       setKind("task"); setDue(""); setSteps([""]); setNoStepsNeeded(false); setVoiceHint(null); setVoiceProposal(null);
@@ -420,7 +468,8 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         <button className="back" onClick={back}>← Back</button>
         <div className="empty">
           <h3>{done} is with them</h3>
-          <p>They will see what it is for and what finished looks like.</p>
+          <p>They will see what needs doing, why it matters and when it is due.</p>
+          {traceWarning && <div className="flag flag-amber" style={{ marginBottom: 12 }}>{traceWarning}</div>}
           <button className="btn" onClick={() => setDone(null)}>Give out something else</button>
           <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={back}>Back to home</button>
         </div>
@@ -553,10 +602,15 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
           {kind === "task" && <>
           <FieldGroup label="Work to complete"><input className="field" placeholder="What needs doing" value={title} onChange={(e) => setTitle(e.target.value)} /></FieldGroup>
           <FieldGroup label="Why this matters" hint="Who it is for, or what is affected if it is late."><AssistiveTextarea className="field" rows={3} placeholder="Add useful context" value={purpose} onChange={(e) => setPurpose(e.target.value)} /></FieldGroup>
-          <FieldGroup label="Instructions" hint="Optional if the assignee can determine the method."><AssistiveTextarea className="field" rows={3} placeholder="How it is done here" value={instructions} onChange={(e) => setInstructions(e.target.value)} /></FieldGroup>
-          <div className="sec"><span>What finished looks like</span></div>
-          <FieldGroup label="Finished result"><AssistiveTextarea className="field" rows={3} placeholder="Describe the finished result" value={expectedOutcome}
+          <FieldGroup label="Instructions" hint="Optional. Leave the method to the assignee when that is appropriate."><AssistiveTextarea className="field" rows={3} placeholder="How it is done here (optional)" value={instructions} onChange={(e) => setInstructions(e.target.value)} /></FieldGroup>
+          <div className="sec"><span>Optional detail</span></div>
+          <FieldGroup label="Finished result" hint="Optional. The four required assignment fields are what, why, who and when."><AssistiveTextarea className="field" rows={3} placeholder="Describe the finished result if useful" value={expectedOutcome}
             onChange={(e) => setExpectedOutcome(e.target.value)} /></FieldGroup>
+            {recipeSteps.length > 0 && <div className="card small" style={{ marginTop: 10 }}>
+              <div className="row-t">Last time this unit did this</div>
+              <div className="row-m">{recipeSource?.title} · {recipeSteps.length} recorded step{recipeSteps.length === 1 ? "" : "s"}</div>
+              <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} onClick={() => { setSteps(recipeSteps); setNoStepsNeeded(false); }}>Use last time’s steps</button>
+            </div>}
             <p className="small" style={{ margin: "12px 0 4px" }}>Optional task checklist</p>
             {steps.map((s, i) => (
               <input key={i} className="field" placeholder={"Step " + (i + 1)} value={s}
@@ -758,8 +812,9 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
               <h4>{warning.title}</h4>{warning.detail}
             </div>)}
           </div>}
-          <button className="btn" style={{ marginTop: 20 }} onClick={create} disabled={busy || !title.trim() || !assignee}>
+          <button className="btn assign-primary-action" style={{ marginTop: 20 }} onClick={create} disabled={busy || !title.trim() || !purpose.trim() || !assignee || !due}>
             {busy ? "Sending..." : "Give it out"}</button>
+          <div className="hint">Required: what needs doing, why it matters, who owns it and when it is due. Method and checklist are optional.</div>
         </div>}
       </div>
     </div>);
