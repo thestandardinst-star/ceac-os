@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, ProductNotice, Sheet } from "./bits";
 import { humanError } from "../lib/productLanguage";
+import { QueueRow, byOldest } from "./primitives";
 
 const money=(minor,currency)=>(currency||"GHS")+" "+(Number(minor||0)/100).toLocaleString("en-GH",{minimumFractionDigits:2,maximumFractionDigits:2});
 
@@ -53,7 +54,7 @@ export default function FinanceRequestQueue({me,authority,canFulfil=false,title=
     setRequests(r.data||[]);setDecisions(d.data||[]);setRules(rule.data||[]);setLoading(false);
   }
 
-  const pending=useMemo(()=>requests.filter(request=>nextAuthority(request,decisions,rules)===authority),[requests,decisions,rules,authority]);
+  const pending=useMemo(()=>byOldest(requests.filter(request=>nextAuthority(request,decisions,rules)===authority),"created_at"),[requests,decisions,rules,authority]);
   const fulfil=useMemo(()=>canFulfil?requests.filter(request=>request.state==="approved"&&!request.fulfilled_spend_id):[],[requests,canFulfil]);
 
   async function decide(decision){
@@ -94,13 +95,16 @@ export default function FinanceRequestQueue({me,authority,canFulfil=false,title=
     {notice&&<ProductNotice tone="success" title="Finance decision">{notice}</ProductNotice>}
 
     <div className="sec"><span>{title}</span><span>{pending.length}</span></div>
-    {pending.map(request=><div className="row finance-request-row" key={request.id}>
-      <div className="row-t">{request.title} · {money(request.amount_minor,request.currency)}</div>
-      <div className="row-m">{request.units?.name||"Unit"}{request.needed_by?` · needed by ${request.needed_by}`:""} · waiting for {authority==="admin"?"Administration":authority==="finance"?"Finance":"Group Pastor"}</div>
+    {pending.map(request=><div className="finance-request-row" key={request.id}>
+      <QueueRow
+        since={request.created_at}
+        title={request.title}
+        meta={(request.units?.name||"Unit") + (request.needed_by?` · needed by ${request.needed_by}`:"")}
+        amount={money(request.amount_minor,request.currency)}
+        onOpen={()=>{setAction({mode:"decision",request});setNote("");}}
+        actions={<button className="btn btn-ghost btn-sm" onClick={()=>{setAction({mode:"decision",request});setNote("");}}>Review</button>}
+      />
       {request.justification&&<div className="row-note">{request.justification}</div>}
-      <div style={{display:"flex",gap:7,marginTop:9}}>
-        <button className="btn btn-ghost btn-sm" onClick={()=>{setAction({mode:"decision",request});setNote("");}}>Review</button>
-      </div>
     </div>)}
     {!pending.length&&<EmptyState compact title="Nothing waiting here">No finance request currently needs this authority.</EmptyState>}
 
