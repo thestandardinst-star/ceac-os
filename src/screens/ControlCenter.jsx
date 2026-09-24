@@ -1,9 +1,9 @@
-import { PremiumIcon } from "../components/PremiumShell";
+import Icon from "../components/primitives/Icon";
 import { useMemo } from "react";
 
 function ControlCard({title,description,action,label,state="Ready",tone="",icon}){
   return <button className={"control-card "+tone} onClick={action}>
-    <span className="control-card-icon" aria-hidden="true"><PremiumIcon name={icon} size={21}/></span>
+    <span className="control-card-icon" aria-hidden="true"><Icon className="premium-icon" name={icon} size={21}/></span>
     <span className="control-card-copy"><strong>{title}</strong><small>{description}</small></span>
     <span className="control-card-side"><b>{state}</b><em>{label||"Open"} →</em></span>
   </button>;
