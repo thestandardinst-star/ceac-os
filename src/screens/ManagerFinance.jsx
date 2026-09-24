@@ -11,26 +11,28 @@ function spendTotals(rows){const out={}; rows.forEach(r=>{if(!r.currency)return;
 function MoneyLines({title,values,empty,onOpen}){const keys=Object.keys(values).sort(); return <div className="metric"><span>{title}</span>{keys.length?keys.map(k=><button key={k} onClick={()=>onOpen?.(k)} style={{display:"block",width:"100%",textAlign:"left"}}><b style={{fontSize:15,textDecoration:"underline"}}>{money(values[k],k)}</b></button>):<b style={{fontSize:14}}>{empty}</b>}</div>;}
 
 export default function ManagerFinance({me,openProject}){
- const [budgets,setBudgets]=useState([]),[spend,setSpend]=useState([]),[transfers,setTransfers]=useState([]),[projects,setProjects]=useState([]),[positions,setPositions]=useState([]),[requests,setRequests]=useState([]);
+ const [budgets,setBudgets]=useState([]),[spend,setSpend]=useState([]),[transfers,setTransfers]=useState([]),[projects,setProjects]=useState([]),[positions,setPositions]=useState([]),[operating,setOperating]=useState([]),[requests,setRequests]=useState([]);
  const [error,setError]=useState(null),[loading,setLoading]=useState(true),[drill,setDrill]=useState(null);
  const [financeHandler,setFinanceHandler]=useState(false);
  const [sheet,setSheet]=useState(null),[busy,setBusy]=useState(false),[notice,setNotice]=useState(null);
  const [requestTitle,setRequestTitle]=useState(""),[requestJustification,setRequestJustification]=useState(""),[requestAmount,setRequestAmount]=useState(""),[requestCurrency,setRequestCurrency]=useState("GHS"),[requestNeededBy,setRequestNeededBy]=useState(""),[requestProject,setRequestProject]=useState("");
+ const [expenseTitle,setExpenseTitle]=useState(""),[expenseAmount,setExpenseAmount]=useState(""),[expenseCurrency,setExpenseCurrency]=useState("GHS"),[expenseDate,setExpenseDate]=useState(""),[expenseSource,setExpenseSource]=useState(""),[expenseProject,setExpenseProject]=useState("");
  const year=new Date().getFullYear();
  useEffect(()=>{load();},[me.id,me.unit_id]);
  async function load(){
   setLoading(true);setError(null);
-  const [b,s,t,p,pos,req,u]=await Promise.all([
+  const [b,s,t,p,pos,op,req,u]=await Promise.all([
    supabase.from("budgets").select("id,unit_id,project_id,year,amount_minor,currency,note").eq("unit_id",me.unit_id).eq("year",year),
    supabase.from("spend_lines").select("id,unit_id,project_id,spent_on,description,amount_minor,currency,reverses_id").eq("unit_id",me.unit_id),
    supabase.from("internal_transfers").select("id,from_unit_id,to_unit_id,amount_minor,currency,sent_on,purpose,state,response_note").or(`from_unit_id.eq.${me.unit_id},to_unit_id.eq.${me.unit_id}`),
    supabase.from("projects").select("id,name,lead_unit_id,project_units(unit_id)"),
    supabase.rpc("unit_budget_position",{p_unit_id:me.unit_id,p_year:year}),
+   supabase.rpc("unit_operating_position",{p_unit_id:me.unit_id}),
    supabase.from("finance_requests").select("id,project_id,title,justification,amount_minor,currency,needed_by,state,created_at,decided_at,fulfilled_spend_id").eq("unit_id",me.unit_id).order("created_at",{ascending:false}),
    supabase.from("units").select("handles_finance").eq("id",me.unit_id).single()
   ]);
-  const e=[b.error,s.error,t.error,p.error,pos.error,req.error,u.error].find(Boolean); if(e){setError(humanError(e,"Finance could not be loaded."));setLoading(false);return;}
-  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setRequests(req.data||[]);setFinanceHandler(Boolean(u.data?.handles_finance));setLoading(false);
+  const e=[b.error,s.error,t.error,p.error,pos.error,op.error,req.error,u.error].find(Boolean); if(e){setError(humanError(e,"Finance could not be loaded."));setLoading(false);return;}
+  setBudgets(b.data||[]);setSpend(s.data||[]);setTransfers(t.data||[]);setProjects((p.data||[]).filter(project=>project.lead_unit_id===me.unit_id||(project.project_units||[]).some(row=>row.unit_id===me.unit_id)));setPositions(pos.data||[]);setOperating(op.data||[]);setRequests(req.data||[]);setFinanceHandler(Boolean(u.data?.handles_finance));setLoading(false);
  }
 
  function amountToMinor(value){
@@ -64,6 +66,30 @@ export default function ManagerFinance({me,openProject}){
   }catch(err){setError(humanError(err,"The finance request could not be submitted."));}
   finally{setBusy(false);}
  }
+
+ async function createExpense(){
+  const amountMinor=amountToMinor(expenseAmount);
+  if(!expenseTitle.trim()||!amountMinor) return;
+  setBusy(true);setError(null);setNotice(null);
+  try{
+   const {error:insertError}=await supabase.from("spend_lines").insert({
+    org_id:me.org_id,
+    unit_id:me.unit_id,
+    project_id:expenseProject||null,
+    spent_on:expenseDate||new Date().toISOString().slice(0,10),
+    description:expenseTitle.trim(),
+    amount_minor:amountMinor,
+    currency:expenseCurrency,
+    source_note:expenseSource.trim()||null,
+    entered_by:me.id
+   });
+   if(insertError) throw insertError;
+   setSheet(null);setExpenseTitle("");setExpenseAmount("");setExpenseCurrency("GHS");setExpenseDate("");setExpenseSource("");setExpenseProject("");
+   setNotice("Expense recorded for your unit. The entry is append-only and visible in the audit trail.");
+   await load();
+  }catch(err){setError(humanError(err,"The expense could not be recorded."));}
+  finally{setBusy(false);}
+ }
  const unitBudget=useMemo(()=>totals(budgets.filter(x=>!x.project_id)),[budgets]);
  const budgetCurrencies=new Set(Object.keys(unitBudget));
  const planned={},recorded={},committed={},remaining={};
@@ -75,11 +101,26 @@ export default function ManagerFinance({me,openProject}){
  });
  if(loading)return <div className="body manager-finance"><LoadingState label="Loading finance…" /></div>;
  return <div className="body manager-finance">
-  <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Your unit's budget, spending, commitments, transfers and finance requests. Managers can request funds here; recorded Finance entries remain read-only.</p></div>
-  <button className="btn wide-auto" style={{marginTop:16}} onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button>
+  <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Your unit's actual money in, spending, commitments, transfers and budget context. Managers can record their own unit spending; entries remain append-only.</p></div>
+  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:16}}><button className="btn wide-auto" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button><button className="btn btn-ghost wide-auto" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</button></div>
   {error&&<ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
   {notice&&<ProductNotice tone="success" title="Finance request updated">{notice}</ProductNotice>}
-  <SectionHeader eyebrow={String(year)} title="Unit financial position" />
+  <SectionHeader eyebrow="Actual records" title="Unit operating position" />
+  <div className="manager-finance-position-grid">
+    {operating.length===0&&<EmptyState compact title="No operating money recorded">Confirmed incoming transfers, spending and approved commitments will build this view automatically.</EmptyState>}
+    {operating.map(row=><article className="manager-finance-position-card" key={"op-"+row.currency}>
+      <div className="manager-finance-position-head"><div><span>Currency</span><strong>{row.currency}</strong></div><small>Actual records only</small></div>
+      <div className="manager-finance-position-facts">
+        <button onClick={()=>setDrill({kind:"source",currency:row.currency,title:`Money in · ${row.currency}`})}><b>{money(row.in_minor,row.currency)}</b><span>in</span></button>
+        <button onClick={()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})}><b>{money(row.out_minor,row.currency)}</b><span>out</span></button>
+        <button onClick={()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})}><b>{money(row.committed_minor,row.currency)}</b><span>committed</span></button>
+        <button onClick={()=>setDrill({kind:"operatingRemaining",currency:row.currency,title:`Operating remaining · ${row.currency}`})}><b>{money(row.remaining_minor,row.currency)}</b><span>remaining</span></button>
+      </div>
+    </article>)}
+  </div>
+  <p className="screen-note">Money in means confirmed transfers received by this unit. Remaining is confirmed money in minus recorded spend minus approved commitments. It is not a bank balance.</p>
+
+  <SectionHeader eyebrow={String(year)} title="Budget planning position" />
   <div className="manager-finance-position-grid">
     {positions.length===0&&<EmptyState compact title="No finance position recorded">Budgets, spend and approved requests will build this view automatically.</EmptyState>}
     {positions.map(row=>{
@@ -103,10 +144,12 @@ export default function ManagerFinance({me,openProject}){
   {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="screen-note">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
   {drill&&<div style={{marginTop:10}}>
    <div className="sec"><span>{drill.title}</span></div>
+   {drill.kind==="source"&&transfers.filter(x=>x.to_unit_id===me.unit_id&&x.state==="confirmed"&&x.currency===drill.currency).map(x=><div className="row" key={"t-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} received</div><div className="row-m">{x.sent_on} · {x.purpose}</div><div className="row-note">Confirmed transfer into your unit</div></div>)}
    {(drill.kind==="planned"||drill.kind==="remaining")&&budgets.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"b-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} budget</div><div className="row-m">{x.project_id?"Project budget":"Unit budget"} · {year}</div>{x.note&&<div className="row-note">{x.note}</div>}</div>)}
    {(drill.kind==="spend"||drill.kind==="remaining")&&spend.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"s-"+x.id}><div className="row-t">{x.description} · {money(x.reverses_id?-Number(x.amount_minor):x.amount_minor,x.currency)}</div><div className="row-m">{x.spent_on}{x.project_id?" · project spend":""}{x.reverses_id?" · correction":""}</div></div>)}
    {(drill.kind==="committed"||drill.kind==="remaining")&&requests.filter(x=>x.currency===drill.currency&&x.state==="approved").map(x=><div className="row" key={"r-"+x.id}><div className="row-t">{x.title} · {money(x.amount_minor,x.currency)}</div><div className="row-m">Approved, not yet spent{x.needed_by?` · needed by ${x.needed_by}`:""}</div></div>)}
-   {drill.kind==="remaining"&&<div className="card small">Remaining is the recorded budget minus recorded spend and approved requests that have not yet been spent.</div>}
+   {drill.kind==="remaining"&&<div className="card small">Budget remaining is recorded budget minus recorded spend and approved requests that have not yet been spent.</div>}
+   {drill.kind==="operatingRemaining"&&<div className="card small">Operating remaining is confirmed transfers received minus recorded spend and approved commitments for this currency.</div>}
   </div>}
   <details className="finance-section">
    <summary><span>Projects</span><b>${projects.length}</b></summary>
@@ -136,8 +179,23 @@ export default function ManagerFinance({me,openProject}){
    {r.justification&&<div className="row-note">{r.justification}</div>}
   </div>)}
   {requests.length===0&&<div className="card small">No finance requests are recorded for this unit.</div>}
-  <p className="small" style={{marginTop:12}}>These figures are CEAC OS records, not a bank balance. Managers cannot post or edit Finance entries from this screen.</p>
+  <p className="small" style={{marginTop:12}}>These figures are CEAC OS records, not a bank balance. Managers can add spending only for their own unit; recorded lines cannot be edited or deleted.</p>
   {financeHandler&&<FinanceRequestQueue me={me} authority="finance" canFulfil title="Requests needing Finance" />}
+
+  {sheet==="expense"&&<Sheet onClose={()=>!busy&&setSheet(null)}>
+   <div className="eyebrow">Unit spending</div>
+   <div className="h2" style={{marginTop:5}}>Record expense</div>
+   <p className="screen-note">Record actual spending for {me.unit_name}. This is visible immediately and cannot be edited or deleted later; a correction is a separate reversing entry.</p>
+   <FieldGroup label="What was the money spent on"><input className="field" aria-label="Expense description" value={expenseTitle} onChange={e=>setExpenseTitle(e.target.value)} /></FieldGroup>
+   <div className="finance-request-amount">
+    <FieldGroup label="Amount"><input className="field" aria-label="Expense amount" inputMode="decimal" value={expenseAmount} onChange={e=>setExpenseAmount(e.target.value)} /></FieldGroup>
+    <FieldGroup label="Currency"><select className="field" aria-label="Expense currency" value={expenseCurrency} onChange={e=>setExpenseCurrency(e.target.value)}>{["GHS","USD","GBP","EUR","NGN","ZAR","CAD"].map(currency=><option key={currency} value={currency}>{currency}</option>)}</select></FieldGroup>
+   </div>
+   <FieldGroup label="Spent on"><input className="field" aria-label="Expense date" type="date" value={expenseDate} onChange={e=>setExpenseDate(e.target.value)} /></FieldGroup>
+   <FieldGroup label="Source record" hint="Receipt, book, mobile-money reference or other traceable source."><input className="field" aria-label="Expense source" value={expenseSource} onChange={e=>setExpenseSource(e.target.value)} /></FieldGroup>
+   <FieldGroup label="Project" hint="Optional."><select className="field" aria-label="Expense project" value={expenseProject} onChange={e=>setExpenseProject(e.target.value)}><option value="">General unit spending</option>{projects.map(project=><option key={project.id} value={project.id}>{project.name}</option>)}</select></FieldGroup>
+   <button className="btn" style={{marginTop:14}} disabled={busy||!expenseTitle.trim()||!amountToMinor(expenseAmount)} onClick={createExpense}>{busy?"Saving...":"Record expense"}</button>
+  </Sheet>}
 
   {sheet==="request"&&<Sheet onClose={()=>!busy&&setSheet(null)}>
    <div className="eyebrow">Finance request</div>
