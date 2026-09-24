@@ -215,3 +215,18 @@ Everything needed is in the repository. No step requires asking Claude.
 
 Claude owns migrations only. Ask before adding one, so numbering does not
 collide.
+## Before designing or rebuilding any screen
+
+Read `docs/architecture/CEAC_OS_Experience_Data_Architecture_v2.md`.
+
+It records a page-by-page review of all 58 screens and every design and
+product decision taken since. Two findings drive it: only 1 screen
+contains a chart, none contains a table, and 12 primitives are used over
+2,000 times — so every screen renders as cards of form fields whatever
+its job.
+
+Build the missing primitives first (table, chart with a mandatory
+chart/table toggle, linked stat, dense queue row, icon set, map). Until
+they exist, any redesign becomes cards again.
+
+Part 11 lists rulings CEAC has not yet given. Do not guess them.
