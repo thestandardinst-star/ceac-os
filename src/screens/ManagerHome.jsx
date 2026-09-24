@@ -428,7 +428,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
             <div className="manager-command-context"><span>{me.unit_name}</span><time>{managerDate}</time></div>
             <div className="eyebrow">Unit command</div>
             <h1 className="h1">{managerGreeting}, {me.full_name.split(" ")[0]}</h1>
-            <p className="screen-note">{waitingCount ? `${waitingCount} thing${waitingCount === 1 ? "" : "s"} need you. Oldest first.` : "Nothing needs your decision right now."}</p>
+            <p className="screen-note">Decisions first. {waitingCount ? `${waitingCount} thing${waitingCount === 1 ? "" : "s"} need you. Oldest first.` : "Nothing needs your decision right now."}</p>
           </div>
           <button className="btn manager-command-action" onClick={goAssign}>Give out work</button>
         </div>
@@ -468,6 +468,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
               meta={(submission.work_items.ref || "") + " · " + (submission.profiles?.full_name || "—")}
               onOpen={() => openItem(submission.work_items.id)}
               actions={<>
+                <button className="btn btn-ghost btn-sm" onClick={() => openReview(submission)}>Review</button>
                 <button className="btn btn-ghost btn-sm" onClick={() => openReview(submission, "returned")}>Send back</button>
                 <button className="btn btn-sm" onClick={() => openReview(submission, "completed")}>Approve</button>
               </>} />
