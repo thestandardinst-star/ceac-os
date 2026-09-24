@@ -2,15 +2,6 @@ name: Account Security
 
 on:
   pull_request:
-    paths:
-      - "src/App.jsx"
-      - "src/lib/supabase.js"
-      - "src/screens/SignIn.jsx"
-      - "src/screens/AccountPassword.jsx"
-      - "scripts/test-account-security.mjs"
-      - "supabase/migrations/**"
-      - "supabase/replay/**"
-      - ".github/workflows/account-security.yml"
   workflow_dispatch:
 
 jobs:

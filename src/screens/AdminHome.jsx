@@ -4,6 +4,12 @@ import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocusPanel } from "../components/ReferenceDashboard";
+import { Stat, StatRow } from "../components/primitives";
+
+function jump(id) {
+  const el = typeof document !== "undefined" && document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
@@ -223,10 +229,14 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       <h1 className="h1">Administration</h1>
       <p className="screen-note">Decisions, gaps and office-wide exceptions first. Unit-level work stays with managers unless Administration deliberately drills into it.</p>
       <div className="admin-command-stats" aria-label="Administration overview">
-        <div><strong>{needsYou}</strong><span>Need your action</span></div>
-        <div><strong>{reportingGap}</strong><span>Reporting gaps</span></div>
-        <div><strong>{deliveryRisk}</strong><span>Delivery risks</span></div>
-        <div><strong>{today.headcount}</strong><span>People on record</span></div>
+        <Stat icon="gavel" label="Need your action" value={needsYou}
+          tone={needsYou ? "late" : "ink"} onOpen={() => jump("admin-needs-heading")} />
+        <Stat icon="reports" label="Reporting gaps" value={reportingGap}
+          tone={reportingGap ? "slow" : "ink"} onOpen={() => go?.("reporting")} />
+        <Stat icon="warning" label="Delivery risks" value={deliveryRisk}
+          tone={deliveryRisk ? "slow" : "ink"} onOpen={() => jump("admin-delivery-heading")} />
+        <Stat icon="people" label="People on record" value={today.headcount}
+          onOpen={() => go?.("people")} />
       </div>
     </section>
 
@@ -240,8 +250,9 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
     {!loadError && <section className="admin-home-section admin-pulse-section">
       <SectionHeader eyebrow="Organisation pulse" title="What is happening" />
       <div className="admin-pulse-grid">
-        <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Objectives</span><strong>{delivery.objectives} recorded</strong></div><small>Current recorded status</small></div>
+        <article className="admin-pulse-card" id="admin-delivery-heading">
+          <div className="admin-pulse-head"><div><span>Objectives</span><strong>Current recorded status</strong></div><small>Recorded, not inferred</small></div>
+          <Stat icon="chart" label="Objectives recorded" value={delivery.objectives} onOpen={() => go?.("strategy")} />
           <StatusDistribution label="Objective status distribution" segments={[
             { key:"met", label:"Met", value:delivery.met, tone:"success" },
             { key:"track", label:"On track", value:delivery.onTrack, tone:"info" },
@@ -251,20 +262,26 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
           ]} />
         </article>
 
-        <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? `${reporting.submitted} of ${reporting.total} units` : "Open a period to track coverage"}</small></div>
+        <article className="admin-pulse-card" id="admin-reporting-heading">
+          <div className="admin-pulse-head"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? "Current unit coverage" : "Open a period to track coverage"}</small></div>
+          {reporting && <Stat icon="reports" label="Units submitted" value={`${reporting.submitted}/${reporting.total}`} onOpen={() => go?.("reporting")} />}
           {reporting
             ? <ProgressMeter value={reporting.submitted} max={reporting.total} label="Coverage" detail={reporting.missing.length ? `${reporting.missing.length} outstanding` : "Everyone is in"} />
             : <div className="admin-pulse-empty">No reporting coverage is being measured right now.</div>}
         </article>
 
         <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Projects</span><strong>{delivery.active} active</strong></div><small>This month</small></div>
-          <div className="admin-pulse-pair"><div><b>{delivery.closedThisMonth}</b><span>closed with submitted close record</span></div><div><b>{deliveryRisk}</b><span>delivery exceptions</span></div></div>
+          <div className="admin-pulse-head"><div><span>Projects</span><strong>Recorded movement</strong></div><small>This month</small></div>
+          <StatRow>
+            <Stat icon="project" label="Active" value={delivery.active} onOpen={() => go?.("admin-projects")} />
+            <Stat icon="check" label="Closed" value={delivery.closedThisMonth} onOpen={() => go?.("admin-projects")} />
+            <Stat icon="warning" label="Exceptions" value={deliveryRisk} tone={deliveryRisk ? "slow" : "ink"} onOpen={() => jump("admin-delivery-heading")} />
+          </StatRow>
         </article>
 
-        <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Office today</span><strong>{today.headcount} people on record</strong></div><small>Context, not performance</small></div>
+        <article className="admin-pulse-card" id="admin-office-heading">
+          <div className="admin-pulse-head"><div><span>Office today</span><strong>Operational context</strong></div><small>Context, not performance</small></div>
+          <Stat icon="people" label="People on record" value={today.headcount} onOpen={() => go?.("people")} />
           <StatusDistribution label="Office context today" segments={[
             { key:"working", label:"Working now", value:today.working, tone:"success" },
             { key:"leave", label:"Approved leave", value:today.leave, tone:"info" },
@@ -274,7 +291,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       </div>
     </section>}
 
-    <section className="admin-home-section admin-home-priority">
+    <section className="admin-home-section admin-home-priority" id="admin-needs-heading">
       <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />
       {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
 
@@ -303,7 +320,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       <SectionHeader eyebrow="Reporting" title="Who is missing" count={reportingGap} />
       {!reporting && <EmptyState compact title="No open reporting period">When Administration opens a reporting period, missing units will be named here.</EmptyState>}
       {reporting && <div className="admin-reporting-card">
-        <div><strong>{reporting.submitted} of {reporting.total} units submitted</strong><span>{reporting.label}</span></div>
+        <div><Stat icon="reports" label="Units submitted" value={`${reporting.submitted}/${reporting.total}`} onOpen={() => go?.("reporting")} /><span>{reporting.label}</span></div>
         {reporting.missing.length > 0
           ? <div className="admin-missing-units">{reporting.missing.map((unit) => <span key={unit.id}>{unit.name}</span>)}</div>
           : <span className="admin-all-in">Everyone is in.</span>}
@@ -325,20 +342,21 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         <SectionHeader eyebrow="Today" title="Office context" />
         <p className="screen-note">Session and leave facts are operational context only. They do not measure output or performance.</p>
         <div className="admin-fact-grid">
-          <div><strong>{today.working}</strong><span>working now</span></div>
-          <div><strong>{today.leave}</strong><span>on approved leave</span></div>
-          <div><strong>{today.notStarted}</strong><span>no session started</span></div>
-          <div><strong>{today.headcount}</strong><span>people on record</span></div>
+          <Stat icon="people" label="Working now" value={today.working} onOpen={() => go?.("attendance")} />
+          <Stat icon="calendar" label="Approved leave" value={today.leave} onOpen={() => go?.("attendance")} />
+          <Stat icon="clock" label="No session started" value={today.notStarted}
+            tone={today.notStarted ? "slow" : "ink"} onOpen={() => go?.("attendance")} />
+          <Stat icon="person" label="People on record" value={today.headcount} onOpen={() => go?.("people")} />
         </div>
       </section>
 
       <section className="admin-home-section">
         <SectionHeader eyebrow="Delivery" title="Organisation movement" />
         <div className="admin-fact-grid">
-          <div><strong>{delivery.active}</strong><span>active projects</span></div>
-          <div><strong>{delivery.closedThisMonth}</strong><span>closed this month</span></div>
-          <div><strong>{delivery.onTrack}</strong><span>objectives on track</span></div>
-          <div><strong>{delivery.objectives}</strong><span>objectives recorded</span></div>
+          <Stat icon="project" label="Active projects" value={delivery.active} onOpen={() => go?.("admin-projects")} />
+          <Stat icon="check" label="Closed this month" value={delivery.closedThisMonth} onOpen={() => go?.("admin-projects")} />
+          <Stat icon="chart" label="Objectives on track" value={delivery.onTrack} onOpen={() => go?.("strategy")} />
+          <Stat icon="chart" label="Objectives recorded" value={delivery.objectives} onOpen={() => go?.("strategy")} />
         </div>
       </section>
     </div>

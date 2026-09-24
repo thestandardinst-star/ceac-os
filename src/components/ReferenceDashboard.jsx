@@ -1,4 +1,4 @@
-import { PremiumIcon } from "./PremiumShell";
+import Icon from "./primitives/Icon";
 
 function monthMatrix(date) {
   const year=date.getFullYear();
@@ -48,11 +48,11 @@ export function DashboardCalendar({ meetings=[], events=[], leave=[] }) {
     <section className="reference-schedule-card">
       <div className="reference-card-head"><strong>Later this week</strong><small>{schedule.length?"Upcoming":"Clear"}</small></div>
       {schedule.length ? schedule.map((item,index)=><div className="reference-schedule-row" key={item.id}>
-        <span className={"reference-schedule-icon tone-"+(index%4)}><PremiumIcon name={item.kind==="Meeting"?"calendar":"projects"} size={15}/></span>
+        <span className={"reference-schedule-icon tone-"+(index%4)}><Icon className="premium-icon" name={item.kind==="Meeting"?"calendar":"projects"} size={15}/></span>
         <div><strong>{item.title}</strong><small>{new Date(item.when).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</small></div>
       </div>) : <div className="reference-empty">Nothing recorded for the next few days.</div>}
       {leave.slice(0,2).map((item,index)=><div className="reference-schedule-row" key={"leave-"+item.id}>
-        <span className={"reference-schedule-icon tone-"+((index+2)%4)}><PremiumIcon name="time" size={15}/></span>
+        <span className={"reference-schedule-icon tone-"+((index+2)%4)}><Icon className="premium-icon" name="time" size={15}/></span>
         <div><strong>{item.kind||"Leave"}</strong><small>{item.start_date} → {item.end_date}</small></div>
       </div>)}
     </section>
@@ -65,7 +65,7 @@ export function ReferenceModuleStrip({ items=[] }) {
     <div className="reference-strip-head"><div><strong>Explore CEAC OS</strong><small>Everything you need in one place.</small></div></div>
     <div className="reference-module-grid">
       {items.map((item,index)=><button key={item.label} onClick={item.onClick}>
-        <span className={"reference-module-icon tone-"+(index%5)}><PremiumIcon name={item.icon||"work"} size={20}/></span>
+        <span className={"reference-module-icon tone-"+(index%5)}><Icon className="premium-icon" name={item.icon||"work"} size={20}/></span>
         <span><strong>{item.label}</strong><small>{item.note||"Open workspace"}</small></span>
         <b>→</b>
       </button>)}
@@ -90,7 +90,7 @@ export function ReferenceFocus({ item, meeting, onOpenItem, onOpenMeeting, dueTe
     <article className="reference-today-card">
       <div className="reference-card-head"><strong>Today's schedule</strong><small>{meeting ? "Next" : "Clear"}</small></div>
       {meeting ? <button className="reference-today-row" onClick={()=>onOpenMeeting?.(meeting.id)}>
-        <span className="reference-schedule-icon tone-2"><PremiumIcon name="calendar" size={15}/></span>
+        <span className="reference-schedule-icon tone-2"><Icon className="premium-icon" name="calendar" size={15}/></span>
         <span><strong>{meeting.title}</strong><small>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",hour:"2-digit",minute:"2-digit"})}{meeting.provider ? " · "+meeting.provider.replaceAll("_"," ") : ""}</small></span>
         <b>Join</b>
       </button> : <div className="reference-empty">No upcoming meeting is recorded.</div>}
@@ -111,7 +111,7 @@ export function ReferenceFocusPanel({ item=null, meetings=[], openItem, openMeet
   return <section className="reference-focus-row" aria-label="Next work and today's schedule">
     <article className="reference-focus-card">
       <div className="reference-focus-media" aria-hidden="true">
-        <PremiumIcon name="work" size={28}/>
+        <Icon className="premium-icon" name="work" size={28}/>
         <span>CEAC</span>
       </div>
       <div className="reference-focus-main">
@@ -129,7 +129,7 @@ export function ReferenceFocusPanel({ item=null, meetings=[], openItem, openMeet
       <div className="reference-card-head"><strong>Today's schedule</strong><small>{schedule.length ? schedule.length+" items" : "Clear"}</small></div>
       {schedule.length ? schedule.map((meeting,index)=><button key={meeting.id} onClick={()=>openMeeting?.(meeting.id)} className="reference-today-row">
         <time>{new Date(meeting.starts_at).toLocaleTimeString("en-GB",{timeZone:"Africa/Accra",hour:"2-digit",minute:"2-digit"})}</time>
-        <span className={"reference-schedule-icon tone-"+(index%4)}><PremiumIcon name="calendar" size={14}/></span>
+        <span className={"reference-schedule-icon tone-"+(index%4)}><Icon className="premium-icon" name="calendar" size={14}/></span>
         <span><strong>{meeting.title}</strong><small>{meeting.provider==="zoom"?"Zoom":meeting.provider==="google_meet"?"Google Meet":"Meeting"}</small></span>
       </button>) : <div className="reference-empty">No meetings recorded today.</div>}
     </article>
