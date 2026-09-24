@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { ProductNotice, LoadingState, StatusDistribution, Avatar, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { Stat } from "../components/primitives";
+import { Stat, Table } from "../components/primitives";
 
 // Attendance & leave, organisation-wide. Spec section 7.
 //
@@ -186,17 +186,20 @@ export default function Attendance({ me }) {
             {unitStarts.map((u) => <div key={u.unit}><b>{u.avg}</b><span>{u.unit}</span><small>{u.n} session{u.n === 1 ? "" : "s"}</small></div>)}
           </div>
         </div>
-        {sessions.slice(0, 120).map((s) => (
-          <div key={s.id} className="row">
-            <div className="row-t">{nameOf(s.profile_id)}</div>
-            <div className="row-m">
-              {new Date(s.started_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} ·
-              {" "}{new Date(s.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
-              {s.ended_at ? " — " + new Date(s.ended_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : " — still open"}
-              {" · "}{s.place === "office" ? "at the office" : "elsewhere"}
-            </div>
-          </div>))}
-        {sessions.length > 120 && <div className="card small">Showing the most recent 120.</div>}
+        <Table
+          rows={sessions.slice(0,120)}
+          empty="No work sessions were recorded in this period."
+          exportName="ceac-attendance-sessions"
+          columns={[
+            { key:"profile_id",label:"Person",render:(row)=>nameOf(row.profile_id) },
+            { key:"started_at",label:"Date",width:115,render:(row)=>new Date(row.started_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"}) },
+            { key:"started_at_time",label:"Start",width:90,render:(row)=>new Date(row.started_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}),sortValue:(row)=>new Date(row.started_at).getTime() },
+            { key:"ended_at",label:"End",width:90,render:(row)=>row.ended_at?new Date(row.ended_at).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}):"Open" },
+            { key:"place",label:"Place",render:(row)=>row.place==="office"?"Office":"Elsewhere" },
+            { key:"unit_name",label:"Unit",render:(row)=>row.unit_name || "—" },
+          ]}
+        />
+        {sessions.length > 120 && <div className="card small">Showing the most recent 120. Export reflects the visible rows.</div>}
       </>)}
 
       {tab === "flagged" && (<>
