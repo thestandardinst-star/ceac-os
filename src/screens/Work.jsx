@@ -27,6 +27,7 @@ export default function Work({ me, isManager = false, openItem }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [createVisibility, setCreateVisibility] = useState("unit");
   const [projectId, setProjectId] = useState("");
@@ -40,9 +41,13 @@ export default function Work({ me, isManager = false, openItem }) {
   const [notice, setNotice] = useState(null);
   const [queryText, setQueryText] = useState("");
   const [sortMode, setSortMode] = useState("due");
+  const [proposalName, setProposalName] = useState("");
+  const [proposalPurpose, setProposalPurpose] = useState("");
+  const [proposalStart, setProposalStart] = useState("");
+  const [proposalEnd, setProposalEnd] = useState("");
 
   useEffect(() => { load(); }, [mode, statusFilter, me.id, isManager]);
-  useEffect(() => { loadProjects(); }, [me.id, me.unit_id]);
+  useEffect(() => { loadProjects(); loadProposals(); }, [me.id, me.unit_id]);
   useEffect(() => {
     sessionStorage.setItem(viewKey, JSON.stringify({ mode, statusFilter }));
   }, [viewKey, mode, statusFilter]);
@@ -84,6 +89,53 @@ export default function Work({ me, isManager = false, openItem }) {
     setProjects((data || []).filter((project) =>
       project.lead_unit_id === me.unit_id || (project.project_units || []).some((unit) => unit.unit_id === me.unit_id)
     ));
+  }
+
+  async function loadProposals() {
+    if (!me.unit_id) return;
+    const { data, error } = await supabase.from("project_proposals")
+      .select("id,name,purpose,starts_on,ends_on,state,project_id,review_note,created_at")
+      .eq("proposed_by", me.id)
+      .order("created_at", { ascending: false })
+      .limit(12);
+    if (error) {
+      if (!String(error.message || "").includes("project_proposals")) setLoadError(error.message);
+      return;
+    }
+    setProposals(data || []);
+  }
+
+  function openProjectProposal() {
+    setProposalName("");
+    setProposalPurpose("");
+    setProposalStart("");
+    setProposalEnd("");
+    setNotice(null);
+    setSheet("proposal");
+  }
+
+  async function createProjectProposal() {
+    if (!proposalName.trim() || !proposalPurpose.trim()) return;
+    setBusy(true); setLoadError(null); setNotice(null);
+    try {
+      const { error } = await supabase.from("project_proposals").insert({
+        org_id: me.org_id,
+        unit_id: me.unit_id,
+        proposed_by: me.id,
+        name: proposalName.trim(),
+        purpose: proposalPurpose.trim(),
+        starts_on: proposalStart || null,
+        ends_on: proposalEnd || null,
+      });
+      if (error) throw error;
+      setSheet(null);
+      setNotice("Project proposed. Your Unit Head must confirm it before it becomes a project.");
+      await loadProposals();
+    } catch (error) {
+      setLoadError(humanError(error, "The project proposal could not be submitted."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   function openCreate(visibility) {
@@ -185,9 +237,20 @@ export default function Work({ me, isManager = false, openItem }) {
     <div className="work-actions">
       <button className="btn btn-sm" onClick={() => openCreate("unit")}>Add agreed work</button>
       <button className="btn btn-ghost btn-sm" onClick={() => openCreate("private")}>Add private work</button>
+      <button className="btn btn-ghost btn-sm" onClick={openProjectProposal}>Propose project</button>
     </div>
 
     {notice && <ProductNotice tone="success" title="Work updated">{notice}</ProductNotice>}
+    {proposals.length > 0 && <details className="finance-section" style={{ marginTop: 12 }}>
+      <summary><span>My project proposals</span><b>{proposals.length}</b></summary>
+      <div className="finance-section-body">
+        {proposals.map((proposal) => <div className="row" key={proposal.id}>
+          <div className="row-t">{proposal.name}</div>
+          <div className="row-m">{proposal.state === "submitted" ? "Waiting for Unit Head confirmation" : proposal.state === "approved" ? "Confirmed as a project" : "Not approved"}</div>
+          {proposal.review_note && <div className="row-note">{proposal.review_note}</div>}
+        </div>)}
+      </div>
+    </details>}
 
     <div className="status-filter" aria-label="Work status">
       {STATUS_FILTERS.map(([key, label]) => <button
@@ -230,6 +293,21 @@ export default function Work({ me, isManager = false, openItem }) {
           ? "There is no active work in this view."
           : "There is no work in this status."}</span>
     </div>}
+
+    {sheet === "proposal" && <Sheet onClose={() => !busy && setSheet(null)}>
+      <div className="eyebrow">Project proposal</div>
+      <div className="h2" style={{ marginTop: 5 }}>Propose a project</div>
+      <p className="screen-note">Suggest the project and its purpose. It does not become an official CEAC project until your Unit Head confirms it.</p>
+      <FieldGroup label="Project name"><input className="field" aria-label="Proposed project name" value={proposalName} onChange={(event) => setProposalName(event.target.value)} /></FieldGroup>
+      <FieldGroup label="Purpose"><textarea className="field" aria-label="Proposed project purpose" rows={3} value={proposalPurpose} onChange={(event) => setProposalPurpose(event.target.value)} /></FieldGroup>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+        <FieldGroup label="Starts (optional)"><input className="field" aria-label="Proposed project start" type="date" value={proposalStart} onChange={(event) => setProposalStart(event.target.value)} /></FieldGroup>
+        <FieldGroup label="Ends (optional)"><input className="field" aria-label="Proposed project end" type="date" min={proposalStart || undefined} value={proposalEnd} onChange={(event) => setProposalEnd(event.target.value)} /></FieldGroup>
+      </div>
+      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !proposalName.trim() || !proposalPurpose.trim() || (proposalStart && proposalEnd && proposalEnd < proposalStart)} onClick={createProjectProposal}>
+        {busy ? "Submitting..." : "Send proposal"}
+      </button>
+    </Sheet>}
 
     {sheet === "self" && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="eyebrow">{createVisibility === "private" ? "Only you can see this" : "Your agreed CEAC work"}</div>
