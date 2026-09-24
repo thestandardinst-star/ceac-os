@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEAC OS — approved Manager Overview reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F2F3EF;--card:#FFF;--ink:#1D2320;--ink-soft:#4A534D;--ink-faint:#6E7872;
+--line:#D7DAD4;--line-soft:#E6E8E3;--act:#1F6F4A;--late:#A33A2D;--slow:#8A6516;--r:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Instrument Sans',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+font-size:15px;line-height:1.5;padding:28px 18px 60px}
+.wrap{max-width:720px;margin:0 auto}
+.h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+.screen-note{font-size:12.5px;color:var(--ink-faint);margin-top:4px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 8px;
+font-size:12px;font-weight:600;color:var(--ink-faint)}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin:14px 0}
+.stat{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+border-radius:var(--r);padding:12px 13px;cursor:pointer;font-family:inherit}
+.stat:hover{border-color:var(--ink-faint)}
+.stat-l{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft)}
+.stat-v{display:block;font-size:25px;font-weight:600;letter-spacing:-.02em;margin-top:3px;
+font-variant-numeric:tabular-nums;color:var(--ink)}
+.stat-sub{font-size:14px;font-weight:400;color:var(--ink-faint)}
+.tone-late{color:var(--late)!important}.tone-slow{color:var(--slow)!important}
+.qlist{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.qrow{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;
+padding:10px 13px;border-bottom:1px solid var(--line-soft)}
+.qrow:last-child{border-bottom:0}
+.qrow-age{font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.age-late{color:var(--late)}.age-slow{color:var(--slow)}.age-quiet{color:var(--ink-faint)}
+.qrow-t{display:block;font-size:14px}
+.qrow-m{display:block;font-size:12px;color:var(--ink-faint);margin-top:1px}
+.qrow-act{display:flex;gap:6px;white-space:nowrap}
+.btn-sm{padding:5px 11px;border-radius:8px;font-size:12.5px;font-weight:600;border:0;
+background:var(--act);color:#fff;cursor:pointer;font-family:inherit}
+.btn-ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.ch-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.ch-legend{display:flex;gap:14px;font-size:12px;color:var(--ink-soft)}
+.ch-legend span{display:flex;align-items:center;gap:5px}
+.ch-legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.ch-grid{stroke:var(--line-soft)}.ch-tick{fill:var(--ink-faint);font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--card);
+border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{text-align:left;font-size:12px;font-weight:600;color:var(--ink-soft);padding:9px 12px;
+border-bottom:1px solid var(--line)}
+td{padding:8px 12px;border-bottom:1px solid var(--line-soft)}
+tr:last-child td{border-bottom:0}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.icon{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;
+stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hidden{display:none}
+</style></head><body><div class="wrap">
+
+<!--
+  APPROVED VISUAL TARGET — Manager Overview. Approved by Gabriel, 25 September 2026.
+
+  Open this file in a browser beside what you build. Match its density,
+  hierarchy and behaviour. This is not documentation; it is the target.
+
+  Illustrative numbers. The build reads live Supabase data.
+
+  The four things that matter, all mandatory:
+   1. Every stat is a link. Four figures, four doors. A figure with no
+      rows behind it must not render.
+   2. Age is the first column of the queue, coloured by wait, oldest
+      first, actions inline. Three decisions fit where a card gave one.
+   3. Every chart carries a chart/table toggle.
+   4. The chart shows the gap, not the score. Media 0.72 Sunday against
+      0.07 midweek is the finding.
+
+  Production uses inline SVG (as here) — no charting library. The bundle
+  is already over 1MB.
+-->
+
+<div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+  <div class="h1">Media and Technical</div>
+  <div style="font-size:13px;color:var(--ink-faint)">Thursday 25 September</div>
+</div>
+<p class="screen-note">Three things need you. Oldest first.</p>
+
+<div class="stat-row">
+  <button class="stat"><span class="stat-l"><svg class="icon" viewBox="0 0 24 24"><path d="M14 4l6 6-3 3-6-6zM10 9l5 5-6 6-5-5zM3 21h8"/></svg>Needs decision</span><span class="stat-v tone-late">3</span></button>
+  <button class="stat"><span class="stat-l"><svg class="icon" viewBox="0 0 24 24"><path d="M8 11V6a1.5 1.5 0 013 0v5m0-1V4.5a1.5 1.5 0 013 0V11m0-1V6a1.5 1.5 0 013 0v7a7 7 0 01-7 7h-1a6 6 0 01-6-6v-4a1.5 1.5 0 013 0"/></svg>Stuck on others</span><span class="stat-v tone-slow">2</span></button>
+  <button class="stat"><span class="stat-l"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11a3 3 0 100-6 3 3 0 000 6zM2 20v-1a5 5 0 015-5h4a5 5 0 015 5v1M17 11a3 3 0 100-6M18 14a5 5 0 014 5v1"/></svg>Working now</span><span class="stat-v">4<span class="stat-sub"> of 7</span></span></button>
+  <button class="stat"><span class="stat-l"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2v20M17 6.5C17 4.6 14.8 3.5 12 3.5S7 4.6 7 6.5s2 2.8 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/></svg>Budget left</span><span class="stat-v">GHS 1,000</span></button>
+</div>
+
+<div class="sec"><span>Waiting on you</span><span>3</span></div>
+<div class="qlist">
+  <div class="qrow"><span class="qrow-age age-late">9 days</span>
+    <span><span class="qrow-t">Nana Ansah · leave, 4 days</span><span class="qrow-m">annual · from 29 Sep</span></span>
+    <span class="qrow-act"><button class="btn-sm btn-ghost">Decline</button><button class="btn-sm">Approve</button></span></div>
+  <div class="qrow"><span class="qrow-age age-slow">4 days</span>
+    <span><span class="qrow-t">Sunday service edit</span><span class="qrow-m">MED-014 · Gabriel Rockson</span></span>
+    <span class="qrow-act"><button class="btn-sm btn-ghost">Send back</button><button class="btn-sm">Approve</button></span></div>
+  <div class="qrow"><span class="qrow-age age-quiet">1 day</span>
+    <span><span class="qrow-t">Week 37 stills</span><span class="qrow-m">MED-GFX-021 · Nana Ansah</span></span>
+    <span class="qrow-act"><button class="btn-sm btn-ghost">Send back</button><button class="btn-sm">Approve</button></span></div>
+</div>
+
+<div class="sec" style="margin-bottom:2px"><span>Service performance</span></div>
+<p class="screen-note" style="margin-bottom:10px">Media is strong on Sunday and weak midweek — the gap is the story, not the score.</p>
+<div class="ch-top">
+  <div class="ch-legend"><span><i style="background:#2A78D6"></i>Sunday</span><span><i style="background:#EB6834"></i>Midweek</span></div>
+  <button class="btn-sm btn-ghost" id="tgl">Show as table</button>
+</div>
+<div id="chart">
+<svg viewBox="0 0 640 230" width="100%" height="230" role="img" aria-label="Sunday versus midweek service scores by department">
+  <g>
+    <line class="ch-grid" x1="44" x2="630" y1="10" y2="10"/><text class="ch-tick" x="38" y="13" text-anchor="end">1</text>
+    <line class="ch-grid" x1="44" x2="630" y1="58.5" y2="58.5"/><text class="ch-tick" x="38" y="61.5" text-anchor="end">0.75</text>
+    <line class="ch-grid" x1="44" x2="630" y1="107" y2="107"/><text class="ch-tick" x="38" y="110" text-anchor="end">0.5</text>
+    <line class="ch-grid" x1="44" x2="630" y1="155.5" y2="155.5"/><text class="ch-tick" x="38" y="158.5" text-anchor="end">0.25</text>
+    <line class="ch-grid" x1="44" x2="630" y1="204" y2="204"/><text class="ch-tick" x="38" y="207" text-anchor="end">0</text>
+  </g>
+  <g>
+    <rect x="70"  y="29.4"  width="18" height="174.6" rx="3" fill="#2A78D6"><title>Venue · Sunday: 0.90</title></rect>
+    <rect x="91"  y="33.3"  width="18" height="170.7" rx="3" fill="#EB6834"><title>Venue · Midweek: 0.88</title></rect>
+    <text class="ch-tick" x="90" y="218" text-anchor="middle">Venue</text>
+    <rect x="187" y="31.3"  width="18" height="172.7" rx="3" fill="#2A78D6"><title>Programs · Sunday: 0.89</title></rect>
+    <rect x="208" y="72.1"  width="18" height="131.9" rx="3" fill="#EB6834"><title>Programs · Midweek: 0.68</title></rect>
+    <text class="ch-tick" x="207" y="218" text-anchor="middle">Programs</text>
+    <rect x="304" y="46.9"  width="18" height="157.1" rx="3" fill="#2A78D6"><title>Technical · Sunday: 0.81</title></rect>
+    <rect x="325" y="58.5"  width="18" height="145.5" rx="3" fill="#EB6834"><title>Technical · Midweek: 0.75</title></rect>
+    <text class="ch-tick" x="324" y="218" text-anchor="middle">Technical</text>
+    <rect x="421" y="64.4"  width="18" height="139.6" rx="3" fill="#2A78D6"><title>Media · Sunday: 0.72</title></rect>
+    <rect x="442" y="190.4" width="18" height="13.6"  rx="3" fill="#EB6834"><title>Media · Midweek: 0.07</title></rect>
+    <text class="ch-tick" x="441" y="218" text-anchor="middle">Media</text>
+    <rect x="538" y="68.3"  width="18" height="135.7" rx="3" fill="#2A78D6"><title>Choir · Sunday: 0.70</title></rect>
+    <rect x="559" y="95.4"  width="18" height="108.6" rx="3" fill="#EB6834"><title>Choir · Midweek: 0.56</title></rect>
+    <text class="ch-tick" x="558" y="218" text-anchor="middle">Choir</text>
+  </g>
+</svg>
+</div>
+<div id="tbl" class="hidden">
+<table><tr><th>Department</th><th class="num">Sunday</th><th class="num">Midweek</th><th class="num">Gap</th></tr>
+<tr><td>Venue</td><td class="num">0.90</td><td class="num">0.88</td><td class="num">0.02</td></tr>
+<tr><td>Programs</td><td class="num">0.89</td><td class="num">0.68</td><td class="num">0.21</td></tr>
+<tr><td>Technical</td><td class="num">0.81</td><td class="num">0.75</td><td class="num">0.06</td></tr>
+<tr><td>Media</td><td class="num">0.72</td><td class="num">0.07</td><td class="num" style="color:var(--late)">0.65</td></tr>
+<tr><td>Choir</td><td class="num">0.70</td><td class="num">0.56</td><td class="num">0.14</td></tr></table>
+</div>
+<script>
+var t=document.getElementById('tgl'),c=document.getElementById('chart'),b=document.getElementById('tbl');
+t.onclick=function(){var s=b.classList.contains('hidden');b.classList.toggle('hidden');
+c.classList.toggle('hidden');t.textContent=s?'Show as chart':'Show as table';};
+</script>
+</div></body></html>

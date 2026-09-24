@@ -198,3 +198,20 @@ canonical — never derive a code from the initials of a unit name.
 
 - **Payroll**: which allowances and deductions beyond SSNIT and PAYE.
 - **Leave entitlement by contract type**: one org-wide figure today.
+
+## Continuing without Claude
+
+Everything needed is in the repository. No step requires asking Claude.
+
+1. `docs/architecture/CEAC_OS_Experience_Data_Architecture_v2.md` — every
+   design and product decision, in build sequence, with the reasoning.
+2. `docs/reference/manager-overview.html` — the approved visual target.
+   Open it in a browser and match it.
+3. `src/components/primitives/` — the six built primitives. `System →
+   Primitives` in the app demonstrates each against live data.
+4. `docs/QUESTIONS_FOR_CEAC.md` — the six answers that block Stages 3 and
+   6. Do not guess any of them. If an answer is missing, build a stage
+   that is not blocked instead.
+
+Claude owns migrations only. Ask before adding one, so numbering does not
+collide.
