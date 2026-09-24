@@ -16,6 +16,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   const [alerts, setAlerts] = useState([]);
   const [blockers, setBlockers] = useState([]);
   const [leaveQueue, setLeaveQueue] = useState([]);
+  const [checks, setChecks] = useState([]);
   const [mine, setMine] = useState([]);
   const [office, setOffice] = useState(null);
   const [today, setToday] = useState({ working: 0, leave: 0, notStarted: 0, headcount: 0 });
@@ -47,7 +48,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
       const todayStr = new Date().toISOString().slice(0, 10);
 
-      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, my, o, staff, sessToday, sessWeek, away, projs, projectCloses, objs, period, subs, memberships, meetingRows] = await Promise.all([
+      const [us, mgrs, done7, openAlerts, pi, al, bl, lq, workflowSteps, my, o, staff, sessToday, sessWeek, away, projs, projectCloses, objs, period, subs, memberships, meetingRows] = await Promise.all([
         must(supabase.from("units").select("id,name").order("name"), "Units"),
         must(supabase.from("unit_memberships").select("unit_id,profile_id,profiles(id,full_name,email)").eq("role","manager"), "Unit heads"),
         must(supabase.from("completed_outputs").select("unit_id").gte("completed_at", weekAgo), "Completed outputs"),
@@ -64,6 +65,10 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         must(supabase.from("leave_requests")
           .select("id,kind,start_date,end_date,days,status,requester:profiles!leave_requests_profile_id_fkey(full_name)")
           .in("status",["pending","escalated"]).order("requested_at",{ascending:false}).limit(20), "Leave queue"),
+        must(supabase.from("workflow_run_steps")
+          .select("id,label,required_capability,created_at,workflow_run_id")
+          .eq("org_id",me.org_id).eq("state","ready")
+          .order("created_at",{ascending:true}).limit(30), "Checks"),
         must(supabase.from("work_items")
           .select("id,ref,title,status,due_at").eq("assignee_id",me.id)
           .not("status","in","(completed,self_certified,cancelled)"), "Administration work"),
@@ -107,6 +112,8 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       setAlerts(al || []);
       setBlockers((bl || []).filter((blocker) => blocker.work_items && blocker.party_unit_id && blocker.work_items.unit_id !== blocker.party_unit_id));
       setLeaveQueue(lq || []);
+      const myCapabilities = new Set(me.capabilities || []);
+      setChecks((workflowSteps || []).filter((step) => !step.required_capability || myCapabilities.has(step.required_capability)));
       setMine(my || []);
       setOffice(o || null);
 
@@ -216,11 +223,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
   const withoutHead = units.filter((unit) => !unit.head).length;
   const adminDate = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
-  const adminAttention = alerts.length + leaveQueue.length + withoutHead + (reporting?.missing?.length || 0);
+  const adminAttention = alerts.length + leaveQueue.length + checks.length + withoutHead + (reporting?.missing?.length || 0);
 
   const reportingGap = reporting?.missing?.length || 0;
   const deliveryRisk = watch.length + blockers.length;
-  const needsYou = alerts.length + leaveQueue.length + withoutHead;
+  const needsYou = alerts.length + leaveQueue.length + checks.length + withoutHead;
 
   return <div className="body admin-home">
     <section className="admin-command-surface">
@@ -293,11 +300,19 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
     <section className="admin-home-section admin-home-priority" id="admin-needs-heading">
       <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />
-      {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
+      {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Checks, leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
 
       {!office && <ProductNotice tone="attention" title="Set the office location" action={<button className="btn btn-ghost btn-sm" onClick={openSettings}>Open Settings</button>}>Attendance cannot distinguish the office from another work location until this is configured.</ProductNotice>}
 
       {withoutHead > 0 && <ProductNotice tone="attention" title={`${withoutHead} unit${withoutHead === 1 ? "" : "s"} without a head`} action={<button className="btn btn-ghost btn-sm" onClick={openUnits}>Open Units</button>}>Assign an existing unit member after their account is active. New invitations always begin as Staff.</ProductNotice>}
+
+      {checks.length > 0 && <button className="admin-action-row admin-action-button" onClick={() => go?.("workflows")}>
+        <div>
+          <strong>Checks · {checks.length} waiting</strong>
+          <span>Oldest waiting since {new Date(checks[0].created_at).toLocaleDateString("en-GB", { day:"numeric", month:"short" })}</span>
+        </div>
+        <b aria-hidden="true">→</b>
+      </button>}
 
       {leaveQueue.map((request) => <div key={request.id} className="admin-action-row">
         <div>
