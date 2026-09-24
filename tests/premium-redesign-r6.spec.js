@@ -40,7 +40,7 @@ test.describe("Premium redesign R6 whole-system consistency", () => {
     const { context, page } = await openRole(browser, "manager@ceac.local.test", ".manager-app");
     await openMore(page);
     for (const label of legacyLabels) await expect(page.getByRole("menuitem", { name: label, exact: true })).toHaveCount(0);
-    for (const label of ["Calendar", "Budget", "Reports", "Messages"]) await expect(page.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
+    for (const label of ["Calendar", "Finance", "Reports", "Messages", "My Hub"]) await expect(page.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r6-manager-mobile-more.png", fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await context.close();
