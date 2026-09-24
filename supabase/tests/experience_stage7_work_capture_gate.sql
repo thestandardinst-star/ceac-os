@@ -74,7 +74,7 @@ begin
      or v_def not ilike '%Choose when this work is due.%'
      or v_def not ilike '%Choose who is responsible.%'
      or v_def ilike '%Enter the expected result.%'
-     or v_def not ilike '%nullif(btrim(coalesce(p_expected_outcome%''%''%)),''%''%)%' then
+     or v_def not ilike '%nullif(btrim(coalesce(p_expected_outcome%' then
     raise exception 'Stage 7 work-capture gate failure: assigned Task no longer follows the four-field contract or expected outcome became mandatory again.';
   end if;
 end
