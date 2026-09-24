@@ -433,6 +433,41 @@ create trigger internal_transfer_project_guard
 before insert on public.internal_transfers
 for each row execute function public.guard_internal_transfer_project();
 
+-- One reusable authority predicate prevents policy subqueries from becoming
+-- ambiguous: project authority, or the manager of a unit that actually belongs
+-- to the project.
+create or replace function public.app_can_manage_project_register(
+  p_project_id uuid,
+  p_unit_id uuid
+)
+returns boolean
+language sql
+stable
+security invoker
+set search_path=public
+as $
+  select
+    public.app_can_manage_delivery_project(p_project_id)
+    or (
+      p_unit_id in (select public.app_managed_units())
+      and exists (
+        select 1
+        from public.projects p
+        where p.id=p_project_id
+          and p.org_id=public.app_org_id()
+          and (
+            p.lead_unit_id=p_unit_id
+            or exists (
+              select 1 from public.project_units pu
+              where pu.project_id=p.id and pu.unit_id=p_unit_id
+            )
+          )
+      )
+    );
+$;
+revoke all on function public.app_can_manage_project_register(uuid,uuid) from public,anon;
+grant execute on function public.app_can_manage_project_register(uuid,uuid) to authenticated;
+
 -- RLS: visible project readers see the register. Writes belong either to the
 -- project authority or the manager of the participant's own project unit.
 alter table public.project_register_people enable row level security;
@@ -463,40 +498,19 @@ with check (
   org_id=public.app_org_id()
   and created_by=auth.uid()
   and updated_by=auth.uid()
-  and (
-    public.app_can_manage_delivery_project(project_id)
-    or (
-      unit_id in (select public.app_managed_units())
-      and exists (
-        select 1 from public.projects p
-        where p.id=project_id and (
-          p.lead_unit_id=unit_id
-          or exists (
-            select 1 from public.project_units pu
-            where pu.project_id=p.id and pu.unit_id=unit_id
-          )
-        )
-      )
-    )
-  )
+  and public.app_can_manage_project_register(project_id,unit_id)
 );
 
 create policy project_register_people_update
 on public.project_register_people for update to authenticated
 using (
   org_id=public.app_org_id()
-  and (
-    public.app_can_manage_delivery_project(project_id)
-    or unit_id in (select public.app_managed_units())
-  )
+  and public.app_can_manage_project_register(project_id,unit_id)
 )
 with check (
   org_id=public.app_org_id()
   and updated_by=auth.uid()
-  and (
-    public.app_can_manage_delivery_project(project_id)
-    or unit_id in (select public.app_managed_units())
-  )
+  and public.app_can_manage_project_register(project_id,unit_id)
 );
 
 create policy project_register_payments_read
@@ -511,12 +525,7 @@ with check (
   and exists (
     select 1 from public.project_register_people rp
     where rp.id=register_person_id
-      and rp.org_id=org_id
-      and rp.project_id=project_id
-      and (
-        public.app_can_manage_delivery_project(rp.project_id)
-        or rp.unit_id in (select public.app_managed_units())
-      )
+      and public.app_can_manage_project_register(rp.project_id,rp.unit_id)
   )
 );
 
@@ -532,12 +541,7 @@ with check (
   and exists (
     select 1 from public.project_register_people rp
     where rp.id=register_person_id
-      and rp.org_id=org_id
-      and rp.project_id=project_id
-      and (
-        public.app_can_manage_delivery_project(rp.project_id)
-        or rp.unit_id in (select public.app_managed_units())
-      )
+      and public.app_can_manage_project_register(rp.project_id,rp.unit_id)
   )
 );
 
@@ -575,12 +579,7 @@ with check (
   and exists (
     select 1 from public.project_register_people rp
     where rp.id=register_person_id
-      and rp.org_id=org_id
-      and rp.project_id=project_id
-      and (
-        public.app_can_manage_delivery_project(rp.project_id)
-        or rp.unit_id in (select public.app_managed_units())
-      )
+      and public.app_can_manage_project_register(rp.project_id,rp.unit_id)
   )
 );
 
@@ -591,10 +590,7 @@ using (
   and exists (
     select 1 from public.project_register_people rp
     where rp.id=register_person_id
-      and (
-        public.app_can_manage_delivery_project(rp.project_id)
-        or rp.unit_id in (select public.app_managed_units())
-      )
+      and public.app_can_manage_project_register(rp.project_id,rp.unit_id)
   )
 )
 with check (
@@ -603,10 +599,7 @@ with check (
   and exists (
     select 1 from public.project_register_people rp
     where rp.id=register_person_id
-      and (
-        public.app_can_manage_delivery_project(rp.project_id)
-        or rp.unit_id in (select public.app_managed_units())
-      )
+      and public.app_can_manage_project_register(rp.project_id,rp.unit_id)
   )
 );
 
