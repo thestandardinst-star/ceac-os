@@ -1,8 +1,8 @@
 # CEAC OS — Design Foundation v2
 
-**Date:** 24 September 2026  
-**Status:** APPROVED VISUAL AND INTERACTION ARCHITECTURE  
-**Applies to:** Staff, Manager, Administration/HR and Group Pastor/CEO surfaces  
+**Date:** 24 September 2026
+**Status:** APPROVED VISUAL AND INTERACTION ARCHITECTURE
+**Applies to:** Staff, Manager, Administration/HR and Group Pastor/CEO surfaces
 **Implementation boundary:** Visual language, component language, interaction design and migration strategy only. Existing security, RLS, audit, authority, data-integrity and business-rule contracts remain authoritative.
 
 ## 0. Precedence
