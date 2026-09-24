@@ -670,7 +670,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
           <section className="ceac-record-panel">
             <strong className="ceac-record-panel-title">Progress</strong>
             <span className="ceac-record-panel-copy">{checks.length ? `${done} of ${checks.length} checklist items complete.` : "No checklist is attached to this work."}</span>
-            {blocker && <span className="ceac-record-panel-copy">Waiting on {blocker.units ? blocker.units.name : blocker.party_text || "another party"}.</span>}
+            {blocker && <span className="ceac-record-panel-copy">Current blocker: {blocker.units ? blocker.units.name : blocker.party_text || "another party"}.</span>}
             {review?.decision === "returned" && <span className="ceac-record-panel-copy">This work was sent back for correction.</span>}
           </section>
         </aside>
