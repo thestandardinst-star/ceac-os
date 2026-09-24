@@ -14,7 +14,7 @@ export default function MapPin({ lat, lng, radius, label, height = 200, zoom = 0
   return (
     <div className="mapwrap" style={{ height }}>
       <iframe title={label || "Location"} src={src} loading="lazy"
-              style={{ width: "100%", height: "100%", border: 0, borderRadius: "var(--r)" }} />
+              style={{ width: "100%", height: "100%", border: 0, borderRadius: "var(--ceac-radius-small)" }} />
       {(label || radius) && (
         <div className="small" style={{ marginTop: 6 }}>
           {label}{radius ? " · anyone within " + radius + "m counts as here" : ""}

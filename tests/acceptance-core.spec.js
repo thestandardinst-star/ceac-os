@@ -422,6 +422,7 @@ test("Experience Stage 8 removes the known navigation, Team and Calendar defects
     await expect(side.getByRole("button", { name: "My Hub", exact: true })).toBeVisible();
 
     await go(page, "Team");
+    await expect(page.locator(".manager-team .sec").filter({ hasText: "Team setup" })).toBeVisible({ timeout: 15000 });
     const sectionLabels = await page.locator(".manager-team .sec > span:first-child").allTextContents();
     expect(sectionLabels.indexOf("Team setup")).toBeGreaterThanOrEqual(0);
     expect(sectionLabels.indexOf("People")).toBeGreaterThanOrEqual(0);

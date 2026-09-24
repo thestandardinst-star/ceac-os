@@ -1,0 +1,28 @@
+:root{
+  --ceac-ease-enter:cubic-bezier(.16,1,.3,1);
+  --ceac-ease-respond:cubic-bezier(.4,0,.2,1);
+  --ceac-ease-confirm:cubic-bezier(.34,1.56,.64,1);
+  --ceac-duration-fast:150ms;
+  --ceac-duration-surface:200ms;
+  --ceac-duration-sheet:240ms;
+}
+
+@keyframes ceac-skeleton-shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+@keyframes ceac-toast-enter{
+  from{opacity:0;transform:translateY(-8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  :root{
+    --ceac-duration-fast:.01ms;
+    --ceac-duration-surface:.01ms;
+    --ceac-duration-sheet:.01ms;
+  }
+  .ceac-skeleton{animation:none}
+  .ceac-toast{animation:none}
+}

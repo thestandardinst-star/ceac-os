@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Chart, Icon, MapPin, QueueRow, Stat, StatRow, Table, byOldest } from "../components/primitives";
+import { Chart, EmptyState, Icon, MapPin, QueueRow, Skeleton, Stat, StatRow, Table, Toast, byOldest } from "../components/primitives";
 
 // Demonstration route for the design primitives.
 //
@@ -34,7 +34,7 @@ export default function DesignPrimitives({ me }) {
     });
   }
 
-  if (!d) return <div className="body"><div className="spin">Loading real data…</div></div>;
+  if (!d) return <div className="body" style={{ paddingTop: 32 }}><Skeleton block /><div style={{ marginTop: 16 }}><Skeleton lines={4} /></div></div>;
 
   const nameOf = (id) => (d.people.find((p) => p.id === id) || {}).full_name || "—";
   const unitOf = (id) => (d.units.find((u) => u.id === id) || {}).name || "—";
@@ -73,18 +73,18 @@ export default function DesignPrimitives({ me }) {
 
       <div className="sec"><span>Stat — always a link</span></div>
       <StatRow>
-        <Stat icon="gavel" label="Needs a decision" value={queue.length}
-              tone={queue.length ? "late" : "ink"} onOpen={() => setOpened("queue")} />
+        <Stat icon="gavel" label="Needs a decision" value={queue.length} size="md"
+              tone={queue.length ? "risk" : "ink"} onOpen={() => setOpened("queue")} />
         <Stat icon="work" label="Open work" value={openWork.length} onOpen={() => setOpened("work")} />
         <Stat icon="people" label="Working now" value={working.length}
               sub={"of " + d.people.filter((p) => p.active).length} onOpen={() => setOpened("who")} />
         <Stat icon="unit" label="Units" value={d.units.length} onOpen={() => setOpened("units")} />
       </StatRow>
-      {opened && <div className="flag flag-green">Opened <b>{opened}</b> — in a real screen this shows the rows behind the figure.</div>}
+      {opened && <Toast tone="success" message={"Opened " + opened + " — this figure leads to its underlying records."} onDismiss={() => setOpened(null)} />}
 
       <div className="sec"><span>Queue — age first, oldest first</span><span>{queue.length}</span></div>
       {queue.length === 0
-        ? <div className="card small">Nothing is waiting on a decision right now.</div>
+        ? <EmptyState icon="check" title="Nothing waiting on a decision" body="There are no pending leave or work-review records in this queue." compact />
         : <div className="qlist">
             {queue.map((q) => (
               <QueueRow key={q.id} since={q.since} title={q.title} meta={q.meta}

@@ -1,0 +1,9 @@
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--ceac-primary);
+  outline-offset:2px;
+}
+
+::selection{
+  background:var(--ceac-primary-soft);
+  color:var(--ceac-ink-900);
+}
