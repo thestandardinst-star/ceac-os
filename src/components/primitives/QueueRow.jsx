@@ -13,7 +13,7 @@ export function ageOf(iso) {
   return { text, days, tone: days >= 7 ? "late" : days >= 3 ? "slow" : "quiet" };
 }
 
-export default function QueueRow({ since, title, meta, amount, actions, onOpen }) {
+export default function QueueRow({ since, title, meta, amount, actions, onOpen, openLabel }) {
   const age = ageOf(since);
   return (
     <div className="qrow">
@@ -22,7 +22,7 @@ export default function QueueRow({ since, title, meta, amount, actions, onOpen }
         {age.text}
       </span>
       <button type="button" className="qrow-main" onClick={onOpen} disabled={!onOpen}
-              aria-label={onOpen ? String(title || "Open queue item") : undefined}>
+              aria-label={onOpen ? (openLabel || "Open queue item") : undefined}>
         <span className="qrow-t">{title}</span>
         {meta && <span className="qrow-m">{meta}</span>}
       </button>
