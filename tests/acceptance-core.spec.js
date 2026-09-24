@@ -15,12 +15,20 @@ test("Authentication shell matches the PWA responsive contract", async ({ browse
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     if (viewport.width >= 901) {
-      await expect(page.getByText("Know what matters.")).toBeVisible();
-      await expect(page.getByText("Today", { exact: true })).toBeVisible();
-      await expect(page.getByText("Pulse", { exact: true })).toBeVisible();
-      await expect(page.getByText("Insight", { exact: true })).toBeVisible();
+      await expect(page.locator(".auth-story").getByText("CEAC OS", { exact: true })).toBeVisible();
+      await expect(page.locator(".auth-story").getByRole("heading", { name: /People\.\s*Work\.\s*Ministry\.\s*Impact\./ })).toBeVisible();
+      await expect(page.getByText("Know what matters. Move the work forward. Keep the record clear.", { exact: true })).toBeVisible();
+      const layout = await page.evaluate(() => {
+        const access = document.querySelector(".auth-access")?.getBoundingClientRect();
+        const story = document.querySelector(".auth-story")?.getBoundingClientRect();
+        return { accessLeft: access?.left ?? 9999, storyLeft: story?.left ?? -1 };
+      });
+      expect(layout.accessLeft).toBeLessThan(layout.storyLeft);
+      await page.screenshot({ path:"test-artifacts/redesign-r0-signin-desktop-v2.png", fullPage:true });
     } else {
       await expect(page.getByText("CEAC OS", { exact: true }).first()).toBeVisible();
+      await expect(page.locator(".auth-story")).toBeVisible();
+      await page.screenshot({ path:"test-artifacts/redesign-r0-signin-mobile-v2.png", fullPage:true });
     }
     await context.close();
   }
