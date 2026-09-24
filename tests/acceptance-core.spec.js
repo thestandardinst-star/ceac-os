@@ -881,7 +881,10 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
     participantRow = page.locator("tbody tr").filter({ hasText: participantName });
     await participantRow.getByRole("button", { name: "Allocate slot", exact: true }).click();
     dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Register slot allocation").selectOption({ label: "Acceptance Dormitory" });
+    const slotSelect = dialog.getByLabel("Register slot allocation");
+    const slotValue = await slotSelect.locator("option").filter({ hasText: "Acceptance Dormitory" }).first().getAttribute("value");
+    expect(slotValue).toBeTruthy();
+    await slotSelect.selectOption(slotValue);
     await dialog.getByRole("button", { name: "Allocate slot", exact: true }).click();
     await expect(page.getByText("Slot allocated.", { exact: true })).toBeVisible();
 
