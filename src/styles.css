@@ -3745,3 +3745,9 @@ button.office-config-card:active{background:#EEF5F4}
   .qrow-amt,.qrow-act{grid-column:2}
   .stat-v{font-size:22px}
 }
+
+/* A converted decision row sits inside the existing panel card. Strip the
+   card's own padding so the queue reads as one dense list rather than a
+   stack of boxes — three decisions in the space one card used. */
+.home-action-row:has(.qrow){padding:0;margin-bottom:6px}
+.home-action-row .qrow{border-bottom:0;padding:10px 13px}
