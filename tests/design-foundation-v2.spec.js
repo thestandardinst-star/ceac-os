@@ -12,7 +12,8 @@ test("Design Foundation v2 tokens and primitives are active", async ({ browser }
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".office-app")).toBeVisible({ timeout: 15000 });
 
-  await page.locator(".premium-side").getByRole("button", { name: "Primitives", exact: true }).click();
+  await page.goto("/?tab=primitives");
+  await expect(page.locator(".office-app")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("heading", { name: "Design primitives", exact: true })).toBeVisible();
 
   const foundation = await page.evaluate(() => {
