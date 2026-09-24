@@ -15,7 +15,7 @@ test("Authentication shell matches the PWA responsive contract", async ({ browse
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     if (viewport.width >= 901) {
-      await expect(page.locator(".auth-story").getByText("CEAC OS", { exact: true })).toBeVisible();
+      await expect(page.locator(".auth-brand-lockup").getByText("CEAC OS", { exact: true })).toBeVisible();
       await expect(page.locator(".auth-story").getByRole("heading", { name: /People\.\s*Work\.\s*Ministry\.\s*Impact\./ })).toBeVisible();
       await expect(page.getByText("Know what matters. Move the work forward. Keep the record clear.", { exact: true })).toBeVisible();
       const layout = await page.evaluate(() => {
