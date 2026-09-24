@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { Sheet, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
 import FinanceRequestQueue from "../components/FinanceRequestQueue";
+import { Stat, Chart, Table } from "../components/primitives";
 
 // Finance — the whole church in one place. In, out, and what is moving
 // between departments.
@@ -173,10 +174,11 @@ export default function Finance({ me, openExpenses }) {
             return <article className="finance-currency-card" key={currency}>
               <div className="finance-currency-card-head"><div><span>Currency</span><strong>{currency}</strong></div><small>{year}</small></div>
               <div className="finance-currency-facts">
-                <div><b>{money(received,currency)}</b><span>received</span></div>
-                <div><b>{money(spent,currency)}</b><span>spent</span></div>
-                <div><b>{money(budgeted,currency)}</b><span>budgeted</span></div>
-                <div><b>{money(difference,currency)}</b><span>recorded in minus out</span></div>
+                <Stat icon="money" label="Received" value={money(received,currency)} onOpen={() => setTab("in")} />
+                <Stat icon="money" label="Spent" value={money(spent,currency)} onOpen={() => setTab("out")} />
+                <Stat icon="chart" label="Budgeted" value={money(budgeted,currency)} onOpen={() => setTab("overview")} />
+                <Stat icon="chart" label="Recorded in minus out" value={money(difference,currency)}
+                      tone={difference < 0 ? "late" : "ink"} onOpen={() => setTab("overview")} />
               </div>
               {budgeted > 0 && <ProgressMeter value={spent} max={budgeted} label="Spend against recorded budget" detail={money(spent,currency) + " of " + money(budgeted,currency)} />}
               {budgeted > 0 && spent > budgeted && <ProductNotice tone="attention" title="Recorded spend is above recorded budget">Open the department rows below before drawing a conclusion.</ProductNotice>}
@@ -228,15 +230,17 @@ export default function Finance({ me, openExpenses }) {
       {tab === "out" && (<>
         <div className="sec"><span>Money spent</span><span>{showTotals(outBy)}</span></div>
         <div className="finance-expense-intro"><p className="small">Actual spend stays separate from requests and transfers. Record an expense against the department and source record it belongs to.</p>{openExpenses&&<button className="btn btn-ghost btn-sm" onClick={openExpenses}>Open Expenses</button>}</div>
-        {spend.length === 0 && <div className="card small">Nothing recorded yet.</div>}
-        {spend.sort((a, b) => b.spent_on.localeCompare(a.spent_on)).slice(0, 120).map((s) => (
-          <div key={s.id} className="row">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <div className="row-t">{s.description}</div>
-              <div className="row-t">{money(s.amount_minor, s.currency)}</div>
-            </div>
-            <div className="row-m">{dateOnly(s.spent_on)} · {nameOf(s.unit_id)}{s.source_note ? " · from " + s.source_note : ""}</div>
-          </div>))}
+        <Table exportName="ceac-spending" rows={spend} empty="Nothing recorded yet."
+          columns={[
+            { key: "spent_on", label: "Date", width: 104, render: (r) => dateOnly(r.spent_on) },
+            { key: "description", label: "What for" },
+            { key: "unit_id", label: "Department", render: (r) => nameOf(r.unit_id) },
+            { key: "source_note", label: "From", render: (r) => r.source_note || "—" },
+            { key: "amount_minor", label: "Amount", align: "right",
+              render: (r) => money(r.amount_minor, r.currency),
+              sortValue: (r) => Number(r.amount_minor) || 0,
+              csv: (r) => (Number(r.amount_minor) / 100).toFixed(2) },
+          ]} />
       </>)}
 
       {tab === "moving" && (<>

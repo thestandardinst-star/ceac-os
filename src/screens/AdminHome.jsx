@@ -4,6 +4,14 @@ import { dueLabel } from "../lib/time";
 import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocusPanel } from "../components/ReferenceDashboard";
+import { Stat } from "../components/primitives";
+
+// Every figure opens what is behind it. Until now these were plain text:
+// Rebecca could see "3 need your action" and had no way to reach the three.
+function jump(id) {
+  const el = typeof document !== "undefined" && document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
@@ -223,10 +231,14 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       <h1 className="h1">Administration</h1>
       <p className="screen-note">Decisions, gaps and office-wide exceptions first. Unit-level work stays with managers unless Administration deliberately drills into it.</p>
       <div className="admin-command-stats" aria-label="Administration overview">
-        <div><strong>{needsYou}</strong><span>Need your action</span></div>
-        <div><strong>{reportingGap}</strong><span>Reporting gaps</span></div>
-        <div><strong>{deliveryRisk}</strong><span>Delivery risks</span></div>
-        <div><strong>{today.headcount}</strong><span>People on record</span></div>
+        <Stat icon="gavel" label="Need your action" value={needsYou}
+              tone={needsYou ? "late" : "ink"} onOpen={() => jump("admin-needs-heading")} />
+        <Stat icon="chart" label="Reporting gaps" value={reportingGap}
+              tone={reportingGap ? "slow" : "ink"} onOpen={() => jump("admin-reporting-heading")} />
+        <Stat icon="warning" label="Delivery risks" value={deliveryRisk}
+              tone={deliveryRisk ? "slow" : "ink"} onOpen={() => jump("admin-delivery-heading")} />
+        <Stat icon="people" label="People on record" value={today.headcount}
+              onOpen={() => jump("admin-office-heading")} />
       </div>
     </section>
 
@@ -241,7 +253,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       <SectionHeader eyebrow="Organisation pulse" title="What is happening" />
       <div className="admin-pulse-grid">
         <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Objectives</span><strong>{delivery.objectives} recorded</strong></div><small>Current recorded status</small></div>
+          <div className="admin-pulse-head" id="admin-delivery-heading"><div><span>Objectives</span><strong>{delivery.objectives} recorded</strong></div><small>Current recorded status</small></div>
           <StatusDistribution label="Objective status distribution" segments={[
             { key:"met", label:"Met", value:delivery.met, tone:"success" },
             { key:"track", label:"On track", value:delivery.onTrack, tone:"info" },
@@ -252,7 +264,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         </article>
 
         <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? `${reporting.submitted} of ${reporting.total} units` : "Open a period to track coverage"}</small></div>
+          <div className="admin-pulse-head" id="admin-reporting-heading"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? `${reporting.submitted} of ${reporting.total} units` : "Open a period to track coverage"}</small></div>
           {reporting
             ? <ProgressMeter value={reporting.submitted} max={reporting.total} label="Coverage" detail={reporting.missing.length ? `${reporting.missing.length} outstanding` : "Everyone is in"} />
             : <div className="admin-pulse-empty">No reporting coverage is being measured right now.</div>}
@@ -264,7 +276,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         </article>
 
         <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Office today</span><strong>{today.headcount} people on record</strong></div><small>Context, not performance</small></div>
+          <div className="admin-pulse-head" id="admin-office-heading"><div><span>Office today</span><strong>{today.headcount} people on record</strong></div><small>Context, not performance</small></div>
           <StatusDistribution label="Office context today" segments={[
             { key:"working", label:"Working now", value:today.working, tone:"success" },
             { key:"leave", label:"Approved leave", value:today.leave, tone:"info" },
@@ -274,7 +286,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       </div>
     </section>}
 
-    <section className="admin-home-section admin-home-priority">
+    <section className="admin-home-section admin-home-priority" id="admin-needs-heading">
       <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />
       {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
 
@@ -325,10 +337,11 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
         <SectionHeader eyebrow="Today" title="Office context" />
         <p className="screen-note">Session and leave facts are operational context only. They do not measure output or performance.</p>
         <div className="admin-fact-grid">
-          <div><strong>{today.working}</strong><span>working now</span></div>
-          <div><strong>{today.leave}</strong><span>on approved leave</span></div>
-          <div><strong>{today.notStarted}</strong><span>no session started</span></div>
-          <div><strong>{today.headcount}</strong><span>people on record</span></div>
+          <Stat icon="people" label="working now" value={today.working} onOpen={() => jump("admin-office-heading")} />
+          <Stat icon="calendar" label="on approved leave" value={today.leave} onOpen={() => jump("admin-office-heading")} />
+          <Stat icon="clock" label="no session started" value={today.notStarted}
+                tone={today.notStarted ? "slow" : "ink"} onOpen={() => jump("admin-office-heading")} />
+          <Stat icon="person" label="people on record" value={today.headcount} onOpen={() => jump("admin-office-heading")} />
         </div>
       </section>
 

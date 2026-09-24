@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { ProductNotice, LoadingState, StatusDistribution, Avatar, ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Stat, Chart, Table } from "../components/primitives";
 
 // Attendance & leave, organisation-wide. Spec section 7.
 //
@@ -139,10 +140,11 @@ export default function Attendance({ me }) {
             { key:"none", label:"No session recorded", value:notStarted.length, tone:"neutral" },
           ]} />
           <div className="attendance-fact-strip">
-            <div><b>{workingNow.length}</b><span>working now</span></div>
-            <div><b>{todaySessions.length}</b><span>sessions started</span></div>
-            <div><b>{onLeaveToday.length}</b><span>approved leave</span></div>
-            <div><b>{notStarted.length}</b><span>no session recorded</span></div>
+            <Stat icon="people" label="Working now" value={workingNow.length} onOpen={() => setTab("today")} />
+            <Stat icon="clock" label="Sessions started" value={todaySessions.length} onOpen={() => setTab("sessions")} />
+            <Stat icon="calendar" label="Approved leave" value={onLeaveToday.length} onOpen={() => setTab("leave")} />
+            <Stat icon="warning" label="No session recorded" value={notStarted.length}
+                  tone={notStarted.length ? "slow" : "ink"} onOpen={() => setTab("today")} />
           </div>
         </section>
 
