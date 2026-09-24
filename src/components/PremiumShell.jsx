@@ -16,8 +16,10 @@ const managerNav = [
   { key:"team", label:"Team", icon:"team" },
   { key:"projects", label:"Projects", icon:"projects" },
   { key:"calendar", label:"Calendar", icon:"calendar" },
-  { key:"manager-finance", label:"Budget", icon:"finance" },
+  { key:"manager-finance", label:"Finance", icon:"finance" },
   { key:"manager-reports", label:"Reports", icon:"reports" },
+  { key:"messages", label:"Messages", icon:"messages" },
+  { key:"me", label:"My Hub", icon:"hub" },
   { key:"account", label:"Your account", icon:"hub" },
 ];
 const execNav = [
@@ -28,6 +30,8 @@ const execNav = [
   { key:"exec-organisation", label:"Organisation", icon:"organisation" },
   { key:"exec-finance", label:"Finance", icon:"finance" },
   { key:"exec-reports", label:"Reports", icon:"reports" },
+  { key:"messages", label:"Messages", icon:"messages" },
+  { key:"me", label:"My Hub", icon:"hub" },
   { key:"account", label:"Your account", icon:"hub" },
 ];
 
@@ -41,6 +45,8 @@ function adminNav(me) {
     { key:"finance", label:"Finance", icon:"finance" },
     { key:"reporting", label:"Reports", icon:"reports" },
     { key:"settings", label:"Control Center", icon:"control" },
+    { key:"messages", label:"Messages", icon:"messages" },
+    { key:"me", label:"My Hub", icon:"hub" },
     { key:"primitives", label:"Primitives", icon:"control" },
     { key:"account", label:"Your account", icon:"hub" },
   ];
@@ -79,14 +85,12 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
       {nav.map((item)=><button key={item.key} className={tab === item.key ? "on" : ""} onClick={()=>setTab(item.key)}>
         <Icon className="premium-icon" name={item.icon}/><span>{item.label}</span>
       </button>)}
-      {onMessages && !nav.some((item)=>item.key==="messages") && <button className="premium-nav-message" onClick={onMessages}><Icon className="premium-icon" name="messages"/><span>Messages</span></button>}
     </nav>
     {(onCreateWork || onCreateMeeting || onMessages) && <section className="reference-quick-create" aria-label="Quick create">
       <small>Quick create</small>
       <div className="reference-quick-grid">
         {onCreateWork && <button onClick={onCreateWork}><Icon className="premium-icon" name="work" size={15}/><span>New work</span></button>}
         {onCreateMeeting && <button onClick={onCreateMeeting}><Icon className="premium-icon" name="calendar" size={15}/><span>New meeting</span></button>}
-        {onMessages && <button onClick={onMessages}><Icon className="premium-icon" name="messages" size={15}/><span>Open room</span></button>}
         <button onClick={()=>setTab(isAdmin ? "people" : isManager ? "projects" : "me")}><Icon className="premium-icon" name={isAdmin ? "people" : isManager ? "projects" : "hub"} size={15}/><span>{isAdmin ? "Person" : isManager ? "Project" : "Profile"}</span></button>
       </div>
     </section>}
@@ -100,10 +104,8 @@ export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitCha
 
 function SearchPalette({ query, nav, onNavigate, onMessages, close }) {
   const q=query.trim().toLowerCase();
-  const items=[
-    ...nav.map(item=>({ label:item.label, icon:item.icon, action:()=>onNavigate(item.key) })),
-    ...(onMessages && !nav.some(item=>item.key==="messages") ? [{ label:"Messages", icon:"messages", action:onMessages }] : []),
-  ].filter(item=>!q || item.label.toLowerCase().includes(q));
+  const items=nav.map(item=>({ label:item.label, icon:item.icon, action:()=>onNavigate(item.key) }))
+    .filter(item=>!q || item.label.toLowerCase().includes(q));
   return <div className="premium-search-popover" role="listbox">
     <div className="premium-search-label">{q ? "Go to" : "Quick navigation"}</div>
     {items.length ? items.map((item)=><button key={item.label} onClick={()=>{ item.action(); close(); }}><Icon className="premium-icon" name={item.icon} size={18}/><span>{item.label}</span><Icon className="premium-icon" name="chevron" size={15}/></button>)
@@ -151,7 +153,6 @@ export function AppTopBar({ me, roleLabel, tab, onProfile, onNavigate, isAdmin=f
           {(onComposeMessage || onMessages) && <button onClick={()=>{setCreateOpen(false);(onComposeMessage || onMessages)?.();}}><Icon className="premium-icon" name="messages" size={18}/><span>Message room</span></button>}
         </div>}
       </div>}
-      {onMessages && <button className="premium-icon-button" aria-label="Open messages" onClick={onMessages}><Icon className="premium-icon" name="messages"/></button>}
       <div className="premium-topbar-date" aria-label="Current date and time">
         <strong>{clock.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</strong>
         <small>Accra · {clock.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}</small>
@@ -168,7 +169,6 @@ export function MobileTopBar({ me, roleLabel="Staff", onProfile, onMessages }) {
   return <header className="mobile-topbar premium-mobile-topbar">
     <div className="premium-mobile-brand"><PremiumMark/><strong>CEAC OS</strong></div>
     <div className="premium-mobile-actions">
-      {onMessages && <button aria-label="Messages" onClick={onMessages}><Icon className="premium-icon" name="messages"/></button>}
       <button aria-label="Open profile" onClick={onProfile}><span className="premium-avatar">{(me?.full_name || "C").trim().slice(0,1).toUpperCase()}</span></button>
     </div>
   </header>;
@@ -187,7 +187,6 @@ export function Tabs({ tab, setTab, isManager, isExec=false, isAdmin=false, me=n
   return <>
     {moreOpen && <><button className="premium-mobile-menu-bg" aria-label="Close menu" onClick={()=>setMoreOpen(false)}/><div className="premium-mobile-menu" role="menu">
       <div className="premium-mobile-menu-head"><strong>More</strong><span>{roleName({isAdmin,isExec,isManager})}</span></div>
-      {onMessages && !more.some((item)=>item.key==="messages") && <button role="menuitem" onClick={()=>{setMoreOpen(false);onMessages();}}><Icon className="premium-icon" name="messages"/><span>Messages</span></button>}
       {more.map(item=><button role="menuitem" key={item.key} className={tab===item.key?"on":""} onClick={()=>{setMoreOpen(false);setTab(item.key);}}><Icon className="premium-icon" name={item.icon}/><span>{item.label}</span></button>)}
     </div></>}
     <nav className="tabs premium-tabs" aria-label="Mobile navigation">
