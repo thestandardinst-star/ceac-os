@@ -38,8 +38,8 @@ begin
     raise exception 'Stage 6 finance gate failure: operating position lost its confirmed-in / append-only-out / commitment / authority contract.';
   end if;
 
-  if not (select p.prosecdef from pg_proc p where p.oid='public.unit_operating_position(uuid)'::regprocedure) then
-    raise exception 'Stage 6 finance gate failure: operating position must remain SECURITY DEFINER.';
+  if (select p.prosecdef from pg_proc p where p.oid='public.unit_operating_position(uuid)'::regprocedure) then
+    raise exception 'Stage 6 finance gate failure: read-only operating position must remain SECURITY INVOKER and respect RLS.';
   end if;
 
   if not has_function_privilege('authenticated','public.unit_operating_position(uuid)','EXECUTE')
