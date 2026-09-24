@@ -5,16 +5,13 @@ import { Table } from "./primitives";
 
 const todayKey = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Accra" });
 
-export default function MinistryNumbers({ me, allowConfigure = false, compact = false }) {
+export default function MinistryNumbers({ me, compact = false }) {
   const [operations, setOperations] = useState([]);
   const [occurrences, setOccurrences] = useState([]);
   const [recording, setRecording] = useState(null);
-  const [configuring, setConfiguring] = useState(false);
   const [value, setValue] = useState("");
   const [occurredOn, setOccurredOn] = useState(todayKey());
   const [note, setNote] = useState("");
-  const [name, setName] = useState("");
-  const [valueLabel, setValueLabel] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
@@ -25,7 +22,7 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     setError(null);
     const operationResult = await supabase
       .from("recurring_operations")
-      .select("id,name,cadence,records_value,value_label,active")
+      .select("id,name,cadence,records_value,value_label,active,work_item_id")
       .eq("unit_id", me.unit_id)
       .eq("active", true)
       .eq("records_value", true)
@@ -65,8 +62,9 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     try {
       const numeric = Number(value);
       if (!Number.isFinite(numeric)) throw new Error("Enter a valid number.");
-      const { error: recordError } = await supabase.rpc("record_ministry_number", {
-        p_operation_id: recording.id,
+      if (!recording.work_item_id) throw new Error("This recurring item is missing its work record.");
+      const { error: recordError } = await supabase.rpc("record_routine_occurrence", {
+        p_work_item_id: recording.work_item_id,
         p_occurred_on: occurredOn,
         p_value: numeric,
         p_note: note.trim() || null,
@@ -82,27 +80,7 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     }
   }
 
-  async function saveOperation() {
-    if (!allowConfigure || !name.trim() || !valueLabel.trim()) return;
-    setBusy(true); setError(null); setNotice(null);
-    try {
-      const { error: createError } = await supabase.rpc("create_ministry_number", {
-        p_unit_id: me.unit_id,
-        p_name: name.trim(),
-        p_value_label: valueLabel.trim(),
-      });
-      if (createError) throw createError;
-      setConfiguring(false); setName(""); setValueLabel("");
-      setNotice("Ministry number added.");
-      await load();
-    } catch (err) {
-      setError(err.message || "The ministry number could not be added.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (!operations.length && !allowConfigure && !error) return null;
+  if (!operations.length && !error) return null;
 
   const tableRows = occurrences.map((row) => ({
     ...row,
@@ -115,7 +93,6 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
       eyebrow="Ministry record"
       title="Recurring numbers"
       count={operations.length || undefined}
-      action={allowConfigure ? <button className="btn btn-ghost btn-sm" onClick={() => setConfiguring(true)}>Add number</button> : null}
     />
     <p className="screen-note">Record what the unit actually did. CEAC OS does not infer a score or invent a reporting cadence.</p>
 
@@ -123,7 +100,7 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     {notice && <ProductNotice tone="success" title="Saved">{notice}</ProductNotice>}
 
     {!error && operations.length === 0 && <EmptyState compact title="No recurring ministry numbers yet">
-      {allowConfigure ? "Add the first number this unit needs to record." : "Your Unit Head can add the numbers this unit records."}
+      Recurring numbers are created through CEAC recurring work. Once configured, they can be recorded here.
     </EmptyState>}
 
     {operations.length > 0 && <div className="admin-unit-summary-grid" style={{ marginTop: 10 }}>
@@ -172,17 +149,5 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
       <button className="btn" style={{ marginTop: 14 }} disabled={busy || value === "" || !occurredOn} onClick={saveOccurrence}>{busy ? "Saving…" : "Record number"}</button>
     </Sheet>}
 
-    {configuring && <Sheet onClose={() => !busy && setConfiguring(false)}>
-      <div className="eyebrow">Ministry record</div>
-      <div className="h2">Add a recurring number</div>
-      <p className="screen-note">Name the thing the unit already records. Do not create a score. CEAC OS learns the rhythm from actual entries.</p>
-      <FieldGroup label="What are you recording?">
-        <input className="field" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. First timers" />
-      </FieldGroup>
-      <FieldGroup label="What does the number mean?">
-        <input className="field" value={valueLabel} onChange={(event) => setValueLabel(event.target.value)} placeholder="e.g. People received" />
-      </FieldGroup>
-      <button className="btn" style={{ marginTop: 14 }} disabled={busy || !name.trim() || !valueLabel.trim()} onClick={saveOperation}>{busy ? "Saving…" : "Add number"}</button>
-    </Sheet>}
   </section>;
 }
