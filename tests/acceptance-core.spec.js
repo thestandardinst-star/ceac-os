@@ -831,6 +831,101 @@ test("Stage 5 Delivery manages programmes, milestones, dependencies and project 
   }
 });
 
+test("Experience Stage 5 project register enforces payment, custody, slots and two-sided remittance", async ({ browser }) => {
+  test.setTimeout(150000);
+  const projectName = "Stage 4 Browser Project";
+  const participantName = "Acceptance Camper";
+  const unitB = "20000000-0000-4000-8000-000000000012";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Projects");
+    await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
+    await page.getByRole("button", { name: "Register", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add slot type", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register slot type").fill("Acceptance Dormitory");
+    await dialog.getByLabel("Register slot capacity").fill("2");
+    await dialog.getByRole("button", { name: "Add slot type", exact: true }).click();
+    await expect(page.getByText("Slot inventory added.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Add participant", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register participant name").fill(participantName);
+    await dialog.getByLabel("Register participant contact").fill("ACC-CAMP-001");
+    await dialog.getByLabel("Register amount due").fill("100");
+    await dialog.getByRole("button", { name: "Add participant", exact: true }).click();
+    await expect(page.getByText("Participant added to the project register.", { exact: true })).toBeVisible();
+
+    let participantRow = page.locator("tbody tr").filter({ hasText: participantName });
+    await expect(participantRow).toBeVisible();
+    await participantRow.getByRole("button", { name: "Payment", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register payment amount").fill("50");
+    await dialog.getByLabel("Register payment evidence").fill("ACC-PAY-001");
+    await dialog.getByRole("button", { name: "Record payment", exact: true }).click();
+    await expect(page.getByText("Payment recorded.", { exact: true })).toBeVisible();
+
+    participantRow = page.locator("tbody tr").filter({ hasText: participantName });
+    await expect(participantRow.getByRole("button", { name: "Allocate slot", exact: true })).toBeDisabled();
+
+    await participantRow.getByRole("button", { name: "Payment", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register payment amount").fill("50");
+    await dialog.getByLabel("Register payment evidence").fill("ACC-PAY-002");
+    await dialog.getByRole("button", { name: "Record payment", exact: true }).click();
+    await expect(page.getByText("Payment recorded.", { exact: true })).toBeVisible();
+
+    participantRow = page.locator("tbody tr").filter({ hasText: participantName });
+    await participantRow.getByRole("button", { name: "Allocate slot", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register slot allocation").selectOption({ label: /Acceptance Dormitory/ });
+    await dialog.getByRole("button", { name: "Allocate slot", exact: true }).click();
+    await expect(page.getByText("Slot allocated.", { exact: true })).toBeVisible();
+
+    participantRow = page.locator("tbody tr").filter({ hasText: participantName });
+    await participantRow.getByRole("button", { name: "Custody", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register custody stage").fill("Collected by Unit A representative");
+    await dialog.getByLabel("Register custody context").fill("Acceptance handoff");
+    await dialog.getByRole("button", { name: "Record custody stage", exact: true }).click();
+    await expect(page.getByText("Custody stage recorded.", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Record remittance", exact: true }).click();
+    dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Register remittance to").selectOption(unitB);
+    await dialog.getByLabel("Register remittance amount").fill("100");
+    await dialog.getByLabel("Register remittance evidence").fill("ACC-REM-001");
+    await dialog.getByRole("button", { name: "Record remittance", exact: true }).click();
+    await expect(page.getByText("Remittance recorded. The receiving unit must confirm it.", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Finance");
+    await page.getByRole("button", { name: "Between departments", exact: true }).click();
+    const transferRow = page.locator(".row").filter({ hasText: /Stage 4 Browser Project register remittance/ }).first();
+    await expect(transferRow).toBeVisible();
+    await transferRow.getByRole("button", { name: "We received this", exact: true }).click();
+    await expect(transferRow.getByText("Confirmed by them", { exact: true })).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Delivery");
+    await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
+    await expect(page.getByText(participantName, { exact: true })).toBeVisible();
+    const reconciliation = page.locator("table").filter({ hasText: "Confirmed remitted" }).first();
+    await expect(reconciliation).toContainText("GHS 100");
+    await expect(page.getByText("Acceptance Dormitory", { exact: true }).first()).toBeVisible();
+    await context.close();
+  }
+});
+
 test("Stage 6 Workload keeps capacity components factual and manager-scoped", async ({ browser }) => {
   test.setTimeout(120000);
 
