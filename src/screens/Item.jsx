@@ -436,7 +436,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
     : <div className="spin">Loading...</div>;
 
   return (
-    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"}`}>
+    <div className={`body ceac-record ${isManager ? "manager-work-detail" : "staff-work-detail"}`}>
       <button className="back work-detail-back" onClick={back}>← Back</button>
       <header className="work-detail-head">
         <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
@@ -447,6 +447,8 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         </div>
       </header>
 
+      <div className="ceac-record-layout">
+        <main className="ceac-record-main">
       {openRoom && (item.project_id || item.sub_team_id || item.unit_id) && <button className="work-room-entry" onClick={() => openRoom({
         ...(item.project_id
           ? { kind: "project", projectId: item.project_id }
@@ -652,6 +654,27 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+        </main>
+        <aside className="ceac-record-rail" aria-label="Work context">
+          <section className="ceac-record-panel">
+            <strong className="ceac-record-panel-title">Work context</strong>
+            <dl className="ceac-record-facts" style={{ marginTop: 10 }}>
+              <div className="ceac-record-fact"><dt>Reference</dt><dd>{item.ref || "—"}</dd></div>
+              <div className="ceac-record-fact"><dt>Type</dt><dd>{item.kind.replaceAll("_", " ")}</dd></div>
+              <div className="ceac-record-fact"><dt>Due</dt><dd>{dueLabel(item.due_at)}</dd></div>
+              {item.projects?.name && <div className="ceac-record-fact"><dt>Project</dt><dd>{item.projects.name}</dd></div>}
+              {item.sub_teams?.name && <div className="ceac-record-fact"><dt>Team</dt><dd>{item.sub_teams.name}</dd></div>}
+            </dl>
+          </section>
+          <section className="ceac-record-panel">
+            <strong className="ceac-record-panel-title">Progress</strong>
+            <span className="ceac-record-panel-copy">{checks.length ? `${done} of ${checks.length} checklist items complete.` : "No checklist is attached to this work."}</span>
+            {blocker && <span className="ceac-record-panel-copy">Waiting on {blocker.units ? blocker.units.name : blocker.party_text || "another party"}.</span>}
+            {review?.decision === "returned" && <span className="ceac-record-panel-copy">This work was sent back for correction.</span>}
+          </section>
+        </aside>
+      </div>
 
       {sheet === "decision-record" && (
         <Sheet onClose={() => !busy && setSheet(null)}>
