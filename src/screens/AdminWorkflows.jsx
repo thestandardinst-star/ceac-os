@@ -57,7 +57,7 @@ export default function AdminWorkflows({ me }) {
 
     const firstError = definitionsResult.error || runsResult.error || stepsResult.error;
     if (firstError) {
-      setError(humanError(firstError, "Workflow inbox could not load."));
+      setError(humanError(firstError, "Checks could not load."));
       setLoading(false);
       return;
     }
@@ -109,24 +109,25 @@ export default function AdminWorkflows({ me }) {
   const selectedRun = selectedStep ? runsById[selectedStep.workflow_run_id] : null;
   const selectedDefinition = selectedRun ? definitionsById[selectedRun.workflow_definition_id] : null;
 
-  async function completeStep() {
-    if (!selectedStep || !outcome.trim()) return;
+  async function completeStep(decision = null) {
+    const resolvedOutcome = decision || outcome.trim();
+    if (!selectedStep || !resolvedOutcome) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     const { error: completeError } = await supabase.rpc("complete_workflow_step", {
       p_run_step_id: selectedStep.id,
-      p_outcome: outcome.trim(),
+      p_outcome: resolvedOutcome,
       p_note: note.trim() || null,
     });
     setBusy(false);
     if (completeError) {
-      setError(humanError(completeError, "The workflow step could not be completed."));
+      setError(humanError(completeError, "The check could not be updated."));
       return;
     }
     setSelectedStepId(null);
     setNote("");
-    setNotice("Workflow step completed.");
+    setNotice(resolvedOutcome === "not_approved" ? "Check not approved. The remaining checks in this run were cancelled." : "Check completed.");
     await load();
   }
 
@@ -134,19 +135,19 @@ export default function AdminWorkflows({ me }) {
 
   return <div className="body">
     <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">Platform foundation</div>
-      <h1 className="h1">Workflows</h1>
-      <p className="screen-note">Event-driven process runs with explicit review authority and durable completion history.</p>
+      <div className="eyebrow">Administration</div>
+      <h1 className="h1">Checks</h1>
+      <p className="screen-note">Decisions and confirmations CEAC is waiting for. Oldest items stay at the top.</p>
     </div>
 
-    {error && <ProductNotice tone="error" title="Workflows">{error}</ProductNotice>}
-    {notice && <ProductNotice tone="success" title="Workflow updated">{notice}</ProductNotice>}
+    {error && <ProductNotice tone="error" title="Checks">{error}</ProductNotice>}
+    {notice && <ProductNotice tone="success" title="Check updated">{notice}</ProductNotice>}
 
     <div className="split" style={{ marginTop: 18 }}>
       <div className="main-col">
-        <div className="sec"><span>Workflow inbox</span><span>{shownSteps.length}</span></div>
+        <div className="sec"><span>Waiting for a decision</span><span>{shownSteps.length}</span></div>
         <div className="seg" style={{ marginBottom: 12 }}>
-          {[["ready","Ready"],["completed","Completed"],["all","All"]].map(([key,label]) =>
+          {[["ready","Waiting"],["completed","Completed"],["all","All"]].map(([key,label]) =>
             <button key={key} className={filter === key ? "on" : ""} onClick={() => setFilter(key)}>{label}</button>
           )}
         </div>
@@ -159,7 +160,7 @@ export default function AdminWorkflows({ me }) {
             key={step.id}
             since={step.created_at || run?.started_at}
             title={step.label}
-            meta={`${definition?.label || "Workflow"} · ${subject}${step.required_capability ? " · " + step.required_capability : ""}`}
+            meta={`${definition?.label || "Check"} · ${subject}`}
             openLabel={step.label}
             onOpen={() => setSelectedStepId(step.id)}
             actions={step.state === "ready"
@@ -167,38 +168,41 @@ export default function AdminWorkflows({ me }) {
               : <span className="pill p-grey">{step.outcome || "Completed"}</span>}
           />;
         })}
-        {shownSteps.length === 0 && <EmptyState title={filter === "ready" ? "No workflow action is waiting" : "No workflows match"}>New matching business events will appear here automatically.</EmptyState>}
+        {shownSteps.length === 0 && <EmptyState title={filter === "ready" ? "No check is waiting" : "No checks match"}>New decisions will appear here when CEAC reaches a point that needs an authorised person.</EmptyState>}
       </div>
 
       <div className="side-col">
-        <div className="sec"><span>Review</span></div>
-        {!selectedStep && <div className="card" style={{ padding: 15 }}><p className="small" style={{ margin: 0 }}>Choose a workflow step to inspect it.</p></div>}
+        <div className="sec"><span>Check</span></div>
+        {!selectedStep && <div className="card" style={{ padding: 15 }}><p className="small" style={{ margin: 0 }}>Choose a check to inspect the decision and its context.</p></div>}
         {selectedStep && <div className="card" style={{ padding: 15 }}>
-          <strong>{selectedDefinition?.label || "Workflow"}</strong>
+          <strong>{selectedDefinition?.label || "Check"}</strong>
           <p className="small" style={{ lineHeight: 1.5 }}>
-            {selectedDefinition?.description || "Review the workflow step."}
+            {selectedDefinition?.description || "Review what CEAC is asking you to decide."}
           </p>
-          <div className="small">Step: {selectedStep.label}</div>
-          <div className="small">Authority: {selectedStep.required_capability || "Signed-in user"}</div>
+          <div className="small">Decision: {selectedStep.label}</div>
+          <div className="small">Who can decide: {selectedStep.required_capability ? humanize(selectedStep.required_capability) : "Signed-in user"}</div>
           <div className="small">State: {humanize(selectedStep.state)}</div>
           {selectedStep.state === "ready" && <>
-            <FieldGroup label="Outcome">
-              <input className="field" aria-label="Workflow outcome" value={outcome} onChange={(event) => setOutcome(event.target.value)} />
+            <FieldGroup label="Decision / result">
+              <input className="field" aria-label="Check outcome" value={outcome} onChange={(event) => setOutcome(event.target.value)} />
             </FieldGroup>
-            <FieldGroup label="Review note">
-              <textarea className="field" aria-label="Workflow review note" rows="3" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional review context" />
+            <FieldGroup label="Reason / context">
+              <textarea className="field" aria-label="Check review note" rows="3" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional context for the record" />
             </FieldGroup>
-            <button className="btn" disabled={busy || !outcome.trim()} onClick={completeStep}>{busy ? "Completing…" : "Complete step"}</button>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:12 }}>
+              <button className="btn" disabled={busy || !outcome.trim()} onClick={() => completeStep()}>{busy ? "Saving…" : "Complete check"}</button>
+              <button className="btn btn-ghost" disabled={busy} onClick={() => completeStep("not_approved")}>No — I did not approve this</button>
+            </div>
           </>}
           {selectedStep.state === "completed" && <p className="small" style={{ lineHeight: 1.5 }}>
             Outcome: {selectedStep.outcome || "Completed"}{selectedStep.note ? " · " + selectedStep.note : ""}
           </p>}
         </div>}
 
-        <div className="sec"><span>Engine</span></div>
+        <div className="sec"><span>How Checks work</span></div>
         <div className="card" style={{ padding: 15 }}>
           <p className="small" style={{ lineHeight: 1.6, margin: 0 }}>
-            Workflow runs are started from durable platform events. Users cannot directly rewrite workflow state; reviewed completion actions advance the process and preserve history.
+            CEAC opens a Check when a recorded change reaches a point that needs a human decision. Completing a Check can move the process forward. Choosing “No — I did not approve this” stops that run and keeps the decision in history.
           </p>
         </div>
       </div>
