@@ -5,6 +5,7 @@ import { dueLabel, isOverdue } from "../lib/time";
 import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import { DashboardCalendar, ReferenceFocusPanel, ReferenceModuleStrip } from "../components/ReferenceDashboard";
+import { Stat, StatRow, QueueRow, Chart } from "../components/primitives";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -380,9 +381,14 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           <button className="btn manager-command-action" onClick={goAssign}>Give out work</button>
         </div>
         <div className="manager-command-stats" aria-label="Current manager attention">
-          <div><strong>{waitingCount}</strong><span>Need decision</span></div>
-          <div><strong>{blockers.length}</strong><span>Open blockers</span></div>
-          <div><strong>{projects.length}</strong><span>Projects attention</span></div>
+          <Stat icon="gavel" label="Needs a decision" value={waitingCount}
+                tone={waitingCount ? "late" : "ink"}
+                onOpen={() => document.getElementById("manager-waiting-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+          <Stat icon="hand" label="Stuck on others" value={blockers.length}
+                tone={blockers.length ? "slow" : "ink"}
+                onOpen={() => document.getElementById("manager-stuck-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
+          <Stat icon="project" label="Projects needing attention" value={projects.length}
+                onOpen={() => document.getElementById("manager-projects-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />
         </div>
       </section>
       <DashboardCalendar meetings={upcomingMeetings} />
@@ -399,18 +405,16 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <span className="home-count home-count-attention">{waitingCount}</span>
       </div>
       {waitingCount === 0 && <div className="home-quiet home-quiet-success">Nothing needs your decision right now.</div>}
-      {submissions.map((submission) => (
+      {[...submissions].sort((a, b) => new Date(a.submitted_at || 0) - new Date(b.submitted_at || 0)).map((submission) => (
         <div key={submission.id} className="row home-action-row">
-          <div className="home-row-label">Work review</div>
-          <div className="row-t">{submission.work_items.title}</div>
-          <div className="row-m">{submission.work_items.ref} · {submission.profiles?.full_name || "—"} · work to review</div>
+          <QueueRow since={submission.submitted_at}
+            title={submission.work_items.title}
+            meta={(submission.work_items.ref || "") + " · " + (submission.profiles?.full_name || "—")}
+            onOpen={() => openItem(submission.work_items.id)}
+            actions={<button className="btn btn-sm" onClick={() => openReview(submission)}>Review</button>} />
           {reviewFollowupByWork.has(submission.work_items.id) && <div className="followup-note">Follow-up received · {new Date(reviewFollowupByWork.get(submission.work_items.id).last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>}
           {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
           {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
-          <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openItem(submission.work_items.id)}>Open full work</button>
-            <button className="btn btn-sm" onClick={() => openReview(submission)}>Review</button>
-          </div>
         </div>
       ))}
       {blockerFollowupAlerts.map((alert) => {
@@ -422,17 +426,17 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
           {blocker && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openItem(blocker.work_item_id)}>Open related work</button>}
         </div>;
       })}
-      {leave.map((request) => (
+      {[...leave].sort((a, b) => new Date(a.requested_at || 0) - new Date(b.requested_at || 0)).map((request) => (
         <div key={request.id} className="row home-action-row">
-          <div className="home-row-label">Leave decision</div>
-          <div className="row-t">{request.profiles?.full_name || "—"} · {request.days} day{Number(request.days) === 1 ? "" : "s"} {request.kind} leave</div>
-          <div className="row-m">{request.start_date} → {request.end_date}</div>
+          <QueueRow since={request.requested_at}
+            title={(request.profiles?.full_name || "—") + " · " + request.days + " day" + (Number(request.days) === 1 ? "" : "s") + " " + request.kind + " leave"}
+            meta={request.start_date + " \u2192 " + request.end_date}
+            actions={<>
+              <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "declined" })}>Decline</button>
+              <button className="btn btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "approved" })}>{Number(request.days) > leaveLimit ? "Escalate" : "Approve"}</button>
+            </>} />
           {request.reason && <div className="row-note">&ldquo;{request.reason}&rdquo;</div>}
           {Number(request.days) > leaveLimit && <div className="row-note" style={{ color: "var(--amber)" }}>Over {leaveLimit} days — approval escalates to Administration.</div>}
-          <div style={{ display: "flex", gap: 7, marginTop: 11 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "declined" })}>Decline</button>
-            <button className="btn btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "approved" })}>{Number(request.days) > leaveLimit ? "Escalate" : "Approve"}</button>
-          </div>
         </div>
       ))}
       </section>
