@@ -63,10 +63,12 @@ test.describe("Premium redesign R1 Staff",()=>{
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-hub.png",fullPage:true});
     await context.close();
   });
-  test("Staff mobile keeps Today Work Team and My Hub primary with Messages one tap away",async({browser})=>{
+  test("Staff mobile keeps Today Work Team and My Hub primary with Messages in More",async({browser})=>{
     const {context,page}=await openStaff(browser,{width:390,height:844});
     for(const label of ["Home","Work","Team","Me"]) await expect(page.locator(".premium-tabs").getByRole("button",{name:label,exact:true})).toBeVisible();
-    await expect(page.locator(".premium-mobile-topbar").getByRole("button",{name:"Messages",exact:true})).toBeVisible();
+    await page.locator(".premium-tabs").getByRole("button",{name:"More",exact:true}).click();
+    await expect(page.getByRole("menuitem",{name:"Messages",exact:true})).toBeVisible();
+    await page.getByRole("button",{name:"Close menu",exact:true}).click();
     await page.locator(".premium-tabs").getByRole("button",{name:"Me",exact:true}).click();
     await expect(page.getByRole("heading",{name:"My Hub",exact:true})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
