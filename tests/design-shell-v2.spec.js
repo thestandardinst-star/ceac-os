@@ -24,7 +24,7 @@ test("Design Foundation v2 desktop shell uses the approved quiet chrome", async 
   await expect(page.getByPlaceholder("Search your workspace…")).toBeVisible();
   await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
   await expect(page.locator(".premium-topbar").getByRole("button", { name: "Messages", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open profile", exact: true })).toBeVisible();
+  await expect(page.locator(".premium-topbar").getByRole("button", { name: "Open profile", exact: true })).toBeVisible();
 
   const search = await page.locator(".premium-search-wrap").boundingBox();
   expect(search).not.toBeNull();
