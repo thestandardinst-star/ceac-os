@@ -86,11 +86,12 @@ end $$;
 -- my_sessions() and my_account_activity(integer). They expose only the
 -- signed-in person's own sessions/audit activity, accept no target-person
 -- identifier, revoke anon/PUBLIC execution, and bind rows to auth.uid().
--- Migration 095 adds one reviewed ministry-number definition RPC:
--- create_ministry_number(uuid,text,text). It keeps recurring_operations
--- direct writes closed and grants definition authority only to a Unit Head
--- for their managed unit or Administration.
--- Reducing this surface is allowed. Any growth beyond 105 requires another
+-- Migration 095 adds two reviewed ministry RPCs:
+-- create_ministry_number(uuid,text,text) and
+-- record_ministry_number(uuid,date,numeric,text). They keep both ministry
+-- tables directly read-only in the browser. Definition is Unit Head/Admin;
+-- recording is unit member, Unit Head, or Admin and is append-only.
+-- Reducing this surface is allowed. Any growth beyond 106 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -101,8 +102,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>105 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 105-function ceiling to %.',n;
+  if n>106 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 106-function ceiling to %.',n;
   end if;
 end $$;
 
@@ -173,35 +174,50 @@ $account_self_service$;
 -- Direct browser writes to recurring_operations remain closed.
 do $ministry_number_definition$
 declare
-  v_oid oid;
-  v_def text;
+  v_create oid;
+  v_record oid;
+  v_create_def text;
+  v_record_def text;
   v_write_policies integer;
 begin
-  v_oid := to_regprocedure('public.create_ministry_number(uuid,text,text)');
-  if v_oid is null then
-    raise exception 'Security gate failure: create_ministry_number RPC is missing.';
+  v_create := to_regprocedure('public.create_ministry_number(uuid,text,text)');
+  v_record := to_regprocedure('public.record_ministry_number(uuid,date,numeric,text)');
+  if v_create is null or v_record is null then
+    raise exception 'Security gate failure: reviewed ministry-number RPC(s) are missing.';
   end if;
 
-  if not has_function_privilege('authenticated',v_oid,'EXECUTE')
-     or has_function_privilege('anon',v_oid,'EXECUTE') then
-    raise exception 'Security gate failure: create_ministry_number execution grants are not authenticated-only.';
+  if not has_function_privilege('authenticated',v_create,'EXECUTE')
+     or not has_function_privilege('authenticated',v_record,'EXECUTE')
+     or has_function_privilege('anon',v_create,'EXECUTE')
+     or has_function_privilege('anon',v_record,'EXECUTE') then
+    raise exception 'Security gate failure: ministry-number RPC execution grants are not authenticated-only.';
   end if;
 
-  select pg_get_functiondef(v_oid) into v_def;
-  if v_def not ilike '%p_unit_id in (select app_managed_units())%'
-     or v_def not ilike '%app_is_admin()%'
-     or v_def not ilike '%insert into recurring_operations%' then
-    raise exception 'Security gate failure: create_ministry_number does not visibly enforce reviewed unit-manager/Admin authority.';
+  select pg_get_functiondef(v_create) into v_create_def;
+  select pg_get_functiondef(v_record) into v_record_def;
+
+  if v_create_def not ilike '%p_unit_id in (select app_managed_units())%'
+     or v_create_def not ilike '%app_is_admin()%'
+     or v_create_def not ilike '%insert into recurring_operations%' then
+    raise exception 'Security gate failure: create_ministry_number does not visibly enforce reviewed Unit Head/Admin authority.';
+  end if;
+
+  if v_record_def not ilike '%ro.unit_id in (select app_my_units())%'
+     or v_record_def not ilike '%ro.unit_id in (select app_managed_units())%'
+     or v_record_def not ilike '%app_is_admin()%'
+     or v_record_def not ilike '%ro.work_item_id is not null%'
+     or v_record_def not ilike '%insert into operation_occurrences%' then
+    raise exception 'Security gate failure: record_ministry_number does not visibly enforce reviewed scheduleless unit authority.';
   end if;
 
   select count(*) into v_write_policies
   from pg_policies
   where schemaname='public'
-    and tablename='recurring_operations'
+    and tablename in ('recurring_operations','operation_occurrences')
     and cmd in ('INSERT','UPDATE','DELETE','ALL');
 
   if v_write_policies<>0 then
-    raise exception 'Security gate failure: recurring_operations direct browser write policy was reopened.';
+    raise exception 'Security gate failure: ministry tables direct browser write policy was reopened.';
   end if;
 end
 $ministry_number_definition$;
