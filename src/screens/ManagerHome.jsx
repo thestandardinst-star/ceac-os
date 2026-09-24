@@ -441,7 +441,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
                 onOpen={() => document.getElementById("manager-stuck-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
           {team.working.length > 0 && <Stat icon="people" label="Working now" value={team.working.length} sub={`of ${team.present.length + team.leave.length + team.notStarted.length}`}
                 onOpen={() => { setDrill({ zone: "team", title: "Working now", people: true, rows: team.working }); document.getElementById("manager-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />}
-          {budgetStatValue && <Stat icon="finance" label="Budget left" value={budgetStatValue}
+          {budgetStatValue && <Stat icon="money" label="Budget left" value={budgetStatValue}
                 onOpen={() => go?.("manager-finance")} />}
         </StatRow>
       </section>
