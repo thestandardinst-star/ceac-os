@@ -36,6 +36,7 @@ const staffNav = [
   { key:"staff-calendar", label:"Calendar", icon:"calendar" },
   { key:"messages", label:"Messages", icon:"messages" },
   { key:"me", label:"My Hub", icon:"hub" },
+  { key:"account", label:"Your account", icon:"hub" },
 ];
 const managerNav = [
   { key:"home", label:"Overview", icon:"home" },
@@ -45,6 +46,7 @@ const managerNav = [
   { key:"calendar", label:"Calendar", icon:"calendar" },
   { key:"manager-finance", label:"Budget", icon:"finance" },
   { key:"manager-reports", label:"Reports", icon:"reports" },
+  { key:"account", label:"Your account", icon:"hub" },
 ];
 const execNav = [
   { key:"home", label:"Overview", icon:"home" },
@@ -54,6 +56,7 @@ const execNav = [
   { key:"exec-organisation", label:"Organisation", icon:"organisation" },
   { key:"exec-finance", label:"Finance", icon:"finance" },
   { key:"exec-reports", label:"Reports", icon:"reports" },
+  { key:"account", label:"Your account", icon:"hub" },
 ];
 
 function adminNav(me) {
@@ -66,6 +69,7 @@ function adminNav(me) {
     { key:"finance", label:"Finance", icon:"finance" },
     { key:"reporting", label:"Reports", icon:"reports" },
     { key:"settings", label:"Control Center", icon:"control" },
+    { key:"account", label:"Your account", icon:"hub" },
   ];
 }
 
