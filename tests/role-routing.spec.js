@@ -28,7 +28,7 @@ test("Staff navigation stays focused on the employee workspace", async ({ browse
 test("Manager gets a team command centre, not Administration authoring", async ({ browser }) => {
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
   const nav = page.locator(".premium-side nav");
-  for (const label of ["Overview","Work","Team","Projects","Calendar","Budget","Reports","Messages"]) {
+  for (const label of ["Overview","Work","Team","Projects","Calendar","Finance","Reports","Messages","My Hub"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }
   for (const label of ["People","Time & Leave","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Protected HR"]) {
@@ -55,7 +55,7 @@ test("Group Pastor has an executive navigation boundary", async ({ browser }) =>
   for (const label of ["Overview","Work","Ministry","Portfolio","Organisation","Finance","Reports","Messages"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }
-  for (const label of ["My Hub","People","Time & Leave","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Protected HR","Learning","Assets","Compliance"]) {
+  for (const label of ["People","Time & Leave","Control Center","Audit","Authority","Events","Workflows","Integrations","Employee lifecycle","Protected HR","Learning","Assets","Compliance"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toHaveCount(0);
   }
   await context.close();

@@ -50,7 +50,7 @@ const routeByLabel = {
   People:"people", "Employee lifecycle":"lifecycle", "Protected HR":"protected-hr",
   Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
   Reports:"reporting", Cost:"cost", Finance:"finance",
-  Audit:"audit", Events:"events", Workflows:"workflows", Authority:"authority",
+  Audit:"audit", Events:"events", Workflows:"workflows", Checks:"workflows", Authority:"authority",
   "System rules":"policies", Integrations:"integrations", "Control Center":"settings", Settings:"settings",
   Announcements:"announcements"
 };
@@ -408,6 +408,43 @@ test("Recurring ministry numbers flow from a unit record to the Group Pastor ove
     await expect(page.getByText("What CEAC recorded", { exact: true })).toBeVisible();
     await expect(page.getByText(numberName, { exact: true })).toBeVisible();
     await expect(page.getByText(/17 People received/)).toBeVisible();
+    await context.close();
+  }
+});
+
+test("Experience Stage 8 removes the known navigation, Team and Calendar defects", async ({ browser }) => {
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    const side = page.locator(".premium-side");
+    await expect(side.getByRole("button", { name: "Finance", exact: true })).toBeVisible();
+    await expect(side.getByRole("button", { name: "Budget", exact: true })).toHaveCount(0);
+    await expect(side.getByRole("button", { name: "Messages", exact: true })).toBeVisible();
+    await expect(side.getByRole("button", { name: "My Hub", exact: true })).toBeVisible();
+
+    await go(page, "Team");
+    const sectionLabels = await page.locator(".manager-team .sec > span:first-child").allTextContents();
+    expect(sectionLabels.indexOf("Team setup")).toBeGreaterThanOrEqual(0);
+    expect(sectionLabels.indexOf("People")).toBeGreaterThanOrEqual(0);
+    expect(sectionLabels.indexOf("Team setup")).toBeLessThan(sectionLabels.indexOf("People"));
+    await expect(page.getByRole("button", { name: "Assign work to this part", exact: true }).first()).toBeVisible();
+
+    await go(page, "Calendar");
+    await expect(page.getByText("Your Google Calendar", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Automatic personal sync is not connected yet/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Open Google Calendar", exact: true })).toBeVisible();
+
+    await side.getByRole("button", { name: "My Hub", exact: true }).click();
+    await expect(page.locator(".body")).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Control Center");
+    await expect(page.getByText("Checks", { exact: true })).toBeVisible();
+    await page.getByText("Checks", { exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Checks", exact: true })).toBeVisible();
+    await expect(page.getByText("Waiting for a decision", { exact: true })).toBeVisible();
     await context.close();
   }
 });
@@ -1922,14 +1959,15 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.reload();
   await expect(page.getByText("ACCEPTANCE-001", { exact: true })).toBeVisible();
 
-  await go(page, "Workflows");
-  await expect(page.getByRole("heading", { name: "Workflows", exact: true })).toBeVisible();
+  await go(page, "Checks");
+  await expect(page.getByRole("heading", { name: "Checks", exact: true })).toBeVisible();
   const employmentWorkflow = page.getByRole("button", { name: /Review employment change/ }).first();
   await expect(employmentWorkflow).toBeVisible();
   await employmentWorkflow.click();
-  await page.getByLabel("Workflow review note").fill("Acceptance workflow review");
-  await page.getByRole("button", { name: "Complete step", exact: true }).click();
-  await expect(page.getByText("Workflow step completed.", { exact: true })).toBeVisible();
+  await page.getByLabel("Check review note").fill("Acceptance workflow review");
+  await expect(page.getByRole("button", { name: "No — I did not approve this", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Complete check", exact: true }).click();
+  await expect(page.getByText("Check completed.", { exact: true })).toBeVisible();
 
   await go(page, "Authority");
   await expect(page.getByRole("heading", { name: "Authority", exact: true })).toBeVisible();

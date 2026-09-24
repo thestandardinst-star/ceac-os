@@ -142,6 +142,9 @@ jobs:
       - name: Run Experience Stage 7 work-capture gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/experience_stage7_work_capture_gate.sql
 
+      - name: Run Experience Stage 8 interface gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/experience_stage8_interface_gate.sql
+
       - name: Run production hardening gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/production_hardening_gate.sql
 

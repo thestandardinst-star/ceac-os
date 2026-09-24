@@ -266,26 +266,7 @@ export default function Team({ me, openPerson, goAssign, openRoom }) {
       {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
       {loading && <div className="spin">Loading your team...</div>}
 
-      {!loading && <><div className="sec"><span>People</span><span>{people.length}</span></div>
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div className="row-t">{me.unit_name}</div>
-        <div className="row-m">Unit Head — {me.full_name || "—"}</div>
-      </div>
-      {groupedPeople.map((team) => <div key={team.id}>
-        <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 7 }}>
-          {team.profiles?.full_name && <div className="small">Sub-team lead — {team.profiles.full_name}</div>}
-          {goAssign && <button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Give work to this part</button>}
-        </div>
-        {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
-        {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
-      </div>)}
-      {unassignedPeople.length > 0 && <div>
-        <div className="sec" style={{ marginTop: 18 }}><span>Not assigned to a part yet</span><span>{unassignedPeople.length}</span></div>
-        {unassignedPeople.map((person) => <PersonRow key={`unassigned-${person.id}`} person={person} openPerson={openPerson} />)}
-      </div>}
-      {people.length === 0 && <div className="card small">There are no other staff members in this unit yet. Your own work remains under My work.</div>}
-
+      {!loading && <>
       <div className="sec"><span>Team setup</span><span>{showSetup ? "Open" : "Secondary"}</span></div>
       <button className="btn btn-ghost wide-auto" onClick={() => setShowSetup((value) => !value)}>{showSetup ? "Hide team setup" : "Open team setup"}</button>
       <p className="screen-note">Invitations and work-lane structure live here. Official role and sub-team membership changes are handled by Administration & HR. Leave decisions remain on Home.</p>
@@ -337,6 +318,27 @@ export default function Team({ me, openPerson, goAssign, openRoom }) {
         {resources.length === 0 && <div className="card small">No unit resources have been added.</div>}
         <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => openResource()}>Add a resource</button>
       </>}
+
+
+      <div className="sec"><span>People</span><span>{people.length}</span></div>
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div className="row-t">{me.unit_name}</div>
+        <div className="row-m">Unit Head — {me.full_name || "—"}</div>
+      </div>
+      {groupedPeople.map((team) => <div key={team.id}>
+        <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 7 }}>
+          {team.profiles?.full_name && <div className="small">Sub-team lead — {team.profiles.full_name}</div>}
+          {goAssign && <><span className="small">Preselects this part in the work form.</span><button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Assign work to this part</button></>}
+        </div>
+        {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
+        {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
+      </div>)}
+      {unassignedPeople.length > 0 && <div>
+        <div className="sec" style={{ marginTop: 18 }}><span>Not assigned to a part yet</span><span>{unassignedPeople.length}</span></div>
+        {unassignedPeople.map((person) => <PersonRow key={`unassigned-${person.id}`} person={person} openPerson={openPerson} />)}
+      </div>}
+      {people.length === 0 && <div className="card small">There are no other staff members in this unit yet. Your own work remains under My work.</div>}
 
       {sheet === "subteam" && <Sheet onClose={() => setSheet(null)}>
         <div className="h2">Add a part of the team</div>

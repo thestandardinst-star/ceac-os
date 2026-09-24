@@ -15,7 +15,7 @@ export default function ControlCenter({me,go}){
     {title:"Organisation",description:"Office location, leave policy and organisation-level configuration.",action:()=>go("office-settings"),icon:"organisation"},
     ...(caps.has("authority.manage")?[{title:"Access & permissions",description:"Grant and revoke explicit capabilities with attributable reasons.",action:()=>go("authority"),icon:"control"}]:[]),
     ...(caps.has("compliance.manage")?[{title:"Policies & compliance",description:"Publish policy versions, requirements, evidence rules and approved exceptions.",action:()=>go("compliance"),icon:"record"}]:[]),
-    ...(caps.has("audit.view")||caps.has("people.manage")?[{title:"Automations",description:"Review organisation workflows without exposing engine internals to everyday users.",action:()=>go("workflows"),icon:"control"}]:[]),
+    ...(caps.has("audit.view")||caps.has("people.manage")?[{title:"Checks",description:"Review decisions and confirmations that are waiting for an authorised person.",action:()=>go("workflows"),icon:"control"}]:[]),
     ...(caps.has("integration.manage")?[{title:"Connected Apps",description:"Manage external services and connection status. Technical delivery internals stay in Advanced.",action:()=>go("integrations"),icon:"plus"}]:[]),
     ...(caps.has("audit.view")?[{title:"Activity log",description:"Append-only history of consequential changes across the ordinary platform.",action:()=>go("audit"),icon:"record"}]:[]),
   ];
