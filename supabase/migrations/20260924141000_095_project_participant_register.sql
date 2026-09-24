@@ -445,7 +445,7 @@ language sql
 stable
 security invoker
 set search_path=public
-as $
+as $$
   select
     public.app_can_manage_delivery_project(p_project_id)
     or (
@@ -464,7 +464,7 @@ as $
           )
       )
     );
-$;
+$$;
 revoke all on function public.app_can_manage_project_register(uuid,uuid) from public,anon;
 grant execute on function public.app_can_manage_project_register(uuid,uuid) to authenticated;
 
