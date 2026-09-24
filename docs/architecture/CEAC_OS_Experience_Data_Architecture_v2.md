@@ -246,9 +246,11 @@ confirms. Protects the accountability model without killing the flow.
 - Transfers already record sender, receiver and purpose; they are simply
   not surfaced to the manager.
 
-**OPEN — CEAC must answer:** if managers record their own spend, who
-verifies it? Manager Finance was made read-only precisely so the person
-recording money was not the only person seeing it.
+**Not a gate.** Build it with Finance confirmation switched off — a
+department records its own spending and sees its own money immediately.
+Confirmation is one line to turn on later if CEAC wants it. The original
+read-only design existed so the person recording money was not the only
+person seeing it; the unit P&L and the audit trail already satisfy that.
 
 ---
 
