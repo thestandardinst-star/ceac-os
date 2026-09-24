@@ -69,6 +69,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   const [voiceProposal, setVoiceProposal] = useState(null);
   const [recipeSteps, setRecipeSteps] = useState([]);
   const [recipeSource, setRecipeSource] = useState(null);
+  const [traceWarning, setTraceWarning] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
@@ -227,12 +228,12 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
       p_mention_ids: [],
     });
     if (result.error) {
-      setVoiceHint("The work was created, but CEAC could not attach the trace-back message in the Room.");
+      setTraceWarning("The work was created, but CEAC could not attach the trace-back message in the Room.");
     }
   }
 
   async function create() {
-    setBusy(true); setErr(null);
+    setBusy(true); setErr(null); setTraceWarning(null);
     try {
       const selectedKind = WORK_KINDS.find(([value]) => value === kind);
       if (!selectedKind?.[3]) throw new Error("This work type is not connected yet. CEAC OS will not save it with the wrong behaviour.");
@@ -439,7 +440,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         p_unit_id: me.unit_id,
         p_assignee_id: assignee,
         p_title: title.trim(),
-        p_expected_outcome: expectedOutcome.trim(),
+        p_expected_outcome: expectedOutcome.trim() || null,
         p_sub_team_id: subTeam || null,
         p_project_id: project || null,
         p_objective_id: project && objective ? objective : null,
@@ -468,7 +469,7 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
         <div className="empty">
           <h3>{done} is with them</h3>
           <p>They will see what needs doing, why it matters and when it is due.</p>
-          {voiceHint && <div className="flag flag-amber" style={{ marginBottom: 12 }}>{voiceHint}</div>}
+          {traceWarning && <div className="flag flag-amber" style={{ marginBottom: 12 }}>{traceWarning}</div>}
           <button className="btn" onClick={() => setDone(null)}>Give out something else</button>
           <button className="btn btn-ghost" style={{ marginTop: 10 }} onClick={back}>Back to home</button>
         </div>
