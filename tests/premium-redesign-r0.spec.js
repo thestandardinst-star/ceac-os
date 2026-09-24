@@ -36,7 +36,7 @@ test.describe("Premium redesign R0 shell", () => {
 
   test("Manager desktop shell is manager-specific", async ({ browser }) => {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    for (const label of ["Overview","Work","Team","Projects","Calendar","Budget","Reports","Messages"]) {
+    for (const label of ["Overview","Work","Team","Projects","Calendar","Finance","Reports","Messages","My Hub"]) {
       await expect(page.locator(".premium-side").getByRole("button", { name:label, exact:true })).toBeVisible();
     }
     await expect(page.locator(".premium-side").getByRole("button", { name:"Today", exact:true })).toHaveCount(0);
@@ -66,11 +66,12 @@ test.describe("Premium redesign R0 shell", () => {
     await context.close();
   });
 
-  test("Staff mobile shell remains fluid and messaging stays one tap away", async ({ browser }) => {
+  test("Staff mobile shell remains fluid and messaging stays in the approved More navigation", async ({ browser }) => {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width:390, height:844 });
     await expect(page.locator(".premium-mobile-topbar")).toBeVisible();
     await expect(page.locator(".premium-tabs")).toBeVisible();
-    await expect(page.locator(".premium-mobile-topbar").getByRole("button", { name:"Messages", exact:true })).toBeVisible();
+    await page.locator(".premium-tabs").getByRole("button", { name:"More", exact:true }).click();
+    await expect(page.getByRole("menuitem", { name:"Messages", exact:true })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({ path:"test-artifacts/redesign-r0-staff-mobile.png", fullPage:true });
