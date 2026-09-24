@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import ProjectParticipantRegister from "../components/ProjectParticipantRegister";
 
 const PRIORITIES = [["low","Low"],["normal","Normal"],["high","High"],["critical","Critical"]];
 const HEALTH = [["on_track","On track"],["watch","Watch"],["at_risk","At risk"],["blocked","Blocked"]];
@@ -369,6 +370,9 @@ export default function Delivery({ me }) {
             {canManageSelected&&item.state!=="resolved"&&<button className="btn btn-ghost btn-sm" style={{marginTop:8}} onClick={()=>setSheet({type:"register-resolve",value:item})}>Resolve</button>}
           </div>)}
           {!selectedRegister.length&&<div className="card small">No project risks or issues recorded.</div>}
+
+          <div className="sec"><span>Participant register</span><span>Project capability</span></div>
+          <ProjectParticipantRegister me={me} project={selectedProject} />
         </>}
       </div>
 
