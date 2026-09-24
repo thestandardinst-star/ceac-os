@@ -247,7 +247,7 @@ export default function App() {
 
   function pageForTab() {
     if (tab === "account") return <AccountActivity me={me} />;
-    if (tab === "primitives") return <DesignPrimitives me={me} />;
+    if (tab === "primitives" && isAdmin) return <DesignPrimitives me={me} />;
     if (tab === "home") {
       if (me.is_exec) return <ExecutiveHome me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} go={go} />;
       if (me.is_admin) return <AdminHome me={me} openItem={openItem} openMeeting={openMeeting} scheduleMeeting={startMeeting} openSettings={() => go("settings")} openUnits={() => go("units")} go={go} />;
