@@ -228,15 +228,15 @@ export default function ProjectParticipantRegister({ me, project }) {
 
     {totals.map(t=><div key={t.currency} style={{marginTop:10}}>
       <StatRow>
-        <Stat icon="money" label={`${t.currency} due`} value={money(t.due,t.currency)} onOpen={()=>{}} />
-        <Stat icon="money" label={`${t.currency} paid`} value={money(t.paid,t.currency)} onOpen={()=>{}} />
+        <Stat icon="money" label={`${t.currency} due`} value={money(t.due,t.currency)} onOpen={()=>document.getElementById("project-register-people")?.scrollIntoView({behavior:"smooth",block:"start"})} />
+        <Stat icon="money" label={`${t.currency} paid`} value={money(t.paid,t.currency)} onOpen={()=>document.getElementById("project-register-people")?.scrollIntoView({behavior:"smooth",block:"start"})} />
         <Stat icon="warning" label={`${t.currency} unpaid`} value={money(Math.max(0,t.due-t.paid),t.currency)}
-          tone={t.due>t.paid?"slow":"ink"} onOpen={()=>{}} />
+          tone={t.due>t.paid?"slow":"ink"} onOpen={()=>document.getElementById("project-register-people")?.scrollIntoView({behavior:"smooth",block:"start"})} />
       </StatRow>
     </div>)}
 
     {rows.length===0?<EmptyState compact title="No participants in this project register">Add people only when this project needs a participant/payment register.</EmptyState>:
-    <Table rows={rows} exportName="ceac-project-register" columns={[
+    <div id="project-register-people"><Table rows={rows} exportName="ceac-project-register" columns={[
       {key:"display_name",label:"Person"},
       {key:"unit_name",label:"Unit"},
       {key:"amount_due_minor",label:"Owes",align:"right",sortValue:r=>Number(r.amount_due_minor)||0,render:r=>money(r.amount_due_minor,r.currency),csv:r=>Number(r.amount_due_minor)/100},
@@ -251,7 +251,7 @@ export default function ProjectParticipantRegister({ me, project }) {
         {r.allocation&&<button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();setSheet({type:"release",person:r,allocation:r.allocation});}}>Release slot</button>}
         <button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();setSheet({type:"edit-person",person:r});}}>Edit</button>
       </div>:<span className="small">Read only</span>,csv:()=>""},
-    ]}/>}
+    ]}/></div>}
     
     <div className="sec"><span>Collection and remittance</span><span>{reconciliation.length}</span></div>
     <Table rows={reconciliation} empty="No payment/remittance movement yet." exportName="ceac-project-reconciliation" columns={[
@@ -297,7 +297,7 @@ function PersonSheet({value=null,projectUnits,me,canManageProject,managedUnits,b
     <FieldGroup label="Project unit"><select className="field" aria-label="Register participant unit" value={unitId} disabled={Boolean(value)} onChange={e=>setUnitId(e.target.value)}>{allowed.map(r=><option key={r.unit_id} value={r.unit_id}>{r.units?.name||"Unit"}</option>)}</select></FieldGroup>
     <FieldGroup label="Name"><input className="field" aria-label="Register participant name" value={name} onChange={e=>setName(e.target.value)}/></FieldGroup>
     <FieldGroup label="Contact / reference"><input className="field" aria-label="Register participant contact" value={contact} onChange={e=>setContact(e.target.value)}/></FieldGroup>
-    <FieldGroup label="Amount owed"><div style={{display:"flex",gap:7}}><input className="field" aria-label="Register amount due" inputMode="decimal" value={due} onChange={e=>setDue(e.target.value)}/><select className="field" aria-label="Register currency" value={currency} disabled={Boolean(value&&Number(value.amount_due_minor)>0)} onChange={e=>setCurrency(e.target.value)}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></div></FieldGroup>
+    <FieldGroup label="Amount owed"><div style={{display:"flex",gap:7}}><input className="field" aria-label="Register amount due" inputMode="decimal" value={due} onChange={e=>setDue(e.target.value)}/><select className="field" aria-label="Register currency" value={currency} disabled={Boolean(value)} onChange={e=>setCurrency(e.target.value)}>{CURRENCIES.map(c=><option key={c}>{c}</option>)}</select></div></FieldGroup>
     <FieldGroup label="Context"><textarea className="field" aria-label="Register participant context" value={note} onChange={e=>setNote(e.target.value)} rows="3"/></FieldGroup>
     <button className="btn" disabled={busy||!unitId||!name.trim()||Number(due)<0} onClick={()=>onSave({unitId,name,contact,due,currency,note})}>{busy?"Saving…":value?"Save participant":"Add participant"}</button>
   </Sheet>;
