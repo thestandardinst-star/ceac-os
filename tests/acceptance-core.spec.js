@@ -85,6 +85,9 @@ async function assignTask(page, title, step = null) {
   else await page.getByLabel(/No steps needed/).check();
   const assignee = page.locator("select.field").filter({ has: page.locator("option", { hasText: "Staff Fixture" }) });
   await assignee.selectOption({ label: "Staff Fixture" });
+  const due = new Date(Date.now() + 2 * 86400000);
+  const dueLocal = due.toISOString().slice(0, 16);
+  await page.locator('input[type="datetime-local"]').last().fill(dueLocal);
   await page.getByRole("button", { name: "Give it out" }).click();
   await expect(page.getByText(/is with them/)).toBeVisible();
 }
@@ -946,6 +949,78 @@ test("Experience Stage 6 finance lets a Manager record own-unit spend without in
   await expect(page.getByText(/Expense recorded for your unit/i)).toBeVisible();
   await expect(page.getByText(/Managers can add spending only for their own unit/i)).toBeVisible();
   await context.close();
+});
+
+test("Experience Stage 7 keeps work capture simple, staff-owned and manager-confirmed", async ({ browser }) => {
+  test.setTimeout(180000);
+  const title = "Experience Stage 7 four field responsibility";
+  const proposalName = "Experience Stage 7 staff proposed project";
+  const roomMessage = "Experience Stage 7 room responsibility source";
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await page.getByRole("button", { name: "Give out work" }).click();
+    await page.getByLabel("Work to complete").fill(title);
+    await page.getByLabel("Why this matters").fill("This responsibility verifies the approved four-field contract.");
+    const assignee = page.locator("select.field").filter({ has: page.locator("option", { hasText: "Staff Fixture" }) });
+    await assignee.selectOption({ label: "Staff Fixture" });
+    await page.locator('input[type="datetime-local"]').last().fill(new Date(Date.now() + 2 * 86400000).toISOString().slice(0,16));
+    await expect(page.getByLabel("Finished result")).toHaveValue("");
+    await page.getByRole("button", { name: "Give it out", exact: true }).click();
+    await expect(page.getByText(/is with them/)).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Work");
+    await page.getByText(title, { exact: true }).click();
+    await page.getByLabel("Add my step").fill("Staff-owned breakdown step");
+    await page.getByRole("button", { name: "Add step", exact: true }).click();
+    await expect(page.getByRole("button", { name: /Staff-owned breakdown step/ })).toBeVisible();
+
+    await page.getByRole("button", { name: "← Back" }).click();
+    await go(page, "Work");
+    await page.getByRole("button", { name: "Propose project", exact: true }).click();
+    let dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Proposed project name").fill(proposalName);
+    await dialog.getByLabel("Proposed project purpose").fill("A staff-originated project proposal that requires Unit Head confirmation.");
+    await dialog.getByRole("button", { name: "Send proposal", exact: true }).click();
+    await expect(page.getByText(/Project proposed. Your Unit Head must confirm it/i)).toBeVisible();
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Projects");
+    const proposal = page.locator(".row").filter({ hasText: proposalName }).first();
+    await expect(proposal).toBeVisible();
+    await proposal.getByRole("button", { name: "Confirm project", exact: true }).click();
+    await expect(page.getByRole("heading", { name: proposalName, exact: true })).toBeVisible();
+
+    await go(page, "Team");
+    await page.getByRole("button", { name: "Unit Room", exact: true }).click();
+    const composer = page.getByPlaceholder("Message your unit");
+    await composer.fill(roomMessage);
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    const message = page.locator(".room-message").filter({ hasText: roomMessage }).last();
+    await expect(message).toBeVisible();
+    await message.getByRole("button", { name: "Make this a responsibility?", exact: true }).click();
+
+    await expect(page.getByLabel("Work to complete")).toHaveValue(roomMessage);
+    await page.getByLabel("Why this matters").fill("Captured from an accountable Room message.");
+    const assignee = page.locator("select.field").filter({ has: page.locator("option", { hasText: "Staff Fixture" }) });
+    await assignee.selectOption({ label: "Staff Fixture" });
+    await page.locator('input[type="datetime-local"]').last().fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0,16));
+    await page.getByRole("button", { name: "Give it out", exact: true }).click();
+    await expect(page.getByText(/is with them/)).toBeVisible();
+
+    await page.getByRole("button", { name: "Back to home", exact: true }).click();
+    await go(page, "Team");
+    await page.getByRole("button", { name: "Unit Room", exact: true }).click();
+    await expect(page.getByText(/Created .* from this message\./)).toBeVisible();
+    await context.close();
+  }
 });
 
 test("Stage 6 Workload keeps capacity components factual and manager-scoped", async ({ browser }) => {
