@@ -1,120 +1,45 @@
 # Questions for CEAC
 
-Six answers block work that cannot start without them. Nobody should
-guess these — every one is a decision about how CEAC actually runs, and
-inventing an answer bakes a rule nobody agreed to into the system.
+Almost nothing here is blocking. Earlier versions of this file asked six
+questions and treated them as gates. That was wrong — it turned a design
+job into a requirements interrogation and stopped work that did not need
+to stop.
 
-Print this, or read it out. Write the answers straight into this file and
-commit, and the blocked stages can start.
-
----
-
-## 1. Which numbers does each department report, and how often?
-
-**Blocks:** the ministry layer (Stage 3), and therefore the Group Pastor's
-whole view.
-
-**Why it matters.** The system currently reports on itself — tasks done,
-sessions started. It knows nothing about what the church actually did.
-Pastor Claude opening it sees office activity, not his church.
-
-The tables to hold this already exist (`recurring_operations`,
-`operation_occurrences`) and have never been used. This is wiring, not
-building — but only once somebody says what goes in them.
-
-**What we need.** For each department, the numbers it owes and how often.
-
-| Department | What it reports | How often |
-|---|---|---|
-| Cell Ministry | e.g. cells that met, cells expected | weekly |
-| PFCC | e.g. fellowships held | weekly |
-| _(add every department)_ | | |
-
-Also: **who types the number in**, and **by when each week**.
+**Nothing waits on these. Build the design work regardless.**
 
 ---
 
-## 2. Who records the service scores, and when?
+## Removed from scope
 
-**Blocks:** service performance reporting (Stage 3).
+**Service scoring.** Dropped entirely. CEAC already does it in a
+spreadsheet and it works. The system does not need to own it, and trying
+to model eight scored dimensions per department per service added real
+complication for no gain.
 
-CEAC already scores serving departments 1–5 on personnel present,
-punctuality, coordination, appearance, set-up and teamwork, per service.
-The August sheet shows this working.
-
-**What we need:**
-- One person from the Service Department scoring every department, or
-  each department head scoring their own?
-- Recorded during the service, straight after, or later in the week?
-- Which services are scored — Sunday, midweek, special programmes?
+**Reporting cadence per department.** Dropped as a gate. When a
+department starts recording a number, the system learns the rhythm from
+when it actually arrives. Nobody has to declare a schedule up front.
 
 ---
 
-## 3. Are the growth levels allowed?
+## Still open, answer whenever
 
-**Blocks:** the SOP-driven part of Stage 3.
+Neither blocks anything.
 
-The Service Departments SOP defines seven levels a person moves through:
-Brefos, Nepios, Paidion, Teknon, Neaniskos, Huios, Pater.
+**If departments record their own spending, does anyone check it?**
+Today only Finance can record spending, which means a department cannot
+see what it spent or where its money came from. That needs fixing either
+way. The only question is whether Finance confirms it afterwards — the
+way a transfer is already confirmed — or whether recording it is enough.
+Build it with confirmation off; it is one line to turn on.
 
-The original brief said **nothing that scores or ranks a person**. This
-looks like a discipleship ladder rather than a performance score, which
-is a different thing — but it is still a level recorded against a named
-person, so CEAC must decide rather than the system assuming.
-
-**Answer: yes / no.** If yes: who sets a person's level, and can that
-person see their own?
-
----
-
-## 4. Awards — departments or individuals?
-
-**Blocks:** nothing yet, but it shapes Stage 3.
-
-The SOP asks for award systems for high achievers, innovators and
-punctual personnel. The brief forbids badges and gamification.
-
-**Recommendation: recognise departments, never rank individuals.** A
-department award celebrates without turning colleagues into competitors,
-and nothing in the system then holds a league table of people.
-
-**Answer: departments only / individuals too / none.**
-
----
-
-## 5. If departments record their own spending, who checks it?
-
-**Blocks:** the finance corrections (Stage 6).
-
-Today only Finance can record spending. That is wrong — a department that
-cannot record what it spent cannot manage itself, and cannot see where
-its own money came from.
-
-But the reason it was built that way still stands: **the person who
-records money should not be the only person who sees it.**
-
-**What we need.** When Frank records GHS 300 on cables:
-- Does it need anyone's approval, or is recording it enough?
-- Does Finance confirm it afterwards, the way a transfer is confirmed?
-- Is there an amount above which someone else must agree?
-
----
-
-## 6. Are there report shapes beyond the three we have seen?
-
-**Blocks:** nothing immediately; prevents designing the wrong thing twice.
-
-Three shapes have been identified from CEAC's own workbooks:
-1. **Office task reporting** — weekly tasks, owners, status, % complete.
-   Already supported.
-2. **Service performance** — departments scored per service.
-3. **Event register** — registration, payments, arrears, rooms.
-
-**Is there a fourth?** Anything a department produces monthly or
-quarterly that looks like none of the above.
+**Is there a report shape we have not seen?** Three are known from
+CEAC's own workbooks: office task reporting, service performance, and
+event registers. If a department produces something monthly that looks
+like none of those, it is worth seeing before Reports is redesigned.
 
 ---
 
 ## Answers
 
-_Write them here and commit. Date each one._
+_Write them here if and when. Nothing is waiting._
