@@ -252,7 +252,7 @@ export default function ProjectParticipantRegister({ me, project }) {
         <button className="btn btn-ghost btn-sm" onClick={e=>{e.stopPropagation();setSheet({type:"edit-person",person:r});}}>Edit</button>
       </div>:<span className="small">Read only</span>,csv:()=>""},
     ]}/></div>}
-    
+
     <div className="sec"><span>Collection and remittance</span><span>{reconciliation.length}</span></div>
     <Table rows={reconciliation} empty="No payment/remittance movement yet." exportName="ceac-project-reconciliation" columns={[
       {key:"unit_id",label:"Collecting unit",render:r=>unitsById[r.unit_id]?.name||"Unit",csv:r=>unitsById[r.unit_id]?.name||""},
