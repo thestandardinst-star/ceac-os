@@ -129,29 +129,29 @@ export function statusPill(status) {
   return <Pill tone="grey">Not started</Pill>;
 }
 function tabItems(isManager = false) {
-  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["manager-finance","Finance"],["manager-reports","Reports"],["me","Me"]];
-  return [["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["me","Me"]];
+  if (isManager) return [["home","Home"],["work","My work"],["team","Team"],["projects","Projects"],["calendar","Calendar"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["manager-finance","Finance"],["manager-reports","Reports"],["account","Your account"],["me","Me"]];
+  return [["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["account","Your account"],["me","Me"]];
 }
 
 function desktopGroups({ isAdmin, isExec, isManager, canPeople = false, canProtectedHR = false, canAudit = false, canAuthority = false, canWorkflows = false, canIntegrations = false, canWorkload = false, canPerformance = false, canLearning = false, canAssets = false, canCompliance = false }) {
   if (isExec) return [
     { label:"Ministry", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
-    { label:"Personal", items:[["me","Me"]] },
+    { label:"Personal", items:[["account","Your account"],["me","Me"]] },
   ];
   if (isAdmin) return [
     { label:"Organisation", items:[["home","Home"],["strategy","Strategy"],["delivery","Delivery"],...(canWorkload ? [["workload","Workload"]] : []),...(canAssets ? [["assets","Assets & devices"]] : []),["units","Units"],["admin-projects","Projects"],["admin-calendar","Calendar"]] },
     { label:"People", items:[...(canPeople ? [["people","People"],["lifecycle","Employee lifecycle"]] : []),...(canPerformance ? [["performance","Performance & development"]] : []),...(canLearning ? [["learning","Learning"]] : []),...(canCompliance ? [["compliance","Compliance"]] : []),...(canProtectedHR ? [["protected-hr","Protected HR"]] : []),["attendance","Workforce"]] },
     { label:"Insight", items:[["reporting","Reports"],["finance","Finance"],["cost","Cost"]] },
     { label:"Communication", items:[["announcements","Announcements"]] },
-    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","System rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["primitives","Primitives"],["me","Me"]] },
+    { label:"System", items:[...(canAudit ? [["audit","Audit"],["events","Events"]] : []),...(canWorkflows ? [["workflows","Workflows"]] : []),...(canAuthority ? [["authority","Authority"],["policies","System rules"]] : []),...(canIntegrations ? [["integrations","Integrations"]] : []),["settings","Settings"],["primitives","Primitives"],["account","Your account"],["me","Me"]] },
   ];
   if (isManager) return [
     { label:"Your unit", items:[["home","Home"],["work","My work"],["team","Team"],["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["attendance","Workforce"],["assets","Assets & devices"],["compliance","Compliance"],["performance","Performance & development"],["learning","Learning"],["projects","Projects"],["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
-    { label:"Personal", items:[["me","Me"]] },
+    { label:"Personal", items:[["account","Your account"],["me","Me"]] },
   ];
-  return [{ label:null, items:[["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["assets","Assets"],["compliance","Compliance"],["me","Me"]] }];
+  return [{ label:null, items:[["home","Home"],["work","Work"],["team","Team"],["strategy","Strategy"],["learning","Learning"],["assets","Assets"],["compliance","Compliance"],["account","Your account"],["me","Me"]] }];
 }
 
 export function AppTopBar({ me, roleLabel, tab, onProfile }) {
@@ -238,7 +238,7 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
     { label:"Planning", items:[["strategy","Strategy"],["delivery","Delivery"],["workload","Workload"],["assets","Assets & devices"],["compliance","Compliance"],["performance","Performance & development"],["learning","Learning"]] },
     { label:"Schedule", items:[["calendar","Calendar"]] },
     { label:"Insight", items:[["manager-finance","Finance"],["manager-reports","Reports"]] },
-    { label:"Personal", items:[["me","Me"]] },
+    { label:"Personal", items:[["account","Your account"],["me","Me"]] },
   ];
   const capabilities = me?.capabilities || [];
   const adminGroups = [
@@ -251,18 +251,18 @@ export function Tabs({ tab, setTab, isManager, isExec = false, isAdmin = false, 
       ...((capabilities.includes("audit.view") || capabilities.includes("people.manage") || capabilities.includes("authority.manage")) ? [["workflows","Workflows"]] : []),
       ...(capabilities.includes("authority.manage") ? [["authority","Authority"],["policies","System rules"]] : []),
       ...(capabilities.includes("integration.manage") ? [["integrations","Integrations"]] : []),
-      ["settings","Settings"],["me","Me"]
+      ["settings","Settings"],["account","Your account"],["me","Me"]
     ] },
   ];
   const staffGroups = [
     { label:"Growth", items:[["strategy","Strategy"],["learning","Learning"]] },
     { label:"Organisation", items:[["assets","Assets"],["compliance","Compliance"]] },
   ];
-  const staffPrimary = [["home","Home"],["work","Work"],["team","Team"],["me","Me"],["more","More"]];
+  const staffPrimary = [["home","Home"],["work","Work"],["team","Team"],["account","Your account"],["me","Me"],["more","More"]];
   const managerPrimary = [["home","Home"],["work","Work"],["team","Team"],["projects","Projects"],["more","More"]];
   const adminPrimary = [["home","Home"],...(capabilities.includes("people.manage") ? [["people","People"]] : []),["attendance","Workforce"],["reporting","Reports"],["more","More"]];
   const items = isExec
-    ? [["home","Home"],["delivery","Delivery"],["announcements","Announcements"],["me","Me"]]
+    ? [["home","Home"],["delivery","Delivery"],["announcements","Announcements"],["account","Your account"],["me","Me"]]
     : isAdmin ? adminPrimary : isManager ? managerPrimary : staffPrimary;
   const moreGroups = isAdmin ? adminGroups : isManager ? managerGroups : staffGroups;
   const moreKeys = moreGroups.flatMap((group) => group.items.map(([key]) => key));

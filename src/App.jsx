@@ -57,6 +57,7 @@ import Announcements from "./screens/Announcements";
 import Room from "./screens/Room";
 import Meeting from "./screens/Meeting";
 import DesignPrimitives from "./screens/DesignPrimitives";
+import AccountActivity from "./screens/AccountActivity";
 import MeetingScheduler from "./components/MeetingScheduler";
 import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./components/PremiumShell";
 import AuthFrame from "./components/AuthFrame";
@@ -245,6 +246,7 @@ export default function App() {
   }
 
   function pageForTab() {
+    if (tab === "account") return <AccountActivity me={me} />;
     if (tab === "primitives") return <DesignPrimitives me={me} />;
     if (tab === "home") {
       if (me.is_exec) return <ExecutiveHome me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} go={go} />;
