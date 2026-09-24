@@ -31,7 +31,7 @@ returns table (
 )
 language sql
 stable
-security definer
+security invoker
 set search_path = public
 as $$
   with allowed as (
