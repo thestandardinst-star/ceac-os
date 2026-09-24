@@ -65,15 +65,13 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     try {
       const numeric = Number(value);
       if (!Number.isFinite(numeric)) throw new Error("Enter a valid number.");
-      const { error: insertError } = await supabase.from("operation_occurrences").insert({
-        org_id: me.org_id,
-        operation_id: recording.id,
-        occurred_on: occurredOn,
-        value: numeric,
-        note: note.trim() || null,
-        recorded_by: me.id,
+      const { error: recordError } = await supabase.rpc("record_ministry_number", {
+        p_operation_id: recording.id,
+        p_occurred_on: occurredOn,
+        p_value: numeric,
+        p_note: note.trim() || null,
       });
-      if (insertError) throw insertError;
+      if (recordError) throw recordError;
       setRecording(null); setValue(""); setNote(""); setOccurredOn(todayKey());
       setNotice(`${recording.name} recorded.`);
       await load();
