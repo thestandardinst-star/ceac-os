@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { EmptyState, FieldGroup, ProductNotice, SectionHeader, Sheet } from "../screens/bits";
+import { EmptyState, FieldGroup, ProductNotice, SectionHeader, Sheet } from "./bits";
 import { Stat, StatRow, Table } from "./primitives";
 
 const CURRENCIES = ["GHS","USD","GBP","EUR","NGN","ZAR","CAD"];
