@@ -406,7 +406,7 @@ test("Recurring ministry numbers flow from a unit record to the Group Pastor ove
     const recordDialog = page.getByRole("dialog");
     await recordDialog.locator('input[type="number"]').fill("17");
     await recordDialog.getByRole("button", { name: "Record number" }).click();
-    await expect(page.getByText(/recorded/i).first()).toBeVisible();
+    await expect(page.getByText(`${numberName} recorded.`, { exact: true })).toBeVisible();
     await context.close();
   }
 
