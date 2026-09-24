@@ -999,7 +999,7 @@ test("Experience Stage 7 keeps work capture simple, staff-owned and manager-conf
     await expect(page.getByRole("heading", { name: proposalName, exact: true })).toBeVisible();
 
     await go(page, "Team");
-    await page.getByRole("button", { name: "Unit Room", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
     const composer = page.getByPlaceholder("Message your unit");
     await composer.fill(roomMessage);
     await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -1017,7 +1017,7 @@ test("Experience Stage 7 keeps work capture simple, staff-owned and manager-conf
 
     await page.getByRole("button", { name: "Back to home", exact: true }).click();
     await go(page, "Team");
-    await page.getByRole("button", { name: "Unit Room", exact: true }).click();
+    await page.getByRole("button", { name: /Unit Room/ }).click();
     await expect(page.getByText(/Created .* from this message\./)).toBeVisible();
     await context.close();
   }
