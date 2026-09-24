@@ -133,6 +133,9 @@ jobs:
       - name: Run Stage 11 Compliance & Policy gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/compliance_policy_stage11_gate.sql
 
+      - name: Run Experience Stage 5 project register gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/project_register_experience_stage5_gate.sql
+
       - name: Run production hardening gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/production_hardening_gate.sql
 
