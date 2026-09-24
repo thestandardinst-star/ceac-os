@@ -45,6 +45,7 @@ export default function Room({
   scheduleMeeting,
   openAnnouncements,
   onRoomChange,
+  startWorkFromMessage,
 }) {
   const [room, setRoom] = useState(null);
   const [scopeRooms, setScopeRooms] = useState([]);
@@ -485,7 +486,18 @@ export default function Room({
                 <strong>{ref.label || "Open record"}</strong>
               </button>)}
             </div>}
-            <button className="room-reply-action" onClick={() => setReplyTo(message)}>Reply</button>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <button className="room-reply-action" onClick={() => setReplyTo(message)}>Reply</button>
+              {startWorkFromMessage && !(message.room_message_refs || []).some((ref) => ref.object_type === "work_item") &&
+                <button className="room-reply-action" onClick={() => startWorkFromMessage({
+                  title: message.body,
+                  sourceRoomId: room.id,
+                  sourceMessageId: message.id,
+                  projectId: room.kind === "project" ? room.project_id : "",
+                  subTeamId: room.kind === "sub_team" ? room.sub_team_id : "",
+                  kind: "task",
+                })}>Make this a responsibility?</button>}
+            </div>
           </article>
         </div>;
       })}
