@@ -3,6 +3,7 @@ import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup, StatusDistribution } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import MinistryNumbers from "../components/MinistryNumbers";
 
 const pad = (value) => String(value).padStart(2, "0");
 const dateKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -480,6 +481,8 @@ export default function ManagerReports({ me, openItem }) {
 
     {error && <ProductNotice tone="error" title="Could not complete reporting">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Report updated">{notice}</ProductNotice>}
+
+    <MinistryNumbers me={me} allowConfigure />
 
     <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
       {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
