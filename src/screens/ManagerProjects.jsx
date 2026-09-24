@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { Pill, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
 import ManagerProjectClose from "./ManagerProjectClose";
+import ProjectParticipantRegister from "../components/ProjectParticipantRegister";
 import { humanError } from "../lib/productLanguage";
 
 const OBJECTIVE_STATUSES = [
@@ -246,6 +247,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           ["overview","Overview"],
           ["work","Work"],
           ["objectives","Objectives"],
+          ["register","Register"],
           ["collaboration","Collaboration"],
           ["close","Close & record"],
         ].map(([key,label]) => <button key={key} className={area === key ? "on" : ""} onClick={() => setArea(key)}>{label}</button>)}
@@ -315,6 +317,10 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           </div>;
         })}
         {detail.objectives.length === 0 && <div className="card small">No objectives have been recorded for this project.</div>}
+      </section>}
+
+      {area === "register" && <section className="project-workspace-area">
+        <ProjectParticipantRegister me={me} project={detail} />
       </section>}
 
       {area === "collaboration" && <section className="project-workspace-area">
