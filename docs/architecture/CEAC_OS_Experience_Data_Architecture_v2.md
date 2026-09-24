@@ -134,43 +134,24 @@ wiring, not building.
 Each unit owes recurring numbers on a cadence — cells met, fellowships
 held, offerings received, first timers, salvations.
 
-**OPEN — CEAC must answer:** which unit owes which numbers, and how
-often. Do not invent this list.
+**Not a gate.** A department records a number when it has one, and the
+system learns the rhythm from when entries actually arrive. Nobody
+declares a schedule in advance.
 
-### 5.2 Service scoring
-Distinct from the above and needs its own structure. Per service session
-(Sunday, Midweek, Program), each serving department is scored 1–5 on:
-expected personnel, present by cutoff, punctuality, coordination,
-appearance and uniformity, set-up, teamwork.
+### 5.2 Service scoring — REMOVED FROM SCOPE
 
-The signal is **Sunday versus midweek**, not the absolute. In the August
-data, Media scores 0.72 on Sunday and 0.067 midweek; Venue is consistent
-at 0.90 and 0.88. Paired bars, with the existing "Stronger Sunday, weak
-midweek" language.
+Dropped 25 September. CEAC already scores serving departments in a
+spreadsheet and it works. Modelling eight scored dimensions per
+department per service added real complication for no gain and required
+rulings nobody could reasonably be asked to give up front.
 
-A narrative field sits beside the numbers, as CEAC's own sheet does.
+Do not build it. Do not raise it again.
 
-**Correction to a previous rule:** scoring a *department's service
-delivery* is normal operational practice and is permitted. Scoring a
-*person* remains forbidden. The earlier blanket ban was over-applied.
+### 5.3 Service department SOPs — deferred
 
-**OPEN — CEAC must answer:** who records the scores, and when.
-
-### 5.3 Service department SOPs
-The SOP skeleton (due end September) defines **expected personnel per
-service**, which is the denominator scoring already depends on. SOPs are
-therefore a data source, not a document.
-
-Also supplies: standard reporting times (the punctuality baseline),
-sub-units and roles, training processes, and a **solicitation trigger** —
-when a department's personnel falls below its threshold, raise a flag.
-
-**OPEN — two rulings needed:**
-- The SOP defines seven per-person growth levels (Brefos → Pater). This
-  is a discipleship ladder, not a performance score. Permitted?
-- The SOP asks for award systems for high achievers. The brief forbids
-  gamification. Recommendation: recognise departments, never rank
-  individuals. Confirm.
+Still being written by CEAC. A useful future source for expected
+personnel and reporting times. Nothing in the current build depends on
+it.
 
 ### 5.4 Group Pastor's view
 Cells met against expected, fellowships held, offerings by service and
@@ -304,14 +285,15 @@ recording money was not the only person seeing it.
 
 ---
 
-## Part 11 — Open rulings, consolidated
+## Part 11 — Open questions
 
-Do not guess any of these.
+Reduced from six to two on 25 September. The earlier list treated design
+work as blocked on requirements nobody had been asked for, which stopped
+work that did not need to stop.
 
-1. Which recurring numbers each unit owes, and how often.
-2. Who records service scores, and when.
-3. Are per-person growth levels (Brefos → Pater) permitted?
-4. Award systems — department recognition only, or individual?
-5. If managers record their own spend, who verifies it?
-6. Which report shapes exist beyond the three identified (office task,
-   service performance, event register)?
+1. If departments record their own spending, does Finance confirm it
+   afterwards? Build with confirmation off — it is one line to turn on.
+2. Is there a report shape beyond the three seen in CEAC's workbooks?
+
+**Everything else proceeds.** Service scoring and per-department
+reporting cadence are removed from scope, not deferred.
