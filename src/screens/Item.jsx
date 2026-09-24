@@ -10,6 +10,9 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
   const [item, setItem] = useState(null);
   const [checks, setChecks] = useState([]);
   const [ticks, setTicks] = useState({});
+  const [myStep, setMyStep] = useState("");
+  const [recipeSteps, setRecipeSteps] = useState([]);
+  const [recipeSource, setRecipeSource] = useState(null);
   const [blocker, setBlocker] = useState(null);
   const [review, setReview] = useState(null);
   const [units, setUnits] = useState([]);
@@ -110,6 +113,7 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       .select("id,label,position").eq("work_item_id", id).order("position");
     if (checklistError) { setErr(checklistError.message); return; }
     setChecks(c || []);
+    setTicks({});
     if (c && c.length) {
       const { data: t, error: tickError } = await supabase.from("checklist_ticks")
         .select("checklist_item_id, undone_at").in("checklist_item_id", c.map((x) => x.id));
@@ -117,6 +121,29 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       const map = {};
       (t || []).forEach((x) => { if (!x.undone_at) map[x.checklist_item_id] = true; });
       setTicks(map);
+    }
+
+    setRecipeSteps([]);
+    setRecipeSource(null);
+    if (w.kind === "task" && w.assignee_id === me.id) {
+      const history = await supabase.from("work_items")
+        .select("id,title,completed_at,checklist_items(label,position)")
+        .eq("unit_id", w.unit_id)
+        .eq("kind", "task")
+        .in("status", ["completed","self_certified"])
+        .neq("id", w.id)
+        .order("completed_at", { ascending: false, nullsFirst: false })
+        .limit(40);
+      if (!history.error) {
+        const normalize = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        const prior = (history.data || []).find((row) =>
+          normalize(row.title) === normalize(w.title) && (row.checklist_items || []).length > 0
+        );
+        if (prior) {
+          setRecipeSource(prior);
+          setRecipeSteps([...prior.checklist_items].sort((a,b) => a.position-b.position).map((row) => row.label).filter(Boolean));
+        }
+      }
     }
     const { data: b, error: blockerError } = await supabase.from("blockers").select("*, units(name)")
       .eq("work_item_id", id).neq("state", "resolved").maybeSingle();
@@ -138,6 +165,50 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
   const gated = !session;
   const managerOwnWork = isManager && item && item.assignee_id === me.id;
   const managerSubmissionBlocked = managerOwnWork && !MANAGER_SELF_CERTIFICATION_READY;
+
+  async function addMyStep() {
+    const label = myStep.trim();
+    if (!label || !item || item.assignee_id !== me.id) return;
+    setBusy(true); setErr(null);
+    try {
+      const nextPosition = checks.reduce((max, row) => Math.max(max, Number(row.position) || 0), 0) + 1;
+      const { error } = await supabase.from("checklist_items").insert({
+        work_item_id: item.id,
+        label,
+        position: nextPosition,
+      });
+      if (error) throw error;
+      setMyStep("");
+      await load();
+    } catch (error) {
+      setErr(error.message || "Your step could not be added.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function useRecipeSteps() {
+    if (!item || item.assignee_id !== me.id || !recipeSteps.length) return;
+    const existing = new Set(checks.map((row) => row.label.trim().toLowerCase()));
+    const missing = recipeSteps.filter((label) => !existing.has(label.trim().toLowerCase()));
+    if (!missing.length) return;
+    setBusy(true); setErr(null);
+    try {
+      const start = checks.reduce((max, row) => Math.max(max, Number(row.position) || 0), 0);
+      const rows = missing.map((label, index) => ({
+        work_item_id: item.id,
+        label,
+        position: start + index + 1,
+      }));
+      const { error } = await supabase.from("checklist_items").insert(rows);
+      if (error) throw error;
+      await load();
+    } catch (error) {
+      setErr(error.message || "The previous method could not be added.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function toggle(cid) {
     if (gated) return;
@@ -543,6 +614,22 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
               <span className="ck-l">{c.label}</span>
             </button>))}
         </div></>)}
+
+      {item.kind === "task" && item.assignee_id === me.id && !["in_review","completed","self_certified","cancelled"].includes(item.status) && <>
+        {recipeSteps.length > 0 && <div className="card small" style={{ marginTop: 12 }}>
+          <div className="row-t">Last time this unit did this</div>
+          <div className="row-m">{recipeSource?.title} · {recipeSteps.length} recorded step{recipeSteps.length === 1 ? "" : "s"}</div>
+          <button className="btn btn-ghost btn-sm" style={{ marginTop: 8 }} disabled={busy} onClick={useRecipeSteps}>Use these steps</button>
+        </div>}
+        <div className="card small" style={{ marginTop: 10 }}>
+          <div className="row-t">Break this work down</div>
+          <div className="row-m">Add your own next step. Your manager’s original assignment remains unchanged.</div>
+          <div style={{ display:"flex", gap:8, marginTop:8 }}>
+            <input className="field" aria-label="Add my step" placeholder="Add my step" value={myStep} onChange={(event) => setMyStep(event.target.value)} />
+            <button className="btn btn-sm" disabled={busy || !myStep.trim()} onClick={addMyStep}>Add step</button>
+          </div>
+        </div>
+      </>}
 
       {!["routine", "case", "request", "decision"].includes(item.kind) && !(["in_review", "completed", "self_certified"].includes(item.status)) && (<>
         <button className="btn work-primary-action" style={{ marginTop: 20 }} onClick={() => setSheet("submit")}
