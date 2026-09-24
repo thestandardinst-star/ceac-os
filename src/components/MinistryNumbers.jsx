@@ -88,16 +88,12 @@ export default function MinistryNumbers({ me, allowConfigure = false, compact = 
     if (!allowConfigure || !name.trim() || !valueLabel.trim()) return;
     setBusy(true); setError(null); setNotice(null);
     try {
-      const { error: insertError } = await supabase.from("recurring_operations").insert({
-        org_id: me.org_id,
-        unit_id: me.unit_id,
-        name: name.trim(),
-        cadence: null,
-        records_value: true,
-        value_label: valueLabel.trim(),
-        active: true,
+      const { error: createError } = await supabase.rpc("create_ministry_number", {
+        p_unit_id: me.unit_id,
+        p_name: name.trim(),
+        p_value_label: valueLabel.trim(),
       });
-      if (insertError) throw insertError;
+      if (createError) throw createError;
       setConfiguring(false); setName(""); setValueLabel("");
       setNotice("Ministry number added.");
       await load();
