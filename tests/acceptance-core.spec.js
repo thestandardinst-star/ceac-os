@@ -929,6 +929,25 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
   }
 });
 
+test("Experience Stage 6 finance lets a Manager record own-unit spend without inventing a bank balance", async ({ browser }) => {
+  test.setTimeout(90000);
+  const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
+  await go(page, "Finance");
+  await expect(page.getByRole("heading", { name: "Finance", exact: true })).toBeVisible();
+  await expect(page.getByText(/Money in means confirmed transfers received by this unit/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Record expense", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Expense description").fill("Experience Stage 6 own-unit spend");
+  await dialog.getByLabel("Expense amount").fill("25");
+  await dialog.getByLabel("Expense source").fill("Receipt ST6-001");
+  await dialog.getByRole("button", { name: "Record expense", exact: true }).click();
+
+  await expect(page.getByText(/Expense recorded for your unit/i)).toBeVisible();
+  await expect(page.getByText(/Managers can add spending only for their own unit/i)).toBeVisible();
+  await context.close();
+});
+
 test("Stage 6 Workload keeps capacity components factual and manager-scoped", async ({ browser }) => {
   test.setTimeout(120000);
 
