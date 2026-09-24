@@ -1,0 +1,392 @@
+/* CEAC OS Design Foundation v2 — shared Record archetype.
+   This is the canonical record composition layer. It intentionally uses
+   foundation tokens and no !important compatibility overrides. */
+
+.ceac-record{
+  width:100%;
+  max-width:1280px;
+  margin:0 auto;
+}
+.ceac-record-header{
+  position:sticky;
+  top:64px;
+  z-index:12;
+  display:grid;
+  gap:8px;
+  padding:16px 0 14px;
+  background:linear-gradient(180deg,var(--ceac-canvas) 82%,rgba(244,246,248,0));
+}
+.ceac-record-header-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+}
+.ceac-record-identity{min-width:0}
+.ceac-record-kicker{
+  color:var(--ceac-ink-400);
+  font-size:.75rem;
+  line-height:1.35;
+  font-weight:500;
+}
+.ceac-record-title{
+  margin:4px 0 0;
+  color:var(--ceac-ink-900);
+  font-size:1.75rem;
+  line-height:1.12;
+  font-weight:600;
+  letter-spacing:-.025em;
+  overflow-wrap:anywhere;
+}
+.ceac-record-subtitle{
+  margin-top:6px;
+  color:var(--ceac-ink-500);
+  font-size:.875rem;
+  line-height:1.45;
+}
+.ceac-record-status{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  flex:none;
+}
+.ceac-record-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.85fr) minmax(280px,1fr);
+  gap:24px;
+  align-items:start;
+}
+.ceac-record-main{min-width:0}
+.ceac-record-rail{
+  position:sticky;
+  top:160px;
+  display:grid;
+  gap:12px;
+  min-width:0;
+}
+.ceac-record-panel{
+  padding:16px;
+  background:var(--ceac-surface);
+  border:1px solid var(--ceac-line);
+  border-radius:var(--ceac-radius-small);
+}
+.ceac-record-panel-title{
+  display:block;
+  color:var(--ceac-ink-900);
+  font-size:.875rem;
+  line-height:1.3;
+  font-weight:600;
+}
+.ceac-record-panel-copy{
+  display:block;
+  margin-top:5px;
+  color:var(--ceac-ink-500);
+  font-size:.8125rem;
+  line-height:1.5;
+}
+.ceac-record-facts{
+  display:grid;
+  gap:0;
+  margin:0;
+}
+.ceac-record-fact{
+  display:grid;
+  grid-template-columns:minmax(90px,.75fr) minmax(0,1.25fr);
+  gap:12px;
+  padding:10px 0;
+  border-top:1px solid var(--ceac-line-soft);
+}
+.ceac-record-fact:first-child{border-top:0;padding-top:0}
+.ceac-record-fact:last-child{padding-bottom:0}
+.ceac-record-fact dt{
+  color:var(--ceac-ink-400);
+  font-size:.75rem;
+}
+.ceac-record-fact dd{
+  margin:0;
+  color:var(--ceac-ink-700);
+  font-size:.8125rem;
+  line-height:1.4;
+  font-weight:500;
+  overflow-wrap:anywhere;
+}
+.ceac-record-timeline{display:grid}
+.ceac-record-event{
+  position:relative;
+  padding:0 0 14px 18px;
+  color:var(--ceac-ink-700);
+  font-size:.8125rem;
+  line-height:1.45;
+}
+.ceac-record-event:last-child{padding-bottom:0}
+.ceac-record-event::before{
+  content:"";
+  position:absolute;
+  left:3px;
+  top:6px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--ceac-ministry);
+}
+.ceac-record-event:not(:last-child)::after{
+  content:"";
+  position:absolute;
+  left:5.5px;
+  top:14px;
+  bottom:0;
+  width:1px;
+  background:var(--ceac-line);
+}
+.ceac-record-event time{
+  display:block;
+  margin-top:2px;
+  color:var(--ceac-ink-400);
+  font-size:.75rem;
+}
+.ceac-record-section{
+  padding:18px 0;
+  border-top:1px solid var(--ceac-line-soft);
+}
+.ceac-record-section:first-child{border-top:0}
+.ceac-record-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:baseline;
+  margin-bottom:10px;
+}
+.ceac-record-section-head h2{
+  margin:0;
+  color:var(--ceac-ink-900);
+  font-size:1rem;
+  line-height:1.3;
+  font-weight:600;
+}
+.ceac-record-section-head span{
+  color:var(--ceac-ink-400);
+  font-size:.75rem;
+}
+
+/* Work detail adopts the shared record identity without changing work logic. */
+.staff-work-detail,
+.manager-work-detail{max-width:1280px}
+.staff-work-detail .work-detail-head,
+.manager-work-detail .work-detail-head{
+  position:sticky;
+  top:64px;
+  z-index:12;
+  padding:16px 0 14px;
+  background:linear-gradient(180deg,var(--ceac-canvas) 82%,rgba(244,246,248,0));
+  border-bottom:0;
+}
+.staff-work-detail .work-detail-head .h2,
+.manager-work-detail .work-detail-head .h2{
+  margin-top:4px;
+  color:var(--ceac-ink-900);
+  font-size:1.75rem;
+  line-height:1.12;
+  font-weight:600;
+  letter-spacing:-.025em;
+}
+.staff-work-detail .work-detail-meta,
+.manager-work-detail .work-detail-meta{
+  margin-top:8px;
+  color:var(--ceac-ink-500);
+}
+.staff-work-detail .work-context-card,
+.manager-work-detail .work-context-card{
+  background:var(--ceac-surface);
+  border-color:var(--ceac-line);
+  border-radius:var(--ceac-radius-small);
+  box-shadow:none;
+}
+.work-record-context{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:14px 0 4px;
+}
+.work-record-context>div{
+  min-width:0;
+  padding:10px 12px;
+  background:var(--ceac-surface-soft);
+  border:1px solid var(--ceac-line-soft);
+  border-radius:var(--ceac-radius-control);
+}
+.work-record-context span{
+  display:block;
+  color:var(--ceac-ink-400);
+  font-size:.75rem;
+}
+.work-record-context strong{
+  display:block;
+  margin-top:3px;
+  color:var(--ceac-ink-700);
+  font-size:.8125rem;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+
+/* Person record. */
+.manager-person-detail.ceac-record{max-width:1280px}
+.manager-person-detail .person-orientation-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  overflow:hidden;
+  margin:0;
+  background:var(--ceac-surface);
+  border:1px solid var(--ceac-line);
+  border-radius:var(--ceac-radius-small);
+}
+.manager-person-detail .person-orientation-grid>div{
+  padding:14px;
+  border-right:1px solid var(--ceac-line-soft);
+}
+.manager-person-detail .person-orientation-grid>div:last-child{border-right:0}
+.manager-person-detail .person-orientation-grid strong{
+  display:block;
+  color:var(--ceac-ink-900);
+  font-size:1.5rem;
+  line-height:1;
+  font-weight:700;
+}
+.manager-person-detail .person-orientation-grid span{
+  display:block;
+  margin-top:6px;
+  color:var(--ceac-ink-500);
+  font-size:.75rem;
+  line-height:1.35;
+}
+.manager-person-detail .person-orientation-grid .attention strong{color:var(--ceac-attention)}
+.person-record-filters{display:flex;gap:6px;flex-wrap:wrap}
+.person-record-activity .row,
+.person-record-feedback .row{box-shadow:none}
+
+/* Meeting record. */
+.meeting-screen.ceac-record{max-width:1280px}
+.meeting-record-header{
+  position:sticky;
+  top:64px;
+  z-index:12;
+  padding:14px 0;
+  background:linear-gradient(180deg,var(--ceac-canvas) 84%,rgba(244,246,248,0));
+}
+.meeting-record-header .meeting-hero{
+  margin:0;
+  padding:18px 20px;
+  border:1px solid var(--ceac-line);
+  border-radius:var(--ceac-radius-small);
+  background:var(--ceac-surface);
+  color:var(--ceac-ink-900);
+  box-shadow:none;
+}
+.meeting-record-header .meeting-hero .eyebrow{color:var(--ceac-ministry)}
+.meeting-record-header .meeting-hero h1{color:var(--ceac-ink-900)}
+.meeting-record-header .meeting-time,
+.meeting-record-header .meeting-location{color:var(--ceac-ink-500)}
+.meeting-record-header .meeting-status-row>span:last-child{color:var(--ceac-ink-400)}
+.meeting-screen .meeting-panel{
+  margin:0 0 12px;
+  padding:18px;
+  background:var(--ceac-surface);
+  border:1px solid var(--ceac-line);
+  border-radius:var(--ceac-radius-small);
+  box-shadow:none;
+}
+.meeting-screen .meeting-provider-note{
+  margin:0;
+  padding:14px;
+  background:var(--ceac-surface-soft);
+  border:1px solid var(--ceac-line-soft);
+  border-radius:var(--ceac-radius-control);
+}
+
+/* Room is a specialised Record: conversation remains primary, membership/context sits beside it. */
+.room-screen.ceac-record{
+  max-width:1280px;
+  min-height:calc(100vh - 64px);
+}
+.room-record-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.9fr) minmax(260px,.75fr);
+  gap:18px;
+  align-items:start;
+}
+.room-record-main{min-width:0}
+.room-record-rail{
+  position:sticky;
+  top:82px;
+  display:grid;
+  gap:12px;
+  padding-top:12px;
+}
+.room-record-rail .ceac-record-panel{box-shadow:none}
+.room-member-list{display:grid;gap:8px;margin-top:10px}
+.room-member{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+.room-member-avatar{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  flex:none;
+  border-radius:50%;
+  background:var(--ceac-muted-soft);
+  color:var(--ceac-ink-700);
+  font-size:.75rem;
+  font-weight:600;
+}
+.room-member strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--ceac-ink-700);
+  font-size:.8125rem;
+  font-weight:500;
+}
+.room-screen .room-head{
+  position:sticky;
+  top:64px;
+  z-index:12;
+  background:var(--ceac-shell);
+}
+.room-screen .room-context-note{border-color:var(--ceac-line-soft)}
+
+@media (max-width:1100px){
+  .ceac-record-layout,
+  .room-record-grid{grid-template-columns:1fr}
+  .ceac-record-rail,
+  .room-record-rail{position:static}
+}
+@media (max-width:980px){
+  .ceac-record-header,
+  .staff-work-detail .work-detail-head,
+  .manager-work-detail .work-detail-head,
+  .meeting-record-header,
+  .room-screen .room-head{
+    top:58px;
+  }
+  .ceac-record-header{padding-top:10px}
+  .ceac-record-title,
+  .staff-work-detail .work-detail-head .h2,
+  .manager-work-detail .work-detail-head .h2{font-size:1.5rem}
+  .work-record-context{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .ceac-record-header-row{display:block}
+  .ceac-record-status{justify-content:flex-start;margin-top:8px}
+  .manager-person-detail .person-orientation-grid{grid-template-columns:1fr}
+  .manager-person-detail .person-orientation-grid>div{
+    border-right:0;
+    border-bottom:1px solid var(--ceac-line-soft);
+  }
+  .manager-person-detail .person-orientation-grid>div:last-child{border-bottom:0}
+}
