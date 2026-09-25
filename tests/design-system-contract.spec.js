@@ -34,6 +34,29 @@ test("workspace action colours resolve through semantic tokens", async () => {
   }
 });
 
+test("legacy visual-debt counters cannot grow", async () => {
+  const paths = [
+    "src/styles.css",
+    "src/premium.css",
+    "src/premium-staff.css",
+    "src/premium-manager.css",
+    "src/premium-admin.css",
+    "src/premium-executive.css",
+    "src/premium-parity.css",
+  ];
+  const css = paths.map((path) => fs.readFileSync(path, "utf8")).join("\n");
+  const uniqueHex = new Set((css.match(/#[0-9a-fA-F]{3,8}\b/g) || []).map((value) => value.toLowerCase())).size;
+  const uniqueShadows = new Set([...css.matchAll(/box-shadow\s*:\s*([^;}\n]+)/g)].map((match) => match[1].trim())).size;
+  const uniqueRadii = new Set([...css.matchAll(/border-radius\s*:\s*([^;}\n]+)/g)].map((match) => match[1].trim())).size;
+  const uniquePixelSizes = new Set([...css.matchAll(/font-size\s*:\s*([0-9]*\.?[0-9]+)px\b/g)].map((match) => match[1])).size;
+
+  // These are debt ceilings, not target values. Refactors may reduce them; new work may not increase them.
+  expect(uniqueHex).toBeLessThanOrEqual(746);
+  expect(uniqueShadows).toBeLessThanOrEqual(134);
+  expect(uniqueRadii).toBeLessThanOrEqual(55);
+  expect(uniquePixelSizes).toBeLessThanOrEqual(36);
+});
+
 test("role CSS remains isolated and the important-debt budget does not grow", async () => {
   const executive = fs.readFileSync("src/premium-executive.css", "utf8");
   for (const leakedSelector of [".staff-app", ".manager-app", ".office-app", ".premium-side", ".reference-"]) {
