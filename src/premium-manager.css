@@ -25,7 +25,7 @@
 }
 .manager-command-stats>div{background:rgba(5,17,33,.23)!important;padding:13px 15px!important}
 .manager-command-stats strong{color:#fff!important;font-size:19px!important}
-.manager-command-stats span{color:#9fb0c4!important;font-size:9px!important}
+.manager-command-stats span{color:#9fb0c4!important;font-size:12px!important}
 
 .manager-app .home-dashboard{
   display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr)!important;
@@ -55,7 +55,7 @@
   box-shadow:none!important;min-height:72px!important;
 }
 .manager-app .home-stat b{font-size:19px!important;color:#18324e!important}
-.manager-app .home-stat span{font-size:9px!important;color:#77869a!important}
+.manager-app .home-stat span{font-size:12px!important;color:#77869a!important}
 .manager-app .home-progress{background:#edf1f6!important;border-radius:99px!important;height:5px!important}
 .manager-app .home-progress>span{background:linear-gradient(90deg,#0c5df9,#6498f9)!important}
 .manager-app .home-quiet{border-radius:11px!important;background:#f8fafc!important;color:#78879a!important}
@@ -74,9 +74,9 @@
   border:1px solid #e0e6ee;background:#fff;border-radius:13px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;
   color:#687a90;text-align:left;box-shadow:0 5px 17px rgba(35,53,79,.035);
 }
-.manager-work-tabs button span{font-size:11px;font-weight:700}
+.manager-work-tabs button span{font-size:12px;font-weight:700}
 .manager-work-tabs button b{
-  min-width:26px;height:26px;border-radius:999px;background:#f0f3f7;color:#6e7d8f;display:flex;align-items:center;justify-content:center;font-size:9px;
+  min-width:26px;height:26px;border-radius:999px;background:#f0f3f7;color:#6e7d8f;display:flex;align-items:center;justify-content:center;font-size:12px;
 }
 .manager-work-tabs button.on{border-color:#bad1ff;background:#f5f8ff;color:#0c5df9;box-shadow:0 7px 22px rgba(12,93,249,.08)}
 .manager-work-tabs button.on b{background:#0c5df9;color:#fff}
@@ -89,7 +89,7 @@
 .manager-work-row:hover,.manager-review-row:hover{background:#f8fbff}
 .manager-work-row.attention{box-shadow:inset 3px 0 #fcaf2e}
 .manager-work-main strong{display:block;color:#172b42;font-size:12px}
-.manager-work-main span,.manager-work-main small,.manager-work-owner span,.manager-work-owner small{display:block;color:#8090a3;font-size:9px;margin-top:3px}
+.manager-work-main span,.manager-work-main small,.manager-work-owner span,.manager-work-owner small{display:block;color:#8090a3;font-size:12px;margin-top:3px}
 .manager-work-owner{text-align:right}
 .manager-work-state{justify-self:end}
 .manager-review-row{
@@ -98,14 +98,14 @@
 }
 .manager-review-row:last-child{border-bottom:0}
 .manager-review-avatar{
-  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:#0c5df9;font-size:10px;font-weight:800;
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:#0c5df9;font-size:12px;font-weight:800;
 }
-.manager-review-row strong{display:block;color:#1c3149;font-size:11px}
-.manager-review-row small,.manager-review-row em{display:block;color:#8492a3;font-size:9px;margin-top:3px;font-style:normal}
+.manager-review-row strong{display:block;color:#1c3149;font-size:12px}
+.manager-review-row small,.manager-review-row em{display:block;color:#8492a3;font-size:12px;margin-top:3px;font-style:normal}
 .manager-work-empty{padding:28px;text-align:center}
 .manager-work-empty strong{display:block;color:#31465f;font-size:12px}
-.manager-work-empty span{display:block;color:#8b97a7;font-size:9px;margin-top:4px}
-.manager-work-footnote{color:#8996a6;font-size:9px;line-height:1.5;margin:10px 2px}
+.manager-work-empty span{display:block;color:#8b97a7;font-size:12px;margin-top:4px}
+.manager-work-footnote{color:#8996a6;font-size:12px;line-height:1.5;margin:10px 2px}
 
 /* Team */
 .manager-app .manager-team{max-width:1080px!important}
@@ -188,7 +188,7 @@
   .manager-command-head{display:block!important}
   .manager-command-action{margin-top:14px!important}
   .manager-command-stats strong{font-size:16px!important}
-  .manager-command-stats span{font-size:8px!important}
+  .manager-command-stats span{font-size:12px!important}
   .manager-page-header{display:block}
   .manager-page-header>.btn{margin-top:12px}
   .manager-work-tabs{grid-template-columns:1fr 1fr;gap:6px}
