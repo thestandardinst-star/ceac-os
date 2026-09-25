@@ -2006,7 +2006,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByLabel("Integration connector key").fill("acceptance-connector");
   await page.getByRole("button", { name: "Create connector", exact: true }).click();
   await expect(page.getByText("Connector created.", { exact: true })).toBeVisible();
-  const connectorRow = page.locator(".row").filter({ hasText: "Acceptance Connector" }).first();
+  const connectorRow = page.locator(".tbl tbody tr").filter({ hasText: "Acceptance Connector" }).first();
   await connectorRow.getByRole("button", { name: "Enable", exact: true }).click();
   await expect(page.getByText("Connector enabled.", { exact: true })).toBeVisible();
   await page.getByLabel("Integration subscription connector").selectOption({ label: "Acceptance Connector" });
