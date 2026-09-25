@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 function formatValue(def, value) {
   if (value === null || value === undefined) return "Not configured";
@@ -70,16 +71,22 @@ export default function AdminPolicies({ me }) {
     <div className="split" style={{marginTop:18}}>
       <div className="main-col">
         <div className="sec"><span>Rule catalogue</span><span>{defs.length}</span></div>
-        {defs.map((item)=>{
-          const rows=versions.filter((v)=>v.rule_key===item.rule_key);
-          const latest=rows[0]||null;
-          return <button key={item.rule_key} className={"row row-button"+(selected===item.rule_key?" on":"")} onClick={()=>setSelected(item.rule_key)}>
-            <div className="row-t">{item.label}</div>
-            <div className="row-m">{item.domain+" · "+formatValue(item,latest?.value)+(latest?" · effective "+latest.effective_on:"")}</div>
-            <div className="small" style={{marginTop:6}}>{item.description}</div>
-          </button>;
-        })}
-        {!defs.length&&<EmptyState title="No policy definitions">No policy definitions are active.</EmptyState>}
+        <Table
+          rows={defs}
+          empty="No policy definitions are active."
+          caption="Organisation rule catalogue"
+          exportName="ceac-policy-rules"
+          onRowClick={(item)=>setSelected(item.rule_key)}
+          rowAriaLabel={(item)=>`Open policy rule ${item.label}`}
+          rowClassName={(item)=>selected===item.rule_key ? "ledger-selected" : ""}
+          columns={[
+            { key:"label", label:"Rule", render:(item)=><button type="button" className="text-action" onClick={()=>setSelected(item.rule_key)}>{item.label}</button>, csv:(item)=>item.label },
+            { key:"domain", label:"Domain" },
+            { key:"current", label:"Current value", render:(item)=>{const latest=versions.find((v)=>v.rule_key===item.rule_key)||null;return formatValue(item,latest?.value);}, sortValue:(item)=>{const latest=versions.find((v)=>v.rule_key===item.rule_key)||null;return formatValue(item,latest?.value);}, csv:(item)=>{const latest=versions.find((v)=>v.rule_key===item.rule_key)||null;return formatValue(item,latest?.value);} },
+            { key:"effective", label:"Effective", render:(item)=>versions.find((v)=>v.rule_key===item.rule_key)?.effective_on || "Not configured", sortValue:(item)=>versions.find((v)=>v.rule_key===item.rule_key)?.effective_on || "" },
+            { key:"description", label:"Purpose" },
+          ]}
+        />
       </div>
       <div className="side-col">
         <div className="sec"><span>Record version</span></div>
@@ -97,11 +104,16 @@ export default function AdminPolicies({ me }) {
           <button className="btn" disabled={busy||value===""||!reason.trim()} onClick={save}>{busy?"Recording…":"Record new version"}</button>
         </div>}
         <div className="sec"><span>History</span><span>{history.length}</span></div>
-        {history.slice(0,10).map((item)=><div className="row" key={item.id}>
-          <div className="row-t">{formatValue(def,item.value)}</div>
-          <div className="row-m">Effective {item.effective_on}</div>
-          <div className="small" style={{marginTop:6}}>{item.reason}</div>
-        </div>)}
+        <Table
+          rows={history.slice(0,10)}
+          empty="No versions are recorded for this rule."
+          exportName="ceac-policy-rule-history"
+          columns={[
+            { key:"value", label:"Value", render:(item)=>formatValue(def,item.value), sortValue:(item)=>formatValue(def,item.value), csv:(item)=>formatValue(def,item.value) },
+            { key:"effective_on", label:"Effective" },
+            { key:"reason", label:"Reason" },
+          ]}
+        />
       </div>
     </div>
   </div>;
