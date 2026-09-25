@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Chart, Icon, MapPin, QueueRow, Stat, StatRow, Table, byOldest } from "../components/primitives";
+import { Chart, EmptyState, Icon, MapPin, QueueRow, Skeleton, Stat, StatRow, Table, Toast, byOldest } from "../components/primitives";
 
 // Demonstration route for the design primitives.
 //
@@ -34,7 +34,10 @@ export default function DesignPrimitives({ me }) {
     });
   }
 
-  if (!d) return <div className="body"><div className="spin">Loading real data…</div></div>;
+  if (!d) return <div className="body" style={{ paddingTop: 26 }}>
+    <Skeleton block label="Loading CEAC design primitives" />
+    <div style={{ marginTop: 12 }}><Skeleton lines={4} label="Loading CEAC data" /></div>
+  </div>;
 
   const nameOf = (id) => (d.people.find((p) => p.id === id) || {}).full_name || "—";
   const unitOf = (id) => (d.units.find((u) => u.id === id) || {}).name || "—";
@@ -80,11 +83,12 @@ export default function DesignPrimitives({ me }) {
               sub={"of " + d.people.filter((p) => p.active).length} onOpen={() => setOpened("who")} />
         <Stat icon="unit" label="Units" value={d.units.length} onOpen={() => setOpened("units")} />
       </StatRow>
-      {opened && <div className="flag flag-green">Opened <b>{opened}</b> — in a real screen this shows the rows behind the figure.</div>}
+      {opened && <Toast message={"Opened " + opened + " — this proves the interaction behind the figure or row."}
+        tone="success" duration={0} onDismiss={() => setOpened(null)} />}
 
       <div className="sec"><span>Queue — age first, oldest first</span><span>{queue.length}</span></div>
       {queue.length === 0
-        ? <div className="card small">Nothing is waiting on a decision right now.</div>
+        ? <EmptyState icon="check" title="Nothing is waiting on a decision right now." compact />
         : <div className="qlist">
             {queue.map((q) => (
               <QueueRow key={q.id} since={q.since} title={q.title} meta={q.meta}
@@ -107,6 +111,8 @@ export default function DesignPrimitives({ me }) {
       <div className="sec"><span>Table — sortable, exportable</span></div>
       <Table exportName="ceac-work" rows={d.work.slice(0, 40)}
         empty="No work recorded yet."
+        onRowClick={(row) => setOpened(row.ref || row.title || "work")}
+        rowAriaLabel={(row) => "Open " + (row.ref || row.title || "work")}
         columns={[
           { key: "ref", label: "Ref", width: 110 },
           { key: "title", label: "Work" },

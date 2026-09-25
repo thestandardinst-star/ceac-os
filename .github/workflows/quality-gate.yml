@@ -222,6 +222,14 @@ jobs:
           path: test-artifacts/laptop-density-*.png
           if-no-files-found: ignore
 
+      - name: Upload selective UX primitive inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selective-ux-primitives
+          path: test-artifacts/selective-ux-*.png
+          if-no-files-found: ignore
+
       - name: Upload R0 premium redesign product inspection
         if: always()
         uses: actions/upload-artifact@v4

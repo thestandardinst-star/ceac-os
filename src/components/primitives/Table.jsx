@@ -7,10 +7,30 @@
 // columns: [{ key, label, align, width, render, sortValue, csv }]
 import { useMemo, useState } from "react";
 import Icon from "./Icon";
+import EmptyState from "./EmptyState";
 
-export default function Table({ columns, rows, empty = "Nothing here yet.",
-                                caption, exportName, onRowClick }) {
+export default function Table({
+  columns,
+  rows,
+  empty = "Nothing here yet.",
+  caption,
+  exportName,
+  onRowClick,
+  rowClassName,
+  rowAriaLabel,
+}) {
   const [sort, setSort] = useState(null);
+
+  const columnAlign = (column) => {
+    if (column.align) return column.align;
+    const sample = rows.find((row) => {
+      const value = column.sortValue ? column.sortValue(row) : row[column.key];
+      return value !== null && value !== undefined && value !== "";
+    });
+    if (!sample) return "left";
+    const value = column.sortValue ? column.sortValue(sample) : sample[column.key];
+    return typeof value === "number" ? "right" : "left";
+  };
 
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -47,7 +67,13 @@ export default function Table({ columns, rows, empty = "Nothing here yet.",
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  if (!rows.length) return <div className="card small">{empty}</div>;
+  function activateRow(event, row) {
+    if (!onRowClick) return;
+    if (event?.target?.closest?.("button,a,input,select,textarea,label")) return;
+    onRowClick(row);
+  }
+
+  if (!rows.length) return <EmptyState icon="table" title={empty} compact />;
 
   return (
     <div className="tbl-wrap">
@@ -64,7 +90,7 @@ export default function Table({ columns, rows, empty = "Nothing here yet.",
           <thead>
             <tr>
               {columns.map((c) => (
-                <th key={c.key} style={{ width: c.width, textAlign: c.align || "left" }}
+                <th key={c.key} style={{ width: c.width, textAlign: columnAlign(c) }}
                     className={sort && sort.key === c.key ? "sorted" : ""}>
                   <button type="button" onClick={() => toggle(c.key)}>
                     {c.label}
@@ -75,11 +101,20 @@ export default function Table({ columns, rows, empty = "Nothing here yet.",
           </thead>
           <tbody>
             {sorted.map((r, i) => (
-              <tr key={r.id || i} onClick={onRowClick ? () => onRowClick(r) : undefined}
-                  className={onRowClick ? "clickable" : ""}>
+              <tr key={r.id || i}
+                  onClick={onRowClick ? (event) => activateRow(event, r) : undefined}
+                  onKeyDown={onRowClick ? (event) => {
+                    if ((event.key === "Enter" || event.key === " ") && event.target === event.currentTarget) {
+                      event.preventDefault();
+                      onRowClick(r);
+                    }
+                  } : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  aria-label={rowAriaLabel ? rowAriaLabel(r) : undefined}
+                  className={[onRowClick ? "clickable" : "", rowClassName ? (typeof rowClassName === "function" ? rowClassName(r) : rowClassName) : ""].filter(Boolean).join(" ")}>
                 {columns.map((c) => (
-                  <td key={c.key} style={{ textAlign: c.align || "left" }}
-                      className={c.align === "right" ? "num" : ""}>
+                  <td key={c.key} style={{ textAlign: columnAlign(c) }}
+                      className={columnAlign(c) === "right" ? "num" : ""}>
                     {c.render ? c.render(r) : r[c.key]}
                   </td>))}
               </tr>))}
