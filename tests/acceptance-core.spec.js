@@ -1438,7 +1438,7 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
 
     await page.reload();
     await go(page, "Workforce");
-    const staffCard = page.locator(".workforce-person").filter({ hasText: "Staff Fixture" });
+    const staffCard = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" });
     await expect(staffCard).toBeVisible();
     await expect(staffCard.getByText(dayTypeName, { exact: true })).toBeVisible();
 
@@ -1541,9 +1541,9 @@ test("Stage 9 Workforce keeps schedule, session and leave context factual across
 
     await page.getByRole("button", { name: /My workforce context/ }).click();
     await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
-    const ownWorkforceCard = page.locator(".workforce-person").filter({ hasText: "Staff Fixture" }).first();
+    const ownWorkforceCard = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).first();
     await expect(ownWorkforceCard).toBeVisible();
-    await expect(page.locator(".workforce-person").filter({ hasText: "Manager Fixture" })).toHaveCount(0);
+    await expect(page.locator(".tbl tbody tr").filter({ hasText: "Manager Fixture" })).toHaveCount(0);
     await expect(ownWorkforceCard.getByText(dayTypeName, { exact: true })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, "Stage 9 Staff workforce overflowed the 390px viewport").toBeLessThanOrEqual(1);
@@ -1589,7 +1589,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
 
     await page.reload();
     await go(page, "Assets & devices");
-    const card = page.locator(".asset-card").filter({ hasText: assetCode });
+    const card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await expect(card).toBeVisible();
     await expect(card).toContainText("GHS 24,000");
     await expect(card).toContainText(serial);
@@ -1614,7 +1614,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await go(page, "Me");
     await page.getByRole("button", { name: /My assets/ }).click();
     await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
-    const card = page.locator(".asset-card").filter({ hasText: assetCode });
+    const card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await expect(card).toBeVisible();
     await expect(card).toContainText("Staff Fixture");
     await expect(card.getByRole("button", { name: "Edit details", exact: true })).toHaveCount(0);
@@ -1629,7 +1629,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Assets & devices");
-    await expect(page.locator(".asset-card").filter({ hasText: assetCode })).toBeVisible();
+    await expect(page.locator(".tbl tbody tr").filter({ hasText: assetCode })).toBeVisible();
     await expect(page.getByRole("button", { name: "Add asset", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Edit details", exact: true })).toHaveCount(0);
     await context.close();
@@ -1645,7 +1645,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Assets & devices");
-    let card = page.locator(".asset-card").filter({ hasText: assetCode });
+    let card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
 
     await card.getByRole("button", { name: "Transfer", exact: true }).click();
     let dialog = page.getByRole("dialog");
@@ -1656,7 +1656,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await dialog.getByRole("button", { name: "Transfer custody", exact: true }).click();
     await expect(page.getByText("Asset custody transferred.", { exact: true })).toBeVisible();
 
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await card.getByRole("button", { name: "Return", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Asset return location").fill("Media store");
@@ -1665,7 +1665,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await dialog.getByRole("button", { name: "Record return", exact: true }).click();
     await expect(page.getByText("Asset returned.", { exact: true })).toBeVisible();
 
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await card.getByRole("button", { name: "Start repair", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Asset lifecycle note").fill("Battery inspection");
@@ -1673,7 +1673,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await dialog.getByRole("button", { name: "Record repair started", exact: true }).click();
     await expect(page.getByText("Repair Started recorded.", { exact: true })).toBeVisible();
 
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await card.getByRole("button", { name: "Warranty claim", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Asset lifecycle note").fill("Warranty reference AC-10");
@@ -1681,7 +1681,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await dialog.getByRole("button", { name: "Record warranty claimed", exact: true }).click();
     await expect(page.getByText("Warranty Claimed recorded.", { exact: true })).toBeVisible();
 
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await card.getByRole("button", { name: "Complete repair", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Asset lifecycle note").fill("Battery inspection completed");
@@ -1689,7 +1689,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
     await dialog.getByRole("button", { name: "Record repair completed", exact: true }).click();
     await expect(page.getByText("Repair Completed recorded.", { exact: true })).toBeVisible();
 
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await card.getByRole("button", { name: "Retire", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Asset lifecycle note").fill("Acceptance lifecycle complete");
@@ -1699,7 +1699,7 @@ test("Stage 10 Assets & devices preserves factual custody and lifecycle across r
 
     await page.reload();
     await go(page, "Assets & devices");
-    card = page.locator(".asset-card").filter({ hasText: assetCode });
+    card = page.locator(".tbl tbody tr").filter({ hasText: assetCode });
     await expect(card).toContainText("Retired");
     await expect(card).toContainText("GHS 24,000");
     await expect(card).toContainText(serial);
@@ -1762,7 +1762,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
 
     await page.reload();
     await go(page, "Compliance");
-    const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
+    const policyCard = page.locator(".tbl tbody tr").filter({ hasText: policyTitle });
     await expect(policyCard).toBeVisible();
     await expect(policyCard).toContainText("Entire organisation");
     await expect(policyCard).toContainText("Active");
@@ -1773,7 +1773,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     await go(page, "Compliance");
     await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
-    const policyCard = page.locator(".compliance-policy-card").filter({ hasText: policyTitle });
+    const policyCard = page.locator(".tbl tbody tr").filter({ hasText: policyTitle });
     await expect(policyCard).toBeVisible();
     await policyCard.getByRole("button", { name: "Acknowledge policy", exact: true }).click();
     await expect(page.getByText("Policy acknowledgement recorded.", { exact: true })).toBeVisible();
@@ -1800,7 +1800,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
 
     await page.reload();
     await go(page, "Compliance");
-    await expect(page.locator(".compliance-policy-card").filter({ hasText: policyTitle })).toContainText("Acknowledged");
+    await expect(page.locator(".tbl tbody tr").filter({ hasText: policyTitle })).toContainText("Acknowledged");
     await page.getByRole("tab", { name: "My evidence", exact: true }).click();
     await expect(page.locator(".compliance-self-item").filter({ hasText: requirementTitle })).toContainText(evidenceRef);
     await page.getByRole("tab", { name: "My exceptions", exact: true }).click();
@@ -1815,13 +1815,13 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    const evidenceRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    const evidenceRow = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(evidenceRow).toBeVisible();
     await expect(evidenceRow).toContainText(evidenceRef);
     await expect(evidenceRow.getByRole("button", { name: "Review evidence", exact: true })).toHaveCount(0);
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    const exceptionRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    const exceptionRow = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(exceptionRow).toBeVisible();
     await expect(exceptionRow.getByRole("button", { name: "Decide exception", exact: true })).toHaveCount(0);
     await context.close();
@@ -1831,18 +1831,18 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    let row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    let row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await row.getByRole("button", { name: "Review evidence", exact: true }).click();
     let dialog = page.getByRole("dialog");
     await dialog.getByLabel("Compliance evidence decision").selectOption("verified");
     await dialog.getByLabel("Compliance evidence reviewer note").fill("Acceptance evidence verified by Administration");
     await dialog.getByRole("button", { name: "Record evidence decision", exact: true }).click();
     await expect(page.getByText("Evidence review recorded.", { exact: true })).toBeVisible();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Verified");
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await row.getByRole("button", { name: "Decide exception", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Compliance exception decision", { exact: true }).selectOption("approved");
@@ -1851,7 +1851,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await dialog.getByRole("button", { name: "Record exception decision", exact: true }).click();
     await expect(page.getByText("Exception decision recorded.", { exact: true })).toBeVisible();
 
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Approved");
     await row.getByRole("button", { name: "Resolve exception", exact: true }).click();
     dialog = page.getByRole("dialog");
@@ -1862,12 +1862,12 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await page.reload();
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Verified");
     await expect(row.getByText(/Evidence history · 2/)).toBeVisible();
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Resolved");
     await expect(row.getByText(/Exception history · 3/)).toBeVisible();
     await page.screenshot({ path: "test-artifacts/stage11-compliance-admin.png", fullPage: true });
@@ -1903,7 +1903,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 
   await go(page, "Units");
   await expect(page.getByRole("heading", { name: "Units", exact: true })).toBeVisible();
-  const unitCard = page.locator(".admin-unit-card").filter({ hasText: "Test Unit A" });
+  const unitCard = page.locator(".tbl tbody tr").filter({ hasText: "Test Unit A" });
   await expect(unitCard).toBeVisible();
   await unitCard.click();
   const unitWorkspace = page.getByRole("navigation", { name: "Unit workspace" });
