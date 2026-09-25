@@ -278,3 +278,15 @@ Load order is authoritative:
 Role files must not become hidden global override layers. Cross-role selectors belong in `premium.css` or, while still transitional, `premium-parity.css`.
 
 The existing `!important` debt is transitional, not a design primitive. The current bundle budget is capped at 1,125 declarations; new work must not increase that count. Reduction should happen through scoped component migration and removal of obsolete competing rules, not broad find-and-replace deletion.
+
+
+### Transitional visual-debt ceilings
+
+As of the 25 September 2026 stabilization pass, the shipped CSS is capped at:
+- 1,125 `!important` declarations;
+- 746 unique hard-coded hex values;
+- 134 distinct shadow recipes;
+- 55 distinct radius recipes;
+- 36 distinct pixel font-size values.
+
+These are ceilings, not approved design-token counts. They exist to stop further entropy while the legacy layer is migrated into the design system. Any new component should use existing semantic tokens before introducing a new literal.
