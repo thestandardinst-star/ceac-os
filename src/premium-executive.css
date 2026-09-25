@@ -462,3 +462,145 @@ body{color:var(--ceac-text)}
   }
   .manager-command-head{padding-right:0!important}
 }
+
+/* Laptop density correction — 25 Sep 2026
+   The R7 visual-parity layer was designed against a wide reference canvas.
+   On ordinary laptop viewports it removed every content cap, reserved a
+   fixed 322px rail and still forced three dashboard columns. That made the
+   product look physically smaller as the window widened. Keep the approved
+   visual language, but restore deliberate desktop proportions. */
+@media(min-width:981px){
+  .app-content>.body,
+  .staff-app .app-content>.body,
+  .manager-app .app-content>.body,
+  .office-app .app-content>.body,
+  .executive-app .app-content>.body{
+    width:100%!important;
+    max-width:1280px!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    padding-left:18px!important;
+    padding-right:18px!important;
+  }
+}
+
+/* Ordinary laptop composition: keep desktop navigation, remove the
+   fixed side rail from the content calculation and favour readable blocks. */
+@media(min-width:981px) and (max-width:1399px){
+  .staff-command-surface,
+  .manager-command-surface,
+  .admin-command-surface,
+  .executive-command-surface{
+    margin-right:0!important;
+  }
+
+  .reference-rail{
+    position:relative!important;
+    top:auto!important;
+    right:auto!important;
+    width:auto!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+    margin:12px 0 0!important;
+  }
+
+  .reference-focus-row{
+    margin-right:0!important;
+    grid-template-columns:minmax(0,1.45fr) minmax(240px,.75fr)!important;
+    gap:12px!important;
+  }
+
+  .staff-app .staff-home-dashboard,
+  .manager-app .home-dashboard{
+    margin-right:0!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+  }
+
+  .staff-app .staff-home-dashboard>.home-panel-priority{grid-column:1!important;grid-row:auto!important}
+  .staff-app .staff-home-dashboard>.home-panel-waiting{grid-column:2!important;grid-row:auto!important}
+  .staff-app .staff-home-dashboard>.home-panel-coming{grid-column:1!important;grid-row:auto!important}
+  .staff-app .staff-home-dashboard>.home-panel-movement{grid-column:1/-1!important;grid-row:auto!important}
+  .staff-app .staff-home-dashboard>.home-panel-week{grid-column:1/-1!important;grid-row:auto!important}
+
+  .manager-app .home-panel-priority{grid-column:1!important}
+  .manager-app .home-panel-projects{grid-column:2!important}
+  .manager-app .home-panel-waiting{grid-column:1!important}
+  .manager-app .home-panel-pulse{grid-column:2!important}
+  .manager-app .home-panel-week{grid-column:1/-1!important}
+
+  .staff-app .reference-module-strip,
+  .manager-app .reference-module-strip,
+  .office-app .reference-module-strip,
+  .executive-app .reference-module-strip{
+    margin-right:0!important;
+  }
+  .reference-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+
+  .office-app .admin-pulse-grid,
+  .office-app .admin-home-section,
+  .office-app .admin-home-grid{
+    margin-right:0!important;
+  }
+  .office-app .admin-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .office-app .admin-home-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  .executive-app .executive-intelligence-grid,
+  .executive-app .executive-change-card,
+  .executive-app .executive-home>.sec,
+  .executive-app .executive-home>.metric-grid,
+  .executive-app .executive-home>.row,
+  .executive-app .executive-home>.screen-note{
+    margin-right:0!important;
+  }
+  .executive-app .executive-intelligence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  .manager-command-action{
+    position:relative!important;
+    right:auto!important;
+    top:auto!important;
+    margin-top:12px!important;
+  }
+  .manager-command-head{padding-right:0!important}
+
+  /* Restore a normal laptop reading size without changing the visual system. */
+  .row-t{font-size:13px!important}
+  .row-m,.row-note{font-size:11px!important}
+  .home-stat span{font-size:10.5px!important}
+  .reference-focus-label{font-size:9px!important}
+  .reference-focus-main p{font-size:11px!important}
+  .reference-focus-main small{font-size:9.5px!important}
+  .reference-focus-actions button{font-size:11px!important}
+  .reference-focus-actions>span{font-size:10px!important}
+  .reference-calendar-head span,.reference-card-head small{font-size:9.5px!important}
+  .reference-calendar-week small{font-size:8.5px!important}
+  .reference-calendar-grid span{font-size:9.5px!important}
+  .reference-schedule-row strong{font-size:11px!important}
+  .reference-schedule-row small{font-size:9.5px!important}
+  .reference-empty{font-size:10.5px!important}
+  .reference-strip-head small{font-size:10px!important}
+  .premium-profile-button strong{font-size:11.5px!important}
+  .premium-profile-button small{font-size:9.5px!important}
+}
+
+/* Narrow desktop / small laptop: one strong reading column is better than
+   two compressed columns beside a persistent desktop sidebar. */
+@media(min-width:981px) and (max-width:1120px){
+  .staff-app .staff-home-dashboard,
+  .manager-app .home-dashboard,
+  .office-app .admin-home-grid,
+  .executive-app .executive-intelligence-grid{
+    grid-template-columns:1fr!important;
+  }
+  .staff-app .staff-home-dashboard>.home-panel,
+  .manager-app .home-dashboard>.home-panel,
+  .office-app .admin-home-grid>.admin-home-section{
+    grid-column:1!important;
+  }
+  .reference-rail,
+  .reference-focus-row{
+    grid-template-columns:1fr!important;
+  }
+  .reference-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
