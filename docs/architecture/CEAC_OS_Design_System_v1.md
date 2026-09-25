@@ -259,3 +259,22 @@ Desktop is allowed a different composition from mobile.
 - tap targets generally >= 44px for primary phone interactions;
 - no meaning conveyed by colour alone;
 - headings preserve a logical information hierarchy.
+
+
+## 11. CSS layer contract
+
+The current product is still migrating away from the original paper-style component layer. The cascade must therefore remain explicit until that migration is complete.
+
+Load order is authoritative:
+
+1. `styles.css` — legacy/base component language and historical screen styles.
+2. `premium.css` — premium shell, shared tokens and cross-role shell behaviour.
+3. `premium-staff.css` — Staff-only role treatment.
+4. `premium-manager.css` — Manager-only role treatment.
+5. `premium-admin.css` — Administration-only role treatment.
+6. `premium-executive.css` — Executive-only role treatment.
+7. `premium-parity.css` — temporary last-loaded cross-role parity overrides required while legacy screens remain.
+
+Role files must not become hidden global override layers. Cross-role selectors belong in `premium.css` or, while still transitional, `premium-parity.css`.
+
+The existing `!important` debt is transitional, not a design primitive. The current bundle budget is capped at 1,129 declarations; new work must not increase that count. Reduction should happen through scoped component migration and removal of obsolete competing rules, not broad find-and-replace deletion.
