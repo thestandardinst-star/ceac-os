@@ -39,7 +39,7 @@
   background:#fff!important;color:#17324e!important;box-shadow:0 3px 10px rgba(31,52,80,.08)!important;
 }
 .premium-count-badge{
-  padding:7px 10px;border-radius:999px;background:#eef4ff;color:#0c5df9;
+  padding:7px 10px;border-radius:999px;background:#eef4ff;color:var(--ceac-action-blue);
   font-size:12px;font-weight:750;white-space:nowrap;
 }
 
@@ -105,7 +105,7 @@
   color:#748297!important;background:transparent!important;
 }
 .staff-app .status-filter button.on{
-  background:#eef4ff!important;border-color:#dce8ff!important;color:#0c5df9!important;
+  background:#eef4ff!important;border-color:#dce8ff!important;color:var(--ceac-action-blue)!important;
 }
 .staff-app .work-group{margin-top:18px!important}
 .staff-app .work-group-head{
@@ -137,7 +137,7 @@
 .team-primary-tabs button{
   border:0;background:transparent;color:#66778c;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;
 }
-.team-primary-tabs button:hover{background:#fff;color:#0c5df9;box-shadow:0 3px 9px rgba(31,51,78,.07)}
+.team-primary-tabs button:hover{background:#fff;color:var(--ceac-action-blue);box-shadow:0 3px 9px rgba(31,51,78,.07)}
 .staff-app .team-room-entry{
   margin-top:8px!important;min-height:78px!important;border-radius:15px!important;padding:15px 17px!important;
   border:1px solid #dbe6f5!important;
@@ -235,7 +235,7 @@
 .premium-list-row strong{display:block;color:#24384e;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .premium-list-row small{display:block;color:#8490a0;font-size:12px;margin-top:3px}
 .premium-dot{width:7px;height:7px;border-radius:50%;background:#9ba7b4;margin-top:4px}
-.premium-dot.work{background:#0cb167}.premium-dot.meeting{background:#0c5df9}.premium-dot.ministry{background:#9565f5}.premium-dot.leave{background:#fcaf2e}
+.premium-dot.work{background:#0cb167}.premium-dot.meeting{background:var(--ceac-action-blue)}.premium-dot.ministry{background:#9565f5}.premium-dot.leave{background:#fcaf2e}
 .premium-empty{padding:18px;border:1px dashed #dfe5eb;border-radius:11px;color:#8491a3;font-size:12px;background:#fafbfd}
 
 /* Inbox */
@@ -250,7 +250,7 @@
 .inbox-icon{
   width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef3f8;color:#63778e;font-size:12px;font-weight:800;
 }
-.inbox-icon.mention{background:#eaf2ff;color:#0c5df9}.inbox-icon.announcement{background:#f1edff;color:#7753c7}
+.inbox-icon.mention{background:#eaf2ff;color:var(--ceac-action-blue)}.inbox-icon.announcement{background:#f1edff;color:#7753c7}
 .inbox-copy{min-width:0}
 .inbox-meta{display:flex;justify-content:space-between;gap:10px;align-items:center}
 .inbox-meta strong{font-size:12px;color:#697b8f;text-transform:uppercase;letter-spacing:.06em}
