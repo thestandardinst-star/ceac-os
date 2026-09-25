@@ -7,6 +7,7 @@ const premiumCssFiles = [
   "src/premium-manager.css",
   "src/premium-admin.css",
   "src/premium-executive.css",
+  "src/premium-parity.css",
 ];
 
 test("premium CSS preserves the 12px operational text floor", async () => {
@@ -19,6 +20,20 @@ test("premium CSS preserves the 12px operational text floor", async () => {
     }
   }
   expect(violations).toEqual([]);
+});
+
+test("role CSS remains isolated and the important-debt budget does not grow", async () => {
+  const executive = fs.readFileSync("src/premium-executive.css", "utf8");
+  for (const leakedSelector of [".staff-app", ".manager-app", ".office-app", ".premium-side", ".reference-"]) {
+    expect(executive.includes(leakedSelector)).toBeFalsy();
+  }
+
+  const allCss = [
+    "src/styles.css",
+    ...premiumCssFiles,
+  ].map((path) => fs.readFileSync(path, "utf8")).join("\n");
+  const importantCount = (allCss.match(/!important\b/g) || []).length;
+  expect(importantCount).toBeLessThanOrEqual(1129);
 });
 
 test("Instrument Sans is the premium body family and PWA icons are shipped", async ({ page }) => {
