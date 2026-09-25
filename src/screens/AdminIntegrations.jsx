@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 export default function AdminIntegrations({ me }) {
   const [connectors,setConnectors]=useState([]);
@@ -86,19 +87,34 @@ export default function AdminIntegrations({ me }) {
     <div className="split" style={{marginTop:18}}>
       <div className="main-col">
         <div className="sec"><span>Connectors</span><span>{connectors.length}</span></div>
-        {connectors.map(connector=><div className="row" key={connector.id}>
-          <div className="row-t">{connector.display_name}</div>
-          <div className="row-m">{connector.connector_type} · {connector.enabled?"Enabled":"Disabled"} · {connector.connector_key}</div>
-          <button className="btn btn-ghost btn-sm" style={{marginTop:8}} disabled={busy} onClick={()=>toggleConnector(connector)}>{connector.enabled?"Disable":"Enable"}</button>
-        </div>)}
-        {!connectors.length&&<EmptyState title="No connectors">Create a non-secret connector record to begin.</EmptyState>}
+        <Table
+          rows={connectors}
+          empty="Create a non-secret connector record to begin."
+          caption="Connector register"
+          exportName="ceac-integration-connectors"
+          columns={[
+            { key:"display_name", label:"Connector" },
+            { key:"connector_type", label:"Type" },
+            { key:"connector_key", label:"Key" },
+            { key:"enabled", label:"State", render:(connector)=>connector.enabled?"Enabled":"Disabled", sortValue:(connector)=>connector.enabled?1:0, csv:(connector)=>connector.enabled?"Enabled":"Disabled" },
+            { key:"actions", label:"Action", render:(connector)=><button className="btn btn-ghost btn-sm" disabled={busy} onClick={()=>toggleConnector(connector)}>{connector.enabled?"Disable":"Enable"}</button>, csv:()=>"" },
+          ]}
+        />
 
         <div className="sec"><span>Delivery queue</span><span>{outbox.length}</span></div>
-        {outbox.slice(0,30).map(item=><div className="row" key={item.id}>
-          <div className="row-t">{connectorsById[item.connector_id]?.display_name||"Connector"} · {item.state}</div>
-          <div className="row-m">Attempts {item.attempt_count} · queued {new Date(item.queued_at).toLocaleString("en-GB",{timeZone:"Africa/Accra"})}</div>
-          {item.last_error_message&&<div className="small" style={{marginTop:6}}>{item.last_error_category||"Error"}: {item.last_error_message}</div>}
-        </div>)}
+        <Table
+          rows={outbox.slice(0,30)}
+          empty="No integration delivery is waiting."
+          exportName="ceac-integration-delivery"
+          columns={[
+            { key:"connector", label:"Connector", render:(item)=>connectorsById[item.connector_id]?.display_name||"Connector", sortValue:(item)=>connectorsById[item.connector_id]?.display_name||"" },
+            { key:"state", label:"State" },
+            { key:"attempt_count", label:"Attempts", align:"right" },
+            { key:"queued_at", label:"Queued", render:(item)=>new Date(item.queued_at).toLocaleString("en-GB",{timeZone:"Africa/Accra"}), sortValue:(item)=>new Date(item.queued_at||0).getTime() },
+            { key:"delivered_at", label:"Delivered", render:(item)=>item.delivered_at?new Date(item.delivered_at).toLocaleString("en-GB",{timeZone:"Africa/Accra"}):"—", sortValue:(item)=>new Date(item.delivered_at||0).getTime() },
+            { key:"last_error_message", label:"Last error", render:(item)=>item.last_error_message ? `${item.last_error_category||"Error"}: ${item.last_error_message}` : "—" },
+          ]}
+        />
       </div>
 
       <div className="side-col">
@@ -130,10 +146,16 @@ export default function AdminIntegrations({ me }) {
         </div>
 
         <div className="sec"><span>Subscriptions</span><span>{subscriptions.length}</span></div>
-        {subscriptions.map(s=><div className="row" key={s.id}>
-          <div className="row-t">{connectorsById[s.connector_id]?.display_name||"Connector"}</div>
-          <div className="row-m">{s.event_type} · {s.active?"Active":"Inactive"}</div>
-        </div>)}
+        <Table
+          rows={subscriptions}
+          empty="No event subscriptions are recorded."
+          exportName="ceac-integration-subscriptions"
+          columns={[
+            { key:"connector", label:"Connector", render:(s)=>connectorsById[s.connector_id]?.display_name||"Connector", sortValue:(s)=>connectorsById[s.connector_id]?.display_name||"" },
+            { key:"event_type", label:"Event" },
+            { key:"active", label:"State", render:(s)=>s.active?"Active":"Inactive", sortValue:(s)=>s.active?1:0, csv:(s)=>s.active?"Active":"Inactive" },
+          ]}
+        />
       </div>
     </div>
   </div>;
