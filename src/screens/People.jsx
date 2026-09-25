@@ -3,7 +3,6 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { Table } from "../components/primitives";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
 const EMPLOYMENT_CHANGES = [
@@ -450,22 +449,23 @@ export default function People({ me, openItem }) {
       }}>{label}</button>)}
     </div>
     <div className="sec"><span>{shown.length} {shown.length === 1 ? "person" : "people"}</span><span>{groups.length} {groups.length === 1 ? "unit" : "units"}</span></div>
-    <Table
-      rows={shown}
-      empty="Nobody matches this filter."
-      caption="Employee register"
-      exportName="ceac-people"
-      onRowClick={(row) => !detailLoading && openPerson(row)}
-      rowAriaLabel={(row) => `Open employee record for ${row.full_name}`}
-      columns={[
-        { key:"full_name", label:"Person", render:(p)=><button type="button" className="text-action ledger-person-open" disabled={detailLoading} onClick={()=>openPerson(p)}><span style={{display:"inline-flex",alignItems:"center",gap:9}}><Avatar name={p.full_name} size="sm"/><strong>{p.full_name}</strong></span></button>, csv:(p)=>p.full_name },
-        { key:"rank", label:"Role", render:(p)=>rankLabel(p)+(p.job_title ? " · "+p.job_title : ""), sortValue:(p)=>rank(p) },
-        { key:"unit_name", label:"Unit", render:(p)=>p.unit_name || "No unit assigned" },
-        { key:"state", label:"State", render:(p)=><span className={"pill "+(p.on_leave_now?"p-amber":p.active?"p-green":"p-grey")}>{p.on_leave_now?"On leave":p.active?"Active":"Inactive"}</span>, sortValue:(p)=>p.on_leave_now?"on leave":p.active?"active":"inactive", csv:(p)=>p.on_leave_now?"On leave":p.active?"Active":"Inactive" },
-        { key:"open_count", label:"Open", align:"right", sortValue:(p)=>Number(p.open_count)||0, render:(p)=>Number(p.open_count)||0 },
-        { key:"done_count", label:"Finished", align:"right", sortValue:(p)=>Number(p.done_count)||0, render:(p)=>Number(p.done_count)||0 },
-        { key:"context", label:"Context", render:(p)=>p.quiet?"No submission recorded in 14 days":"Recorded work activity", csv:(p)=>p.quiet?"No submission recorded in 14 days":"Recorded work activity" },
-      ]}
-    />
+    {groups.map((group) => <div key={group.name}>
+      <div className="sec" style={{ marginBottom: 6 }}><span style={{ color: "var(--ink)" }}>{group.name}</span><span>{group.people.length}</span></div>
+      {group.people.map((p) => <button key={p.id} className="people-directory-row" disabled={detailLoading} onClick={() => openPerson(p)}>
+        <Avatar name={p.full_name} size="md" />
+        <div className="people-directory-main">
+          <div className="people-directory-name"><strong>{p.full_name}</strong>{p.on_leave_now && <span className="pill p-amber">On leave</span>}{!p.active && <span className="pill p-grey">Inactive</span>}</div>
+          <span>{rankLabel(p)}{p.job_title ? " · " + p.job_title : ""}</span>
+          <small>{p.unit_name || "No unit assigned"}</small>
+        </div>
+        <div className="people-directory-context">
+          {p.quiet
+            ? <><strong>Review context</strong><span>No submission recorded in 14 days</span></>
+            : <><strong>{p.open_count || 0} open</strong><span>{p.done_count || 0} finished on record</span></>}
+        </div>
+        <b className="people-directory-arrow" aria-hidden="true">→</b>
+      </button>)}
+    </div>)}
+    {shown.length === 0 && <EmptyState title="Nobody matches">Try a different filter or search term.</EmptyState>}
   </div>;
 }

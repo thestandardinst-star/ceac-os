@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { Table } from "../components/primitives";
 
 function human(value=""){
   return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase());
@@ -231,23 +230,24 @@ export default function Assets({ me }) {
 
     {tab==="inventory"&&<>
       <div className="sec"><span>{canManage?"Visible inventory":"Assets in your custody"}</span>{canManage&&<button className="btn btn-sm" onClick={openCreate}>Add asset</button>}</div>
-      <Table
-        rows={assets}
-        empty={canManage?"No assets recorded yet.":"No assets are currently assigned to you."}
-        caption="Asset inventory"
-        exportName="ceac-assets"
-        columns={[
-          { key:"asset_code",label:"Asset",render:(asset)=><span><strong>{asset.asset_code}</strong><small style={{display:"block",marginTop:2,color:"var(--ceac-ink-400)"}}>{asset.manufacturer||asset.category}{asset.model?" · "+asset.model:""}</small></span>,csv:(asset)=>asset.asset_code },
-          { key:"current_status",label:"Status",render:(asset)=><Pill tone={statusTone(asset.current_status)}>{human(asset.current_status)}</Pill>,sortValue:(asset)=>asset.current_status,csv:(asset)=>human(asset.current_status) },
-          { key:"category",label:"Category" },
-          { key:"serial_number",label:"Serial",render:(asset)=>asset.serial_number||"Not recorded" },
-          { key:"custodian",label:"Custodian",render:(asset)=>asset.assignee?.full_name||"Not assigned to a person",sortValue:(asset)=>asset.assignee?.full_name||"" },
-          { key:"unit",label:"Unit",render:(asset)=>asset.unit?.name||"Not recorded",sortValue:(asset)=>asset.unit?.name||"" },
-          { key:"current_location",label:"Location",render:(asset)=>asset.current_location||"Not recorded" },
-          { key:"current_condition_note",label:"Condition",render:(asset)=>asset.current_condition_note||"Not recorded" },
-          { key:"purchase_cost",label:"Purchase",align:"right",render:(asset)=>money(asset.purchase_cost,asset.purchase_currency),sortValue:(asset)=>Number(asset.purchase_cost)||0,csv:(asset)=>asset.purchase_cost??"" },
-          { key:"warranty_expires_on",label:"Warranty to",render:(asset)=>day(asset.warranty_expires_on) },
-          ...(canManage ? [{ key:"actions",label:"Actions",render:(asset)=><div className="asset-actions" style={{margin:0}}>
+      <div className="asset-grid">
+        {assets.map((asset)=><article className="card asset-card" key={asset.id}>
+          <div className="asset-card-head">
+            <div><span className="eyebrow">{asset.asset_code}</span><h3>{asset.manufacturer||asset.category}{asset.model?" · "+asset.model:""}</h3></div>
+            <Pill tone={statusTone(asset.current_status)}>{human(asset.current_status)}</Pill>
+          </div>
+          <div className="asset-facts">
+            <span>Category <b>{asset.category}</b></span>
+            <span>Serial <b>{asset.serial_number||"Not recorded"}</b></span>
+            <span>Custodian <b>{asset.assignee?.full_name||"Not assigned to a person"}</b></span>
+            <span>Unit <b>{asset.unit?.name||"Not recorded"}</b></span>
+            <span>Location <b>{asset.current_location||"Not recorded"}</b></span>
+            <span>Condition <b>{asset.current_condition_note||"Not recorded"}</b></span>
+            <span>Purchase <b>{money(asset.purchase_cost,asset.purchase_currency)}</b></span>
+            <span>Purchased on <b>{day(asset.purchase_date)}</b></span>
+            <span>Warranty to <b>{day(asset.warranty_expires_on)}</b></span>
+          </div>
+          {canManage&&<div className="asset-actions">
             <button className="btn btn-ghost btn-sm" onClick={()=>openEdit(asset)}>Edit details</button>
             {asset.current_status!=="repair"&&asset.current_status!=="retired"&&<button className="btn btn-ghost btn-sm" onClick={()=>openAssign(asset)}>{asset.current_status==="assigned"?"Transfer":"Assign"}</button>}
             {asset.current_status==="assigned"&&<button className="btn btn-ghost btn-sm" onClick={()=>openReturn(asset)}>Return</button>}
@@ -255,59 +255,48 @@ export default function Assets({ me }) {
             {asset.current_status==="repair"&&<button className="btn btn-ghost btn-sm" onClick={()=>openLifecycle(asset,"repair_completed")}>Complete repair</button>}
             {asset.current_status!=="retired"&&<button className="btn btn-ghost btn-sm" onClick={()=>openLifecycle(asset,"warranty_claimed")}>Warranty claim</button>}
             {asset.current_status!=="assigned"&&asset.current_status!=="retired"&&<button className="btn btn-ghost btn-sm" onClick={()=>openLifecycle(asset,"retired")}>Retire</button>}
-          </div>,csv:()=>"" }] : []),
-        ]}
-      />
+          </div>}
+        </article>)}
+      </div>
+      {!assets.length&&<EmptyState title={canManage?"No assets recorded yet":"No assets are currently assigned to you"}>{canManage?"Add the first CEAC asset/device to begin the register.":"Your assigned CEAC equipment will appear here when custody is recorded."}</EmptyState>}
     </>}
 
     {tab==="assigned"&&<>
       <div className="sec"><span>Current assignments</span><span>{assigned.length}</span></div>
-      <Table rows={assigned} empty="No current assignments."
-        exportName="ceac-asset-assignments-current"
-        columns={[
-          {key:"asset_code",label:"Asset",render:(asset)=>asset.asset_code+" · "+asset.category},
-          {key:"custodian",label:"Custodian",render:(asset)=>asset.assignee?.full_name||"Unit custody",sortValue:(asset)=>asset.assignee?.full_name||""},
-          {key:"unit",label:"Unit",render:(asset)=>asset.unit?.name||"Unit not recorded",sortValue:(asset)=>asset.unit?.name||""},
-          {key:"current_location",label:"Location",render:(asset)=>asset.current_location||"Location not recorded"},
-        ]}/>
+      {assigned.map((asset)=><div className="row" key={asset.id}>
+        <div className="row-t">{asset.asset_code} · {asset.category}</div>
+        <div className="row-m">{asset.assignee?.full_name||"Unit custody"} · {asset.unit?.name||"Unit not recorded"} · {asset.current_location||"Location not recorded"}</div>
+      </div>)}
+      {!assigned.length&&<EmptyState compact title="No current assignments">No visible asset is currently in assigned status.</EmptyState>}
     </>}
 
     {tab==="service"&&<>
       <div className="sec"><span>Service & retired assets</span><span>{service.length}</span></div>
-      <Table rows={service} empty="No assets are in service or retired status."
-        exportName="ceac-assets-service"
-        columns={[
-          {key:"asset_code",label:"Asset",render:(asset)=>asset.asset_code+" · "+(asset.manufacturer||asset.category)+(asset.model?" "+asset.model:"")},
-          {key:"current_status",label:"Status",render:(asset)=><Pill tone={statusTone(asset.current_status)}>{human(asset.current_status)}</Pill>,csv:(asset)=>human(asset.current_status)},
-          {key:"current_condition_note",label:"Condition",render:(asset)=>asset.current_condition_note||"Condition not recorded"},
-        ]}/>
-      <div className="sec"><span>Lifecycle history</span><span>{lifecycle.length}</span></div>
-      <Table rows={lifecycle} empty="No lifecycle events recorded."
-        exportName="ceac-asset-lifecycle"
-        columns={[
-          {key:"occurred_at",label:"When",render:(event)=>new Date(event.occurred_at).toLocaleString("en-GB"),sortValue:(event)=>new Date(event.occurred_at).getTime()},
-          {key:"action",label:"Action",render:(event)=>human(event.action)},
-          {key:"from_status",label:"From",render:(event)=>human(event.from_status)},
-          {key:"to_status",label:"To",render:(event)=>human(event.to_status)},
-          {key:"actor",label:"Recorded by",render:(event)=>event.actor?.full_name||"System",sortValue:(event)=>event.actor?.full_name||""},
-          {key:"note",label:"Note",render:(event)=>event.note||"—"},
-          {key:"reason",label:"Reason"},
-        ]}/>
+      {service.map((asset)=><div className="row" key={asset.id}>
+        <div className="row-t">{asset.asset_code} · {asset.manufacturer||asset.category}{asset.model?" "+asset.model:""}</div>
+        <div className="row-m">{human(asset.current_status)} · {asset.current_condition_note||"Condition not recorded"}</div>
+      </div>)}
+      <div className="sec"><span>Lifecycle history</span></div>
+      {lifecycle.map((event)=><div className="row" key={event.id}>
+        <div className="row-t">{human(event.action)}</div>
+        <div className="row-m">{new Date(event.occurred_at).toLocaleString("en-GB")} · {human(event.from_status)} → {human(event.to_status)}{event.actor?.full_name?" · "+event.actor.full_name:""}</div>
+        {event.note&&<div className="row-note">{event.note}</div>}
+        <div className="row-note">{event.reason}</div>
+      </div>)}
+      {!lifecycle.length&&<EmptyState compact title="No lifecycle events recorded">Repairs, warranty claims and retirement events will appear here.</EmptyState>}
     </>}
 
     {tab==="history"&&<>
-      <div className="sec"><span>Custody history</span><span>{assignments.length}</span></div>
-      <Table rows={assignments} empty="No custody history in your scope."
-        exportName="ceac-asset-custody-history"
-        columns={[
-          {key:"occurred_at",label:"When",render:(event)=>new Date(event.occurred_at).toLocaleString("en-GB"),sortValue:(event)=>new Date(event.occurred_at).getTime()},
-          {key:"action",label:"Action",render:(event)=>human(event.action)},
-          {key:"from",label:"From",render:(event)=>event.from_profile?.full_name||event.from_unit?.name||event.from_location||"Available",sortValue:(event)=>event.from_profile?.full_name||event.from_unit?.name||event.from_location||"Available"},
-          {key:"to",label:"To",render:(event)=>event.to_profile?.full_name||event.to_unit?.name||event.to_location||"Available",sortValue:(event)=>event.to_profile?.full_name||event.to_unit?.name||event.to_location||"Available"},
-          {key:"expected_return_on",label:"Expected return",render:(event)=>event.expected_return_on?day(event.expected_return_on):"—"},
-          {key:"condition_note",label:"Condition",render:(event)=>event.condition_note||"—"},
-          {key:"reason",label:"Reason"},
-        ]}/>
+      <div className="sec"><span>Custody history</span></div>
+      {assignments.map((event)=><div className="row asset-history-row" key={event.id}>
+        <div className="row-t">{human(event.action)}</div>
+        <div className="row-m">{new Date(event.occurred_at).toLocaleString("en-GB")}</div>
+        <div className="row-note">{event.from_profile?.full_name||event.from_unit?.name||event.from_location||"Available"} → {event.to_profile?.full_name||event.to_unit?.name||event.to_location||"Available"}</div>
+        {event.expected_return_on&&<div className="row-note">Expected return: {day(event.expected_return_on)}</div>}
+        {event.condition_note&&<div className="row-note">Condition: {event.condition_note}</div>}
+        <div className="row-note">{event.reason}</div>
+      </div>)}
+      {!assignments.length&&<EmptyState compact title="No custody history in your scope">Assignments, transfers and returns will appear here.</EmptyState>}
     </>}
 
     {assetSheet&&<Sheet onClose={()=>!busy&&setAssetSheet(false)}>
