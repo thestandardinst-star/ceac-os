@@ -165,9 +165,10 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       ? meeting.units?.name || "Unit meeting"
       : "Organisation meeting";
 
-  return <div className="body meeting-screen">
+  return <div className="body meeting-screen ceac-record">
     <button className="back meeting-back" onClick={back}>← Back</button>
 
+    <div className="meeting-record-header">
     <header className="meeting-hero">
       <div className="eyebrow">{context}</div>
       <h1>{meeting.title}</h1>
@@ -186,9 +187,12 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
         Open meeting discussion
       </button>}
     </header>
+    </div>
 
     {error && <div className="flag flag-brick"><h4>Could not complete that</h4>{error}</div>}
 
+    <div className="ceac-record-layout">
+      <main className="ceac-record-main">
     <section className="meeting-panel">
       <div className="meeting-section-head"><div><span>Before</span><h2>Agenda</h2></div><small>{meetingStarted ? "Meeting started" : "Preparation"}</small></div>
       {!meetingStarted && canManage
@@ -259,11 +263,32 @@ export default function Meeting({ me, meetingId, back, goAssign, openItem, openP
       </div>}
     </section>
 
-    {meeting.project_id && openProject && <button className="meeting-project-link" onClick={() => openProject(meeting.project_id)}>Open project →</button>}
-
-    <div className="meeting-provider-note">
-      <strong>Meeting provider boundary</strong>
-      <span>CEAC stores the operational record. Video transport remains with {providerLabel(meeting)}. A pasted link is not presented as a CEAC-created provider integration.</span>
+      </main>
+      <aside className="ceac-record-rail" aria-label="Meeting context">
+        <section className="ceac-record-panel">
+          <strong className="ceac-record-panel-title">Meeting context</strong>
+          <dl className="ceac-record-facts" style={{ marginTop: 10 }}>
+            <div className="ceac-record-fact"><dt>Scope</dt><dd>{context}</dd></div>
+            <div className="ceac-record-fact"><dt>Provider</dt><dd>{providerLabel(meeting)}</dd></div>
+            <div className="ceac-record-fact"><dt>Participants</dt><dd>{participants.length || "—"}</dd></div>
+            {meeting.location && <div className="ceac-record-fact"><dt>Location</dt><dd>{meeting.location}</dd></div>}
+          </dl>
+        </section>
+        {participants.length > 0 && <section className="ceac-record-panel">
+          <strong className="ceac-record-panel-title">People</strong>
+          <div className="room-member-list">
+            {participants.slice(0, 8).map((participant) => <div className="room-member" key={participant.profile_id}>
+              <span className="room-member-avatar">{(participant.profiles?.full_name || "C").charAt(0)}</span>
+              <strong>{participant.profiles?.full_name || "CEAC member"}</strong>
+            </div>)}
+          </div>
+        </section>}
+        {meeting.project_id && openProject && <button className="meeting-project-link" onClick={() => openProject(meeting.project_id)}>Open project →</button>}
+        <div className="meeting-provider-note">
+          <strong>Meeting provider boundary</strong>
+          <span>CEAC stores the operational record. Video transport remains with {providerLabel(meeting)}. A pasted link is not presented as a CEAC-created provider integration.</span>
+        </div>
+      </aside>
     </div>
   </div>;
 }
