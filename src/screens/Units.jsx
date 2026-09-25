@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader, Sheet, FieldGroup, StatusDistribution, ProgressMeter, Avatar } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 function money(minor, currency = "GHS") {
   const value = Number(minor || 0) / 100;
@@ -332,34 +333,23 @@ export default function Units({ me, openItem }) {
       <button className="btn btn-sm" onClick={() => openUnitSetup(null)}>Add unit</button>
     </div>
     {error && <ProductNotice tone="error" title="Units need attention" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
-    <div className="admin-unit-list">
-      {units.map((unit) => {
-        const objectiveAttention = unit.objectives.filter((row) => ["at_risk","not_met"].includes(row.status)).length;
-        const reportState = unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period";
-        return <button key={unit.id} className="admin-unit-card" onClick={() => setOpenUnitId(unit.id)}>
-          <div className="admin-unit-card-head">
-            <div><strong>{unit.name}</strong><span>{unit.head ? unit.head.profiles?.full_name : "No Unit Head"}</span></div>
-            {unit.people.length === 1 && <span className="pill p-grey">Unit of one</span>}
-          </div>
-          <div className="admin-unit-card-status">
-            <span><b>{unit.people.length}</b><small>people</small></span>
-            <span><b>{unit.activeProjects.length}</b><small>active projects</small></span>
-            <span><b>{unit.openWork.length}</b><small>open work</small></span>
-            <span><b>{objectiveAttention}</b><small>objectives needing attention</small></span>
-          </div>
-          {unit.objectives.length > 0 && <StatusDistribution label={unit.name + " objective status"} segments={[
-            { key:"track", label:"On track / met", value:unit.objectivesOnTrack.length, tone:"success" },
-            { key:"attention", label:"Attention", value:objectiveAttention, tone:"attention" },
-            { key:"other", label:"Other", value:Math.max(0,unit.objectives.length-unit.objectivesOnTrack.length-objectiveAttention), tone:"neutral" },
-          ]} />}
-          <div className="admin-unit-card-foot">
-            <span>{reportState}</span>
-            <b aria-hidden="true">→</b>
-          </div>
-        </button>;
-      })}
-    </div>
-    {units.length === 0 && <EmptyState title="No active units">Create an organisation unit before assigning people or work.</EmptyState>}
+    <div className="sec"><span>Active units</span><span>{units.length}</span></div>
+    <Table
+      rows={units}
+      empty="No active units are recorded."
+      caption="Organisation unit register"
+      exportName="ceac-units"
+      onRowClick={(unit) => setOpenUnitId(unit.id)}
+      rowAriaLabel={(unit) => `Open unit workspace for ${unit.name}`}
+      columns={[
+        { key:"name", label:"Unit", render:(unit)=><span><strong>{unit.name}</strong><small style={{display:"block",marginTop:2,color:"var(--ceac-ink-400)"}}>{unit.head ? unit.head.profiles?.full_name : "No Unit Head"}{unit.people.length===1?" · unit of one":""}</small></span>, csv:(unit)=>unit.name },
+        { key:"people", label:"People", align:"right", sortValue:(unit)=>unit.people.length, render:(unit)=>unit.people.length, csv:(unit)=>unit.people.length },
+        { key:"projects", label:"Active projects", align:"right", sortValue:(unit)=>unit.activeProjects.length, render:(unit)=>unit.activeProjects.length, csv:(unit)=>unit.activeProjects.length },
+        { key:"work", label:"Open work", align:"right", sortValue:(unit)=>unit.openWork.length, render:(unit)=>unit.openWork.length, csv:(unit)=>unit.openWork.length },
+        { key:"objectives", label:"Objectives needing attention", align:"right", sortValue:(unit)=>unit.objectives.filter((row)=>["at_risk","not_met"].includes(row.status)).length, render:(unit)=>unit.objectives.filter((row)=>["at_risk","not_met"].includes(row.status)).length, csv:(unit)=>unit.objectives.filter((row)=>["at_risk","not_met"].includes(row.status)).length },
+        { key:"report", label:"Reporting", render:(unit)=>unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period", csv:(unit)=>unit.currentPeriod ? (["submitted","confirmed"].includes(unit.report?.status) ? "Report in" : unit.report ? "Report draft" : "Report missing") : "No open reporting period" },
+      ]}
+    />
 
     {unitSheet && <Sheet onClose={() => setUnitSheet(null)}>
       <div className="eyebrow">Organisation setup</div>
