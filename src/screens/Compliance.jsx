@@ -317,7 +317,7 @@ export default function Compliance({ me }) {
           {key:"expires_on",label:"Expires",render:(row)=>row.expires_on?day(row.expires_on):"No expiry"},
           {key:"reviewer_note",label:"Reviewer note",render:(row)=>row.reviewer_note||"—"},
           ...(canManage?[{key:"actions",label:"Actions",render:(row)=>row.state==="submitted"?<button className="btn btn-ghost btn-sm" onClick={()=>{setReviewSheet(row);setReviewAction("verified");setReviewNote("");}}>Review evidence</button>:"—",csv:()=>""}]:[]),
-        ]}/>} 
+        ]}/>}
     </>}
 
     {tab==="exceptions"&&<>
@@ -342,7 +342,7 @@ export default function Compliance({ me }) {
           {key:"approved_until",label:"Approved until",render:(row)=>row.approved_until?day(row.approved_until):"—"},
           {key:"reason",label:"Reason",render:(row)=><span>{row.reason}{row.note&&<small style={{display:"block",marginTop:3,color:"var(--ceac-ink-400)"}}>{row.note}</small>}{exceptions.filter((item)=>item.exception_key===row.exception_key).length>1&&<details className="compliance-history"><summary>History · {exceptions.filter((item)=>item.exception_key===row.exception_key).length}</summary>{exceptions.filter((item)=>item.exception_key===row.exception_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.note?" · "+item.note:""}</span></div>)}</details>}</span>,csv:(row)=>row.reason},
           ...(canManage?[{key:"actions",label:"Actions",render:(row)=>(row.state==="requested"||row.state==="approved")?<button className="btn btn-ghost btn-sm" onClick={()=>{setDecisionSheet(row);setDecisionAction(row.state==="approved"?"resolved":"approved");setDecisionNote("");setDecisionUntil("");}}>{row.state==="approved"?"Resolve exception":"Decide exception"}</button>:"—",csv:()=>""}]:[]),
-        ]}/>} 
+        ]}/>}
     </>}
 
     {policySheet&&<Sheet onClose={()=>!busy&&setPolicySheet(false)}>
