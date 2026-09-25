@@ -33,7 +33,7 @@ test("role CSS remains isolated and the important-debt budget does not grow", as
     ...premiumCssFiles,
   ].map((path) => fs.readFileSync(path, "utf8")).join("\n");
   const importantCount = (allCss.match(/!important\b/g) || []).length;
-  expect(importantCount).toBeLessThanOrEqual(1129);
+  expect(importantCount).toBeLessThanOrEqual(1125);
 });
 
 test("Instrument Sans is the premium body family and PWA icons are shipped", async ({ page }) => {
