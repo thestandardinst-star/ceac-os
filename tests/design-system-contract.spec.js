@@ -22,6 +22,18 @@ test("premium CSS preserves the 12px operational text floor", async () => {
   expect(violations).toEqual([]);
 });
 
+test("workspace action colours resolve through semantic tokens", async () => {
+  const premium = fs.readFileSync("src/premium.css", "utf8").toLowerCase();
+  expect((premium.match(/#0c5df9/g) || []).length).toBe(1);
+  expect((premium.match(/#6498f9/g) || []).length).toBe(1);
+
+  for (const path of ["src/premium-staff.css", "src/premium-manager.css", "src/premium-admin.css", "src/premium-executive.css", "src/premium-parity.css"]) {
+    const css = fs.readFileSync(path, "utf8").toLowerCase();
+    expect(css.includes("#0c5df9")).toBeFalsy();
+    expect(css.includes("#6498f9")).toBeFalsy();
+  }
+});
+
 test("role CSS remains isolated and the important-debt budget does not grow", async () => {
   const executive = fs.readFileSync("src/premium-executive.css", "utf8");
   for (const leakedSelector of [".staff-app", ".manager-app", ".office-app", ".premium-side", ".reference-"]) {
