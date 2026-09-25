@@ -35,12 +35,26 @@ Staff is the lightest and most personal surface. Manager becomes denser. Admin/E
 - On dark: `#F7FAFB`
 - On dark secondary: `#B8C2C9`
 
-### Brand / action
-- Teal: `#168B82`
-- Teal strong: `#11756E`
-- Teal soft: `#E5F4F2`
+### Identity and action
+
+CEAC OS uses two deliberately different colour roles. They are not interchangeable.
+
+**Ministry identity — teal**
+- Identity teal: `#118C83`
+- Identity teal strong: `#0C766F`
+- Identity teal soft: `#E4F4F2`
+- Use for the CEAC mark, sign-in identity, ministry-brand accents, and restrained identity cues on Executive surfaces.
+
+**Workspace action — electric blue**
+- Action blue: `#0C5DF9`
+- Action blue support: `#6498F9`
+- Use for active navigation, primary workspace buttons, selected app controls, and links whose meaning is “act here”.
+
+**Supporting indigo**
 - Indigo: `#59678F`
 - Indigo soft: `#ECEEF6`
+
+Do not use teal and blue as competing primary actions on the same surface. Teal identifies CEAC/ministry context; blue identifies an application action.
 
 ### Operational states
 - Success: `#2F7358`
@@ -66,7 +80,9 @@ Scale:
 - H3 / row title: `0.9rem–1rem`
 - Body: `0.875rem–0.95rem`
 - Supporting: `0.75rem–0.825rem`
-- Eyebrow: `0.68rem–0.75rem`
+- Eyebrow: `0.75rem`
+
+**Operational text floor:** user-facing application text in the premium shell and role surfaces must not render below `12px` at 100% browser zoom. This is a CEAC readability rule, not a claim that font size alone establishes WCAG conformance. Decorative shapes and non-text graphics are excluded.
 
 Use weight, spacing and hierarchy before adding colour.
 
