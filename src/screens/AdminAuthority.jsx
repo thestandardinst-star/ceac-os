@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 const ORG_ONLY = new Set(["authority.manage","hr_private.access","payroll.prepare","payroll.approve","audit.view"]);
 
@@ -139,29 +140,33 @@ export default function AdminAuthority({ me, refreshMe }) {
         </div>}
 
         <div className="sec"><span>Active capabilities</span><span>{activeGrants.length}</span></div>
-        {activeGrants.map((grant) => {
-          const def = definitions.find((item) => item.capability === grant.capability);
-          return <div className="row" key={grant.id}>
-            <div className="row-t">{def?.label || grant.capability}</div>
-            <div className="row-m">
-              {grant.scope_unit_id ? unitsById[grant.scope_unit_id] || "Unit scope" : "Organisation-wide"}
-              {" · granted " + stamp(grant.granted_at)}
-              {grant.granted_by ? " by " + (peopleById[grant.granted_by]?.full_name || "authorised user") : " · baseline"}
-            </div>
-            <div className="small" style={{ marginTop: 6 }}>{grant.grant_reason}</div>
-            <div style={{ marginTop: 10 }}>
-              <button className="btn btn-ghost btn-sm" disabled={busy || !revokeReason.trim()} onClick={() => revoke(grant.id)}>Revoke</button>
-            </div>
-          </div>;
-        })}
-        {activeGrants.length === 0 && <EmptyState title="No active capabilities">This person currently has no explicit sensitive capability grants.</EmptyState>}
+        <Table
+          rows={activeGrants}
+          empty="This person currently has no explicit sensitive capability grants."
+          caption="Active authority register"
+          exportName="ceac-authority-active"
+          columns={[
+            { key:"capability", label:"Capability", render:(grant)=>definitions.find((item)=>item.capability===grant.capability)?.label || grant.capability, sortValue:(grant)=>definitions.find((item)=>item.capability===grant.capability)?.label || grant.capability },
+            { key:"scope", label:"Scope", render:(grant)=>grant.scope_unit_id ? unitsById[grant.scope_unit_id] || "Unit scope" : "Organisation-wide", sortValue:(grant)=>grant.scope_unit_id ? unitsById[grant.scope_unit_id] || "Unit scope" : "Organisation-wide" },
+            { key:"granted_at", label:"Granted", render:(grant)=>stamp(grant.granted_at), sortValue:(grant)=>new Date(grant.granted_at||0).getTime() },
+            { key:"granted_by", label:"Granted by", render:(grant)=>grant.granted_by ? peopleById[grant.granted_by]?.full_name || "Authorised user" : "Baseline", sortValue:(grant)=>grant.granted_by ? peopleById[grant.granted_by]?.full_name || "" : "" },
+            { key:"grant_reason", label:"Reason" },
+            { key:"actions", label:"Action", render:(grant)=><button className="btn btn-ghost btn-sm" disabled={busy || !revokeReason.trim()} onClick={()=>revoke(grant.id)}>Revoke</button>, csv:()=>"" },
+          ]}
+        />
 
-        <div className="sec"><span>History</span><span>{selectedGrants.length}</span></div>
-        {selectedGrants.filter((grant) => grant.revoked_at).map((grant) => <div className="row" key={grant.id}>
-          <div className="row-t">{definitions.find((item) => item.capability === grant.capability)?.label || grant.capability}</div>
-          <div className="row-m">Revoked {stamp(grant.revoked_at)}{grant.revoked_by ? " by " + (peopleById[grant.revoked_by]?.full_name || "authorised user") : ""}</div>
-          <div className="small" style={{ marginTop: 6 }}>{grant.revoke_reason}</div>
-        </div>)}
+        <div className="sec"><span>History</span><span>{selectedGrants.filter((grant)=>grant.revoked_at).length}</span></div>
+        <Table
+          rows={selectedGrants.filter((grant)=>grant.revoked_at)}
+          empty="No revoked authority is recorded for this person."
+          exportName="ceac-authority-history"
+          columns={[
+            { key:"capability", label:"Capability", render:(grant)=>definitions.find((item)=>item.capability===grant.capability)?.label || grant.capability, sortValue:(grant)=>definitions.find((item)=>item.capability===grant.capability)?.label || grant.capability },
+            { key:"revoked_at", label:"Revoked", render:(grant)=>stamp(grant.revoked_at), sortValue:(grant)=>new Date(grant.revoked_at||0).getTime() },
+            { key:"revoked_by", label:"Revoked by", render:(grant)=>grant.revoked_by ? peopleById[grant.revoked_by]?.full_name || "Authorised user" : "—", sortValue:(grant)=>grant.revoked_by ? peopleById[grant.revoked_by]?.full_name || "" : "" },
+            { key:"revoke_reason", label:"Reason" },
+          ]}
+        />
       </div>
 
       <div className="side-col">
