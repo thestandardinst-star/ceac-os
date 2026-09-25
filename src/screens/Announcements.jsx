@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Sheet } from "../components/bits";
+import { EmptyState, LoadingState, Sheet } from "../components/bits";
+import { Table } from "../components/primitives";
 import VoiceInput from "../components/VoiceInput";
 
 const ROLE_OPTIONS = [
@@ -140,25 +141,34 @@ export default function Announcements({ me, back }) {
     </div>
 
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}<button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button></div>}
-    {loading && <div className="spin">Loading announcements...</div>}
+    {loading && <LoadingState label="Loading announcements…" />}
     {!loading && <div style={{ marginTop: 18 }}>
-      {rows.length === 0 && <div className="card small">There are no current announcements for you.</div>}
-      {rows.map((announcement) => {
-        const receipt = receiptFor(announcement);
-        const unread = announcement.status === "published" && !receipt;
-        return <div className={`row ${unread ? "home-tone-info" : ""}`} key={announcement.id}>
-          <button style={{ width: "100%", textAlign: "left" }} onClick={() => openAnnouncement(announcement)}>
-            <div className="row-t">{unread ? "New · " : ""}{announcement.title}</div>
-            <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.status} · {announcement.profiles?.full_name || "CEAC"}</div>
-            <div className="row-note">{announcement.published_at ? formatDate(announcement.published_at) : `Drafted ${formatDate(announcement.created_at)}`}</div>
-          </button>
-          {canPublish && <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 9 }}>
-            {announcement.status === "draft" && <><button className="btn btn-ghost btn-sm" onClick={() => editAnnouncement(announcement)}>Edit</button><button className="btn btn-sm" onClick={() => changeStatus(announcement, "publish")} disabled={busy}>Publish</button></>}
-            {announcement.status === "published" && <button className="btn btn-ghost btn-sm" onClick={() => changeStatus(announcement, "close")} disabled={busy}>Close</button>}
-            <span className="row-m">{announcement.counts?.read_count || 0} read{announcement.requires_acknowledgement ? ` · ${announcement.counts?.acknowledged_count || 0} of ${announcement.counts?.target_count || 0} acknowledged` : ""}</span>
-          </div>}
-        </div>;
-      })}
+      <Table
+        rows={rows}
+        empty="There are no current announcements for you."
+        caption="Organisation announcement register"
+        exportName="ceac-announcements"
+        onRowClick={(announcement)=>openAnnouncement(announcement)}
+        rowAriaLabel={(announcement)=>`Open announcement ${announcement.title}`}
+        rowClassName={(announcement)=>announcement.status==="published"&&!receiptFor(announcement) ? "home-tone-info" : ""}
+        columns={[
+          { key:"title", label:"Announcement", render:(announcement)=><span><strong>{announcement.status==="published"&&!receiptFor(announcement)?"New · ":""}{announcement.title}</strong><small style={{display:"block",marginTop:2,color:"var(--ceac-ink-400)"}}>{announcement.requires_acknowledgement?"Acknowledgement required":"Information only"}</small></span>, csv:(announcement)=>announcement.title },
+          { key:"priority", label:"Priority" },
+          { key:"status", label:"State" },
+          { key:"author", label:"From", render:(announcement)=>announcement.profiles?.full_name||"CEAC", sortValue:(announcement)=>announcement.profiles?.full_name||"CEAC" },
+          { key:"published_at", label:"Published / drafted", render:(announcement)=>announcement.published_at?formatDate(announcement.published_at):`Drafted ${formatDate(announcement.created_at)}`, sortValue:(announcement)=>new Date(announcement.published_at||announcement.created_at||0).getTime() },
+          ...(canPublish ? [
+            { key:"read", label:"Read", align:"right", render:(announcement)=>announcement.counts?.read_count||0, sortValue:(announcement)=>Number(announcement.counts?.read_count)||0, csv:(announcement)=>announcement.counts?.read_count||0 },
+            { key:"acknowledged", label:"Acknowledged", render:(announcement)=>announcement.requires_acknowledgement?`${announcement.counts?.acknowledged_count||0} of ${announcement.counts?.target_count||0}`:"Not required", sortValue:(announcement)=>Number(announcement.counts?.acknowledged_count)||0 },
+            { key:"actions", label:"Actions", render:(announcement)=><div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+              {announcement.status==="draft"&&<><button className="btn btn-ghost btn-sm" onClick={()=>editAnnouncement(announcement)}>Edit</button><button className="btn btn-sm" onClick={()=>changeStatus(announcement,"publish")} disabled={busy}>Publish</button></>}
+              {announcement.status==="published"&&<button className="btn btn-ghost btn-sm" onClick={()=>changeStatus(announcement,"close")} disabled={busy}>Close</button>}
+            </div>, csv:()=>"" },
+          ] : [
+            { key:"receipt", label:"Your record", render:(announcement)=>{const receipt=receiptFor(announcement);return receipt?.acknowledged_at?"Acknowledged":receipt?.read_at?"Read":"Unread";}, sortValue:(announcement)=>{const receipt=receiptFor(announcement);return receipt?.acknowledged_at?"acknowledged":receipt?.read_at?"read":"unread";} },
+          ]),
+        ]}
+      />
     </div>}
 
     {selected && <Sheet onClose={() => setSelected(null)}>
