@@ -14,6 +14,8 @@ export default function Table({
   caption,
   exportName,
   onRowClick,
+  rowClassName,
+  rowAriaLabel,
 }) {
   const [sort, setSort] = useState(null);
 
@@ -68,6 +70,12 @@ export default function Table({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
+  function activateRow(event, row) {
+    if (!onRowClick) return;
+    if (event?.target?.closest?.("button,a,input,select,textarea,label")) return;
+    onRowClick(row);
+  }
+
   if (!rows.length) {
     return <EmptyState icon="table" title={empty} compact />;
   }
@@ -105,8 +113,16 @@ export default function Table({
           <tbody>
             {sorted.map((r, i) => (
               <tr key={r.id || i}
-                onClick={onRowClick ? () => onRowClick(r) : undefined}
-                className={onRowClick ? "clickable" : ""}>
+                onClick={onRowClick ? (event) => activateRow(event, r) : undefined}
+                onKeyDown={onRowClick ? (event) => {
+                  if ((event.key === "Enter" || event.key === " ") && event.target === event.currentTarget) {
+                    event.preventDefault();
+                    onRowClick(r);
+                  }
+                } : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                aria-label={rowAriaLabel ? rowAriaLabel(r) : undefined}
+                className={[onRowClick ? "clickable" : "", rowClassName ? (typeof rowClassName === "function" ? rowClassName(r) : rowClassName) : ""].filter(Boolean).join(" ")}>
                 {columns.map((c) => {
                   const align = columnAlign(c);
                   return (
