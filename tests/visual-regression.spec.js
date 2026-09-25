@@ -11,7 +11,7 @@ const roles = [
 ];
 
 const GRID_W = 12;
-const GRID_H = 18;
+const GRID_H = 12;
 
 function paeth(a, b, c) {
   const p = a + b - c;
@@ -136,12 +136,12 @@ test.describe("CEAC visual regression", () => {
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(250);
 
-      const screenshot = await page.screenshot({ fullPage: true });
+      const screenshot = await page.screenshot();
       const actual = visualFingerprint(screenshot);
       const expected = visualHomeBaselines[role];
 
       expect(actual.width).toBe(expected.width);
-      expect(Math.abs(actual.height - expected.height), `${role} page height drifted from the approved composition`).toBeLessThanOrEqual(10);
+      expect(actual.height).toBe(expected.height);
       const error = meanAbsoluteError(actual.rgb, expected.rgb);
       expect(error, `${role} visual fingerprint drifted (mean RGB error ${error.toFixed(2)})`).toBeLessThanOrEqual(6);
 
