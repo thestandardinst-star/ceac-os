@@ -277,4 +277,4 @@ Load order is authoritative:
 
 Role files must not become hidden global override layers. Cross-role selectors belong in `premium.css` or, while still transitional, `premium-parity.css`.
 
-The existing `!important` debt is transitional, not a design primitive. The current bundle budget is capped at 1,129 declarations; new work must not increase that count. Reduction should happen through scoped component migration and removal of obsolete competing rules, not broad find-and-replace deletion.
+The existing `!important` debt is transitional, not a design primitive. The current bundle budget is capped at 1,125 declarations; new work must not increase that count. Reduction should happen through scoped component migration and removal of obsolete competing rules, not broad find-and-replace deletion.
