@@ -13,8 +13,18 @@ async function openAdmin(browser, viewport = { width: 1280, height: 900 }) {
   return { context, page };
 }
 
+const routes = {
+  People: "people",
+  Units: "units",
+  Workforce: "attendance",
+  "Assets & devices": "assets",
+  Compliance: "compliance",
+};
+
 async function openSurface(page, label) {
-  await page.locator(".premium-side").getByRole("button", { name: label, exact: true }).click();
+  const route = routes[label];
+  if (!route) throw new Error(`No Ledger route for ${label}`);
+  await page.goto(`/?tab=${route}`);
   await expect(page.locator(".body")).toBeVisible({ timeout: 15000 });
 }
 
