@@ -1,8 +1,8 @@
 # CEAC OS — Premium Redesign Source of Truth
 
 **Date:** 23 September 2026
-**Status:** SUPERSEDED FOR FINAL VISUAL/INTERACTION DIRECTION by `docs/architecture/CEAC_OS_Design_Foundation_v2_2026-09-24.md`. Retained for premium-redesign history, role composition and capability-preservation context.
-**Product owner direction:** The 24 September Design Foundation v2 is now the visual authority. The earlier premium mockup is a historical reference where it conflicts with v2. Existing functional, security, data, audit and permission contracts remain protected.
+**Status:** BINDING FOR THE REDESIGN BRANCH; NOT YET AN IMPLEMENTATION CHANGE TO MAIN
+**Product owner direction:** Rebuild the entire visible product experience to the approved premium mockup standard without weakening existing functional, security, data, audit or permission contracts.
 
 ## 0. Critical boundary
 

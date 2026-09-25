@@ -1,9 +1,7 @@
 # CEAC OS — Design System v1
 
 **Date:** 21 September 2026
-**Status:** SUPERSEDED FOR VISUAL/INTERACTION DIRECTION by `CEAC_OS_Design_Foundation_v2_2026-09-24.md`. Retained as historical design context only.
-
-Where this document conflicts visually or interactively with Design Foundation v2, v2 wins. Security, permission, data and Work Engine boundaries remain unchanged.
+**Status:** Approved implementation source of truth for the Staff redesign and the foundation for later Manager/Admin/Executive visual work.
 
 This document implements the product-experience architecture. It does not change security, permissions, database contracts, or Work Engine behaviour.
 

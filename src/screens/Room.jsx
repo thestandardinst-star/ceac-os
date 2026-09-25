@@ -423,7 +423,7 @@ export default function Room({
   let previousDay = null;
   let unreadShown = false;
 
-  return <div className="body room-screen ceac-record">
+  return <div className="body room-screen">
     <header className="room-head">
       <button className="room-back" onClick={back}>←</button>
       <div className="room-head-copy">
@@ -435,8 +435,6 @@ export default function Room({
 
     {error && <div className="flag flag-brick room-error"><h4>Room could not complete that</h4>{error}<button className="btn btn-ghost btn-sm" onClick={loadInitialRoom}>Try again</button></div>}
 
-    <div className="room-record-grid">
-      <div className="room-record-main">
     {scopeRooms.length > 1 && <nav className="room-scope-strip" aria-label="Unit conversations">
       {scopeRooms.map((entry) => <button key={entry.id} className={entry.id === room?.id ? "on" : ""} onClick={() => entry.id === room?.id ? null : onRoomChange?.(contextForRoom(entry))}>
         {entry.kind === "unit" ? "Everyone" : roomTitle(entry)}
@@ -506,37 +504,6 @@ export default function Room({
       <div ref={endRef} />
     </main>
     {newMessageCount > 0 && <button className="room-new-messages" onClick={jumpToLatest}>{newMessageCount} new message{newMessageCount === 1 ? "" : "s"} ↓</button>}
-
-      </div>
-      <aside className="room-record-rail" aria-label="Room context">
-        <section className="ceac-record-panel">
-          <strong className="ceac-record-panel-title">Conversation context</strong>
-          <span className="ceac-record-panel-copy">{room?.kind === "project"
-            ? "Project coordination stays attached to this project and its record."
-            : room?.kind === "sub_team"
-              ? `This is the ${roomTitle(room)} conversation, not a private message.`
-              : "This is the operational conversation for the unit."}</span>
-        </section>
-        <section className="ceac-record-panel">
-          <strong className="ceac-record-panel-title">People in this Room</strong>
-          <span className="ceac-record-panel-copy">Membership is shown here. This is not an online-presence indicator.</span>
-          <div className="room-member-list">
-            <div className="room-member">
-              <span className="room-member-avatar">{(me.full_name || "Y").charAt(0)}</span>
-              <strong>{me.full_name || "You"}</strong>
-            </div>
-            {participants.slice(0, 10).map((person) => <div className="room-member" key={person.id}>
-              <span className="room-member-avatar">{person.full_name.charAt(0)}</span>
-              <strong>{person.full_name}</strong>
-            </div>)}
-          </div>
-        </section>
-        {(workOptions.length > 0 || projectOptions.length > 0) && <section className="ceac-record-panel">
-          <strong className="ceac-record-panel-title">Available context</strong>
-          <span className="ceac-record-panel-copy">{workOptions.length} open work item{workOptions.length === 1 ? "" : "s"}{projectOptions.length ? ` · ${projectOptions.length} project${projectOptions.length === 1 ? "" : "s"}` : ""} can be linked from the composer.</span>
-        </section>}
-      </aside>
-    </div>
 
     <footer className="room-composer">
       {replyTo && <div className="room-composer-reply">

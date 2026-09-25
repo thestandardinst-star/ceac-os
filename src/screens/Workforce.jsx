@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { Table } from "../components/primitives";
 
 const DAY_KEYS=["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_LABELS={sun:"Sun",mon:"Mon",tue:"Tue",wed:"Wed",thu:"Thu",fri:"Fri",sat:"Sat"};
@@ -366,22 +365,29 @@ export default function Workforce({ me }) {
 
     {tab==="today"&&<>
       <div className="sec"><span>Today</span><span>{people.length} people in your visible workforce scope</span></div>
-      <Table
-        rows={people}
-        empty="No workforce records are visible in your scope."
-        caption="Today’s factual workforce context"
-        exportName="ceac-workforce-today"
-        columns={[
-          { key:"profile_id",label:"Person",render:(row)=><span style={{display:"inline-flex",alignItems:"center",gap:9}}><Avatar name={row.profiles?.full_name} size="sm"/><span><strong>{row.profiles?.full_name||"Employee"}</strong><small style={{display:"block",marginTop:2,color:"var(--ceac-ink-400)"}}>{row.units?.name||"Unit not recorded"} · {row.profiles?.job_title||"Position not recorded"}</small></span></span>,csv:(row)=>row.profiles?.full_name||"Employee" },
-          { key:"context",label:"Today",render:(row)=>{const ctx=contextFor(row.profile_id);return <span><Pill tone={ctx.tone}>{ctx.label}</Pill><small style={{display:"block",marginTop:4,color:"var(--ceac-ink-400)",maxWidth:260}}>{ctx.detail}</small></span>;},sortValue:(row)=>contextFor(row.profile_id).label,csv:(row)=>contextFor(row.profile_id).label },
-          { key:"day_type",label:"Day type",render:(row)=>currentDayType(row.profile_id)?.name||"Not configured",sortValue:(row)=>currentDayType(row.profile_id)?.name||"" },
-          { key:"clock",label:"Configured clock",render:(row)=>{const schedule=latestSchedule(row.profile_id);return schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"Not recorded";},csv:(row)=>{const schedule=latestSchedule(row.profile_id);return schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"Not recorded";} },
-          { key:"first",label:"First recorded",render:(row)=>{const facts=sessionFacts(row.profile_id);return facts.first?clock(facts.first.started_at):"None";},sortValue:(row)=>sessionFacts(row.profile_id).first?.started_at||"" },
-          { key:"end",label:"Final recorded end",render:(row)=>{const facts=sessionFacts(row.profile_id);return facts.lastEnd?clock(facts.lastEnd):facts.rows.length?"No final end":"None";},sortValue:(row)=>sessionFacts(row.profile_id).lastEnd||"" },
-          { key:"leave",label:"Approved leave",render:(row)=>{const leaveRow=approvedLeave(row.profile_id);return leaveRow?human(leaveRow.kind):"None";},sortValue:(row)=>approvedLeave(row.profile_id)?.kind||"" },
-          { key:"corrections",label:"Corrections",align:"right",render:(row)=>effectiveCorrections(row.profile_id,today).length,sortValue:(row)=>effectiveCorrections(row.profile_id,today).length,csv:(row)=>effectiveCorrections(row.profile_id,today).length },
-        ]}
-      />
+      <div className="workforce-grid">
+        {people.map((row)=>{
+          const ctx=contextFor(row.profile_id);
+          const schedule=latestSchedule(row.profile_id);
+          const dayType=currentDayType(row.profile_id);
+          const facts=sessionFacts(row.profile_id);
+          const leaveRow=approvedLeave(row.profile_id);
+          const activeCorrections=effectiveCorrections(row.profile_id,today);
+          return <article className="card workforce-person" key={row.profile_id}>
+            <div className="workforce-person-head"><Avatar name={row.profiles?.full_name} size="sm"/><div><strong>{row.profiles?.full_name}</strong><span>{row.units?.name||"Unit not recorded"} · {row.profiles?.job_title||"Position not recorded"}</span></div><Pill tone={ctx.tone}>{ctx.label}</Pill></div>
+            <p>{ctx.detail}</p>
+            <div className="workforce-facts">
+              <span>Day type <b>{dayType?.name||"Not configured"}</b></span>
+              <span>Configured clock context <b>{schedule?.expected_start?String(schedule.expected_start).slice(0,5):"Not recorded"}{schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""}</b></span>
+              <span>First recorded session <b>{facts.first?clock(facts.first.started_at):"None recorded"}</b></span>
+              <span>Final recorded end <b>{facts.lastEnd?clock(facts.lastEnd):facts.rows.length?"No final end recorded":"None recorded"}</b></span>
+              <span>Approved leave <b>{leaveRow?human(leaveRow.kind):"None recorded"}</b></span>
+              <span>Effective corrections <b>{activeCorrections.length}</b></span>
+            </div>
+          </article>;
+        })}
+      </div>
+      {!people.length&&<EmptyState title="No workforce records in scope">Your authorised people will appear here.</EmptyState>}
     </>}
 
     {tab==="calendar"&&<>

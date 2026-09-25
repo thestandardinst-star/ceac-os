@@ -152,21 +152,13 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
   ].map((item) => item.id)).size;
   const filters = [["active", "Active"], ["waiting_on", "Waiting"], ["returned", "Returned"], ["overdue", "Overdue"], ["in_review", "Awaiting review"]];
 
-  return <div className="body manager-person-detail ceac-record">
+  return <div className="body manager-person-detail">
     <button className="back" onClick={back}>← Team</button>
-    <header className="ceac-record-header">
-      <div className="ceac-record-header-row">
-        <div className="ceac-record-identity">
-          <div className="ceac-record-kicker">Operational view · {me.unit_name}</div>
-          <h1 className="ceac-record-title">{person.profiles?.full_name || "—"}</h1>
-          <p className="ceac-record-subtitle">{person.profiles?.job_title || person.role}{subTeams.length ? ` · ${subTeams.join(", ")}` : ""}</p>
-        </div>
-      </div>
-    </header>
+    <div className="eyebrow">Operational view · {me.unit_name}</div>
+    <h1 className="h1" style={{ marginTop: 6 }}>{person.profiles?.full_name || "—"}</h1>
+    <p className="screen-note">{person.profiles?.job_title || person.role}{subTeams.length ? ` · ${subTeams.join(", ")}` : ""}</p>
     {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
 
-    <div className="ceac-record-layout">
-      <main className="ceac-record-main">
     <div className="person-orientation-grid" aria-label="Current operational context">
       <div><strong>{current.length}</strong><span>current responsibilities</span></div>
       <div className={needsSupport ? "attention" : ""}><strong>{needsSupport}</strong><span>need support or follow-up</span></div>
@@ -225,29 +217,5 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
     {feedback.length === 0 && <div className="card small">No feedback has been recorded.</div>}
     <FieldGroup label="Feedback visible to this staff member" hint="Keep it factual and tied to work, support or an agreed development point."><textarea className="field" rows={3} placeholder="Write factual, visible feedback" value={note} onChange={(event) => setNote(event.target.value)} /></FieldGroup>
     <button className="btn wide-auto" style={{ marginTop: 10 }} onClick={addFeedback} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Save visible feedback"}</button>
-      </main>
-      <aside className="ceac-record-rail" aria-label="Person context">
-        <section className="ceac-record-panel">
-          <strong className="ceac-record-panel-title">Current context</strong>
-          <dl className="ceac-record-facts" style={{ marginTop: 10 }}>
-            <div className="ceac-record-fact"><dt>Role</dt><dd>{person.profiles?.job_title || person.role || "—"}</dd></div>
-            <div className="ceac-record-fact"><dt>Current work</dt><dd>{current.length}</dd></div>
-            <div className="ceac-record-fact"><dt>Needs follow-up</dt><dd>{needsSupport}</dd></div>
-            <div className="ceac-record-fact"><dt>Recent outcomes</dt><dd>{completed.length}</dd></div>
-          </dl>
-        </section>
-        <section className="ceac-record-panel person-record-activity">
-          <strong className="ceac-record-panel-title">Recent activity context</strong>
-          <span className="ceac-record-panel-copy">Work sessions are context only, not a productivity score.</span>
-          <div className="ceac-record-timeline" style={{ marginTop: 12 }}>
-            {sessions.slice(0, 5).map((session) => <div className="ceac-record-event" key={session.id}>
-              {durationLabel(session)} · {session.place}
-              <time>{new Date(session.started_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · {new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</time>
-            </div>)}
-            {sessions.length === 0 && <span className="ceac-record-panel-copy">No session records in this period.</span>}
-          </div>
-        </section>
-      </aside>
-    </div>
   </div>;
 }

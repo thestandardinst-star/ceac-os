@@ -166,14 +166,6 @@ jobs:
       - name: Run Playwright role smoke tests
         run: npx playwright test
 
-      - name: Upload Design v2 Ledger inspection
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: design-v2-ledger-inspection
-          path: test-artifacts/design-v2-ledger-*.png
-          if-no-files-found: ignore
-
       - name: Upload Stage 6 product inspection
         if: always()
         uses: actions/upload-artifact@v4

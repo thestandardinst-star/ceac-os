@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { Table } from "../components/primitives";
 
 function human(value=""){ return String(value||"").replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase()); }
 function day(value){
@@ -262,36 +261,39 @@ export default function Compliance({ me }) {
 
     {tab==="policies"&&<>
       <div className="sec"><span>{canManage?"Policy register":"Policies applicable in your scope"}</span>{canManage&&<button className="btn btn-sm" onClick={openNewPolicy}>Publish policy</button>}</div>
-      <Table
-        rows={currentPolicies}
-        empty={canManage?"No compliance policies are recorded.":"No compliance policies apply in your scope."}
-        caption="Compliance policy register"
-        exportName="ceac-compliance-policies"
-        columns={[
-          { key:"title",label:"Policy",render:(policy)=><span><strong>{policy.title}</strong><small style={{display:"block",marginTop:2,color:"var(--ceac-ink-400)"}}>{policy.category} · v{policy.version}{policy.summary?" · "+policy.summary:""}</small><details className="compliance-history" style={{marginTop:6}}><summary>Policy text</summary><div className="compliance-policy-body">{policy.body_text}</div></details>{policies.filter((row)=>row.policy_key===policy.policy_key).length>1&&<details className="compliance-history"><summary>Version history · {policies.filter((row)=>row.policy_key===policy.policy_key).length}</summary>{policies.filter((row)=>row.policy_key===policy.policy_key).sort((a,b)=>b.version-a.version).map((row)=><div key={row.id}><strong>Version {row.version} · {human(row.state)}</strong><span>Effective {day(row.effective_on)} · {row.reason}</span></div>)}</details>}</span>,csv:(policy)=>policy.title },
-          { key:"state",label:"State",render:(policy)=>{const active=policy.state==="active"&&policy.effective_on<=today&&(!policy.expires_on||policy.expires_on>=today);return <Pill tone={active?"green":"grey"}>{active?"Active":human(policy.state)}</Pill>;},sortValue:(policy)=>policy.state,csv:(policy)=>human(policy.state) },
-          { key:"effective_on",label:"Effective",render:(policy)=>day(policy.effective_on) },
-          { key:"expires_on",label:"Expires",render:(policy)=>policy.expires_on?day(policy.expires_on):"No expiry" },
-          { key:"scope",label:"Applies to",render:(policy)=>policyScopes(policy.id).map(scopeLabel).join(", ")||"Not recorded",sortValue:(policy)=>policyScopes(policy.id).map(scopeLabel).join(", "),csv:(policy)=>policyScopes(policy.id).map(scopeLabel).join(", ") },
-          { key:"requirements",label:"Requirements",align:"right",render:(policy)=>policyReqs(policy.id).length,sortValue:(policy)=>policyReqs(policy.id).length,csv:(policy)=>policyReqs(policy.id).length },
-          { key:"acknowledgement",label:"Acknowledgement",render:(policy)=>{const reqRows=policyReqs(policy.id);const active=policy.state==="active"&&policy.effective_on<=today&&(!policy.expires_on||policy.expires_on>=today);const needsAck=reqRows.some((r)=>r.acknowledgement_required);const ack=ackFor(policy.id);return !canManage&&!isManager&&active&&needsAck?(ack?<Pill tone="green">Acknowledged {day(ack.acknowledged_at.slice(0,10))}</Pill>:<button className="btn btn-sm" disabled={busy} onClick={()=>acknowledge(policy)}>Acknowledge policy</button>):needsAck?"Required":"Not required";},csv:(policy)=>policyReqs(policy.id).some((r)=>r.acknowledgement_required)?"Required":"Not required" },
-          ...(canManage ? [{ key:"actions",label:"Actions",render:(policy)=><div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>openRevision(policy)}>Publish revision</button>{policy.state==="active"&&<button className="btn btn-ghost btn-sm" onClick={()=>retirePolicy(policy)}>Retire policy</button>}</div>,csv:()=>"" }] : []),
-        ]}
-      />
+      <div className="compliance-policy-grid">
+        {currentPolicies.map((policy)=>{
+          const reqRows=policyReqs(policy.id);
+          const active=policy.state==="active"&&policy.effective_on<=today&&(!policy.expires_on||policy.expires_on>=today);
+          const needsAck=reqRows.some((r)=>r.acknowledgement_required);
+          const ack=ackFor(policy.id);
+          return <article className="card compliance-policy-card" key={policy.id}>
+            <div className="compliance-policy-head"><div><span className="eyebrow">{policy.category} · v{policy.version}</span><h3>{policy.title}</h3></div><Pill tone={active?"green":"grey"}>{active?"Active":human(policy.state)}</Pill></div>
+            {policy.summary&&<p>{policy.summary}</p>}
+            <details><summary>Policy text</summary><div className="compliance-policy-body">{policy.body_text}</div></details>
+            <div className="compliance-meta">
+              <span>Effective <b>{day(policy.effective_on)}</b></span>
+              <span>Expires <b>{policy.expires_on?day(policy.expires_on):"No expiry recorded"}</b></span>
+              <span>Source <b>{policy.source_reference||"Not recorded"}</b></span>
+              <span>Applies to <b>{policyScopes(policy.id).map(scopeLabel).join(", ")||"Not recorded"}</b></span>
+            </div>
+            {!canManage&&!isManager&&active&&needsAck&&<div className="compliance-ack-row">{ack?<Pill tone="green">Acknowledged {day(ack.acknowledged_at.slice(0,10))}</Pill>:<button className="btn btn-sm" disabled={busy} onClick={()=>acknowledge(policy)}>Acknowledge policy</button>}</div>}
+            {policies.filter((row)=>row.policy_key===policy.policy_key).length>1&&<details className="compliance-history"><summary>Version history · {policies.filter((row)=>row.policy_key===policy.policy_key).length}</summary>{policies.filter((row)=>row.policy_key===policy.policy_key).sort((a,b)=>b.version-a.version).map((row)=><div key={row.id}><strong>Version {row.version} · {human(row.state)}</strong><span>Effective {day(row.effective_on)} · {row.reason}</span></div>)}</details>}
+            {canManage&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>openRevision(policy)}>Publish revision</button>{policy.state==="active"&&<button className="btn btn-ghost btn-sm" onClick={()=>retirePolicy(policy)}>Retire policy</button>}</div>}
+          </article>;
+        })}
+      </div>
+      {!currentPolicies.length&&<EmptyState title="No compliance policies in scope">{canManage?"Publish the first compliance policy when CEAC has approved its content and applicability.":"Applicable policy versions will appear here."}</EmptyState>}
     </>}
 
     {tab==="requirements"&&(canManage||isManager)&&<>
       <div className="sec"><span>Visible requirements</span><span>{requirements.length}</span></div>
-      <Table rows={requirements} empty="No requirements are visible in this scope."
-        exportName="ceac-compliance-requirements"
-        columns={[
-          {key:"title",label:"Requirement"},
-          {key:"requirement_code",label:"Code"},
-          {key:"policy",label:"Policy",render:(req)=>policyById[req.policy_version_id]?.title||"Policy",sortValue:(req)=>policyById[req.policy_version_id]?.title||""},
-          {key:"acknowledgement_required",label:"Acknowledgement",render:(req)=>req.acknowledgement_required?"Required":"Not required",sortValue:(req)=>req.acknowledgement_required?1:0},
-          {key:"evidence_required",label:"Evidence",render:(req)=>req.evidence_required?(req.evidence_kind||"Required"):"Not required",sortValue:(req)=>req.evidence_required?1:0},
-          {key:"evidence_valid_days",label:"Validity guidance",align:"right",render:(req)=>req.evidence_valid_days?req.evidence_valid_days+" days":"—",sortValue:(req)=>Number(req.evidence_valid_days)||0},
-        ]}/>
+      {requirements.map((req)=><div className="row" key={req.id}>
+        <div className="row-t">{req.title}</div>
+        <div className="row-m">{policyById[req.policy_version_id]?.title||"Policy"} · {req.requirement_code}</div>
+        <div className="row-note">{req.acknowledgement_required?"Acknowledgement required":"No acknowledgement required"} · {req.evidence_required?"Evidence: "+req.evidence_kind:"No evidence required"}{req.evidence_valid_days?" · validity guidance "+req.evidence_valid_days+" days":""}</div>
+      </div>)}
+      {!requirements.length&&<EmptyState compact title="No requirements in scope">Published policy requirements will appear here.</EmptyState>}
     </>}
 
     {tab==="evidence"&&<>
@@ -307,17 +309,18 @@ export default function Compliance({ me }) {
           <button className="btn btn-ghost btn-sm" onClick={()=>{setEvidenceSheet(req);setEvidenceReference(row?.evidence_reference||"");setEvidenceNote("");setEvidenceIssued(row?.issued_on||"");setEvidenceExpires(row?.expires_on||"");}}>{row?"Submit replacement evidence":"Submit evidence"}</button>
         </div>;
       })}
-      {(canManage||isManager)&&<Table rows={evidenceLatest} empty="No evidence records are visible in your authorised scope."
-        exportName="ceac-compliance-evidence"
-        columns={[
-          {key:"profile",label:"Person",render:(row)=>row.profile?.full_name||"Employee",sortValue:(row)=>row.profile?.full_name||""},
-          {key:"requirement",label:"Requirement",render:(row)=>row.requirement?.title||"Requirement",sortValue:(row)=>row.requirement?.title||""},
-          {key:"evidence_reference",label:"Evidence",render:(row)=><span>{row.evidence_reference}{evidence.filter((item)=>item.evidence_key===row.evidence_key).length>1&&<details className="compliance-history"><summary>Evidence history · {evidence.filter((item)=>item.evidence_key===row.evidence_key).length}</summary>{evidence.filter((item)=>item.evidence_key===row.evidence_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.reviewer_note?" · "+item.reviewer_note:""}</span></div>)}</details>}</span>,csv:(row)=>row.evidence_reference},
-          {key:"state",label:"State",render:(row)=>{const expired=Boolean(row.expires_on&&row.expires_on<today);return <Pill tone={stateTone(row.state,expired)}>{expired?human(row.state)+" · expired":human(row.state)}</Pill>;},sortValue:(row)=>row.state,csv:(row)=>human(row.state)},
-          {key:"expires_on",label:"Expires",render:(row)=>row.expires_on?day(row.expires_on):"No expiry"},
-          {key:"reviewer_note",label:"Reviewer note",render:(row)=>row.reviewer_note||"—"},
-          ...(canManage?[{key:"actions",label:"Actions",render:(row)=>row.state==="submitted"?<button className="btn btn-ghost btn-sm" onClick={()=>{setReviewSheet(row);setReviewAction("verified");setReviewNote("");}}>Review evidence</button>:"—",csv:()=>""}]:[]),
-        ]}/>}
+      {(canManage||isManager)&&evidenceLatest.map((row)=>{
+        const expired=Boolean(row.expires_on&&row.expires_on<today);
+        return <div className="row" key={row.id}>
+          <div className="row-t">{row.profile?.full_name||"Employee"} · {row.requirement?.title||"Requirement"}</div>
+          <div className="row-m">{row.evidence_reference} · {row.expires_on?"expires "+day(row.expires_on):"no expiry recorded"}</div>
+          <div className="row-note"><Pill tone={stateTone(row.state,expired)}>{expired?human(row.state)+" · expired":human(row.state)}</Pill></div>
+          {row.reviewer_note&&<div className="row-note">{row.reviewer_note}</div>}
+          {evidence.filter((item)=>item.evidence_key===row.evidence_key).length>1&&<details className="compliance-history"><summary>Evidence history · {evidence.filter((item)=>item.evidence_key===row.evidence_key).length}</summary>{evidence.filter((item)=>item.evidence_key===row.evidence_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.reviewer_note?" · "+item.reviewer_note:""}</span></div>)}</details>}
+          {canManage&&row.state==="submitted"&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>{setReviewSheet(row);setReviewAction("verified");setReviewNote("");}}>Review evidence</button></div>}
+        </div>;
+      })}
+      {!evidenceLatest.length&&(canManage||isManager)&&<EmptyState compact title="No evidence records">Evidence submissions in your authorised scope will appear here.</EmptyState>}
     </>}
 
     {tab==="exceptions"&&<>
@@ -332,17 +335,15 @@ export default function Compliance({ me }) {
           {!row&&<button className="btn btn-ghost btn-sm" onClick={()=>setExceptionSheet(req)}>Request exception</button>}
         </div>;
       })}
-      {(canManage||isManager)&&<Table rows={exceptionLatest} empty="No exception records are visible in your authorised scope."
-        exportName="ceac-compliance-exceptions"
-        columns={[
-          {key:"profile",label:"Person",render:(row)=>row.profile?.full_name||"Employee",sortValue:(row)=>row.profile?.full_name||""},
-          {key:"requirement",label:"Requirement",render:(row)=>row.requirement?.title||"Requirement",sortValue:(row)=>row.requirement?.title||""},
-          {key:"state",label:"State",render:(row)=><Pill tone={stateTone(row.state)}>{human(row.state)}</Pill>,sortValue:(row)=>row.state,csv:(row)=>human(row.state)},
-          {key:"requested_until",label:"Requested until",render:(row)=>row.requested_until?day(row.requested_until):"—"},
-          {key:"approved_until",label:"Approved until",render:(row)=>row.approved_until?day(row.approved_until):"—"},
-          {key:"reason",label:"Reason",render:(row)=><span>{row.reason}{row.note&&<small style={{display:"block",marginTop:3,color:"var(--ceac-ink-400)"}}>{row.note}</small>}{exceptions.filter((item)=>item.exception_key===row.exception_key).length>1&&<details className="compliance-history"><summary>Exception history · {exceptions.filter((item)=>item.exception_key===row.exception_key).length}</summary>{exceptions.filter((item)=>item.exception_key===row.exception_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.note?" · "+item.note:""}</span></div>)}</details>}</span>,csv:(row)=>row.reason},
-          ...(canManage?[{key:"actions",label:"Actions",render:(row)=>(row.state==="requested"||row.state==="approved")?<button className="btn btn-ghost btn-sm" onClick={()=>{setDecisionSheet(row);setDecisionAction(row.state==="approved"?"resolved":"approved");setDecisionNote("");setDecisionUntil("");}}>{row.state==="approved"?"Resolve exception":"Decide exception"}</button>:"—",csv:()=>""}]:[]),
-        ]}/>}
+      {(canManage||isManager)&&exceptionLatest.map((row)=><div className="row" key={row.id}>
+        <div className="row-t">{row.profile?.full_name||"Employee"} · {row.requirement?.title||"Requirement"}</div>
+        <div className="row-m">{human(row.state)}{row.requested_until?" · requested until "+day(row.requested_until):""}{row.approved_until?" · approved until "+day(row.approved_until):""}</div>
+        <div className="row-note">{row.reason}</div>
+        {row.note&&<div className="row-note">{row.note}</div>}
+        {exceptions.filter((item)=>item.exception_key===row.exception_key).length>1&&<details className="compliance-history"><summary>Exception history · {exceptions.filter((item)=>item.exception_key===row.exception_key).length}</summary>{exceptions.filter((item)=>item.exception_key===row.exception_key).sort((a,b)=>b.version-a.version).map((item)=><div key={item.id}><strong>Version {item.version} · {human(item.state)}</strong><span>{dateTime(item.created_at)}{item.note?" · "+item.note:""}</span></div>)}</details>}
+        {canManage&&(row.state==="requested"||row.state==="approved")&&<div className="compliance-actions"><button className="btn btn-ghost btn-sm" onClick={()=>{setDecisionSheet(row);setDecisionAction(row.state==="approved"?"resolved":"approved");setDecisionNote("");setDecisionUntil("");}}>{row.state==="approved"?"Resolve exception":"Decide exception"}</button></div>}
+      </div>)}
+      {!exceptionLatest.length&&(canManage||isManager)&&<EmptyState compact title="No exception records">Requests and decisions in your authorised scope will appear here.</EmptyState>}
     </>}
 
     {policySheet&&<Sheet onClose={()=>!busy&&setPolicySheet(false)}>
