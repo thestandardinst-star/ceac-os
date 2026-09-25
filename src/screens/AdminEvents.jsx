@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Table } from "../components/primitives";
 
 function eventTime(value) {
   if (!value) return "—";
@@ -104,26 +105,22 @@ export default function AdminEvents({ me }) {
     <div className="split" style={{ marginTop: 18 }}>
       <div className="main-col">
         <div className="sec"><span>Event stream</span><span>{shown.length}</span></div>
-        {shown.map((event) => <div className="row" key={event.id}>
-          <div className="row-t">{humanize(event.event_type)}</div>
-          <div className="row-m">
-            {eventTime(event.occurred_at)}
-            {" · " + (people[event.actor_id] || "System")}
-          </div>
-          <div className="row-m" style={{ marginTop: 5 }}>
-            {humanize(event.aggregate_type)}
-            {event.aggregate_id ? " · " + event.aggregate_id.slice(0, 8) : ""}
-            {" · v" + event.payload_version}
-          </div>
-          {event.subject_profile_id && <div className="small" style={{ marginTop: 6 }}>
-            Subject: {people[event.subject_profile_id] || event.subject_profile_id.slice(0, 8)}
-          </div>}
-          {Object.keys(event.payload || {}).length > 0 && <div className="small" style={{ marginTop: 6 }}>
-            {Object.entries(event.payload).map(([key, value]) => humanize(key) + ": " + String(value ?? "—")).join(" · ")}
-          </div>}
-          <div className="small" style={{ marginTop: 6 }}>Correlation: {event.correlation_id.slice(0, 8)}</div>
-        </div>)}
-        {shown.length === 0 && <EmptyState title="No system events match">Change the event filter or search.</EmptyState>}
+        <Table
+          rows={shown}
+          empty="No system events match this filter."
+          caption="Append-only system event stream"
+          exportName="ceac-system-events"
+          columns={[
+            { key:"event_type", label:"Event", render:(event)=>humanize(event.event_type), sortValue:(event)=>event.event_type, csv:(event)=>humanize(event.event_type) },
+            { key:"occurred_at", label:"Occurred", render:(event)=>eventTime(event.occurred_at), sortValue:(event)=>new Date(event.occurred_at||0).getTime() },
+            { key:"actor", label:"Actor", render:(event)=>people[event.actor_id]||"System", sortValue:(event)=>people[event.actor_id]||"System" },
+            { key:"aggregate_type", label:"Record", render:(event)=>humanize(event.aggregate_type)+(event.aggregate_id?" · "+event.aggregate_id.slice(0,8):""), sortValue:(event)=>event.aggregate_type||"" },
+            { key:"subject", label:"Subject", render:(event)=>event.subject_profile_id ? people[event.subject_profile_id]||event.subject_profile_id.slice(0,8) : "—", sortValue:(event)=>event.subject_profile_id ? people[event.subject_profile_id]||event.subject_profile_id : "" },
+            { key:"payload", label:"Payload", render:(event)=>Object.keys(event.payload||{}).length ? Object.entries(event.payload).map(([key,value])=>humanize(key)+": "+String(value??"—")).join(" · ") : "—", csv:(event)=>Object.entries(event.payload||{}).map(([key,value])=>humanize(key)+": "+String(value??"—")).join(" · ") },
+            { key:"payload_version", label:"Version", align:"right", render:(event)=>event.payload_version },
+            { key:"correlation_id", label:"Correlation", render:(event)=>event.correlation_id?.slice(0,8)||"—" },
+          ]}
+        />
       </div>
 
       <div className="side-col">
