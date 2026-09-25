@@ -53,15 +53,30 @@ async function signIn(page,email,app){
 }
 
 async function inspectRoutes(page,role,config,routes){
+  const tinyText=[];
   for(const [tab,label] of routes){
     const url=tab==="home"?"/":"/?tab="+encodeURIComponent(tab);
     await page.goto(url);
     await expect(page.locator(config.app)).toBeVisible({timeout:15000});
     await expect(page.locator(".app-content")).toBeVisible();
     await expect(page.locator(".body").first()).toBeVisible({timeout:15000});
+    await page.evaluate(()=>document.fonts.ready);
     await page.waitForTimeout(250);
+    const violations=await page.evaluate(()=>{
+      const visible=(el)=>{
+        const style=getComputedStyle(el);
+        const rect=el.getBoundingClientRect();
+        return style.display!=="none"&&style.visibility!=="hidden"&&Number(style.opacity)!==0&&rect.width>0&&rect.height>0;
+      };
+      return [...document.querySelectorAll(".app-content *, .premium-side *, .premium-topbar *, .premium-tabs *")]
+        .filter((el)=>visible(el)&&[...el.childNodes].some((node)=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim()))
+        .map((el)=>({tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,100),text:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,80),size:parseFloat(getComputedStyle(el).fontSize)||0}))
+        .filter((item)=>item.text&&item.size>0&&item.size<12);
+    });
+    tinyText.push(...violations.map((item)=>({route:label,...item})));
     await page.screenshot({path:"test-artifacts/visual-parity-"+role+"-"+label+".png",fullPage:true});
   }
+  return tinyText;
 }
 
 for(const [role,config] of Object.entries(roleRoutes)){
@@ -74,7 +89,8 @@ for(const [role,config] of Object.entries(roleRoutes)){
     test(role+" visual inventory"+suffix,async({page})=>{
       await page.setViewportSize({width:1440,height:960});
       await signIn(page,config.email,config.app);
-      await inspectRoutes(page,role,config,routes);
+      const tinyText=await inspectRoutes(page,role,config,routes);
+      expect(tinyText, "Visible text below the CEAC 12px operational floor").toEqual([]);
     });
   });
 }
