@@ -510,7 +510,7 @@ export default function Room({
       </div>
       <aside className="room-record-rail" aria-label="Room context">
         <section className="ceac-record-panel">
-          <strong className="ceac-record-panel-title">{roomLabel(room)}</strong>
+          <strong className="ceac-record-panel-title">Conversation context</strong>
           <span className="ceac-record-panel-copy">{room?.kind === "project"
             ? "Project coordination stays attached to this project and its record."
             : room?.kind === "sub_team"
