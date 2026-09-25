@@ -3728,6 +3728,64 @@ button.office-config-card:active{background:#EEF5F4}
 .tbl td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .tbl tr.clickable{cursor:pointer}
 .tbl tr.clickable:hover{background:var(--line-soft)}
+.tbl tr.clickable:focus,
+.tbl tr.clickable:focus-within{
+  background:var(--green-soft);
+  outline:2px solid var(--green);
+  outline-offset:-2px;
+}
+
+.ceac-empty-state{
+  display:grid;gap:5px;align-content:start;
+  padding:17px 18px;border:1px dashed var(--line);border-radius:12px;
+  background:var(--card);color:var(--ink-soft)
+}
+.ceac-empty-state.compact{padding:12px 14px}
+.ceac-empty-icon{
+  width:30px;height:30px;display:grid;place-items:center;border-radius:8px;
+  background:var(--green-soft);color:var(--green);margin-bottom:2px
+}
+.ceac-empty-state strong{font-size:13.5px;color:var(--ink)}
+.ceac-empty-state p{font-size:12.5px;line-height:1.45;color:var(--ink-faint)}
+.ceac-empty-action{margin-top:5px}
+
+.ceac-skeleton-stack{display:grid;gap:8px}
+.ceac-skeleton{
+  display:block;position:relative;overflow:hidden;border-radius:7px;background:var(--line-soft)
+}
+.ceac-skeleton::after{
+  content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+  animation:ceac-skeleton-shimmer 1.35s ease-in-out infinite
+}
+.ceac-skeleton-line{height:12px}
+.ceac-skeleton-line.short{width:62%}
+.ceac-skeleton-block{min-height:92px}
+@keyframes ceac-skeleton-shimmer{to{transform:translateX(100%)}}
+
+.ceac-toast{
+  position:fixed;right:18px;bottom:18px;z-index:120;
+  max-width:min(390px,calc(100vw - 36px));
+  display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;gap:9px;
+  padding:11px 12px;border:1px solid var(--line);border-radius:12px;
+  background:var(--card);box-shadow:0 14px 34px rgba(28,43,53,.16);color:var(--ink)
+}
+.ceac-toast-icon{
+  width:30px;height:30px;display:grid;place-items:center;border-radius:8px;
+  background:var(--blue-soft);color:var(--blue)
+}
+.ceac-toast-success .ceac-toast-icon{background:var(--green-soft);color:var(--green)}
+.ceac-toast-attention .ceac-toast-icon{background:var(--amber-soft);color:var(--amber)}
+.ceac-toast-risk .ceac-toast-icon{background:var(--brick-soft);color:var(--brick)}
+.ceac-toast-message{font-size:12.5px;line-height:1.4}
+.ceac-toast-action{font-size:12px;font-weight:600;color:var(--blue);white-space:nowrap}
+
+@media(max-width:520px){
+  .ceac-toast{left:10px;right:10px;bottom:82px;max-width:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .ceac-skeleton::after{animation:none}
+}
 
 .ch{margin:6px 0}
 .ch-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
