@@ -194,7 +194,12 @@
 }
 .tbl tr.clickable{cursor:pointer}
 .tbl tr.clickable:hover{background:var(--ceac-primary-soft)}
-.tbl tr.clickable:focus-within{background:var(--ceac-primary-soft)}
+.tbl tr.clickable:focus,
+.tbl tr.clickable:focus-within{
+  background:var(--ceac-primary-soft);
+  outline:2px solid var(--ceac-primary);
+  outline-offset:-2px;
+}
 
 .ch{margin:var(--ceac-space-2) 0}
 .ch-top{
