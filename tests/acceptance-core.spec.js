@@ -1815,13 +1815,13 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    const evidenceRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    const evidenceRow = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(evidenceRow).toBeVisible();
     await expect(evidenceRow).toContainText(evidenceRef);
     await expect(evidenceRow.getByRole("button", { name: "Review evidence", exact: true })).toHaveCount(0);
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    const exceptionRow = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    const exceptionRow = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(exceptionRow).toBeVisible();
     await expect(exceptionRow.getByRole("button", { name: "Decide exception", exact: true })).toHaveCount(0);
     await context.close();
@@ -1831,18 +1831,18 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    let row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    let row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await row.getByRole("button", { name: "Review evidence", exact: true }).click();
     let dialog = page.getByRole("dialog");
     await dialog.getByLabel("Compliance evidence decision").selectOption("verified");
     await dialog.getByLabel("Compliance evidence reviewer note").fill("Acceptance evidence verified by Administration");
     await dialog.getByRole("button", { name: "Record evidence decision", exact: true }).click();
     await expect(page.getByText("Evidence review recorded.", { exact: true })).toBeVisible();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Verified");
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await row.getByRole("button", { name: "Decide exception", exact: true }).click();
     dialog = page.getByRole("dialog");
     await dialog.getByLabel("Compliance exception decision", { exact: true }).selectOption("approved");
@@ -1851,7 +1851,7 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await dialog.getByRole("button", { name: "Record exception decision", exact: true }).click();
     await expect(page.getByText("Exception decision recorded.", { exact: true })).toBeVisible();
 
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Approved");
     await row.getByRole("button", { name: "Resolve exception", exact: true }).click();
     dialog = page.getByRole("dialog");
@@ -1862,12 +1862,12 @@ test("Stage 11 Compliance records policies, acknowledgement, evidence and except
     await page.reload();
     await go(page, "Compliance");
     await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Verified");
     await expect(row.getByText(/Evidence history · 2/)).toBeVisible();
 
     await page.getByRole("tab", { name: "Exceptions", exact: true }).click();
-    row = page.locator(".row").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
+    row = page.locator(".tbl tbody tr").filter({ hasText: "Staff Fixture" }).filter({ hasText: requirementTitle }).first();
     await expect(row).toContainText("Resolved");
     await expect(row.getByText(/Exception history · 3/)).toBeVisible();
     await page.screenshot({ path: "test-artifacts/stage11-compliance-admin.png", fullPage: true });
