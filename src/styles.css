@@ -3709,7 +3709,7 @@ button.office-config-card:active{background:#EEF5F4}
   font-variant-numeric:tabular-nums}
 .age-late{color:var(--late)}.age-slow{color:var(--slow)}.age-quiet{color:var(--ink-faint)}
 .qrow-main{text-align:left;min-width:0;background:none;padding:0}
-.qrow-t{display:block;font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+.qrow-t{display:block;font-size:14px;color:var(--ink);overflow-wrap:break-word;word-break:normal}
 .qrow-m{display:block;font-size:12px;color:var(--ink-faint);margin-top:1px}
 .qrow-amt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .qrow-act{display:flex;gap:6px;white-space:nowrap}
@@ -3807,5 +3807,17 @@ button.office-config-card:active{background:#EEF5F4}
 /* A converted decision row sits inside the existing panel card. Strip the
    card's own padding so the queue reads as one dense list rather than a
    stack of boxes — three decisions in the space one card used. */
-.home-action-row:has(.qrow){padding:0;margin-bottom:6px}
+.home-action-row:has(.qrow){padding:0;margin-bottom:6px;container-type:inline-size}
 .home-action-row .qrow{border-bottom:0;padding:10px 13px}
+
+/* Decision cards can sit in a narrow dashboard column even on a wide laptop.
+   When the card itself is constrained, keep the age and request readable and
+   move fixed-width actions below instead of crushing the title into letters. */
+@container (max-width:560px){
+  .home-action-row .qrow{grid-template-columns:62px minmax(0,1fr);row-gap:7px}
+  .home-action-row .qrow-amt,.home-action-row .qrow-act{grid-column:2}
+  .home-action-row .qrow-act{flex-wrap:wrap;white-space:normal}
+}
+@container (max-width:360px){
+  .home-action-row .qrow{grid-template-columns:54px minmax(0,1fr)}
+}
