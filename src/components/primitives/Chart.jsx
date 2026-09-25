@@ -8,8 +8,15 @@
 import { useState } from "react";
 import Table from "./Table";
 import Icon from "./Icon";
+import EmptyState from "./EmptyState";
 
-const SERIES = ["#2A78D6", "#EB6834", "#1BAF7A", "#EDA100", "#E87BA4"];
+const SERIES = [
+  "var(--blue)",
+  "var(--brick)",
+  "var(--green)",
+  "var(--amber)",
+  "var(--green-mid)",
+];
 const fmt = (n) => (Math.round(n * 100) / 100).toLocaleString("en-GH");
 
 function Axis({ w, h, pad, max, ticks = 4 }) {
@@ -108,7 +115,7 @@ function Donut({ data, series, size = 150 }) {
 export default function Chart({ kind = "bar", data = [], series = [], title,
                                 note, height = 230, ariaLabel }) {
   const [asTable, setAsTable] = useState(false);
-  if (!data.length) return <div className="card small">Nothing to show yet.</div>;
+  if (!data.length) return <EmptyState icon="chart" title="Nothing to show yet." compact />;
 
   const w = 640, pad = { t: 10, r: 10, b: 26, l: 44 };
   const max = Math.max(...data.flatMap((d) => series.map((s) => Number(d[s.key]) || 0)), 0) || 1;
