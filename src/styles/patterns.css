@@ -353,9 +353,9 @@
   font-weight:500;
 }
 .room-screen .room-head{
-  position:sticky;
-  top:64px;
-  z-index:12;
+  position:relative;
+  top:auto;
+  z-index:1;
   background:var(--ceac-shell);
 }
 .room-screen .room-context-note{border-color:var(--ceac-line-soft)}
@@ -370,8 +370,7 @@
   .ceac-record-header,
   .staff-work-detail .work-detail-head,
   .manager-work-detail .work-detail-head,
-  .meeting-record-header,
-  .room-screen .room-head{
+  .meeting-record-header{
     top:58px;
   }
   .ceac-record-header{padding-top:10px}
