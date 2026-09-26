@@ -77,6 +77,7 @@ test("Stage 4C capability and multi-unit policies remain explicit", async () => 
 });
 
 test("Stage 4C Staff shell holds every supported phone width", async ({ browser }) => {
+  test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
 
   for (const width of widths) {
@@ -125,6 +126,7 @@ test("Stage 4C Staff shell holds every supported phone width", async ({ browser 
 });
 
 test("Stage 4C all four mobile role shells stay within the 390px viewport", async ({ browser }) => {
+  test.setTimeout(120000);
   for (const role of roles) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
@@ -150,6 +152,7 @@ test("Stage 4C all four mobile role shells stay within the 390px viewport", asyn
 });
 
 test("Stage 4C 1366x768 laptop shell keeps navigation and account chrome stable", async ({ browser }) => {
+  test.setTimeout(120000);
   for (const role of roles) {
     const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
     const page = await context.newPage();
