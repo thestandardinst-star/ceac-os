@@ -24,10 +24,14 @@ test("Stage 4B shell is isolated, tokenized and wired through App", async () => 
   expect(shell).toContain('from "../icons"');
   expect(shell).toContain("Drawer");
   expect(shell).toContain("PopoverMenu");
+  expect(shell).toContain("getShellQuickActions");
+  expect(shell).not.toContain("function createMenuItems");
   expect(shell).not.toContain("components/primitives/Icon");
   expect(shell).not.toContain("components/PremiumShell");
 
   expect(navigation).toContain('capability: "people.manage"');
+  expect(navigation).toContain("const ROLE_QUICK_ACTIONS");
+  expect(navigation).toContain("export function getShellQuickActions");
   expect(navigation).not.toContain('key: "primitives"');
 
   expect((css.match(/!important\b/g) || []).length).toBe(0);
@@ -50,6 +54,7 @@ test("Stage 4B shell is isolated, tokenized and wired through App", async () => 
   expect(app).not.toContain('from "./components/PremiumShell"');
   expect(app).not.toContain('className="app-workspace"');
   expect(app).not.toContain('className="mobile-unit-switch"');
+  expect(app).toContain("onCreateWork={(isManager || isExec)");
 
   const componentCss = main.indexOf('import "./experience-v2/components/components.css";');
   const shellCss = main.indexOf('import "./experience-v2/shell/shell.css";');
@@ -90,6 +95,21 @@ test("Stage 4B desktop shell exposes only authorised production destinations", a
   expect(geometry.documentOverflow).toBeLessThanOrEqual(1);
   expect(geometry.sidebarOverflow).toBeLessThanOrEqual(1);
   expect(["auto", "scroll"]).toContain(geometry.navOverflowY);
+});
+
+test("Stage 4B create menu exposes only role-authorised shortcuts", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await signIn(page, "staff@ceac.local.test");
+
+  const create = page.getByRole("button", { name: "Create", exact: true });
+  await expect(create).toBeVisible();
+  await create.click();
+
+  const menu = page.getByRole("menu");
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "New work", exact: true })).toHaveCount(0);
+  await expect(menu.getByRole("menuitem", { name: "Meeting", exact: true })).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: "Message room", exact: true })).toBeVisible();
 });
 
 test("Stage 4B mobile shell keeps five controls and uses the shared More drawer", async ({ page }) => {
