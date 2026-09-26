@@ -27,7 +27,7 @@ for (const proof of [
     // Stage 2 evidence isolates the V2 foundation from the still-legacy shell.
     // Shell quality is rebuilt and accepted separately in Stage 4.
     await page.addStyleTag({
-      content: ".premium-topbar,.premium-mobile-topbar,.premium-tabs{display:none!important}",
+      content: ".ev2s-topbar,.ev2s-mobile-topbar,.ev2s-mobile-nav{display:none!important}",
     });
 
     const pageOverflow = await page.evaluate(() =>
@@ -51,9 +51,9 @@ for (const proof of [
     // without a sticky top bar or mobile tab bar covering the gallery.
     await page.addStyleTag({
       content: `
-        .premium-topbar,
-        .premium-mobile-topbar,
-        .premium-tabs {
+        .ev2s-topbar,
+        .ev2s-mobile-topbar,
+        .ev2s-mobile-nav {
           visibility: hidden;
         }
       `,
