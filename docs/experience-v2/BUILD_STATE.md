@@ -6,8 +6,8 @@ Last updated: 26 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 2 — Design Foundation V2
-Current substage: 2F — Foundation visual acceptance and correction
+Current stage: Stage 3 — Core Component System
+Current substage: 3A — Core controls and surface primitives
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -63,10 +63,10 @@ dcd18540accb60e19a95c90fd633aab351bbfbba
 - [x] Build src/experience-v2/icons.jsx according to ICON_REGISTRY_CONTRACT.md.
 - [x] Add src/experience-v2/motion.js and ExperienceV2MotionProvider.jsx according to MOTION_IMPLEMENTATION_CONTRACT.md.
 - [x] Build the contained V2 foundation gallery according to FOUNDATION_GALLERY_SPEC.md without rebuilding role screens.
-- [ ] Verify the documented migration boundary in actual icon/component implementation.
-- [ ] Run Stage 2 mobile + laptop + large-desktop visual inspection against persistent references.
-- [ ] Record exact accepted Stage 2 SHA and dependency versions.
-- [ ] Do not start Stage 3 until Stage 2 is visually accepted.
+- [x] Verify the documented migration boundary in actual icon/component implementation.
+- [x] Run Stage 2 mobile + laptop + large-desktop visual inspection against persistent references.
+- [x] Record exact accepted Stage 2 SHA and dependency versions.
+- [x] Stage 2 visually accepted; Stage 3 may begin from the exact accepted SHA.
 
 Stage 2C icon-registry checkpoint:
 - Exact accepted icon-registry SHA: 99e1372743503c7967c023a9a8a213c46b7f5678.
@@ -102,11 +102,23 @@ Stage 2E foundation-gallery checkpoint:
 - No primary navigation destination was added.
 - No role screen was rebuilt.
 
-Stage 2F visual acceptance/correction:
-- The first rendered laptop proof exposed a real density-layout defect: the priority card became too narrow beside its supporting queue, producing cramped vertical text and an awkward action area.
-- This is being corrected at the shared gallery/foundation composition layer, not with a role-screen patch.
-- Dedicated screenshot evidence is being added for approximately 390×844, 1366×768 and 1440×900.
-- Stage 3 remains blocked until these rendered proofs are inspected against the persistent references.
+Stage 2F visual acceptance/correction: COMPLETE
+- First laptop proof exposed a real density-layout defect in the priority card/supporting queue relationship.
+- Corrected at the shared foundation composition layer; no role-screen patch was used.
+- Added deterministic visual tests at 390×844, 1366×768 and 1440×900.
+- Added expanded-state motion evidence at 1366×768.
+- Hardened V2 typography rendering and diagnostic scroll isolation.
+- Exact accepted Stage 2 SHA: f1d53018000d4359809b9ff8ab0c85e4c84912d3.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- lucide-react 1.48.0.
+- motion 13.4.4.
+- Persistent visual evidence:
+  CEAC OS / Experience V2 / Evidence / Stage 2 / f1d53018000d4359809b9ff8ab0c85e4c84912d3
+- Accepted as the V2 FOUNDATION quality direction only. It does not imply that the current legacy role screens or shell meet the final product-quality bar. Those are rebuilt and accepted in later stages.
 
 ## Current engineering checkpoints
 
@@ -133,16 +145,34 @@ Stage 2B dependency checkpoint:
 - No icon registry, motion provider, gallery or role-screen implementation was started in this checkpoint.
 - Screenshots/evidence: not applicable to dependency installation; visual proof remains a later Stage 2 gate.
 
+## Stage 3 active work
+
+Stage 3 builds the reusable V2 component system on the accepted Stage 2 foundation. It does not rebuild Staff/Manager/Admin/Executive role screens yet.
+
+Current substage 3A:
+- [ ] V2 Button and IconButton family.
+- [ ] V2 Input, Textarea and Select family.
+- [ ] V2 Status/Badge primitives.
+- [ ] V2 Surface/Panel primitives.
+- [ ] V2 Tabs/Segmented control foundation.
+- [ ] V2 Avatar primitive.
+- [ ] Core component accessibility/geometry tests.
+- [ ] Extend the protected V2 gallery to prove these components at phone and laptop widths.
+
+Later Stage 3 substages:
+- 3B operational/data primitives: Stat, QueueRow, RecordRow, table/data panel, progress/status patterns.
+- 3C interaction/state primitives: tooltip/popover/menu, drawer/sheet, modal/dialog, skeleton/loading, empty/error/configuration states, toast/confirmation.
+
+Do not start Stage 4 shell until Stage 3 is accepted.
+
 ## Current handoff
 
-Chat is the active writer for Stage 2F visual correction. No unpushed Work state is known.
+Chat is the active writer for Stage 3A. No unpushed Work state is known.
 
-Next safe action after this checkpoint:
-1. verify the exact Stage 2E HEAD and all GitHub checks;
-2. inspect the contained gallery at required phone, laptop and large-desktop sizes against the persistent references;
-3. correct shared foundation defects only;
-4. record Stage 2 visual evidence and accepted SHA;
-5. do not start Stage 3 until Stage 2 visual acceptance is complete.
+Stage 3 begins from exact accepted Stage 2 SHA:
+f1d53018000d4359809b9ff8ab0c85e4c84912d3
+
+Read docs/experience-v2/STAGE3_WORK_BRIEF.md before implementation.
 
 ## Draft PR
 
