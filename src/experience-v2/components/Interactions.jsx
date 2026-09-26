@@ -135,7 +135,7 @@ export function PopoverMenu({
       if (event.key === "Escape") {
         event.preventDefault();
         setOpen(false);
-        queueMicrotask(() => triggerRef.current?.focus());
+        queueMicrotask(() => triggerRef.current?.querySelector("button")?.focus());
       }
     }
 
@@ -180,7 +180,7 @@ export function PopoverMenu({
                 onClick={() => {
                   item.onSelect?.();
                   setOpen(false);
-                  queueMicrotask(() => triggerRef.current?.focus());
+                  queueMicrotask(() => triggerRef.current?.querySelector("button")?.focus());
                 }}
               >
                 {item.icon ? <CeacIcon name={item.icon} size="row" decorative /> : null}
