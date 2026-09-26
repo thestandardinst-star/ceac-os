@@ -114,8 +114,16 @@ CEAC OS / Experience V2 / References / Source Docs
 Files:
 - CEAC_OS_Master_Build_Brief_v9.md
 - CEAC_OS_Architecture_v4.md
+- CEAC_OS_Staff_Panel_Spec_v1.md
+- CEAC_OS_Manager_Panel_Spec_v1.md
+- CEAC_OS_Group_Pastor_Panel_Spec_v1.md
+- CEAC_OS_Admin_HR_Panel_Spec_v1.md
+- CEAC_What_We_Are_Building.pdf
+- CEAC_Office_Platform_For_Approval.pdf
+- CEAC_Ministry_OS_Approach_Note.pdf
+- CEAC_Presentation_Notes.pdf
 
-These are preserved project-source references. They do not automatically override newer repository architecture/security amendments. Use current repository precedence rules for conflicts.
+These are preserved project-source/supporting references. The four panel specs remain important functional context. The older architecture/brief/presentation material does not automatically override newer repository architecture/security amendments. Use current repository precedence rules for conflicts.
 
 ## Integrity checks for key persistent references
 
