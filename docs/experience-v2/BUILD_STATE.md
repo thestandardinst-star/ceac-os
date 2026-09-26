@@ -262,11 +262,15 @@ Implemented:
 - No role screen migrated.
 
 Pending before Stage 3 acceptance:
-- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel after focus-restoration correction;
-- rendered phone/laptop/desktop proof inspection;
+- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel with explicit open-state visual evidence;
+- inspect base phone/laptop/desktop proof plus phone drawer and laptop modal proof;
 - fix any remaining shared interaction/state defect;
 - record exact accepted Stage 3 SHA and persistent evidence;
 - only then open Stage 4 shell.
+
+Additional visual-acceptance requirement:
+- Stage 3C cannot be accepted from closed-state gallery screenshots alone.
+- The visual gate now captures the responsive phone drawer and laptop modal while open, in addition to the existing base/motion evidence.
 
 Stage 3C verification note:
 - First Quality Gate run found a real PopoverMenu focus-restoration bug.
