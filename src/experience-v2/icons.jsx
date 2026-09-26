@@ -28,6 +28,7 @@ import {
   Folder,
   FolderKanban,
   GraduationCap,
+  Home,
   Hourglass,
   Info,
   Link2,
@@ -70,7 +71,7 @@ export const CEAC_ICON_SIZES = Object.freeze({
 });
 
 export const CEAC_ICONS = Object.freeze({
-  home: BarChart3,
+  home: Home,
   work: ClipboardCheck,
   team: UsersRound,
   people: UsersRound,
