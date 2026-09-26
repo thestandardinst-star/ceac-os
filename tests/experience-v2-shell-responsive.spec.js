@@ -125,6 +125,31 @@ test("Stage 4C Staff shell holds every supported phone width", async ({ browser 
   }
 });
 
+test("Stage 4C Administration keeps essential bottom-nav labels readable at 320px", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await signIn(page, roles[2]);
+
+  const mobileNav = page.locator(".ev2s-mobile-nav");
+  await expect(mobileNav).toBeVisible();
+  await expect(mobileNav.getByRole("button")).toHaveCount(5);
+
+  const labels = await mobileNav.locator("button span").evaluateAll((nodes) =>
+    nodes.map((node) => ({
+      text: (node.textContent || "").trim(),
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+      whiteSpace: getComputedStyle(node).whiteSpace,
+    }))
+  );
+
+  for (const label of labels) {
+    expect(
+      label.scrollWidth - label.clientWidth,
+      `mobile label "${label.text}" is visually clipped`
+    ).toBeLessThanOrEqual(1);
+  }
+});
+
 test("Stage 4C all four mobile role shells stay within the 390px viewport", async ({ browser }) => {
   test.setTimeout(120000);
   for (const role of roles) {
