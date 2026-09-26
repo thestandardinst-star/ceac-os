@@ -22,7 +22,7 @@ test.describe("Premium redesign R2 Manager",()=>{
   });
   test("Manager Work exposes delegation views",async({browser})=>{
     const {context,page}=await openAs(browser);
-    await page.locator(".premium-side").getByRole("button",{name:"Work",exact:true}).click();
+    await page.locator(".ev2s-sidebar").getByRole("button",{name:"Work",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Work",exact:true})).toBeVisible();
     for (const label of ["Given out","Needs review","Team work","Mine"]) {
       await expect(page.getByRole("tab",{name:new RegExp(label)})).toBeVisible();
@@ -32,7 +32,7 @@ test.describe("Premium redesign R2 Manager",()=>{
   });
   test("Manager Team and person remain contextual",async({browser})=>{
     const {context,page}=await openAs(browser);
-    await page.locator(".premium-side").getByRole("button",{name:"Team",exact:true}).click();
+    await page.locator(".ev2s-sidebar").getByRole("button",{name:"Team",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Your team",exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:/Unit Room/})).toBeVisible();
     const person=page.locator(".row").filter({hasText:"Staff Fixture"}).first();
@@ -45,7 +45,7 @@ test.describe("Premium redesign R2 Manager",()=>{
   });
   test("Manager mobile remains within viewport",async({browser})=>{
     const {context,page}=await openAs(browser,{width:390,height:844});
-    await expect(page.locator(".premium-tabs")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({path:"test-artifacts/redesign-r2-manager-mobile.png",fullPage:true});
