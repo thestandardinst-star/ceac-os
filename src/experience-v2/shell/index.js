@@ -7,4 +7,5 @@ export {
   getShellNavigation,
   getShellQuickActions,
   groupDestinations,
+  hasMultipleUnits,
 } from "./navigation";
