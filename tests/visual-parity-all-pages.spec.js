@@ -70,7 +70,7 @@ async function inspectRoutes(page,role,config,routes){
       };
       return [...document.querySelectorAll(".app-content *, .premium-side *, .premium-topbar *, .premium-tabs *")]
         .filter((el)=>visible(el)&&[...el.childNodes].some((node)=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim()))
-        .map((el)=>({tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,100),text:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,80),size:parseFloat(getComputedStyle(el).fontSize)||0}))
+        .map((el)=>({tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,100),parentClassName:String(el.parentElement?.className||"").slice(0,100),grandparentClassName:String(el.parentElement?.parentElement?.className||"").slice(0,100),text:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,80),size:parseFloat(getComputedStyle(el).fontSize)||0}))
         .filter((item)=>item.text&&item.size>0&&item.size<12);
     });
     tinyText.push(...violations.map((item)=>({route:label,...item})));
