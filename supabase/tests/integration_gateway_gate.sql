@@ -39,10 +39,14 @@ begin
     raise exception 'Integration gateway gate failure: anon has integration privileges.';
   end if;
 
-  if has_table_privilege('authenticated','public.integration_outbox','INSERT')
+  if has_table_privilege('authenticated','public.integration_connectors','INSERT')
+     or has_table_privilege('authenticated','public.integration_connectors','UPDATE')
+     or has_table_privilege('authenticated','public.integration_subscriptions','INSERT')
+     or has_table_privilege('authenticated','public.integration_subscriptions','UPDATE')
+     or has_table_privilege('authenticated','public.integration_outbox','INSERT')
      or has_table_privilege('authenticated','public.integration_outbox','UPDATE')
      or has_table_privilege('authenticated','public.integration_outbox','DELETE') then
-    raise exception 'Integration gateway gate failure: authenticated can mutate service-owned outbox.';
+    raise exception 'Integration gateway gate failure: hardened gateway has browser mutation privileges.';
   end if;
 
   if has_function_privilege('authenticated','public.integration_enqueue_event()','EXECUTE')
@@ -52,7 +56,6 @@ begin
 end
 $integration_privileges$;
 
--- Staff cannot create connectors.
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
 
@@ -60,10 +63,11 @@ do $integration_denied$
 begin
   begin
     insert into public.integration_connectors(
-      org_id,connector_key,connector_type,display_name,enabled,public_config,created_by,updated_by
+      org_id,connector_key,connector_type,display_name,enabled,public_config,
+      provider_key,created_by,updated_by
     ) values (
       '10000000-0000-4000-8000-000000000010',
-      'staff-probe','custom','Staff Probe',false,'{}',
+      'staff-probe','custom','Staff Probe',false,'{}','telegram',
       '31000000-0000-4000-8000-000000000001',
       '31000000-0000-4000-8000-000000000001'
     );
@@ -75,81 +79,55 @@ $integration_denied$;
 
 reset role;
 
--- Integration manager configures a connector/subscription and matching event queues once.
-set local role authenticated;
-select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000003',true);
+set local role service_role;
 
 do $integration_flow$
 declare
   v_connector uuid;
   v_subscription uuid;
   v_event uuid;
-  v_rule uuid;
   v_count integer;
 begin
-  insert into public.integration_connectors(
-    org_id,connector_key,connector_type,display_name,enabled,public_config,created_by,updated_by
-  ) values (
+  v_connector:=public.integration_service_upsert_connector(
     '10000000-0000-4000-8000-000000000010',
-    'stage-1g-probe','webhook','Stage 1G Probe',true,
-    '{"destination_label":"Acceptance endpoint"}'::jsonb,
-    '31000000-0000-4000-8000-000000000003',
+    'telegram','Telegram','{"chat_id":"-1001"}'::jsonb,
     '31000000-0000-4000-8000-000000000003'
-  ) returning id into v_connector;
+  );
+  perform public.integration_service_transition_connection(
+    v_connector,'connecting','Stage 1G hardened gateway probe',
+    '31000000-0000-4000-8000-000000000003',
+    null,null,'{}','{}',null,'Gateway probe.'
+  );
+  perform public.integration_service_transition_connection(
+    v_connector,'connected','Stage 1G hardened gateway connected',
+    '31000000-0000-4000-8000-000000000003',
+    '@gateway_probe','1',array['send_messages']::text[],
+    array['send_notification']::text[],null,'Gateway probe connected.'
+  );
 
-  insert into public.integration_subscriptions(
-    org_id,connector_id,event_type,active,created_by,updated_by
-  ) values (
-    '10000000-0000-4000-8000-000000000010',
+  v_subscription:=public.integration_service_set_subscription(
     v_connector,'policy.rule_changed',true,
-    '31000000-0000-4000-8000-000000000003',
     '31000000-0000-4000-8000-000000000003'
-  ) returning id into v_subscription;
+  );
 
-  insert into public.policy_rule_versions(
-    org_id,rule_key,value,effective_on,reason,recorded_by
-  ) values (
+  v_event:=public.platform_emit_event(
     '10000000-0000-4000-8000-000000000010',
-    'reporting.overdue_days',
-    '3'::jsonb,
-    current_date,
-    'Stage 1G integration event probe',
-    '31000000-0000-4000-8000-000000000003'
-  )
-  returning id into v_rule;
-
-  select id into v_event
-  from public.platform_events
-  where event_type='policy.rule_changed'
-    and aggregate_type='policy_rule'
-    and aggregate_id=v_rule
-  order by recorded_at desc
-  limit 1;
-
-  if v_event is null then
-    raise exception 'Integration gateway gate failure: policy change produced no platform event.';
-  end if;
+    'policy.rule_changed',
+    '31000000-0000-4000-8000-000000000003',
+    null,'policy_rule',gen_random_uuid(),'{}'::jsonb,
+    'stage1g-hardened-probe',null,null,now()
+  );
 
   select count(*) into v_count
   from public.integration_outbox
   where subscription_id=v_subscription and event_id=v_event and state='pending';
-
   if v_count<>1 then
     raise exception 'Integration gateway gate failure: expected 1 queued delivery, found %.',v_count;
   end if;
 
   begin
-    update public.integration_outbox
-    set state='delivered',delivered_at=now()
-    where subscription_id=v_subscription and event_id=v_event;
-    raise exception 'Integration gateway gate failure: browser updated service-owned outbox.';
-  exception when insufficient_privilege then null;
-  end;
-
-  begin
     update public.integration_connectors
-    set public_config='{"api_key":"do-not-store"}'::jsonb,
-        updated_by='31000000-0000-4000-8000-000000000003'
+    set public_config='{"api_key":"do-not-store"}'::jsonb
     where id=v_connector;
     raise exception 'Integration gateway gate failure: secret-like config was accepted.';
   exception when insufficient_privilege then null;
