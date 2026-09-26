@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 2 — Design Foundation V2
-Current substage: 2A — Foundation contract and dependency selection
+Current substage: 2B — Dependency installation and shared implementation
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -83,25 +83,44 @@ Stage 1 exit evidence:
 
 Stage 1 status: COMPLETE.
 
-Stage 2 active work:
-- [ ] Inspect/ratify the V2 token schema against the stored references.
-- [ ] Select and lock one production icon family/registry.
-- [ ] Select and lock the motion implementation approach.
-- [ ] Add semantic typography, spacing, radius, elevation, colour and responsive tokens in a new V2 foundation layer.
-- [ ] Build a V2 primitive/gallery proof without rebuilding role screens yet.
-- [ ] Define the migration boundary away from duplicate icon systems and premium/parity CSS debt.
-- [ ] Run Stage 2 desktop/laptop + mobile visual inspection before Stage 3.
+Stage 2 completed:
+- [x] Inspect/ratify the V2 token schema against the stored references.
+- [x] Lock Instrument Sans as the Stage 2 UI type family.
+- [x] Select Lucide React as the single production icon family.
+- [x] Select Motion for React as the production motion implementation.
+- [x] Persist the binding Stage 2 design-foundation contract at docs/experience-v2/DESIGN_FOUNDATION_V2.md.
+- [x] Add semantic typography, spacing, radius, elevation, colour, responsive and motion tokens in isolated src/experience-v2.css.
+- [x] Load the V2 foundation after premium-parity.css without restyling legacy role screens.
+- [x] Add Stage 2 foundation contract tests.
+- [x] Fix the test-harness regex defect found by the first Quality Gate attempt.
+- [x] Re-run the complete engineering gate on exact head b947f8c88e73eccc46a3a470760b6e546ddbfe5a: CI PASS; Migration Replay PASS; Account Security PASS; Quality Gate PASS; Vercel PASS.
+- [x] Persist the exact Stage 2 Work brief at docs/experience-v2/STAGE2_WORK_BRIEF.md.
+
+Stage 2 in progress:
+- [ ] Install and lock lucide-react using npm so package.json and package-lock.json remain consistent.
+- [ ] Install and lock motion using npm so package.json and package-lock.json remain consistent.
+- [ ] Build the single semantic CEAC V2 icon registry.
+- [ ] Add the app-level MotionConfig and reusable V2 motion constants.
+- [ ] Build the contained V2 primitive/gallery proof without rebuilding role screens.
+- [ ] Define and verify the migration boundary away from duplicate icon systems and premium/parity CSS debt in implementation.
+- [ ] Run Stage 2 desktop/laptop + mobile visual inspection against the persistent references before Stage 3.
 
 Draft PR: #72
 
 Stage 1 exit:
 Stage 1 is complete only when all continuity documents and reference assets are in GitHub, AGENTS.md points to them, the branch builds/tests from the inherited baseline, and a new session can determine the exact current stage without reading any Chat transcript.
 
-## Stage 2 start conditions
+## Stage 2 current handoff
 
-Stage 2 starts from the current Experience V2 branch after Stage 1 closure.
+Exact verified engineering-green head before dependency installation:
+b947f8c88e73eccc46a3a470760b6e546ddbfe5a
 
-Do not rebuild role screens yet. The first objective is to prove the shared visual foundation against the stored quality references. Do not begin Stage 3 until the Stage 2 foundation is visually inspected and accepted.
+No unpushed Work state is known from this Chat handoff.
+
+Next safe action:
+use npm on the current Experience V2 branch to install the two ratified dependencies together, then commit package.json + package-lock.json before creating the icon registry or Motion provider. Do not hand-edit lockfile dependency records.
+
+Do not rebuild role screens yet. The first objective remains to prove the shared visual foundation against the stored quality references. Do not begin Stage 3 until the Stage 2 foundation is visually inspected and accepted.
 
 ## Handoff rule
 
