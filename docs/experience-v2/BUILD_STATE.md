@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 1 — Continuity, source-of-truth and reference lock
-Current substage: 1B — Persist design/quality contract and reference package
+Current substage: 1C — Baseline verification and draft PR
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -57,14 +57,22 @@ Completed:
 - [x] Create isolated Experience V2 branch from PR #69 exact head.
 - [x] Add mandatory Chat/Work START_HERE entry point.
 
+Completed:
+- [x] Persist Experience V2 source-of-truth.
+- [x] Persist implementation sequence.
+- [x] Persist acceptance and Chat/Work handoff protocol.
+- [x] Persist durable decision log.
+- [x] Persist baseline repository audit.
+- [x] Persist reference index.
+- [x] Store user-supplied quality references, current-gap evidence, motion reference, role mockups and preserved source docs in the persistent Library under CEAC OS / Experience V2 / References.
+- [x] Update AGENTS.md so any coding session enters through Experience V2.
+- [x] Redirect legacy CLAUDE.md instructions to the Experience V2 entry point.
+
 In progress:
-- [ ] Commit Experience V2 source-of-truth.
-- [ ] Commit implementation sequence.
-- [ ] Commit acceptance and handoff protocol.
-- [ ] Commit reference index and design/motion evidence.
-- [ ] Update AGENTS.md so any coding session enters through Experience V2.
-- [ ] Verify all reference files exist at the documented paths.
-- [ ] Run the baseline quality gate on the Experience V2 branch after documentation/reference import.
+- [ ] Open the Experience V2 draft pull request.
+- [ ] Run/verify the inherited baseline quality gates on the Experience V2 branch.
+- [ ] Resolve any documentation-only CI/reference-path defect without starting Stage 2.
+- [ ] Mark Stage 1 complete and record Stage 2 exact start conditions.
 
 Stage 1 exit:
 Stage 1 is complete only when all continuity documents and reference assets are in GitHub, AGENTS.md points to them, the branch builds/tests from the inherited baseline, and a new session can determine the exact current stage without reading any Chat transcript.
