@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 3 — Core Component System
-Current substage: 3C — Interaction and state primitives
+Current substage: 3C — Interaction and state primitives (implementation under verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -173,15 +173,15 @@ Current substage 3B:
 - [x] Inspect phone/laptop/desktop proof before 3C.
 
 Current substage 3C:
-- [ ] Tooltip.
-- [ ] Popover/Menu foundation.
-- [ ] Drawer/Sheet.
-- [ ] Modal/Dialog.
-- [ ] Skeleton/Loading.
-- [ ] Empty/Error/Configuration state surfaces.
-- [ ] Toast/Confirmation.
-- [ ] Keyboard/focus/escape/close behaviour tests.
-- [ ] Extend protected V2 gallery with interaction/state proofs.
+- [x] Tooltip.
+- [x] Popover/Menu foundation.
+- [x] Drawer/Sheet.
+- [x] Modal/Dialog.
+- [x] Skeleton/Loading.
+- [x] Empty/Error/Configuration state surfaces.
+- [x] Toast/Confirmation.
+- [x] Keyboard/focus/escape/close behaviour tests.
+- [x] Extend protected V2 gallery with interaction/state proofs.
 - [ ] Inspect phone/laptop/desktop proof.
 - [ ] Accept Stage 3 and open Stage 4 shell only after 3C passes.
 
@@ -246,14 +246,33 @@ First Stage 3B verification found two issues:
 - a test-harness false positive because legacy ManagerHome already contains its own QueueRow symbol; the boundary test now checks V2 imports instead of generic names;
 - the Stage 3B gallery split a queue/data panel too narrowly inside the seven-column proof region at laptop width. The proof now stacks operational/data groups inside that constrained region so row text and status geometry remain readable.
 
+## Stage 3C implementation checkpoint
+
+Implemented:
+- Tooltip with focus/hover semantics.
+- PopoverMenu with outside-click and Escape handling.
+- Drawer/Sheet with responsive mobile bottom-sheet treatment.
+- ModalDialog and ConfirmDialog.
+- Skeleton/Loading treatment.
+- Empty/Error/Configuration/Success-capable StatePanel.
+- Toast/Confirmation feedback.
+- Focus trapping, Escape dismissal and focus restoration for overlays.
+- Protected gallery interaction/state proof.
+- Playwright keyboard/focus behaviour tests.
+- No role screen migrated.
+
+Pending before Stage 3 acceptance:
+- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
+- rendered phone/laptop/desktop proof inspection;
+- fix any shared interaction/state defect;
+- record exact accepted Stage 3 SHA and persistent evidence;
+- only then open Stage 4 shell.
+
 ## Current handoff
 
-Chat is the active writer for Stage 3C. No unpushed Work state is known.
+Chat is the active writer for Stage 3C verification. No unpushed Work state is known.
 
-Stage 3C starts from exact accepted Stage 3B SHA:
-c6881aa70c238a883a22dc870c3d210d8f03440c
-
-Do not begin Stage 4 shell until Stage 3C and the whole Stage 3 component system are engineering-green and visually inspected.
+Do not begin Stage 4 until Stage 3C and the whole Stage 3 component system are accepted.
 
 ## Draft PR
 

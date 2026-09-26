@@ -20,6 +20,14 @@ import {
   StatTile,
   TableShell,
   Timeline,
+  ConfirmDialog,
+  Drawer,
+  ModalDialog,
+  PopoverMenu,
+  Skeleton,
+  StatePanel,
+  Toast,
+  Tooltip,
 } from "./components";
 
 const ICON_PROOF = [
@@ -33,6 +41,10 @@ const SIZE_PROOF = ["meta", "row", "nav", "feature"];
 export default function ExperienceV2FoundationGallery() {
   const [expanded, setExpanded] = useState(false);
   const [componentView, setComponentView] = useState("ready");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
 
   return (
     <section className="ev2-foundation ev2-gallery" aria-labelledby="ev2-foundation-title">
@@ -322,6 +334,114 @@ export default function ExperienceV2FoundationGallery() {
               />
             </DataPanel>
           </div>
+        </section>
+
+        <section className="ev2-gallery-panel ev2-gallery-panel-wide" aria-labelledby="ev2-interaction-title">
+          <div className="ev2-gallery-panel-head">
+            <div>
+              <div className="ev2-type-label">Interaction + states</div>
+              <h3 id="ev2-interaction-title" className="ev2-type-card">Open, close and recover without losing context</h3>
+            </div>
+            <span className="ev2-type-supporting">Reference only</span>
+          </div>
+
+          <div className="ev2c-interaction-proof-grid">
+            <Surface variant="soft" padding="standard">
+              <div className="ev2-type-label">Interactive controls</div>
+              <div className="ev2-control-row">
+                <Tooltip label="Helpful context without clutter">
+                  <Button variant="secondary">Tooltip</Button>
+                </Tooltip>
+
+                <PopoverMenu
+                  triggerLabel="Reference menu"
+                  items={[
+                    { id: "open", label: "Open reference item", icon: "external" },
+                    { id: "edit", label: "Edit reference item", icon: "edit" },
+                    { id: "remove", label: "Remove reference item", icon: "delete", danger: true },
+                  ]}
+                />
+
+                <Button variant="secondary" onClick={() => setDrawerOpen(true)}>Open drawer</Button>
+                <Button variant="secondary" onClick={() => setModalOpen(true)}>Open modal</Button>
+                <Button variant="danger" onClick={() => setConfirmOpen(true)}>Confirm action</Button>
+                <Button onClick={() => setToastOpen(true)}>Show toast</Button>
+              </div>
+            </Surface>
+
+            <Surface variant="plain" padding="standard">
+              <div className="ev2-type-label">Loading treatment</div>
+              <div className="ev2c-skeleton-proof" aria-label="Loading skeleton example">
+                <Skeleton width="42%" />
+                <Skeleton width="76%" />
+                <Skeleton variant="block" height="5rem" />
+              </div>
+            </Surface>
+          </div>
+
+          <div className="ev2c-state-proof-grid">
+            <StatePanel
+              state="empty"
+              title="Nothing recorded yet"
+              description="Empty states explain what is absent without inventing data."
+              actionLabel="Reference action"
+            />
+            <StatePanel
+              state="configuration"
+              title="Setup is still required"
+              description="Configuration states tell an authorised user what must happen next."
+              actionLabel="Review setup"
+              secondaryLabel="Later"
+            />
+          </div>
+
+          <Drawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            title="Reference drawer"
+            description="A focused side surface for secondary work without leaving the current context."
+            footer={<Button onClick={() => setDrawerOpen(false)}>Done</Button>}
+          >
+            <div className="ev2c-skeleton-proof">
+              <QueueRow icon="work" title="Reference drawer row" meta="Context stays nearby" />
+              <InputField label="Reference field" placeholder="Example input" />
+            </div>
+          </Drawer>
+
+          <ModalDialog
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            title="Reference modal"
+            description="Use a modal only when the task needs focused interruption."
+            footer={<Button onClick={() => setModalOpen(false)}>Done</Button>}
+          >
+            <p className="ev2c-confirm-copy">
+              Modal content remains concise and keyboard-reachable, with Escape and backdrop dismissal available.
+            </p>
+          </ModalDialog>
+
+          <ConfirmDialog
+            open={confirmOpen}
+            onClose={() => setConfirmOpen(false)}
+            onConfirm={() => {
+              setConfirmOpen(false);
+              setToastOpen(true);
+            }}
+            title="Confirm reference action"
+            description="The confirmation makes consequence explicit before a destructive action."
+            confirmLabel="Confirm"
+            danger
+          />
+
+          <Toast
+            open={toastOpen}
+            tone="success"
+            title="Reference update saved"
+            description="Feedback is brief, clear and dismissible."
+            actionLabel="Review"
+            onAction={() => setToastOpen(false)}
+            onClose={() => setToastOpen(false)}
+          />
         </section>
 
         <section className="ev2-gallery-panel ev2-gallery-panel-motion" aria-labelledby="ev2-motion-title">
