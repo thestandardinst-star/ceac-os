@@ -1995,7 +1995,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByRole("heading", { name: "Connected Apps", exact: true })).toBeVisible();
   const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
   await expect(telegramCard).toBeVisible();
-  await expect(telegramCard.getByText("Not connected", { exact: true })).toBeVisible();
+  await expect(telegramCard.locator(".pill").getByText("Not connected", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Integration connector name")).toHaveCount(0);
   await expect(page.getByLabel("Integration connector key")).toHaveCount(0);
 
@@ -2223,7 +2223,7 @@ test("Stage 12 Connected Apps keeps provider secrets server-bound on mobile", as
 
   const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
   await expect(telegramCard).toBeVisible();
-  await expect(telegramCard.getByText("Not connected", { exact: true })).toBeVisible();
+  await expect(telegramCard.locator(".pill").getByText("Not connected", { exact: true })).toBeVisible();
   await telegramCard.getByRole("button", { name: "Connect", exact: true }).click();
 
   const dialog = page.getByRole("dialog");
