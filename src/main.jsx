@@ -11,4 +11,10 @@ import "./premium-executive.css";
 import "./premium-parity.css";
 import "./experience-v2.css";
 
-createRoot(document.getElementById("root")).render(\n  <React.StrictMode>\n    <ExperienceV2MotionProvider>\n      <App />\n    </ExperienceV2MotionProvider>\n  </React.StrictMode>\n);
+createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <ExperienceV2MotionProvider>
+      <App />
+    </ExperienceV2MotionProvider>
+  </React.StrictMode>
+);
