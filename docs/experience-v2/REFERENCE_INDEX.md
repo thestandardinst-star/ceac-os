@@ -48,8 +48,10 @@ Files:
   - establishes desired mobile navigation, component consistency and layout quality.
 - quality_reference_board.jpg
   - compact board combining the above for quick comparison.
+- motion_reference_original.mp4
+  - original product-owner-supplied interaction reference; preserve for highest-fidelity motion review.
 - motion_reference.mp4
-  - compressed persistent copy of the product-owner-supplied interaction reference.
+  - compressed lightweight review copy of the same interaction reference.
 - motion_reference_storyboard.jpg
   - key-frame storyboard for fast inspection without loading the video.
 
