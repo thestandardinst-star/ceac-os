@@ -24,6 +24,12 @@ for (const proof of [
   test(`Experience V2 foundation proof composes at ${proof.name}`, async ({ browser }) => {
     const { context, page, gallery } = await openAdminGallery(browser, proof.viewport);
 
+    // Stage 2 evidence isolates the V2 foundation from the still-legacy shell.
+    // Shell quality is rebuilt and accepted separately in Stage 4.
+    await page.addStyleTag({
+      content: ".premium-topbar,.premium-mobile-topbar,.premium-tabs{display:none!important}",
+    });
+
     const pageOverflow = await page.evaluate(() =>
       document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
