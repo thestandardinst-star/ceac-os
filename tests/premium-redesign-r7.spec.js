@@ -27,12 +27,12 @@ test.describe("Premium redesign R7 closure", () => {
       const { context, page, openMs } = await openRole(browser, email, appClass, readySelector);
       expect(openMs).toBeLessThan(15000);
 
-      await expect(page.locator(".premium-side")).toBeVisible();
-      await expect(page.locator(".premium-topbar")).toBeVisible();
-      await expect(page.locator(".reference-quick-create")).toBeVisible();
+      await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+      await expect(page.locator(".ev2s-topbar")).toBeVisible();
+      await expect(page.locator(".ev2s-sidebar-nav")).toBeVisible();
       await expect(page.locator(".reference-rail")).toBeVisible();
       await expect(page.locator(".reference-calendar-card")).toBeVisible();
-      await expect(page.locator(".premium-create")).toBeVisible();
+      await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
 
       const command = label === "Staff" ? ".staff-command-surface"
         : label === "Manager" ? ".manager-command-surface"
@@ -72,13 +72,13 @@ test.describe("Premium redesign R7 closure", () => {
 
   test("Staff mobile keeps the reference hierarchy without desktop chrome", async ({ browser }) => {
     const { context, page } = await openRole(browser, "staff@ceac.local.test", ".staff-app", ".staff-home-dashboard", "no-preference", { width: 390, height: 844 });
-    await expect(page.locator(".premium-side")).toBeHidden();
-    await expect(page.locator(".desktop-topbar")).toBeHidden();
-    await expect(page.locator(".premium-mobile-topbar")).toBeVisible();
+    await expect(page.locator(".ev2s-sidebar")).toBeHidden();
+    await expect(page.locator(".ev2s-topbar")).toBeHidden();
+    await expect(page.locator(".ev2s-mobile-topbar")).toBeVisible();
     await expect(page.locator(".staff-command-surface")).toBeVisible();
     await expect(page.locator(".reference-schedule-card")).toBeVisible();
     await expect(page.locator(".reference-module-strip")).toBeVisible();
-    await expect(page.locator(".premium-tabs")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r7-staff-mobile.png", fullPage: true });
     await context.close();
   });
@@ -86,13 +86,13 @@ test.describe("Premium redesign R7 closure", () => {
   test("Command K opens the navigation palette", async ({ browser }) => {
     const { context, page } = await openRole(browser, "staff@ceac.local.test", ".staff-app", ".staff-home-dashboard");
     await page.keyboard.press("Meta+K");
-    await expect(page.locator(".premium-search-popover")).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Find a destination" })).toBeVisible();
     await context.close();
   });
 
   test("Reduced-motion preference suppresses premium transitions", async ({ browser }) => {
     const { context, page } = await openRole(browser, "staff@ceac.local.test", ".staff-app", ".staff-home-dashboard", "reduce");
-    const duration = await page.locator(".premium-create").evaluate((el) => getComputedStyle(el).transitionDuration);
+    const duration = await page.getByRole("button", { name: "Create", exact: true }).evaluate((el) => getComputedStyle(el).transitionDuration);
     const values = duration.split(",").map((value) => parseFloat(value) || 0);
     expect(Math.max(...values)).toBeLessThanOrEqual(0.01);
     await context.close();
