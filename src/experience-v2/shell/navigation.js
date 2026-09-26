@@ -62,6 +62,28 @@ const MOBILE_PRIMARY_KEYS = Object.freeze({
   executive: Object.freeze(["home", "work", "strategy", "delivery"]),
 });
 
+const ROLE_QUICK_ACTIONS = Object.freeze({
+  staff: Object.freeze([
+    { id: "meeting", label: "Meeting", icon: "meeting", action: "meeting" },
+    { id: "message", label: "Message room", icon: "messages", action: "message" },
+  ]),
+  manager: Object.freeze([
+    { id: "work", label: "New work", icon: "work", action: "work" },
+    { id: "meeting", label: "Meeting", icon: "meeting", action: "meeting" },
+    { id: "message", label: "Message room", icon: "messages", action: "message" },
+  ]),
+  admin: Object.freeze([
+    { id: "work", label: "New work", icon: "work", action: "work" },
+    { id: "meeting", label: "Meeting", icon: "meeting", action: "meeting" },
+    { id: "message", label: "Message room", icon: "messages", action: "message" },
+  ]),
+  executive: Object.freeze([
+    { id: "work", label: "New work", icon: "work", action: "work" },
+    { id: "meeting", label: "Meeting", icon: "meeting", action: "meeting" },
+    { id: "message", label: "Message room", icon: "messages", action: "message" },
+  ]),
+});
+
 export function getRoleKey({ isAdmin = false, isExec = false, isManager = false } = {}) {
   if (isExec) return "executive";
   if (isAdmin) return "admin";
@@ -102,6 +124,19 @@ export function getSecondaryNavigation(context = {}) {
     getMobilePrimaryNavigation(context).map((item) => item.key)
   );
   return navigation.filter((item) => !primaryKeys.has(item.key));
+}
+
+export function getShellQuickActions(context = {}, handlers = {}) {
+  const role = getRoleKey(context);
+  const actionHandlers = {
+    work: handlers.onCreateWork,
+    meeting: handlers.onCreateMeeting,
+    message: handlers.onComposeMessage || handlers.onMessages,
+  };
+
+  return ROLE_QUICK_ACTIONS[role]
+    .map((item) => ({ ...item, onSelect: actionHandlers[item.action] }))
+    .filter((item) => typeof item.onSelect === "function");
 }
 
 export function groupDestinations(items = []) {
