@@ -30,7 +30,7 @@ test.describe("Premium redesign R3 Administration",()=>{
   });
   test("People remains the flagship employee workspace",async({browser})=>{
     const {context,page}=await openAdmin(browser);
-    await page.locator(".premium-side").getByRole("button",{name:"People",exact:true}).click();
+    await page.locator(".ev2s-sidebar").getByRole("button",{name:"People",exact:true}).click();
     await expect(page.getByRole("heading",{name:"People",exact:true})).toBeVisible();
     await expect(page.getByPlaceholder("Name, email, job title or unit")).toBeVisible();
     await page.screenshot({path:"test-artifacts/redesign-r3-admin-people.png",fullPage:true});
@@ -38,7 +38,7 @@ test.describe("Premium redesign R3 Administration",()=>{
   });
   test("Finance connects actual spend to Expenses",async({browser})=>{
     const {context,page}=await openAdmin(browser);
-    await page.locator(".premium-side").getByRole("button",{name:"Finance",exact:true}).click();
+    await page.locator(".ev2s-sidebar").getByRole("button",{name:"Finance",exact:true}).click();
     await page.getByRole("button",{name:"Money out",exact:true}).click();
     await expect(page.getByRole("button",{name:"Open Expenses",exact:true})).toBeVisible();
     await page.getByRole("button",{name:"Open Expenses",exact:true}).click();
@@ -48,7 +48,7 @@ test.describe("Premium redesign R3 Administration",()=>{
   });
   test("Control Center hides technical architecture behind human labels",async({browser})=>{
     const {context,page}=await openAdmin(browser);
-    await page.locator(".premium-side").getByRole("button",{name:"Control Center",exact:true}).click();
+    await page.locator(".ev2s-sidebar").getByRole("button",{name:"Control Center",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Control Center",exact:true})).toBeVisible();
     await expect(page.getByText("Connected Apps",{exact:true})).toBeVisible();
     await expect(page.getByText("Access & permissions",{exact:true})).toBeVisible();
@@ -58,7 +58,7 @@ test.describe("Premium redesign R3 Administration",()=>{
   });
   test("Administration mobile stays within the viewport",async({browser})=>{
     const {context,page}=await openAdmin(browser,{width:390,height:844});
-    await expect(page.locator(".premium-tabs")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({path:"test-artifacts/redesign-r3-admin-mobile.png",fullPage:true});
