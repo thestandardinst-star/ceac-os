@@ -56,7 +56,7 @@ const routeByLabel = {
 };
 
 async function go(page, name) {
-  const visibleNav = page.locator(".premium-side").getByRole("button", { name, exact: true });
+  const visibleNav = page.locator(".ev2s-sidebar").getByRole("button", { name, exact: true });
   if (await visibleNav.count()) {
     await visibleNav.click();
     await expect(page.locator(".body")).toBeVisible({ timeout: 15000 });
@@ -415,7 +415,7 @@ test("Recurring ministry numbers flow from a unit record to the Group Pastor ove
 test("Experience Stage 8 removes the known navigation, Team and Calendar defects", async ({ browser }) => {
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
-    const side = page.locator(".premium-side");
+    const side = page.locator(".ev2s-sidebar");
     await expect(side.getByRole("button", { name: "Finance", exact: true })).toBeVisible();
     await expect(side.getByRole("button", { name: "Budget", exact: true })).toHaveCount(0);
     await expect(side.getByRole("button", { name: "Messages", exact: true })).toBeVisible();
