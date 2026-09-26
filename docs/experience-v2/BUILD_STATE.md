@@ -223,6 +223,10 @@ Pending before 3B acceptance:
 - rendered 390×844, 1366×768 and 1440×900 proof inspection;
 - fix any shared component/density defect before 3C.
 
+First Stage 3B verification found two issues:
+- a test-harness false positive because legacy ManagerHome already contains its own QueueRow symbol; the boundary test now checks V2 imports instead of generic names;
+- the Stage 3B gallery split a queue/data panel too narrowly inside the seven-column proof region at laptop width. The proof now stacks operational/data groups inside that constrained region so row text and status geometry remain readable.
+
 ## Current handoff
 
 Chat is the active writer for Stage 3B verification. No unpushed Work state is known.
