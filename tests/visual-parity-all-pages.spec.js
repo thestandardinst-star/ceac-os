@@ -63,7 +63,7 @@ async function inspectRoutes(page,role,config,routes){
     await page.evaluate(()=>document.fonts.ready);
     await page.waitForTimeout(250);
     const sidebarOverflow=await page.evaluate(()=>{
-      const side=document.querySelector(".premium-side");
+      const side=document.querySelector(".ev2s-sidebar");
       return side ? side.scrollWidth-side.clientWidth : 0;
     });
     expect(sidebarOverflow, role+" / "+label+" sidebar horizontal overflow").toBeLessThanOrEqual(1);
@@ -73,7 +73,7 @@ async function inspectRoutes(page,role,config,routes){
         const rect=el.getBoundingClientRect();
         return style.display!=="none"&&style.visibility!=="hidden"&&Number(style.opacity)!==0&&rect.width>0&&rect.height>0;
       };
-      return [...document.querySelectorAll(".app-content *, .premium-side *, .premium-topbar *, .premium-tabs *")]
+      return [...document.querySelectorAll(".app-content *, .ev2s-sidebar *, .ev2s-topbar *, .ev2s-mobile-nav *")]
         .filter((el)=>visible(el)&&[...el.childNodes].some((node)=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim()))
         .map((el)=>({tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,100),parentClassName:String(el.parentElement?.className||"").slice(0,100),grandparentClassName:String(el.parentElement?.parentElement?.className||"").slice(0,100),text:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,80),size:parseFloat(getComputedStyle(el).fontSize)||0}))
         .filter((item)=>item.text&&item.size>0&&item.size<12);
@@ -107,12 +107,12 @@ for(const [role,config] of Object.entries(roleRoutes)){
     await expect(page.locator(config.app)).toBeVisible({timeout:15000});
     await page.evaluate(()=>document.fonts.ready);
     const overflow=await page.evaluate(()=>{
-      const side=document.querySelector(".premium-side");
+      const side=document.querySelector(".ev2s-sidebar");
       return {
         document:document.documentElement.scrollWidth-document.documentElement.clientWidth,
         side:side ? side.scrollWidth-side.clientWidth : 0,
-        brand:side?.querySelector(".premium-brand")
-          ? side.querySelector(".premium-brand").scrollWidth-side.querySelector(".premium-brand").clientWidth
+        brand:side?.querySelector(".ev2s-brand")
+          ? side.querySelector(".ev2s-brand").scrollWidth-side.querySelector(".ev2s-brand").clientWidth
           : 0,
       };
     });
