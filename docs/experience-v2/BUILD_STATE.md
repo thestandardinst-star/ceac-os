@@ -307,37 +307,63 @@ Stage 4A audit/contract checkpoint:
 - Current strengths, shared shell defects, destination matrix, responsive contract and authority boundary are recorded in docs/experience-v2/STAGE4_WORK_BRIEF.md.
 - Stage 4B may now implement the isolated V2 shell structure.
 
-Stage 4B implementation checkpoint: IMPLEMENTED, VERIFICATION IN PROGRESS
-- Latest corrective implementation SHA before this documentation checkpoint: d91c414f17a9158b4d1baa7f381d21ada9363b2f.
-- The first full Quality Gate on the initial V2 shell head exposed migration-gate failures rather than security/data failures: legacy acceptance tests still targeted PremiumShell selectors and the shared small Avatar rendered initials at 11px, below the ratified 12px operational floor.
-- Corrected the shared Avatar text floor at the component layer.
-- Migrated the affected shell acceptance tests to the V2 shell selectors and Stage 3 Drawer/Popover semantics without weakening role/destination assertions.
-- Kept the visual-regression threshold unchanged while excluding only the deliberately replaced shell chrome from the legacy role-content fingerprint comparison.
-- Centralised shell quick actions in the same role policy module as navigation; Staff is not offered work creation, while Manager, Administration and Executive retain the existing authorised assignment path.
-- Added isolated shared shell under src/experience-v2/shell/.
-- Centralised four-role destination metadata and role-authorised quick-action metadata.
-- Replaced active shell imports in App.jsx with the V2 shell without rebuilding role-page content.
-- V2 shell uses the CEAC Lucide registry and accepted Stage 3 Drawer/Popover primitives.
-- Desktop navigation now owns an independently scrollable middle region.
-- Administration Primitives remains a protected diagnostic route but is absent from production navigation.
-- Destination search is explicitly navigation-only.
-- Mobile More uses the shared Drawer and grouped secondary destinations.
-- Dual-unit switching is integrated into shell context.
-- Accra date/time is explicitly formatted with Africa/Accra.
-- Shell CSS is isolated, token-based and adds no !important declarations.
-- Staff is not offered a work-creation shortcut; Manager, Administration and Executive use the already-authorised assignment path.
-- Added Stage 4B architecture/browser coverage, including role-authorised quick-action verification.
-- No Supabase, RLS, RPC, migration, role-screen content or frozen PR #71 change.
-- Exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel verification is rerunning after these concrete Stage 4B corrections. Do not open Stage 4C until the exact head is green.
+Stage 4B: ACCEPTED
+
+Accepted exact implementation SHA:
+- `99a380e42083153ce627eccad9f412bfad5f0a2a`
+
+Acceptance evidence:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36266918061`
+- rendered Staff, Manager, Administration and Executive desktop evidence inspected
+- rendered Staff mobile evidence inspected
+- acceptance record: `docs/experience-v2/STAGE4B_ACCEPTANCE_RECORD.md`
+
+Stage 4B accepted outcomes:
+- isolated shared V2 shell;
+- central four-role destination model;
+- central authorised quick-action model;
+- independently scrolling desktop navigation;
+- protected diagnostics removed from ordinary navigation;
+- truthful destination search;
+- Stage 3 Popover/Drawer primitives reused;
+- integrated mobile unit context;
+- explicit Africa/Accra time handling;
+- V2 Lucide icon language;
+- no new shell `!important`;
+- 12px shared small-Avatar text floor;
+- legacy shell acceptance migrated without weakening authority or role assertions.
+
+Current substage 4C: RESPONSIVE AND INTERACTION HARDENING
+
+Required verification:
+- phone widths 320, 360, 375, 390, 414, 430;
+- laptop 1366×768;
+- desktop 1440+;
+- all four roles;
+- long person/unit names;
+- capability-limited Administration;
+- dual-unit context;
+- More Drawer/Escape/focus restoration;
+- destination search and keyboard flow;
+- overlay/back behaviour;
+- no horizontal overflow or clipped essential controls.
+
+Do not start Stage 4D or Stage 5 until 4C is green and visually inspected.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex is not active. Stage 4B implementation is pushed and under exact-head verification. No unpushed Chat state is known.
+Chat is the sole active writer. Work/Codex is not active. Stage 4B is accepted. Stage 4C responsive and interaction hardening is active. No unpushed Chat state is known.
 
 Exact next action:
-- inspect the exact current HEAD and all five gates;
-- if a gate fails, correct only the concrete Stage 4B defect and rerun;
-- if all gates pass, record Stage 4B acceptance and move to 4C responsive/interaction hardening;
+- add focused Stage 4C browser coverage for the required viewport/role/interaction matrix;
+- use failing evidence to correct only genuine shared shell defects;
+- persist rendered 4C evidence;
+- accept 4C only when the exact head is green;
 - do not start Stage 5.
 
 ## Draft PR
