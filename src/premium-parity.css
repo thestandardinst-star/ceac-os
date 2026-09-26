@@ -676,6 +676,7 @@ body{color:var(--ceac-text)}
 .app-content .row.row-button.on span.pill.p-amber,
 .app-content .row.row-button.on span.pill.p-green,
 .app-content .section-header span,
+.app-content .section-header > div:first-child > span,
 .app-content .section-header-actions > b,
 .app-content .staff-work-status-copy > small,
 .app-content .staff-work-status-copy > span,
