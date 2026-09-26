@@ -51,7 +51,7 @@ const routeByLabel = {
   Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
   Reports:"reporting", Cost:"cost", Finance:"finance",
   Audit:"audit", Events:"events", Workflows:"workflows", Checks:"workflows", Authority:"authority",
-  "System rules":"policies", Integrations:"integrations", "Control Center":"settings", Settings:"settings",
+  "System rules":"policies", Integrations:"integrations", "Connected Apps":"integrations", "Control Center":"settings", Settings:"settings",
   Announcements:"announcements"
 };
 
@@ -1991,19 +1991,31 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
 
-  await go(page, "Integrations");
-  await expect(page.getByRole("heading", { name: "Integrations", exact: true })).toBeVisible();
-  await page.getByLabel("Integration connector name").fill("Acceptance Connector");
-  await page.getByLabel("Integration connector key").fill("acceptance-connector");
-  await page.getByRole("button", { name: "Create connector", exact: true }).click();
-  await expect(page.getByText("Connector created.", { exact: true })).toBeVisible();
-  const connectorRow = page.locator(".row").filter({ hasText: "Acceptance Connector" }).first();
-  await connectorRow.getByRole("button", { name: "Enable", exact: true }).click();
-  await expect(page.getByText("Connector enabled.", { exact: true })).toBeVisible();
-  await page.getByLabel("Integration subscription connector").selectOption({ label: "Acceptance Connector" });
-  await page.getByLabel("Integration subscription event").selectOption("policy.rule_changed");
-  await page.getByRole("button", { name: "Create subscription", exact: true }).click();
-  await expect(page.getByText("Event subscription created.", { exact: true })).toBeVisible();
+  await go(page, "Connected Apps");
+  await expect(page.getByRole("heading", { name: "Connected Apps", exact: true })).toBeVisible();
+  const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
+  await expect(telegramCard).toBeVisible();
+  await expect(telegramCard.getByText("Not connected", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Integration connector name")).toHaveCount(0);
+  await expect(page.getByLabel("Integration connector key")).toHaveCount(0);
+
+  await telegramCard.getByRole("button", { name: "Connect", exact: true }).click();
+  let connectedDialog = page.getByRole("dialog");
+  const tokenInput = connectedDialog.getByLabel("Telegram bot token");
+  await expect(tokenInput).toHaveAttribute("type", "password");
+  await expect(connectedDialog.getByText(/stored encrypted in Supabase Vault/i)).toBeVisible();
+  await expect(connectedDialog.getByRole("button", { name: "Verify & connect", exact: true })).toBeDisabled();
+  await tokenInput.fill("123456:abcdefghijklmnopqrstuvwxyz123456");
+  await connectedDialog.getByLabel("Telegram chat ID").fill("-100123456");
+  await expect(connectedDialog.getByRole("button", { name: "Verify & connect", exact: true })).toBeEnabled();
+  await connectedDialog.getByRole("button", { name: "Close dialog", exact: true }).click();
+
+  await page.getByRole("button", { name: /Advanced diagnostics/ }).click();
+  await expect(page.getByText("Pending", { exact: true })).toBeVisible();
+  await expect(page.getByText("Processing", { exact: true })).toBeVisible();
+  await expect(page.getByText("Retry / failed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Delivered", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-artifacts/stage12-connected-apps-admin.png", fullPage: true });
 
   await go(page, "Audit");
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
@@ -2202,10 +2214,33 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
   }
 });
 
+test("Stage 12 Connected Apps keeps provider secrets server-bound on mobile", async ({ browser }) => {
+  const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 390, height: 844 });
+  await go(page, "Control Center");
+  await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toBeVisible();
+  await page.getByText("Connected Apps", { exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Connected Apps", exact: true })).toBeVisible();
+
+  const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
+  await expect(telegramCard).toBeVisible();
+  await expect(telegramCard.getByText("Not connected", { exact: true })).toBeVisible();
+  await telegramCard.getByRole("button", { name: "Connect", exact: true }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Telegram bot token")).toHaveAttribute("type", "password");
+  await expect(dialog.getByText(/never saved in browser-visible CEAC tables/i)).toBeVisible();
+  await dialog.getByRole("button", { name: "Close dialog", exact: true }).click();
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow, "Stage 12 Connected Apps overflowed the 390px viewport").toBeLessThanOrEqual(1);
+  await page.screenshot({ path: "test-artifacts/stage12-connected-apps-admin-mobile.png", fullPage: true });
+  await context.close();
+});
+
 test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
   test.setTimeout(120000);
   const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
+  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Connected Apps", "Settings"];
 
   for (const width of widths) {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });

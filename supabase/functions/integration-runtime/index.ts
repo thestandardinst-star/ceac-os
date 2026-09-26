@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { safeNotificationText, telegramGetMe, telegramSendMessage } from "../_shared/telegram.mjs";
+import { safeNotificationText, telegramGetMe, telegramSendMessage } from "./telegram.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

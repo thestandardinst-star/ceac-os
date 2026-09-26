@@ -5,7 +5,7 @@ import {
   safeNotificationText,
   telegramGetMe,
   telegramSendMessage,
-} from "../supabase/functions/_shared/telegram.mjs";
+} from "../supabase/functions/integration-runtime/telegram.mjs";
 
 function response(status, payload) {
   return {

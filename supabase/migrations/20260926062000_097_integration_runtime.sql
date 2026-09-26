@@ -3,6 +3,7 @@
 -- browser-readable. First provider definition: Telegram outbound notifications.
 
 create extension if not exists supabase_vault with schema vault;
+create extension if not exists pg_net with schema extensions;
 
 create table public.integration_provider_definitions(
   provider_key text primary key,
