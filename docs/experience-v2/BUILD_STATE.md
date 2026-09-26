@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 2 — Design Foundation V2
-Current substage: 2E — Foundation gallery proof
+Current substage: 2F — Foundation visual acceptance and correction
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -62,7 +62,7 @@ dcd18540accb60e19a95c90fd633aab351bbfbba
 - [x] Install and lock motion 13.4.4 using npm so package.json and package-lock.json remain consistent.
 - [x] Build src/experience-v2/icons.jsx according to ICON_REGISTRY_CONTRACT.md.
 - [x] Add src/experience-v2/motion.js and ExperienceV2MotionProvider.jsx according to MOTION_IMPLEMENTATION_CONTRACT.md.
-- [ ] Build the contained V2 foundation gallery according to FOUNDATION_GALLERY_SPEC.md without rebuilding role screens.
+- [x] Build the contained V2 foundation gallery according to FOUNDATION_GALLERY_SPEC.md without rebuilding role screens.
 - [ ] Verify the documented migration boundary in actual icon/component implementation.
 - [ ] Run Stage 2 mobile + laptop + large-desktop visual inspection against persistent references.
 - [ ] Record exact accepted Stage 2 SHA and dependency versions.
@@ -91,10 +91,22 @@ Stage 2D motion-provider checkpoint:
 - Wrapped the app with policy only; no legacy role screen gained new animation.
 - Added architecture tests and corrected the initial main.jsx mount formatting before acceptance.
 
-Stage 2E foundation-gallery implementation:
-- Building only the protected Administration/HR primitives diagnostic proof.
-- No primary navigation destination will be added.
-- No role screen is being rebuilt in this checkpoint.
+Stage 2E foundation-gallery checkpoint:
+- Exact implementation SHA: 4ab0b41a28e5ec7e70eddafb3e35dcb1d096f464.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- Gallery is mounted only on the protected Administration/HR primitives diagnostic route.
+- No primary navigation destination was added.
+- No role screen was rebuilt.
+
+Stage 2F visual acceptance/correction:
+- The first rendered laptop proof exposed a real density-layout defect: the priority card became too narrow beside its supporting queue, producing cramped vertical text and an awkward action area.
+- This is being corrected at the shared gallery/foundation composition layer, not with a role-screen patch.
+- Dedicated screenshot evidence is being added for approximately 390×844, 1366×768 and 1440×900.
+- Stage 3 remains blocked until these rendered proofs are inspected against the persistent references.
 
 ## Current engineering checkpoints
 
@@ -123,7 +135,7 @@ Stage 2B dependency checkpoint:
 
 ## Current handoff
 
-Chat is the active writer for Stage 2D. No unpushed Work state is known.
+Chat is the active writer for Stage 2F visual correction. No unpushed Work state is known.
 
 Next safe action after this checkpoint:
 1. verify the exact Stage 2E HEAD and all GitHub checks;
