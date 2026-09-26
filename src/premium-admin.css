@@ -17,7 +17,7 @@
 }
 .office-app .admin-command-surface .h1{color:#fff!important;font-size:36px!important;margin:4px 0 8px!important}
 .office-app .admin-command-surface .screen-note{color:#a8b7ca!important}
-.office-app .admin-command-context{display:flex;justify-content:space-between;gap:16px;color:#8fa3ba!important;font-size:9px!important}
+.office-app .admin-command-context{display:flex;justify-content:space-between;gap:16px;color:#8fa3ba!important;font-size:12px!important}
 .office-app .admin-command-stats{
   display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:1px!important;
   margin-top:22px!important;border:1px solid rgba(255,255,255,.09)!important;border-radius:14px!important;overflow:hidden!important;
@@ -25,7 +25,7 @@
 }
 .office-app .admin-command-stats>div{padding:13px 14px!important;background:rgba(5,18,34,.24)!important}
 .office-app .admin-command-stats strong{display:block;color:#fff!important;font-size:19px!important}
-.office-app .admin-command-stats span{display:block;margin-top:2px;color:#99abc0!important;font-size:9px!important}
+.office-app .admin-command-stats span{display:block;margin-top:2px;color:#99abc0!important;font-size:12px!important}
 .office-app .admin-home-section{
   margin-top:14px!important;padding:17px!important;border:1px solid #e1e7ee!important;border-radius:16px!important;
   background:#fff!important;box-shadow:0 7px 24px rgba(35,53,79,.038)!important;
@@ -49,13 +49,13 @@
   display:flex;align-items:center;justify-content:space-between;color:#697a90;text-align:left;
   box-shadow:0 5px 18px rgba(35,53,79,.035);cursor:pointer;
 }
-.admin-work-tabs button span{font-size:11px;font-weight:720}
+.admin-work-tabs button span{font-size:12px;font-weight:720}
 .admin-work-tabs button b{
   min-width:27px;height:27px;padding:0 7px;border-radius:99px;display:flex;align-items:center;justify-content:center;
-  background:#f0f3f7;color:#697789;font-size:9px;
+  background:#f0f3f7;color:#697789;font-size:12px;
 }
-.admin-work-tabs button.on{border-color:#b8d0ff;background:#f5f8ff;color:#0c5df9}
-.admin-work-tabs button.on b{background:#0c5df9;color:#fff}
+.admin-work-tabs button.on{border-color:#b8d0ff;background:#f5f8ff;color:var(--ceac-action-blue)}
+.admin-work-tabs button.on b{background:var(--ceac-action-blue);color:#fff}
 .admin-work-list{
   border:1px solid #e0e6ee;border-radius:15px;background:#fff;overflow:hidden;box-shadow:0 9px 28px rgba(35,53,79,.04);
 }
@@ -66,15 +66,15 @@
 .admin-work-row:hover,.admin-review-row:hover{background:#f8fbff}
 .admin-work-row:last-child,.admin-review-row:last-child{border-bottom:0}
 .admin-work-row.attention{box-shadow:inset 3px 0 #fcaf2e}
-.admin-work-main strong,.admin-work-unit strong{display:block;color:#1b3048;font-size:11px}
-.admin-work-main small,.admin-work-main em,.admin-work-unit small,.admin-work-due{display:block;color:#8290a1;font-size:9px;font-style:normal;margin-top:3px}
+.admin-work-main strong,.admin-work-unit strong{display:block;color:#1b3048;font-size:12px}
+.admin-work-main small,.admin-work-main em,.admin-work-unit small,.admin-work-due{display:block;color:#8290a1;font-size:12px;font-style:normal;margin-top:3px}
 .admin-review-row{
   width:100%;border:0;border-bottom:1px solid #edf0f4;background:#fff;padding:13px 15px;
   display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:11px;align-items:center;text-align:left;cursor:pointer;
 }
-.admin-review-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:#0c5df9;font-size:10px;font-weight:800}
-.admin-review-row strong{display:block;color:#1d3048;font-size:11px}.admin-review-row small{display:block;color:#8492a3;font-size:9px;margin-top:3px}
-.admin-work-empty{padding:28px;text-align:center}.admin-work-empty strong{display:block;color:#31465f;font-size:12px}.admin-work-empty span,.admin-work-footnote{display:block;color:#8996a6;font-size:9px;margin-top:4px}
+.admin-review-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:var(--ceac-action-blue);font-size:12px;font-weight:800}
+.admin-review-row strong{display:block;color:#1d3048;font-size:12px}.admin-review-row small{display:block;color:#8492a3;font-size:12px;margin-top:3px}
+.admin-work-empty{padding:28px;text-align:center}.admin-work-empty strong{display:block;color:#31465f;font-size:12px}.admin-work-empty span,.admin-work-footnote{display:block;color:#8996a6;font-size:12px;margin-top:4px}
 
 /* People directory + employee workspace */
 .office-app .people-search-row{
@@ -87,7 +87,7 @@
 }
 .office-app .people-directory-row:hover{background:#f8fbff!important}
 .office-app .people-directory-name strong{font-size:12px!important;color:#172b43!important}
-.office-app .people-directory-context{color:#8090a3!important;font-size:9px!important}
+.office-app .people-directory-context{color:#8090a3!important;font-size:12px!important}
 .office-app .person-identity-header{
   padding:22px 24px!important;border:0!important;border-radius:20px!important;
   background:linear-gradient(135deg,#122139,#183251)!important;color:#fff!important;box-shadow:0 20px 50px rgba(25,43,70,.12)!important;
@@ -109,7 +109,7 @@
   border:1px solid #e1e6ed!important;border-radius:13px!important;background:rgba(255,255,255,.94)!important;backdrop-filter:blur(12px);
   box-shadow:0 7px 22px rgba(35,53,79,.04)!important;overflow:auto;
 }
-.office-app .workforce-tabs button{white-space:nowrap;border:0!important;border-radius:9px!important;background:transparent!important;color:#758498!important;font-size:10px!important;padding:9px 11px!important}
+.office-app .workforce-tabs button{white-space:nowrap;border:0!important;border-radius:9px!important;background:transparent!important;color:#758498!important;font-size:12px!important;padding:9px 11px!important}
 .office-app .workforce-tabs button.on{background:#0f1723!important;color:#fff!important}
 .office-app .workforce-grid{gap:10px!important}
 .office-app .workforce-person{
@@ -146,14 +146,14 @@
   box-shadow:0 7px 24px rgba(35,53,79,.035);transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
 .control-card:hover{transform:translateY(-1px);border-color:#bfd2ef;box-shadow:0 11px 30px rgba(35,53,79,.07)}
-.control-card-icon{width:42px;height:42px;border-radius:12px;background:#eef4ff;color:#0c5df9;display:flex;align-items:center;justify-content:center}
-.control-card-copy strong{display:block;color:#182d46;font-size:12px}.control-card-copy small{display:block;color:#7d8b9c;font-size:9px;line-height:1.45;margin-top:4px}
-.control-card-side{text-align:right}.control-card-side b{display:block;color:#5b6d83;font-size:9px}.control-card-side em{display:block;color:#0c5df9;font-size:9px;font-style:normal;margin-top:5px;font-weight:700}
+.control-card-icon{width:42px;height:42px;border-radius:12px;background:#eef4ff;color:var(--ceac-action-blue);display:flex;align-items:center;justify-content:center}
+.control-card-copy strong{display:block;color:#182d46;font-size:12px}.control-card-copy small{display:block;color:#7d8b9c;font-size:12px;line-height:1.45;margin-top:4px}
+.control-card-side{text-align:right}.control-card-side b{display:block;color:#5b6d83;font-size:12px}.control-card-side em{display:block;color:var(--ceac-action-blue);font-size:12px;font-style:normal;margin-top:5px;font-weight:700}
 .control-advanced{margin-top:17px;padding:17px;border:1px solid #e2e7ee;border-radius:16px;background:#fff}
-.control-advanced h2{font-size:15px;margin:3px 0 5px;color:#1b3049}.control-advanced p{margin:0 0 12px;color:#8190a2;font-size:9px}
+.control-advanced h2{font-size:15px;margin:3px 0 5px;color:#1b3049}.control-advanced p{margin:0 0 12px;color:#8190a2;font-size:12px}
 .control-advanced>div:last-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .control-advanced button{border:1px solid #e6eaf0;background:#fafbfd;border-radius:12px;padding:12px;text-align:left;cursor:pointer}
-.control-advanced button strong{display:block;color:#253950;font-size:11px}.control-advanced button small{display:block;color:#8591a2;font-size:9px;line-height:1.4;margin-top:3px}.control-advanced button b{display:block;color:#0c5df9;font-size:9px;margin-top:8px}
+.control-advanced button strong{display:block;color:#253950;font-size:12px}.control-advanced button small{display:block;color:#8591a2;font-size:12px;line-height:1.4;margin-top:3px}.control-advanced button b{display:block;color:var(--ceac-action-blue);font-size:12px;margin-top:8px}
 
 @media(max-width:980px){
   .office-app .admin-command-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}

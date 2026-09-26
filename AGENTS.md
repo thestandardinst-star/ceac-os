@@ -1,3 +1,41 @@
+# EXPERIENCE V2 IS THE ACTIVE PRODUCT-EXPERIENCE PROGRAMME
+
+This section supersedes conflicting older UI/redesign sequencing text below. Security, RLS, data-integrity, audit, protected-HR, work-behaviour and enterprise authority contracts remain binding.
+
+Before ANY UI/product-experience change, read in this order:
+
+1. docs/experience-v2/START_HERE.md
+2. docs/experience-v2/BUILD_STATE.md
+3. docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md
+4. docs/experience-v2/IMPLEMENTATION_SEQUENCE.md
+5. docs/experience-v2/REFERENCE_INDEX.md
+6. docs/experience-v2/ACCEPTANCE_AND_HANDOFF.md
+7. docs/experience-v2/DECISION_LOG.md
+8. this AGENTS.md file in full
+9. the current domain/security contract for the capability being touched.
+
+Mandatory continuation rule:
+- GitHub is the build source of truth, not Chat/Work memory.
+- Chat and Work may alternate, but only ONE active writer may mutate the Experience V2 branch at a time.
+- An incoming session MUST inspect the current branch HEAD and BUILD_STATE.md before editing.
+- If Work stops with unpushed changes, Chat MUST NOT overwrite/recreate them; recover and push that state first.
+- Every meaningful substage ends in a pushed commit, relevant tests, and an updated BUILD_STATE.md.
+- No important design decision, reference, defect, blocker or TODO may live only in a conversation.
+
+Active Experience V2 branch:
+chatgpt/experience-v2-2026-09-26
+
+Experience V2 baseline:
+1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
+
+PR #71 Stage 12 remains frozen while Experience V2 is active. Do not update, merge, rebuild or discard it unless the product owner explicitly changes this programme.
+
+The Experience V2 implementation sequence is a gate sequence. Do not propagate redesign work past the current stage recorded in BUILD_STATE.md.
+
+The user-supplied visual and motion references are persisted outside chat and mapped by REFERENCE_INDEX.md. Do not substitute from memory if they are unavailable.
+
+---
+
 # CEAC OS — instructions for coding agents
 
 ## PREMIUM REDESIGN PROGRAMME — READ THIS BEFORE ANY UI WORK

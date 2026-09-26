@@ -35,12 +35,26 @@ Staff is the lightest and most personal surface. Manager becomes denser. Admin/E
 - On dark: `#F7FAFB`
 - On dark secondary: `#B8C2C9`
 
-### Brand / action
-- Teal: `#168B82`
-- Teal strong: `#11756E`
-- Teal soft: `#E5F4F2`
+### Identity and action
+
+CEAC OS uses two deliberately different colour roles. They are not interchangeable.
+
+**Ministry identity — teal**
+- Identity teal: `#118C83`
+- Identity teal strong: `#0C766F`
+- Identity teal soft: `#E4F4F2`
+- Use for the CEAC mark, sign-in identity, ministry-brand accents, and restrained identity cues on Executive surfaces.
+
+**Workspace action — electric blue**
+- Action blue: `#0C5DF9`
+- Action blue support: `#6498F9`
+- Use for active navigation, primary workspace buttons, selected app controls, and links whose meaning is “act here”.
+
+**Supporting indigo**
 - Indigo: `#59678F`
 - Indigo soft: `#ECEEF6`
+
+Do not use teal and blue as competing primary actions on the same surface. Teal identifies CEAC/ministry context; blue identifies an application action.
 
 ### Operational states
 - Success: `#2F7358`
@@ -66,7 +80,9 @@ Scale:
 - H3 / row title: `0.9rem–1rem`
 - Body: `0.875rem–0.95rem`
 - Supporting: `0.75rem–0.825rem`
-- Eyebrow: `0.68rem–0.75rem`
+- Eyebrow: `0.75rem`
+
+**Operational text floor:** user-facing application text in the premium shell and role surfaces must not render below `12px` at 100% browser zoom. This is a CEAC readability rule, not a claim that font size alone establishes WCAG conformance. Decorative shapes and non-text graphics are excluded.
 
 Use weight, spacing and hierarchy before adding colour.
 
@@ -243,3 +259,34 @@ Desktop is allowed a different composition from mobile.
 - tap targets generally >= 44px for primary phone interactions;
 - no meaning conveyed by colour alone;
 - headings preserve a logical information hierarchy.
+
+
+## 11. CSS layer contract
+
+The current product is still migrating away from the original paper-style component layer. The cascade must therefore remain explicit until that migration is complete.
+
+Load order is authoritative:
+
+1. `styles.css` — legacy/base component language and historical screen styles.
+2. `premium.css` — premium shell, shared tokens and cross-role shell behaviour.
+3. `premium-staff.css` — Staff-only role treatment.
+4. `premium-manager.css` — Manager-only role treatment.
+5. `premium-admin.css` — Administration-only role treatment.
+6. `premium-executive.css` — Executive-only role treatment.
+7. `premium-parity.css` — temporary last-loaded cross-role parity overrides required while legacy screens remain.
+
+Role files must not become hidden global override layers. Cross-role selectors belong in `premium.css` or, while still transitional, `premium-parity.css`.
+
+The existing `!important` debt is transitional, not a design primitive. The current bundle budget is capped at 1,125 declarations; new work must not increase that count. Reduction should happen through scoped component migration and removal of obsolete competing rules, not broad find-and-replace deletion.
+
+
+### Transitional visual-debt ceilings
+
+As of the 25 September 2026 stabilization pass, the shipped CSS is capped at:
+- 1,125 `!important` declarations;
+- 746 unique hard-coded hex values;
+- 134 distinct shadow recipes;
+- 55 distinct radius recipes;
+- 36 distinct pixel font-size values.
+
+These are ceilings, not approved design-token counts. They exist to stop further entropy while the legacy layer is migrated into the design system. Any new component should use existing semantic tokens before introducing a new literal.

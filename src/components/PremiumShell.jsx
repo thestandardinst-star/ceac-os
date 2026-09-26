@@ -67,7 +67,10 @@ function roleName({ isAdmin, isExec, isManager }) {
 }
 
 function PremiumMark() {
-  return <span className="premium-brand-mark" aria-hidden="true"><i/><i/></span>;
+  return <span className="premium-brand-mark" aria-hidden="true">
+    <span className="premium-brand-mark-core">C</span>
+    <span className="premium-brand-mark-dot" />
+  </span>;
 }
 
 export function SideNav({ tab, setTab, me, isAdmin, isExec, isManager, onUnitChange, onMessages, onCreateWork, onCreateMeeting }) {

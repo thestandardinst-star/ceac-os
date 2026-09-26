@@ -40,6 +40,14 @@ export default function AccountActivity({ me }) {
     setLoading(false);
   }
 
+  async function signOutHere() {
+    setBusy(true); setErr(null);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) setErr(error.message);
+    } finally { setBusy(false); }
+  }
+
   // Ends every session everywhere, including this one.
   async function signOutEverywhere() {
     if (!confirm("Sign out on every device, including this one? You will need to sign in again.")) return;
@@ -77,9 +85,12 @@ export default function AccountActivity({ me }) {
           That is normal if you use a phone and a computer. If you do not recognise one of them, sign out everywhere below and change your password.
         </div>)}
 
-      <button className="btn btn-ghost wide-auto" style={{ marginTop: 12 }}
-        onClick={signOutEverywhere} disabled={busy}>
-        {busy ? "Signing out..." : "Sign out on every device"}</button>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+        <button className="btn wide-auto" onClick={signOutHere} disabled={busy}>
+          {busy ? "Signing out..." : "Sign out on this device"}</button>
+        <button className="btn btn-ghost wide-auto" onClick={signOutEverywhere} disabled={busy}>
+          Sign out on every device</button>
+      </div>
 
       <div className="sec"><span>Recent activity</span><span>{events.length}</span></div>
       {events.length === 0 && <div className="card small">Nothing recorded yet.</div>}
