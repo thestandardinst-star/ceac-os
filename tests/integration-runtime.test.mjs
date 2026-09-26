@@ -1,0 +1,72 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  classifyTelegramFailure,
+  safeNotificationText,
+  telegramGetMe,
+  telegramSendMessage,
+} from "../supabase/functions/integration-runtime/telegram.mjs";
+
+function response(status, payload) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async json() { return payload; },
+  };
+}
+
+test("telegramGetMe exposes only verified bot identity", async () => {
+  const calls = [];
+  const result = await telegramGetMe({
+    token: "123456:abcdefghijklmnopqrstuvwxyz",
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      return response(200, { ok: true, result: { id: 99, username: "ceac_test_bot", first_name: "CEAC Test" } });
+    },
+    baseUrl: "https://telegram.test",
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.bot, { id: "99", username: "ceac_test_bot", displayName: "CEAC Test" });
+  assert.match(calls[0].url, /\/getMe$/);
+});
+
+test("telegramSendMessage sends only the requested privacy-safe text", async () => {
+  let requestBody;
+  const result = await telegramSendMessage({
+    token: "123456:abcdefghijklmnopqrstuvwxyz",
+    chatId: "-100123",
+    text: "CEAC OS\nLeave requested\nOpen CEAC OS for details.",
+    fetchImpl: async (_url, options) => {
+      requestBody = JSON.parse(options.body);
+      return response(200, { ok: true, result: { message_id: 1 } });
+    },
+    baseUrl: "https://telegram.test",
+  });
+  assert.equal(result.ok, true);
+  assert.equal(requestBody.chat_id, "-100123");
+  assert.equal(requestBody.text, "CEAC OS\nLeave requested\nOpen CEAC OS for details.");
+  assert.equal("payload" in requestBody, false);
+});
+
+test("safeNotificationText never serializes raw event payloads", () => {
+  const text = safeNotificationText({
+    label: "Leave requested",
+    occurredAt: "2026-09-26T06:00:00Z",
+    payload: { private_note: "must not leave CEAC OS" },
+  });
+  assert.match(text, /^CEAC OS\nLeave requested\n/);
+  assert.match(text, /Open CEAC OS for details\.$/);
+  assert.equal(text.includes("private_note"), false);
+  assert.equal(text.includes("must not leave"), false);
+});
+
+test("Telegram errors are classified for safe retry behaviour", () => {
+  assert.deepEqual(classifyTelegramFailure(401, { description: "Unauthorized" }), {
+    category: "auth", retryable: false, safeMessage: "Telegram rejected the bot credential.",
+  });
+  assert.equal(classifyTelegramFailure(429, {}).retryable, true);
+  assert.equal(classifyTelegramFailure(503, {}).retryable, true);
+  assert.deepEqual(classifyTelegramFailure(400, { description: "Bad Request: chat not found" }), {
+    category: "destination", retryable: false, safeMessage: "Telegram could not use the configured chat destination.",
+  });
+});

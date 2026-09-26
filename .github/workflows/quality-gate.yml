@@ -23,6 +23,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Run Telegram provider unit tests
+        run: node --test tests/integration-runtime.test.mjs
+
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v1
         with:
@@ -133,6 +136,9 @@ jobs:
       - name: Run Stage 11 Compliance & Policy gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/compliance_policy_stage11_gate.sql
 
+      - name: Run Stage 12 Integrations gate
+        run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/integrations_stage12_gate.sql
+
       - name: Run Experience Stage 5 project register gate
         run: psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 -f supabase/tests/project_register_experience_stage5_gate.sql
 
@@ -212,6 +218,14 @@ jobs:
         with:
           name: stage11-product-inspection
           path: test-artifacts/stage11-compliance-*.png
+          if-no-files-found: ignore
+
+      - name: Upload Stage 12 product inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage12-product-inspection
+          path: test-artifacts/stage12-connected-apps-*.png
           if-no-files-found: ignore
 
       - name: Upload laptop density inspection

@@ -1,16 +1,21 @@
 # CEAC OS — Claude continuation instructions
 
-## Premium redesign is the active UI programme
+## Stage 12 Integrations is active
 
-Before any UI work, read:
-1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`
-2. `docs/handoff/CEAC_OS_PREMIUM_REDESIGN_HANDOFF_2026-09-23.md`
-3. `AGENTS.md` in full.
+The premium product experience is merged and locked. Preserve it.
 
-Do not rebuild from the old sidebar or old screen composition. Do not invent a different icon family, color direction, role shell or visual system. The premium redesign source of truth supersedes conflicting older UX/navigation/visual text on this redesign branch while all existing security/data contracts remain binding.
+Before Stage 12 work, read:
+1. `AGENTS.md` in full;
+2. `docs/architecture/CEAC_OS_STAGE12_INTEGRATIONS_2026-09-26.md`;
+3. `docs/architecture/CEAC_OS_STAGE1G_INTEGRATION_GATEWAY_2026-09-22.md`;
+4. `docs/handoff/CEAC_OS_ENTERPRISE_EXPANSION_HANDOFF_2026-09-22.md`;
+5. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`.
 
-Do not touch the frozen Stage 11 branch from redesign work. Do not start Stage 12 unless the product owner explicitly resumes enterprise expansion. Continue only the active redesign tranche recorded in the handoff.
+Current Stage 12 branch: `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`.
+Baseline main: `225185e75050085ccc14026b46947eead3e52167`.
+Current migration at activation: 096; Stage 12 owns migration 097.
 
+First provider adapter: Telegram. Secrets belong in Supabase Vault and server-side Edge Functions only. Do not build Payroll, Search/Intelligence or Assistive AI.
 
 Before changing this repository, read `AGENTS.md` in full. It contains the binding product, security and build rules for CEAC OS.
 
