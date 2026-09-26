@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 2 — Design Foundation V2
-Current substage: 2D — Motion provider implementation
+Current substage: 2E — Foundation gallery proof
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -79,10 +79,22 @@ Stage 2C icon-registry checkpoint:
 - Corrected the Home semantic mapping before acceptance.
 - No role screen, Supabase object, frozen PR #71 code, motion provider or gallery was changed in Stage 2C.
 
-Stage 2D motion-provider implementation:
-- Central provider and semantic motion constants are being added from the accepted Stage 2C head.
-- No role-screen animation is being introduced in this checkpoint.
-- The contained gallery remains Stage 2E.
+Stage 2D motion-provider checkpoint:
+- Exact accepted motion-policy SHA: 87c0b836b1d2cd06279ac427275b9f6d713497b4.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- Added the central MotionConfig provider with reducedMotion="user".
+- Added semantic motion durations, easing and restrained layout spring constants.
+- Wrapped the app with policy only; no legacy role screen gained new animation.
+- Added architecture tests and corrected the initial main.jsx mount formatting before acceptance.
+
+Stage 2E foundation-gallery implementation:
+- Building only the protected Administration/HR primitives diagnostic proof.
+- No primary navigation destination will be added.
+- No role screen is being rebuilt in this checkpoint.
 
 ## Current engineering checkpoints
 
@@ -113,11 +125,11 @@ Stage 2B dependency checkpoint:
 
 Chat is the active writer for Stage 2D. No unpushed Work state is known.
 
-Next safe action after this commit:
-1. verify the exact Stage 2D HEAD and GitHub checks;
-2. if green, mark Stage 2D accepted;
-3. build only the contained foundation gallery as Stage 2E;
-4. do not rebuild role screens;
+Next safe action after this checkpoint:
+1. verify the exact Stage 2E HEAD and all GitHub checks;
+2. inspect the contained gallery at required phone, laptop and large-desktop sizes against the persistent references;
+3. correct shared foundation defects only;
+4. record Stage 2 visual evidence and accepted SHA;
 5. do not start Stage 3 until Stage 2 visual acceptance is complete.
 
 ## Draft PR
