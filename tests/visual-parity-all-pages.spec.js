@@ -62,6 +62,11 @@ async function inspectRoutes(page,role,config,routes){
     await expect(page.locator(".body").first()).toBeVisible({timeout:15000});
     await page.evaluate(()=>document.fonts.ready);
     await page.waitForTimeout(250);
+    const sidebarOverflow=await page.evaluate(()=>{
+      const side=document.querySelector(".premium-side");
+      return side ? side.scrollWidth-side.clientWidth : 0;
+    });
+    expect(sidebarOverflow, role+" / "+label+" sidebar horizontal overflow").toBeLessThanOrEqual(1);
     const violations=await page.evaluate(()=>{
       const visible=(el)=>{
         const style=getComputedStyle(el);
@@ -92,5 +97,27 @@ for(const [role,config] of Object.entries(roleRoutes)){
       const tinyText=await inspectRoutes(page,role,config,routes);
       expect(tinyText, "Visible text below the CEAC 12px operational floor").toEqual([]);
     });
+
+  });
+
+  test(role+" laptop shell has no horizontal overflow",async({page})=>{
+    await page.setViewportSize({width:1366,height:768});
+    await signIn(page,config.email,config.app);
+    await page.goto("/");
+    await expect(page.locator(config.app)).toBeVisible({timeout:15000});
+    await page.evaluate(()=>document.fonts.ready);
+    const overflow=await page.evaluate(()=>{
+      const side=document.querySelector(".premium-side");
+      return {
+        document:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+        side:side ? side.scrollWidth-side.clientWidth : 0,
+        brand:side?.querySelector(".premium-brand")
+          ? side.querySelector(".premium-brand").scrollWidth-side.querySelector(".premium-brand").clientWidth
+          : 0,
+      };
+    });
+    expect(overflow.document, role+" laptop document overflow").toBeLessThanOrEqual(1);
+    expect(overflow.side, role+" laptop sidebar overflow").toBeLessThanOrEqual(1);
+    expect(overflow.brand, role+" laptop brand overflow").toBeLessThanOrEqual(1);
   });
 }

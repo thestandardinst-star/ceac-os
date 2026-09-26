@@ -58,7 +58,8 @@ button,input,select,textarea{font:inherit}
     linear-gradient(180deg,#102033 0%,#0c1724 100%);
   border-right:1px solid rgba(255,255,255,.05);
 }
-.premium-brand{display:flex;align-items:center;gap:11px;padding:0 7px 22px}
+.premium-brand{display:flex;align-items:center;gap:11px;padding:0 7px 22px;min-width:0}
+.premium-brand>div{min-width:0;flex:1}
 .premium-brand-mark{
   width:31px;height:31px;position:relative;display:grid;place-items:center;flex:none;
   border-radius:10px;overflow:hidden;
@@ -72,7 +73,7 @@ button,input,select,textarea{font:inherit}
   background:#bfece8;border:1px solid rgba(255,255,255,.62);
 }
 .premium-brand strong{display:block;color:#fff;font-size:17px;letter-spacing:-.35px;line-height:1.1}
-.premium-brand span{display:block;color:#8fa0b7;font-size:12px;margin-top:3px;white-space:nowrap}
+.premium-brand span{display:block;color:#8fa0b7;font-size:12px;line-height:1.2;margin-top:3px;white-space:normal;overflow-wrap:anywhere}
 .premium-unit-switch{
   width:100%;margin:0 0 14px;padding:10px 11px;border:1px solid rgba(255,255,255,.10);
   border-radius:10px;background:rgba(255,255,255,.055);color:#d9e4f2;font-size:12px;outline:none;

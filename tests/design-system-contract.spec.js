@@ -10,6 +10,21 @@ const premiumCssFiles = [
   "src/premium-parity.css",
 ];
 
+test("issue 70 runtime typography fixes stay at the approved floor", async () => {
+  const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+  const required = [
+    [".home-chip", /\.home-chip\{[^}]*font-size:12px/],
+    [".admin-reporting-card span", /\.admin-reporting-card span\{[^}]*font-size:12px/],
+    [".admin-missing-units span", /\.admin-missing-units span\{[^}]*font-size:12px/],
+    [".progress-meter-head span", /\.progress-meter-head span\{[^}]*font-size:12px/],
+    [".ch-tick", /\.ch-tick\{[^}]*font-size:12px/],
+    [".ch-legend span", /\.ch-legend span\{[^}]*font-size:12px/],
+  ];
+  for (const [label, pattern] of required) {
+    expect(styles, label + " must not regress below 12px").toMatch(pattern);
+  }
+});
+
 test("premium CSS preserves the 12px operational text floor", async () => {
   const violations = [];
   for (const path of premiumCssFiles) {
