@@ -307,9 +307,33 @@ Stage 4A audit/contract checkpoint:
 - Current strengths, shared shell defects, destination matrix, responsive contract and authority boundary are recorded in docs/experience-v2/STAGE4_WORK_BRIEF.md.
 - Stage 4B may now implement the isolated V2 shell structure.
 
+Stage 4B implementation checkpoint: IMPLEMENTED, VERIFICATION IN PROGRESS
+- Exact implementation SHA before this documentation checkpoint: 288122ef8bec4d9a1a8b7da38e86d0aa46cae065.
+- Added isolated shared shell under src/experience-v2/shell/.
+- Centralised four-role destination metadata and role-authorised quick-action metadata.
+- Replaced active shell imports in App.jsx with the V2 shell without rebuilding role-page content.
+- V2 shell uses the CEAC Lucide registry and accepted Stage 3 Drawer/Popover primitives.
+- Desktop navigation now owns an independently scrollable middle region.
+- Administration Primitives remains a protected diagnostic route but is absent from production navigation.
+- Destination search is explicitly navigation-only.
+- Mobile More uses the shared Drawer and grouped secondary destinations.
+- Dual-unit switching is integrated into shell context.
+- Accra date/time is explicitly formatted with Africa/Accra.
+- Shell CSS is isolated, token-based and adds no !important declarations.
+- Staff is not offered a work-creation shortcut; Manager, Administration and Executive use the already-authorised assignment path.
+- Added Stage 4B architecture/browser coverage, including role-authorised quick-action verification.
+- No Supabase, RLS, RPC, migration, role-screen content or frozen PR #71 change.
+- Exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel verification is running. Do not open Stage 4C until the exact head is green.
+
 ## Current handoff
 
-Work is the sole active writer. Stage 3 is accepted; Stage 4A shell audit and implementation-contract work may proceed.
+Chat is the sole active writer. Work/Codex is not active. Stage 4B implementation is pushed and under exact-head verification. No unpushed Chat state is known.
+
+Exact next action:
+- inspect the exact current HEAD and all five gates;
+- if a gate fails, correct only the concrete Stage 4B defect and rerun;
+- if all gates pass, record Stage 4B acceptance and move to 4C responsive/interaction hardening;
+- do not start Stage 5.
 
 ## Draft PR
 
