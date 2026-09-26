@@ -35,9 +35,37 @@ for (const proof of [
     const densityOverflow = await density.evaluate((node) => node.scrollWidth - node.clientWidth);
     expect(densityOverflow).toBeLessThanOrEqual(1);
 
+    await page.screenshot({
+      path: `test-artifacts/ev2-foundation-context-${proof.name}.png`,
+      fullPage: false,
+    });
+
+    // Keep the real shell geometry while removing fixed chrome from the
+    // diagnostic-only proof image so typography and spacing can be judged
+    // without a sticky top bar or mobile tab bar covering the gallery.
+    await page.addStyleTag({
+      content: `
+        .premium-topbar,
+        .premium-mobile-topbar,
+        .premium-tabs {
+          visibility: hidden;
+        }
+      `,
+    });
+
     await gallery.screenshot({
       path: `test-artifacts/ev2-foundation-${proof.name}.png`,
     });
+
+    if (proof.name === "laptop-1366x768") {
+      const motionTrigger = gallery.locator(".ev2-motion-trigger");
+      await motionTrigger.click();
+      await expect(motionTrigger).toHaveAttribute("aria-expanded", "true");
+      await expect(gallery.getByText("Reference state expanded")).toBeVisible();
+      await gallery.screenshot({
+        path: "test-artifacts/ev2-foundation-laptop-1366x768-expanded.png",
+      });
+    }
 
     await context.close();
   });
