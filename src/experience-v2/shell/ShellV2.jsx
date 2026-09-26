@@ -8,6 +8,7 @@ import {
   getShellNavigation,
   getShellQuickActions,
   groupDestinations,
+  hasMultipleUnits,
 } from "./navigation";
 
 const ACCRA_DATE = new Intl.DateTimeFormat("en-GB", {
@@ -32,10 +33,6 @@ function ShellMark() {
       <i />
     </span>
   );
-}
-
-function hasMultipleUnits(me, { isAdmin = false, isExec = false } = {}) {
-  return !isAdmin && !isExec && (me?.memberships?.length || 0) > 1;
 }
 
 function UnitSwitch({ me, onUnitChange, compact = false }) {
