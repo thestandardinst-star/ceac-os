@@ -455,7 +455,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await expect(page.locator(".tabs")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
     const activeEnd = page.getByRole("button", { name: "End work" });
     if (await activeEnd.count()) await activeEnd.click();
     await page.getByRole("button", { name: "Start work", exact: true }).click();
