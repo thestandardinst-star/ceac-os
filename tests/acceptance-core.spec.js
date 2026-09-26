@@ -422,9 +422,10 @@ test("Experience Stage 8 removes the known navigation, Team and Calendar defects
     await expect(side.getByRole("button", { name: "My Hub", exact: true })).toBeVisible();
 
     await go(page, "Team");
-    const sectionLabels = await page.locator(".manager-team .sec > span:first-child").allTextContents();
-    expect(sectionLabels.indexOf("Team setup")).toBeGreaterThanOrEqual(0);
-    expect(sectionLabels.indexOf("People")).toBeGreaterThanOrEqual(0);
+    const teamSections = page.locator(".manager-team .sec > span:first-child");
+    await expect(teamSections.filter({ hasText: /^Team setup$/ })).toBeVisible();
+    await expect(teamSections.filter({ hasText: /^People$/ })).toBeVisible();
+    const sectionLabels = await teamSections.allTextContents();
     expect(sectionLabels.indexOf("Team setup")).toBeLessThan(sectionLabels.indexOf("People"));
     await expect(page.getByRole("button", { name: "Assign work to this part", exact: true }).first()).toBeVisible();
 
@@ -1907,6 +1908,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
   await page.getByLabel("Find a person").fill("Staff Fixture");
   await page.getByRole("button", { name: /Staff Fixture/ }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
   const peopleMain = page.getByRole("main");
   await expect(peopleMain.getByText("Protected HR", { exact: true })).toBeVisible();
   await expect(peopleMain.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();

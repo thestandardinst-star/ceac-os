@@ -32,15 +32,15 @@
 }
 .premium-filter-row button,.staff-app .staff-segment button{
   min-height:34px;padding:0 13px;border:0!important;border-radius:9px!important;background:transparent!important;
-  color:#718097!important;font-size:11px!important;font-weight:650!important;white-space:nowrap;
+  color:#718097!important;font-size:12px!important;font-weight:650!important;white-space:nowrap;
 }
 .premium-filter-row button.on,.premium-filter-row button[aria-selected="true"],
 .staff-app .staff-segment button.on,.staff-app .staff-segment button[aria-selected="true"]{
   background:#fff!important;color:#17324e!important;box-shadow:0 3px 10px rgba(31,52,80,.08)!important;
 }
 .premium-count-badge{
-  padding:7px 10px;border-radius:999px;background:#eef4ff;color:#0c5df9;
-  font-size:10px;font-weight:750;white-space:nowrap;
+  padding:7px 10px;border-radius:999px;background:#eef4ff;color:var(--ceac-action-blue);
+  font-size:12px;font-weight:750;white-space:nowrap;
 }
 
 /* Today */
@@ -105,7 +105,7 @@
   color:#748297!important;background:transparent!important;
 }
 .staff-app .status-filter button.on{
-  background:#eef4ff!important;border-color:#dce8ff!important;color:#0c5df9!important;
+  background:#eef4ff!important;border-color:#dce8ff!important;color:var(--ceac-action-blue)!important;
 }
 .staff-app .work-group{margin-top:18px!important}
 .staff-app .work-group-head{
@@ -123,7 +123,7 @@
 .staff-app .work-list-row:hover{background:#f8fbff!important}
 .staff-app .work-list-main strong{font-size:13px!important;color:#16283d!important}
 .staff-app .work-list-main span,.staff-app .work-list-main small{color:#7a889b!important}
-.staff-app .work-list-side>span:last-child{font-size:10px!important;color:#8896a8!important}
+.staff-app .work-list-side>span:last-child{font-size:12px!important;color:#8896a8!important}
 
 /* Team */
 .staff-app .staff-team{max-width:980px!important}
@@ -135,9 +135,9 @@
   display:flex;gap:6px;margin:16px 0 8px;padding:5px;background:#edf2f7;border-radius:12px;width:max-content;max-width:100%;
 }
 .team-primary-tabs button{
-  border:0;background:transparent;color:#66778c;border-radius:9px;padding:8px 14px;font-size:11px;font-weight:700;
+  border:0;background:transparent;color:#66778c;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;
 }
-.team-primary-tabs button:hover{background:#fff;color:#0c5df9;box-shadow:0 3px 9px rgba(31,51,78,.07)}
+.team-primary-tabs button:hover{background:#fff;color:var(--ceac-action-blue);box-shadow:0 3px 9px rgba(31,51,78,.07)}
 .staff-app .team-room-entry{
   margin-top:8px!important;min-height:78px!important;border-radius:15px!important;padding:15px 17px!important;
   border:1px solid #dbe6f5!important;
@@ -207,17 +207,17 @@
   width:34px;height:34px;border:1px solid #e0e6ed;border-radius:9px;background:#fff;color:#5a6d83;font-size:16px;
 }
 .staff-calendar-weekdays,.staff-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
-.staff-calendar-weekdays span{padding:7px 5px;color:#8794a5;font-size:9px;font-weight:750;text-align:center;text-transform:uppercase;letter-spacing:.06em}
+.staff-calendar-weekdays span{padding:7px 5px;color:#8794a5;font-size:12px;font-weight:750;text-align:center;text-transform:uppercase;letter-spacing:.06em}
 .staff-calendar-grid{border-top:1px solid #e8ecf1;border-left:1px solid #e8ecf1}
 .staff-calendar-day{
   min-height:104px;padding:8px;border:0;border-right:1px solid #e8ecf1;border-bottom:1px solid #e8ecf1;background:#fff;
 }
 .staff-calendar-day.muted{background:#fafbfc;color:#abb4c0}
 .staff-calendar-day.today{box-shadow:inset 0 0 0 2px rgba(12,93,249,.34)}
-.staff-calendar-number{display:block;font-size:10px;font-weight:750;color:#5f6f83;margin-bottom:5px}
+.staff-calendar-number{display:block;font-size:12px;font-weight:750;color:#5f6f83;margin-bottom:5px}
 .staff-calendar-event{
   display:block;width:100%;border:0;border-radius:6px;padding:4px 5px;margin:3px 0;text-align:left;overflow:hidden;
-  font-size:8.5px;white-space:nowrap;text-overflow:ellipsis;color:#35516f;background:#edf4ff;
+  font-size:12px;white-space:nowrap;text-overflow:ellipsis;color:#35516f;background:#edf4ff;
 }
 .staff-calendar-event.meeting{background:#eef6ff;color:#195b9d}
 .staff-calendar-event.work{background:#eef9f5;color:#197552}
@@ -226,17 +226,17 @@
 .staff-calendar-agenda{padding:16px;position:sticky;top:90px}
 .premium-section-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
 .premium-section-head h2{margin:3px 0 0;font-size:17px;color:#17293f}
-.premium-section-head>span{min-width:28px;height:28px;border-radius:999px;background:#f0f4f8;display:flex;align-items:center;justify-content:center;font-size:10px;color:#68788c}
+.premium-section-head>span{min-width:28px;height:28px;border-radius:999px;background:#f0f4f8;display:flex;align-items:center;justify-content:center;font-size:12px;color:#68788c}
 .premium-list-row{
   width:100%;border:0;border-top:1px solid #edf0f4;background:transparent;display:grid;grid-template-columns:9px 1fr;gap:10px;padding:12px 2px;text-align:left;
 }
 .premium-list-row:first-of-type{border-top:0}
 .premium-list-row>span:nth-child(2){min-width:0}
-.premium-list-row strong{display:block;color:#24384e;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.premium-list-row small{display:block;color:#8490a0;font-size:9px;margin-top:3px}
+.premium-list-row strong{display:block;color:#24384e;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.premium-list-row small{display:block;color:#8490a0;font-size:12px;margin-top:3px}
 .premium-dot{width:7px;height:7px;border-radius:50%;background:#9ba7b4;margin-top:4px}
-.premium-dot.work{background:#0cb167}.premium-dot.meeting{background:#0c5df9}.premium-dot.ministry{background:#9565f5}.premium-dot.leave{background:#fcaf2e}
-.premium-empty{padding:18px;border:1px dashed #dfe5eb;border-radius:11px;color:#8491a3;font-size:10px;background:#fafbfd}
+.premium-dot.work{background:#0cb167}.premium-dot.meeting{background:var(--ceac-action-blue)}.premium-dot.ministry{background:#9565f5}.premium-dot.leave{background:#fcaf2e}
+.premium-empty{padding:18px;border:1px dashed #dfe5eb;border-radius:11px;color:#8491a3;font-size:12px;background:#fafbfd}
 
 /* Inbox */
 .staff-app .inbox-page{max-width:960px!important}
@@ -250,14 +250,14 @@
 .inbox-icon{
   width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#eef3f8;color:#63778e;font-size:12px;font-weight:800;
 }
-.inbox-icon.mention{background:#eaf2ff;color:#0c5df9}.inbox-icon.announcement{background:#f1edff;color:#7753c7}
+.inbox-icon.mention{background:#eaf2ff;color:var(--ceac-action-blue)}.inbox-icon.announcement{background:#f1edff;color:#7753c7}
 .inbox-copy{min-width:0}
 .inbox-meta{display:flex;justify-content:space-between;gap:10px;align-items:center}
-.inbox-meta strong{font-size:9px;color:#697b8f;text-transform:uppercase;letter-spacing:.06em}
-.inbox-meta time{font-size:8.5px;color:#9aa5b3}
-.inbox-copy>b{display:block;font-size:11px;color:#263a50;margin-top:3px}
-.inbox-copy>small{display:block;font-size:10px;color:#748497;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.inbox-context{display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;background:#eef8f4;color:#26805e;font-size:8px;font-weight:700}
+.inbox-meta strong{font-size:12px;color:#697b8f;text-transform:uppercase;letter-spacing:.06em}
+.inbox-meta time{font-size:12px;color:#9aa5b3}
+.inbox-copy>b{display:block;font-size:12px;color:#263a50;margin-top:3px}
+.inbox-copy>small{display:block;font-size:12px;color:#748497;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.inbox-context{display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;background:#eef8f4;color:#26805e;font-size:12px;font-weight:700}
 
 @media(max-width:980px){
   .staff-app .staff-home-dashboard{grid-template-columns:1fr!important}
@@ -272,9 +272,9 @@
   .premium-page-head .h1,.premium-page-heading .h1,.staff-app .staff-page-intro .h1{font-size:28px!important}
   .staff-app .hub-entry-grid{grid-template-columns:1fr!important}
   .staff-app .personal-history-entry{min-height:auto!important}
-  .staff-calendar-weekdays span{font-size:7px}
+  .staff-calendar-weekdays span{font-size:12px}
   .staff-calendar-day{min-height:60px;padding:4px}
-  .staff-calendar-number{font-size:9px}
+  .staff-calendar-number{font-size:12px}
   .staff-calendar-event{height:5px;padding:0;font-size:0;border-radius:999px}
   .staff-calendar-event span{display:none}
   .staff-month-card{padding:9px}

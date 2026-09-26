@@ -95,6 +95,7 @@ export default function People({ me, openItem }) {
     const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
     const leave = Array.isArray(data?.leave) ? data.leave : [];
     const done = work.filter((item) => ["completed","self_certified"].includes(item.status));
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     setPerson({
       ...summary,
       items: work,

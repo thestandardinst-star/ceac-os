@@ -53,15 +53,35 @@ async function signIn(page,email,app){
 }
 
 async function inspectRoutes(page,role,config,routes){
+  const tinyText=[];
   for(const [tab,label] of routes){
     const url=tab==="home"?"/":"/?tab="+encodeURIComponent(tab);
     await page.goto(url);
     await expect(page.locator(config.app)).toBeVisible({timeout:15000});
     await expect(page.locator(".app-content")).toBeVisible();
     await expect(page.locator(".body").first()).toBeVisible({timeout:15000});
+    await page.evaluate(()=>document.fonts.ready);
     await page.waitForTimeout(250);
+    const sidebarOverflow=await page.evaluate(()=>{
+      const side=document.querySelector(".premium-side");
+      return side ? side.scrollWidth-side.clientWidth : 0;
+    });
+    expect(sidebarOverflow, role+" / "+label+" sidebar horizontal overflow").toBeLessThanOrEqual(1);
+    const violations=await page.evaluate(()=>{
+      const visible=(el)=>{
+        const style=getComputedStyle(el);
+        const rect=el.getBoundingClientRect();
+        return style.display!=="none"&&style.visibility!=="hidden"&&Number(style.opacity)!==0&&rect.width>0&&rect.height>0;
+      };
+      return [...document.querySelectorAll(".app-content *, .premium-side *, .premium-topbar *, .premium-tabs *")]
+        .filter((el)=>visible(el)&&[...el.childNodes].some((node)=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim()))
+        .map((el)=>({tag:el.tagName.toLowerCase(),className:String(el.className||"").slice(0,100),parentClassName:String(el.parentElement?.className||"").slice(0,100),grandparentClassName:String(el.parentElement?.parentElement?.className||"").slice(0,100),text:(el.textContent||"").trim().replace(/\s+/g," ").slice(0,80),size:parseFloat(getComputedStyle(el).fontSize)||0}))
+        .filter((item)=>item.text&&item.size>0&&item.size<12);
+    });
+    tinyText.push(...violations.map((item)=>({route:label,...item})));
     await page.screenshot({path:"test-artifacts/visual-parity-"+role+"-"+label+".png",fullPage:true});
   }
+  return tinyText;
 }
 
 for(const [role,config] of Object.entries(roleRoutes)){
@@ -74,7 +94,30 @@ for(const [role,config] of Object.entries(roleRoutes)){
     test(role+" visual inventory"+suffix,async({page})=>{
       await page.setViewportSize({width:1440,height:960});
       await signIn(page,config.email,config.app);
-      await inspectRoutes(page,role,config,routes);
+      const tinyText=await inspectRoutes(page,role,config,routes);
+      expect(tinyText, "Visible text below the CEAC 12px operational floor").toEqual([]);
     });
+
+  });
+
+  test(role+" laptop shell has no horizontal overflow",async({page})=>{
+    await page.setViewportSize({width:1366,height:768});
+    await signIn(page,config.email,config.app);
+    await page.goto("/");
+    await expect(page.locator(config.app)).toBeVisible({timeout:15000});
+    await page.evaluate(()=>document.fonts.ready);
+    const overflow=await page.evaluate(()=>{
+      const side=document.querySelector(".premium-side");
+      return {
+        document:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+        side:side ? side.scrollWidth-side.clientWidth : 0,
+        brand:side?.querySelector(".premium-brand")
+          ? side.querySelector(".premium-brand").scrollWidth-side.querySelector(".premium-brand").clientWidth
+          : 0,
+      };
+    });
+    expect(overflow.document, role+" laptop document overflow").toBeLessThanOrEqual(1);
+    expect(overflow.side, role+" laptop sidebar overflow").toBeLessThanOrEqual(1);
+    expect(overflow.brand, role+" laptop brand overflow").toBeLessThanOrEqual(1);
   });
 }
