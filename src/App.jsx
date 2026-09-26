@@ -337,7 +337,7 @@ export default function App() {
           isManager={isUnitManager}
           onMessages={() => go("messages")}
           onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")}
-          onCreateWork={isManager ? () => startAssignment() : () => go("work")}
+          onCreateWork={(isManager || isExec) ? () => startAssignment() : undefined}
           onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
         />
         <main className="app-content ev2s-content">
