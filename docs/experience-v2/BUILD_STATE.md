@@ -95,6 +95,8 @@ Stage 2 completed:
 - [x] Fix the test-harness regex defect found by the first Quality Gate attempt.
 - [x] Re-run the complete engineering gate on exact head b947f8c88e73eccc46a3a470760b6e546ddbfe5a: CI PASS; Migration Replay PASS; Account Security PASS; Quality Gate PASS; Vercel PASS.
 - [x] Persist the exact Stage 2 Work brief at docs/experience-v2/STAGE2_WORK_BRIEF.md.
+- [x] Lock the visual migration boundary at docs/experience-v2/VISUAL_MIGRATION_BOUNDARY.md so V2 cannot become another global parity layer.
+- [x] Lock the reference-based Stage 2 visual gate at docs/experience-v2/STAGE2_VISUAL_ACCEPTANCE.md.
 
 Stage 2 in progress:
 - [ ] Install and lock lucide-react using npm so package.json and package-lock.json remain consistent.
@@ -102,7 +104,7 @@ Stage 2 in progress:
 - [ ] Build the single semantic CEAC V2 icon registry.
 - [ ] Add the app-level MotionConfig and reusable V2 motion constants.
 - [ ] Build the contained V2 primitive/gallery proof without rebuilding role screens.
-- [ ] Define and verify the migration boundary away from duplicate icon systems and premium/parity CSS debt in implementation.
+- [ ] Verify the documented migration boundary in the actual icon/component implementation.
 - [ ] Run Stage 2 desktop/laptop + mobile visual inspection against the persistent references before Stage 3.
 
 Draft PR: #72
@@ -112,8 +114,10 @@ Stage 1 is complete only when all continuity documents and reference assets are 
 
 ## Stage 2 current handoff
 
-Exact verified engineering-green head before dependency installation:
+Exact verified engineering-green foundation checkpoint:
 b947f8c88e73eccc46a3a470760b6e546ddbfe5a
+
+Subsequent Stage 2 commits add only the migration-boundary and visual-acceptance documentation. Their exact current HEAD must be rechecked before dependency installation.
 
 No unpushed Work state is known from this Chat handoff.
 
