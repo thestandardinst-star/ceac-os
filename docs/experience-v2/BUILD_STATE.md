@@ -272,6 +272,11 @@ Additional visual-acceptance requirement:
 - Stage 3C cannot be accepted from closed-state gallery screenshots alone.
 - The visual gate now captures the responsive phone drawer and laptop modal while open, in addition to the existing base/motion evidence.
 
+Latest full-gate note:
+- The first open-state evidence run exposed two unrelated legacy-gate failures after the new V2 tests themselves passed.
+- Executive Home rendered .office-meeting-empty at 10.5px, below the already-ratified 12px operational floor. This selector had been missed by the previous targeted floor hardening. It is now added to the existing scoped 12px floor; this is a legacy hardening correction, not a role-screen V2 migration.
+- The Staff/Manager real-work-loop test also timed out because its existing legacy “Send for review” button remained disabled. No Stage 3C component participates in that workflow. This will be treated as a possible fixture/test flake unless it reproduces on the rerun.
+
 Stage 3C verification note:
 - First Quality Gate run found a real PopoverMenu focus-restoration bug.
 - Escape correctly closed the menu, but focus restoration targeted the wrapper span rather than the actual trigger button, so keyboard context was lost.
