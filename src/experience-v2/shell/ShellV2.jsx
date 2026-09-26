@@ -6,6 +6,7 @@ import {
   getRoleName,
   getSecondaryNavigation,
   getShellNavigation,
+  getShellQuickActions,
   groupDestinations,
 } from "./navigation";
 
@@ -158,47 +159,6 @@ function DestinationPalette({ query, navigation, onNavigate, onClose }) {
   );
 }
 
-function createMenuItems({
-  isAdmin,
-  isManager,
-  onCreateWork,
-  onCreateMeeting,
-  onComposeMessage,
-  onMessages,
-}) {
-  const items = [];
-
-  if (onCreateWork) {
-    items.push({
-      id: "work",
-      label: isAdmin || isManager ? "New work" : "Open work",
-      icon: "work",
-      onSelect: onCreateWork,
-    });
-  }
-
-  if (onCreateMeeting) {
-    items.push({
-      id: "meeting",
-      label: "Meeting",
-      icon: "meeting",
-      onSelect: onCreateMeeting,
-    });
-  }
-
-  const messageAction = onComposeMessage || onMessages;
-  if (messageAction) {
-    items.push({
-      id: "message",
-      label: "Message room",
-      icon: "messages",
-      onSelect: messageAction,
-    });
-  }
-
-  return items;
-}
-
 export function AppTopBar({
   me,
   roleLabel,
@@ -224,9 +184,7 @@ export function AppTopBar({
   );
   const navigation = useMemo(() => getShellNavigation(context), [context]);
   const current = navigation.find((item) => item.key === tab);
-  const createItems = createMenuItems({
-    isAdmin,
-    isManager,
+  const createItems = getShellQuickActions(context, {
     onCreateWork,
     onCreateMeeting,
     onComposeMessage,
