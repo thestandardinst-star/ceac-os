@@ -68,8 +68,9 @@ test("Stage 3B proof remains on the protected gallery only", async () => {
     "src/screens/ExecutiveHome.jsx",
   ]) {
     const source = fs.readFileSync(roleFile, "utf8");
-    expect(source.includes("StatTile"), roleFile + " migrated during Stage 3B").toBeFalsy();
-    expect(source.includes("QueueRow"), roleFile + " migrated during Stage 3B").toBeFalsy();
-    expect(source.includes("TableShell"), roleFile + " migrated during Stage 3B").toBeFalsy();
+    expect(
+      source.includes("experience-v2/components"),
+      roleFile + " imported the Experience V2 component system during Stage 3B"
+    ).toBeFalsy();
   }
 });
