@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 3 — Core Component System
-Current substage: 3B — Operational and data primitives
+Current substage: 3B — Operational and data primitives (implementation under verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -160,16 +160,16 @@ Current substage 3A:
 - [x] Extend the protected V2 gallery to prove these components at phone and laptop widths.
 
 Current substage 3B:
-- [ ] V2 Stat/KPI tile.
-- [ ] V2 QueueRow.
-- [ ] V2 RecordRow.
-- [ ] V2 Action/Focus card.
-- [ ] V2 DataPanel.
-- [ ] V2 Table shell.
-- [ ] V2 progress/status distribution.
-- [ ] V2 timeline foundation.
-- [ ] Extend the protected V2 gallery with compact operational/data examples.
-- [ ] Add architecture/accessibility/density tests.
+- [x] V2 Stat/KPI tile.
+- [x] V2 QueueRow.
+- [x] V2 RecordRow.
+- [x] V2 Action/Focus card.
+- [x] V2 DataPanel.
+- [x] V2 Table shell.
+- [x] V2 progress/status distribution.
+- [x] V2 timeline foundation.
+- [x] Extend the protected V2 gallery with compact operational/data examples.
+- [x] Add architecture/accessibility/density tests.
 - [ ] Inspect phone/laptop/desktop proof before 3C.
 
 Later Stage 3 substage:
@@ -204,14 +204,30 @@ Stage 3A acceptance: COMPLETE
   CEAC OS / Experience V2 / Evidence / Stage 3 / 3A / 591d042a77a97681952a513f94c72f97fd70b741
 - No role screen was migrated.
 
+## Stage 3B implementation checkpoint
+
+Implemented:
+- StatTile with optional drill-in link/action affordance.
+- QueueRow and RecordRow.
+- ActionFocusCard.
+- DataPanel.
+- TableShell with semantic table/caption/header markup.
+- ProgressDistribution with progressbar semantics.
+- Timeline foundation.
+- Protected gallery proof using reference-only content.
+- Architecture/accessibility/density tests.
+- No role screen migrated.
+
+Pending before 3B acceptance:
+- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
+- rendered 390×844, 1366×768 and 1440×900 proof inspection;
+- fix any shared component/density defect before 3C.
+
 ## Current handoff
 
-Chat is the active writer for Stage 3B. No unpushed Work state is known.
+Chat is the active writer for Stage 3B verification. No unpushed Work state is known.
 
-Stage 3B starts from exact accepted Stage 3A SHA:
-591d042a77a97681952a513f94c72f97fd70b741
-
-Do not begin Stage 3C until 3B is engineering-green and visually inspected.
+Do not begin Stage 3C until Stage 3B is accepted.
 
 ## Draft PR
 

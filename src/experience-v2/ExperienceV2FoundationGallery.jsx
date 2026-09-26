@@ -12,6 +12,14 @@ import {
   StatusBadge,
   Surface,
   TextareaField,
+  ActionFocusCard,
+  DataPanel,
+  ProgressDistribution,
+  QueueRow,
+  RecordRow,
+  StatTile,
+  TableShell,
+  Timeline,
 } from "./components";
 
 const ICON_PROOF = [
@@ -233,6 +241,86 @@ export default function ExperienceV2FoundationGallery() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="ev2-gallery-panel ev2-gallery-panel-wide" aria-labelledby="ev2-data-title">
+          <div className="ev2-gallery-panel-head">
+            <div>
+              <div className="ev2-type-label">Operational data</div>
+              <h3 id="ev2-data-title" className="ev2-type-card">Rows and numbers stay compact and traceable</h3>
+            </div>
+            <span className="ev2-type-supporting">Reference only</span>
+          </div>
+
+          <div className="ev2-data-proof-grid">
+            <div className="ev2-data-proof-left">
+              <div className="ev2-reference-stats">
+                <StatTile label="Reference total" value="24" supporting="Sample value" icon="chart" tone="action" />
+                <StatTile label="Reference status" value="8" supporting="Sample value" icon="check" tone="success" />
+              </div>
+
+              <ActionFocusCard
+                eyebrow="Primary work pattern"
+                title="Keep one next action obvious"
+                supporting="Reference content only — real screens later connect this component to live CEAC records."
+                status="Ready"
+                statusTone="success"
+                actionLabel="Reference action"
+              />
+
+              <DataPanel
+                eyebrow="Distribution"
+                title="Compact status movement"
+                supporting="Sample percentages only."
+              >
+                <ProgressDistribution
+                  items={[
+                    { label: "Ready", percent: 68 },
+                    { label: "Waiting", percent: 42 },
+                    { label: "Attention", percent: 24 },
+                  ]}
+                />
+              </DataPanel>
+            </div>
+
+            <DataPanel
+              eyebrow="Queue"
+              title="Operational rows"
+              supporting="The row, not the card, carries routine work."
+            >
+              <div className="ev2c-row-list">
+                <QueueRow icon="calendar" title="Reference queue item A" meta="Schedule context" status="Ready" statusTone="success" />
+                <QueueRow icon="reports" title="Reference queue item B" meta="Reporting context" status="Waiting" />
+                <RecordRow name="Reference Person" title="Reference person row" meta="Role context" status="Active" statusTone="action" />
+              </div>
+            </DataPanel>
+
+            <DataPanel eyebrow="Table" title="Dense data without oversized cards">
+              <TableShell
+                caption="Reference table — not live CEAC data"
+                columns={[
+                  { key: "item", label: "Item" },
+                  { key: "state", label: "State" },
+                  { key: "value", label: "Value", align: "right" },
+                ]}
+                rows={[
+                  { id: "a", item: "Reference A", state: "Ready", value: "12" },
+                  { id: "b", item: "Reference B", state: "Waiting", value: "8" },
+                  { id: "c", item: "Reference C", state: "Attention", value: "4" },
+                ]}
+              />
+            </DataPanel>
+
+            <DataPanel eyebrow="Timeline" title="Sequence stays readable">
+              <Timeline
+                items={[
+                  { id: "1", title: "Reference event A", meta: "Context preserved", time: "09:00", icon: "check" },
+                  { id: "2", title: "Reference event B", meta: "Next state", time: "11:30", icon: "clock" },
+                  { id: "3", title: "Reference event C", meta: "Follow-up", time: "14:00", icon: "reports" },
+                ]}
+              />
+            </DataPanel>
           </div>
         </section>
 

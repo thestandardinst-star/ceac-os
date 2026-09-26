@@ -4,3 +4,6 @@ export { InputField, SelectField, TextareaField } from "./Fields";
 export { SegmentedControl } from "./SegmentedControl";
 export { StatusBadge } from "./StatusBadge";
 export { Surface } from "./Surface";
+
+export { ActionFocusCard, DataPanel, ProgressDistribution, QueueRow, RecordRow, StatTile, Timeline } from "./DataComponents";
+export { TableShell } from "./TableShell";
