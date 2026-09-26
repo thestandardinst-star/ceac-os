@@ -10,7 +10,8 @@ import "./premium-admin.css";
 import "./premium-executive.css";
 import "./premium-parity.css";
 import "./experience-v2.css";
-import "./experience-v2/components/components.css";\nimport "./experience-v2/shell/shell.css";
+import "./experience-v2/components/components.css";
+import "./experience-v2/shell/shell.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
