@@ -117,7 +117,17 @@ Stage 1 is complete only when all continuity documents and reference assets are 
 Exact verified engineering-green foundation checkpoint:
 b947f8c88e73eccc46a3a470760b6e546ddbfe5a
 
-Subsequent Stage 2 commits add only the migration-boundary and visual-acceptance documentation. Their exact current HEAD must be rechecked before dependency installation.
+Current documentation/foundation checkpoint before dependency installation:
+45fce6eb7e6fec82295d90289e4ef31a1e0699d0
+
+Verified on that exact SHA:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+
+The next writer must inspect the latest branch HEAD before running npm. If the HEAD has advanced, reconcile it first.
 
 No unpushed Work state is known from this Chat handoff.
 
