@@ -43,12 +43,12 @@ test("Experience V2 foundation exposes the ratified semantic tokens", async () =
 
 test("Experience V2 foundation does not become another important override layer", async () => {
   const css = fs.readFileSync(foundationPath, "utf8");
-  expect((css.match(/!important\\b/g) || []).length).toBe(0);
+  expect((css.match(/!important\b/g) || []).length).toBe(0);
 });
 
 test("Experience V2 operational text floor remains at least 12px", async () => {
   const css = fs.readFileSync(foundationPath, "utf8");
-  const sizes = [...css.matchAll(/--ev2-type-[^:]+:\\s*([0-9]*\\.?[0-9]+)(rem|px)/g)]
+  const sizes = [...css.matchAll(/--ev2-type-[^:]+:\s*([0-9]*\.?[0-9]+)(rem|px)/g)]
     .map((match) => {
       const value = Number(match[1]);
       return match[2] === "rem" ? value * 16 : value;
