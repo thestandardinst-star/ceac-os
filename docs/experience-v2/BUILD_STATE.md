@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 4 — Shell V2
-Current substage: 4A — Shell audit and implementation contract
+Current substage: 4B — V2 shell structure
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -296,10 +296,16 @@ Stage 3C verification note:
 Stage 4 builds the shared V2 shell only after the accepted Stage 3 component checkpoint.
 
 Current substage 4A:
-- [ ] Audit the current desktop, laptop and mobile shell across all four roles.
-- [ ] Record the authorised destination matrix and responsive shell contract.
-- [ ] Define the migration boundary so role-screen content is not rebuilt accidentally.
-- [ ] Persist the Stage 4 work brief before shell product code begins.
+- [x] Audit the current desktop, laptop and mobile shell across all four roles.
+- [x] Record the authorised destination matrix and responsive shell contract.
+- [x] Define the migration boundary so role-screen content is not rebuilt accidentally.
+- [x] Persist the Stage 4 work brief before shell product code begins.
+
+Stage 4A audit/contract checkpoint:
+- Active shell confirmed in App.jsx + components/PremiumShell.jsx + premium.css.
+- Role-screen content remains outside Stage 4.
+- Current strengths, shared shell defects, destination matrix, responsive contract and authority boundary are recorded in docs/experience-v2/STAGE4_WORK_BRIEF.md.
+- Stage 4B may now implement the isolated V2 shell structure.
 
 ## Current handoff
 
