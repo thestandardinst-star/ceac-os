@@ -6,8 +6,8 @@ Last updated: 26 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 1 — Continuity, source-of-truth and reference lock
-Current substage: 1D — Baseline gate verification
+Current stage: Stage 2 — Design Foundation V2
+Current substage: 2A — Foundation contract and dependency selection
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -72,28 +72,36 @@ Completed:
 - [x] Open draft PR #72 — Experience V2: rebuild CEAC product experience safely.
 - [x] Add portable SESSION_START_PROMPT.md for any new Chat/Work session.
 
-In progress:
-- [ ] Run/verify CI, Migration Replay, Account Security, Quality Gate and Vercel status on the final Stage 1 documentation HEAD.
-- [ ] Resolve any Stage 1-only gate defect without starting Stage 2.
-- [ ] Mark Stage 1 complete and record Stage 2 exact start conditions.
+Stage 1 exit evidence:
+- [x] CI passed on exact Stage 1 reference head dcd18540accb60e19a95c90fd633aab351bbfbba.
+- [x] Migration Replay passed on exact Stage 1 reference head dcd18540accb60e19a95c90fd633aab351bbfbba.
+- [x] Account Security passed on exact Stage 1 reference head dcd18540accb60e19a95c90fd633aab351bbfbba.
+- [x] Complete Quality Gate passed on exact Stage 1 reference head dcd18540accb60e19a95c90fd633aab351bbfbba.
+- [x] Vercel status succeeded on exact Stage 1 reference head dcd18540accb60e19a95c90fd633aab351bbfbba.
+- [x] Persistent Library reference inventory verified from a fresh files listing.
+- [x] PR #69 and frozen PR #71 cross-linked to Experience V2.
+
+Stage 1 status: COMPLETE.
+
+Stage 2 active work:
+- [ ] Inspect/ratify the V2 token schema against the stored references.
+- [ ] Select and lock one production icon family/registry.
+- [ ] Select and lock the motion implementation approach.
+- [ ] Add semantic typography, spacing, radius, elevation, colour and responsive tokens in a new V2 foundation layer.
+- [ ] Build a V2 primitive/gallery proof without rebuilding role screens yet.
+- [ ] Define the migration boundary away from duplicate icon systems and premium/parity CSS debt.
+- [ ] Run Stage 2 desktop/laptop + mobile visual inspection before Stage 3.
 
 Draft PR: #72
 
 Stage 1 exit:
 Stage 1 is complete only when all continuity documents and reference assets are in GitHub, AGENTS.md points to them, the branch builds/tests from the inherited baseline, and a new session can determine the exact current stage without reading any Chat transcript.
 
-## Next stage after Stage 1
+## Stage 2 start conditions
 
-Stage 2 — Design Foundation V2:
-- semantic design tokens;
-- responsive typography;
-- spacing/grid rules;
-- one icon registry/family;
-- base interaction/motion tokens;
-- component architecture;
-- removal strategy for competing visual primitives.
+Stage 2 starts from the current Experience V2 branch after Stage 1 closure.
 
-Do not begin Stage 3 until the Stage 2 foundation is inspected and accepted.
+Do not rebuild role screens yet. The first objective is to prove the shared visual foundation against the stored quality references. Do not begin Stage 3 until the Stage 2 foundation is visually inspected and accepted.
 
 ## Handoff rule
 
