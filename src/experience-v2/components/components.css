@@ -363,7 +363,7 @@
 .ev2c-avatar-sm {
   width: 2rem;
   height: 2rem;
-  font-size: .6875rem;
+  font-size: var(--ev2-type-label);
 }
 
 .ev2c-avatar-md {
