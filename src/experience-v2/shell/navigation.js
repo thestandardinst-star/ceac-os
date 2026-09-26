@@ -91,6 +91,10 @@ export function getRoleKey({ isAdmin = false, isExec = false, isManager = false 
   return "staff";
 }
 
+export function hasMultipleUnits(me, { isAdmin = false, isExec = false } = {}) {
+  return !isAdmin && !isExec && (me?.memberships?.length || 0) > 1;
+}
+
 export function getRoleName(context = {}) {
   const role = getRoleKey(context);
   if (role === "executive") return "Group Pastor / CEO";
