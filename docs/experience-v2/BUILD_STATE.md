@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 2 — Design Foundation V2
-Current substage: 2C — Icon registry implementation (not started)
+Current substage: 2D — Motion provider implementation
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -60,13 +60,29 @@ dcd18540accb60e19a95c90fd633aab351bbfbba
 
 - [x] Install and lock lucide-react 1.48.0 using npm so package.json and package-lock.json remain consistent.
 - [x] Install and lock motion 13.4.4 using npm so package.json and package-lock.json remain consistent.
-- [ ] Build src/experience-v2/icons.jsx according to ICON_REGISTRY_CONTRACT.md.
-- [ ] Add src/experience-v2/motion.js and ExperienceV2MotionProvider.jsx according to MOTION_IMPLEMENTATION_CONTRACT.md.
+- [x] Build src/experience-v2/icons.jsx according to ICON_REGISTRY_CONTRACT.md.
+- [x] Add src/experience-v2/motion.js and ExperienceV2MotionProvider.jsx according to MOTION_IMPLEMENTATION_CONTRACT.md.
 - [ ] Build the contained V2 foundation gallery according to FOUNDATION_GALLERY_SPEC.md without rebuilding role screens.
 - [ ] Verify the documented migration boundary in actual icon/component implementation.
 - [ ] Run Stage 2 mobile + laptop + large-desktop visual inspection against persistent references.
 - [ ] Record exact accepted Stage 2 SHA and dependency versions.
 - [ ] Do not start Stage 3 until Stage 2 is visually accepted.
+
+Stage 2C icon-registry checkpoint:
+- Exact accepted icon-registry SHA: 99e1372743503c7967c023a9a8a213c46b7f5678.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- Added one Lucide-backed CEAC semantic registry and architecture enforcement tests.
+- Corrected the Home semantic mapping before acceptance.
+- No role screen, Supabase object, frozen PR #71 code, motion provider or gallery was changed in Stage 2C.
+
+Stage 2D motion-provider implementation:
+- Central provider and semantic motion constants are being added from the accepted Stage 2C head.
+- No role-screen animation is being introduced in this checkpoint.
+- The contained gallery remains Stage 2E.
 
 ## Current engineering checkpoints
 
@@ -95,18 +111,14 @@ Stage 2B dependency checkpoint:
 
 ## Current handoff
 
-No unpushed Work state is known from this Chat handoff.
+Chat is the active writer for Stage 2D. No unpushed Work state is known.
 
-Next safe action:
-1. inspect actual branch HEAD and confirm no other writer is active;
-2. verify the pushed Stage 2B commit and its GitHub checks;
-3. implement only the icon registry defined by ICON_REGISTRY_CONTRACT.md as Stage 2C;
-4. do not begin the motion provider or gallery in the same checkpoint;
-5. do not start Stage 3 until every Stage 2 implementation and visual gate is complete.
-
-Do not hand-edit package-lock dependency records.
-
-Chat may continue review/specification work while Work is unavailable, but must not overwrite unpushed Work changes.
+Next safe action after this commit:
+1. verify the exact Stage 2D HEAD and GitHub checks;
+2. if green, mark Stage 2D accepted;
+3. build only the contained foundation gallery as Stage 2E;
+4. do not rebuild role screens;
+5. do not start Stage 3 until Stage 2 visual acceptance is complete.
 
 ## Draft PR
 
