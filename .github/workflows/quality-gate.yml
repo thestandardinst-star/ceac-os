@@ -230,6 +230,14 @@ jobs:
           path: test-artifacts/selective-ux-*.png
           if-no-files-found: ignore
 
+      - name: Upload Experience V2 foundation inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experience-v2-foundation
+          path: test-artifacts/ev2-foundation-*.png
+          if-no-files-found: ignore
+
       - name: Upload R0 premium redesign product inspection
         if: always()
         uses: actions/upload-artifact@v4
