@@ -6,8 +6,8 @@ Last updated: 26 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 3 — Core Component System
-Current substage: 3C — Interaction and state primitives (implementation under verification)
+Current stage: Stage 4 — Shell V2
+Current substage: 4A — Shell audit and implementation contract
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -182,8 +182,8 @@ Current substage 3C:
 - [x] Toast/Confirmation.
 - [x] Keyboard/focus/escape/close behaviour tests.
 - [x] Extend protected V2 gallery with interaction/state proofs.
-- [ ] Inspect phone/laptop/desktop proof.
-- [ ] Accept Stage 3 and open Stage 4 shell only after 3C passes.
+- [x] Inspect phone/laptop/desktop proof.
+- [x] Accept Stage 3 and open Stage 4 shell only after 3C passes.
 
 Do not start Stage 4 shell until Stage 3 is accepted.
 
@@ -261,12 +261,20 @@ Implemented:
 - Playwright keyboard/focus behaviour tests.
 - No role screen migrated.
 
-Pending before Stage 3 acceptance:
-- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel with explicit open-state visual evidence;
-- inspect base phone/laptop/desktop proof plus phone drawer and laptop modal proof;
-- fix any remaining shared interaction/state defect;
-- record exact accepted Stage 3 SHA and persistent evidence;
-- only then open Stage 4 shell.
+Stage 3C acceptance: COMPLETE
+- Exact accepted implementation SHA: 2ff50401115cc3d14b95cb2983dcbe4c82afa83b.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS after rerunning the initially failed monolithic job; the rerun passed the full role/RLS suite and Stage 3C coverage without a product-code change.
+- Vercel PASS.
+- Base proof inspected at 390×844, 1366×768 and 1440×900.
+- Open phone drawer proof inspected at 390×844.
+- Open laptop modal proof inspected at 1366×768.
+- No additional shared Stage 3C defect was found in the accepted proof.
+- Persistent evidence:
+  CEAC OS / Experience V2 / Evidence / Stage 3 / 3C / 2ff50401115cc3d14b95cb2983dcbe4c82afa83b
+- Acceptance record: docs/experience-v2/STAGE3C_ACCEPTANCE_RECORD.md.
 
 Additional visual-acceptance requirement:
 - Stage 3C cannot be accepted from closed-state gallery screenshots alone.
@@ -283,11 +291,19 @@ Stage 3C verification note:
 - The implementation now restores focus to the button inside the trigger wrapper on Escape and item selection.
 - This is a component-level fix; no role screen was changed.
 
+## Stage 4 active work
+
+Stage 4 builds the shared V2 shell only after the accepted Stage 3 component checkpoint.
+
+Current substage 4A:
+- [ ] Audit the current desktop, laptop and mobile shell across all four roles.
+- [ ] Record the authorised destination matrix and responsive shell contract.
+- [ ] Define the migration boundary so role-screen content is not rebuilt accidentally.
+- [ ] Persist the Stage 4 work brief before shell product code begins.
+
 ## Current handoff
 
-Chat is the active writer for Stage 3C verification. No unpushed Work state is known.
-
-Do not begin Stage 4 until Stage 3C and the whole Stage 3 component system are accepted.
+Work is the sole active writer. Stage 3 is accepted; Stage 4A shell audit and implementation-contract work may proceed.
 
 ## Draft PR
 
