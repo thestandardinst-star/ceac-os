@@ -262,11 +262,17 @@ Implemented:
 - No role screen migrated.
 
 Pending before Stage 3 acceptance:
-- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
+- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel after focus-restoration correction;
 - rendered phone/laptop/desktop proof inspection;
-- fix any shared interaction/state defect;
+- fix any remaining shared interaction/state defect;
 - record exact accepted Stage 3 SHA and persistent evidence;
 - only then open Stage 4 shell.
+
+Stage 3C verification note:
+- First Quality Gate run found a real PopoverMenu focus-restoration bug.
+- Escape correctly closed the menu, but focus restoration targeted the wrapper span rather than the actual trigger button, so keyboard context was lost.
+- The implementation now restores focus to the button inside the trigger wrapper on Escape and item selection.
+- This is a component-level fix; no role screen was changed.
 
 ## Current handoff
 
