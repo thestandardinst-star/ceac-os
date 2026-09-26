@@ -71,6 +71,26 @@ for (const proof of [
       await gallery.screenshot({
         path: "test-artifacts/ev2-foundation-laptop-1366x768-expanded.png",
       });
+
+      await gallery.getByRole("button", { name: "Open modal" }).click();
+      await expect(page.getByRole("dialog", { name: "Reference modal" })).toBeVisible();
+      await page.screenshot({
+        path: "test-artifacts/ev2-foundation-stage3c-modal-laptop-1366x768.png",
+        fullPage: false,
+      });
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog", { name: "Reference modal" })).toBeHidden();
+    }
+
+    if (proof.name === "phone-390x844") {
+      await gallery.getByRole("button", { name: "Open drawer" }).click();
+      await expect(page.getByRole("dialog", { name: "Reference drawer" })).toBeVisible();
+      await page.screenshot({
+        path: "test-artifacts/ev2-foundation-stage3c-drawer-phone-390x844.png",
+        fullPage: false,
+      });
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog", { name: "Reference drawer" })).toBeHidden();
     }
 
     await context.close();
