@@ -5,5 +5,6 @@ export {
   getRoleName,
   getSecondaryNavigation,
   getShellNavigation,
+  getShellQuickActions,
   groupDestinations,
 } from "./navigation";
