@@ -11,7 +11,7 @@ const premiumCssFiles = [
 ];
 
 test("issue 70 runtime typography fixes stay at the approved floor", async () => {
-  const styles = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+  const styles = await fs.promises.readFile(new URL("../src/styles.css", import.meta.url), "utf8");
   const required = [
     [".home-chip", /\.home-chip\{[^}]*font-size:12px/],
     [".admin-reporting-card span", /\.admin-reporting-card span\{[^}]*font-size:12px/],
