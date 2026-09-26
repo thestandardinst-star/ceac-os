@@ -10,6 +10,8 @@ Active branch: chatgpt/experience-v2-2026-09-26
 Baseline: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
 Repository: thestandardinst-star/ceac-os
 
+Portable new-session prompt: docs/experience-v2/SESSION_START_PROMPT.md
+
 Experience V2 is a controlled rebuild of the visible product experience. It preserves the proven CEAC data, security, RLS, capability, audit, workflow and business-rule contracts unless a later stage explicitly requires an approved change.
 
 ## Mandatory start procedure
@@ -23,6 +25,8 @@ Before editing anything, every Chat or Work session must:
    - docs/experience-v2/IMPLEMENTATION_SEQUENCE.md
    - docs/experience-v2/REFERENCE_INDEX.md
    - docs/experience-v2/ACCEPTANCE_AND_HANDOFF.md
+   - docs/experience-v2/DECISION_LOG.md
+   - docs/experience-v2/BASELINE_AUDIT.md
    - AGENTS.md
    - the current domain/security contract for any functional surface being touched.
 3. State the current Experience V2 stage and substage from BUILD_STATE.md.
