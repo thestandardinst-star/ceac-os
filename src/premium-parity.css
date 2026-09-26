@@ -650,6 +650,7 @@ body{color:var(--ceac-text)}
 .app-content .office-config-card.is-deferred > small,
 .app-content .office-config-card.is-deferred > span,
 .app-content .office-inline-field > span,
+.app-content .office-meeting-empty,
 .app-content .office-meeting-row small,
 .app-content .office-meeting-strip-head span,
 .app-content .office-page-intro.admin-page-title-row div.eyebrow,
