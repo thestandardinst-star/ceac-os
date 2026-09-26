@@ -219,9 +219,15 @@ Implemented:
 - No role screen migrated.
 
 Pending before 3B acceptance:
-- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
+- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel after the test-harness correction;
 - rendered 390×844, 1366×768 and 1440×900 proof inspection;
 - fix any shared component/density defect before 3C.
+
+Stage 3B verification note:
+- First Quality Gate attempt failed only in the new gallery-boundary test.
+- Cause: the test searched for the literal name "QueueRow" in legacy role files. ManagerHome already legitimately uses the older legacy QueueRow from ../components/primitives, so the assertion produced a false positive.
+- No role-screen migration occurred.
+- The test now checks specifically for imports from experience-v2/components instead of component-name text.
 
 First Stage 3B verification found two issues:
 - a test-harness false positive because legacy ManagerHome already contains its own QueueRow symbol; the boundary test now checks V2 imports instead of generic names;
