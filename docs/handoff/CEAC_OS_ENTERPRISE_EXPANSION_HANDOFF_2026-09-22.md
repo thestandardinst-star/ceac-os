@@ -1,12 +1,12 @@
 # CEAC OS — Enterprise Expansion Programme Handoff
 
-**Date:** 22 September 2026
+**Date:** 26 September 2026
 **Status:** ACTIVE
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `ec2801895c66dfec082d04901b4743bfeb9a2c4c`
-**Active branch:** `chatgpt/enterprise-expansion-stage-11-compliance-policy-2026-09-22`
-**Current stage:** Stage 11 — Compliance & Policy Management
-**Latest merged migration on main:** 090 — Assets & Devices; Stage 11 migration 091 is under development
+**Baseline main:** `225185e75050085ccc14026b46947eead3e52167`
+**Active branch:** `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`
+**Current stage:** Stage 12 — Integrations
+**Latest merged migration on main:** 096 — Experience Stage 6 finance corrections; Stage 12 owns migration 097
 
 ## 1. Governing architecture
 
@@ -266,3 +266,31 @@ Stage 11 contract:
 The existing Stage 1F Policies & rules engine remains system configuration; Stage 11 Compliance is a separate human policy/evidence/exception workflow.
 
 No Stage 12 work may begin until Stage 11 is green and merged.
+
+
+## Stage 12 clean restart — 26 September 2026
+
+Enterprise expansion has been explicitly resumed by the product owner.
+
+Current source of truth:
+- main: `225185e75050085ccc14026b46947eead3e52167`;
+- Stages 10 and 11 are merged;
+- live Supabase project `efjljhftsesssumtshvp` is ACTIVE_HEALTHY;
+- live migration head is 096;
+- Supabase Vault is installed;
+- no Edge Functions are deployed at Stage 12 activation;
+- Stage 1G connector/subscription/outbox tables are live;
+- stale PR #45 was documentation-only, diverged from current main, and was closed without merge.
+
+Fresh Stage 12 branch:
+`chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`
+
+Governing contract:
+`docs/architecture/CEAC_OS_STAGE12_INTEGRATIONS_2026-09-26.md`
+
+Implementation order:
+common secure connection contract → Vault secret boundary → provider capabilities → delivery worker/retry/idempotency → inbound normalisation → premium Connected Apps → Telegram adapter → cumulative closure.
+
+Telegram is the first provider adapter. Google Calendar/Meet, Drive and Zoom must not be built in parallel before the common contract and Telegram pass.
+
+Stage 13 remains blocked until Stage 12 is merged and CEAC payroll rules are formally confirmed.
