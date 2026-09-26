@@ -92,6 +92,10 @@
   box-sizing: border-box;
   min-width: 0;
   font-family: var(--ev2-font-sans);
+  font-kerning: normal;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  word-spacing: normal;
   color: var(--ev2-text);
 }
 
@@ -307,6 +311,7 @@
 
 /* Experience V2 foundation gallery — protected diagnostic proof only. */
 .ev2-gallery {
+  scroll-margin-top: calc(var(--ceac-topbar, 59px) + var(--ev2-space-4));
   margin: var(--ev2-space-8) 0 var(--ev2-space-10);
   padding: var(--ev2-space-6);
   background: var(--ev2-bg);
