@@ -297,7 +297,8 @@ test("Stage 4C destination search stays keyboard-usable and truthful", async ({ 
   await expect(palette).toBeHidden();
   await expect(search).toBeFocused();
 
-  await search.fill("Messages");
+  await page.keyboard.press("Control+K");
+  await expect(palette).toBeVisible();
   await palette.getByRole("button", { name: "Messages", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Messages", exact: true })).toBeVisible();
   expect(new URL(page.url()).searchParams.get("tab")).toBe("messages");
