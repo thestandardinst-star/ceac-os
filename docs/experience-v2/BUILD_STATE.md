@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 3 — Core Component System
-Current substage: 3B — Operational and data primitives (implementation under verification)
+Current substage: 3C — Interaction and state primitives
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -170,10 +170,20 @@ Current substage 3B:
 - [x] V2 timeline foundation.
 - [x] Extend the protected V2 gallery with compact operational/data examples.
 - [x] Add architecture/accessibility/density tests.
-- [ ] Inspect phone/laptop/desktop proof before 3C.
+- [x] Inspect phone/laptop/desktop proof before 3C.
 
-Later Stage 3 substage:
-- 3C interaction/state primitives: tooltip/popover/menu, drawer/sheet, modal/dialog, skeleton/loading, empty/error/configuration states, toast/confirmation.
+Current substage 3C:
+- [ ] Tooltip.
+- [ ] Popover/Menu foundation.
+- [ ] Drawer/Sheet.
+- [ ] Modal/Dialog.
+- [ ] Skeleton/Loading.
+- [ ] Empty/Error/Configuration state surfaces.
+- [ ] Toast/Confirmation.
+- [ ] Keyboard/focus/escape/close behaviour tests.
+- [ ] Extend protected V2 gallery with interaction/state proofs.
+- [ ] Inspect phone/laptop/desktop proof.
+- [ ] Accept Stage 3 and open Stage 4 shell only after 3C passes.
 
 Do not start Stage 4 shell until Stage 3 is accepted.
 
@@ -218,16 +228,19 @@ Implemented:
 - Architecture/accessibility/density tests.
 - No role screen migrated.
 
-Pending before 3B acceptance:
-- rerun exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel after the test-harness correction;
-- rendered 390×844, 1366×768 and 1440×900 proof inspection;
-- fix any shared component/density defect before 3C.
-
-Stage 3B verification note:
-- First Quality Gate attempt failed only in the new gallery-boundary test.
-- Cause: the test searched for the literal name "QueueRow" in legacy role files. ManagerHome already legitimately uses the older legacy QueueRow from ../components/primitives, so the assertion produced a false positive.
-- No role-screen migration occurred.
-- The test now checks specifically for imports from experience-v2/components instead of component-name text.
+Stage 3B acceptance: COMPLETE
+- Exact accepted SHA: c6881aa70c238a883a22dc870c3d210d8f03440c.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- First Quality Gate attempt failed only because the new boundary test searched for the literal component name "QueueRow"; ManagerHome legitimately uses the older legacy QueueRow from ../components/primitives.
+- The test was corrected to detect actual imports from experience-v2/components. No role-screen migration occurred.
+- Rendered proof inspected at 390×844, 1366×768 and 1440×900.
+- Operational/data primitives remain compact, readable and consistent with the accepted V2 foundation.
+- Persistent evidence:
+  CEAC OS / Experience V2 / Evidence / Stage 3 / 3B / c6881aa70c238a883a22dc870c3d210d8f03440c
 
 First Stage 3B verification found two issues:
 - a test-harness false positive because legacy ManagerHome already contains its own QueueRow symbol; the boundary test now checks V2 imports instead of generic names;
@@ -235,9 +248,12 @@ First Stage 3B verification found two issues:
 
 ## Current handoff
 
-Chat is the active writer for Stage 3B verification. No unpushed Work state is known.
+Chat is the active writer for Stage 3C. No unpushed Work state is known.
 
-Do not begin Stage 3C until Stage 3B is accepted.
+Stage 3C starts from exact accepted Stage 3B SHA:
+c6881aa70c238a883a22dc870c3d210d8f03440c
+
+Do not begin Stage 4 shell until Stage 3C and the whole Stage 3 component system are engineering-green and visually inspected.
 
 ## Draft PR
 
