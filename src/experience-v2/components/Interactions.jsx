@@ -114,6 +114,8 @@ export function Tooltip({ label, children, placement = "top" }) {
 export function PopoverMenu({
   triggerLabel = "Open menu",
   triggerIcon = "more",
+  triggerText,
+  triggerVariant = "primary",
   items = [],
   align = "end",
 }) {
@@ -150,13 +152,26 @@ export function PopoverMenu({
   return (
     <span className="ev2c-popover" ref={rootRef}>
       <span ref={triggerRef}>
-        <IconButton
-          icon={triggerIcon}
-          label={triggerLabel}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-        />
+        {triggerText ? (
+          <Button
+            icon={triggerIcon}
+            variant={triggerVariant}
+            aria-label={triggerLabel}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {triggerText}
+          </Button>
+        ) : (
+          <IconButton
+            icon={triggerIcon}
+            label={triggerLabel}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          />
+        )}
       </span>
 
       <AnimatePresence>
