@@ -2,6 +2,17 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CEAC_ICON_SIZES, CeacIcon } from "./icons";
 import { EV2_TRANSITIONS } from "./motion";
+import {
+  Avatar,
+  Button,
+  IconButton,
+  InputField,
+  SegmentedControl,
+  SelectField,
+  StatusBadge,
+  Surface,
+  TextareaField,
+} from "./components";
 
 const ICON_PROOF = [
   "home", "work", "team", "projects", "calendar", "finance",
@@ -13,6 +24,7 @@ const SIZE_PROOF = ["meta", "row", "nav", "feature"];
 
 export default function ExperienceV2FoundationGallery() {
   const [expanded, setExpanded] = useState(false);
+  const [componentView, setComponentView] = useState("ready");
 
   return (
     <section className="ev2-foundation ev2-gallery" aria-labelledby="ev2-foundation-title">
@@ -90,26 +102,39 @@ export default function ExperienceV2FoundationGallery() {
 
           <div className="ev2-control-stack">
             <div className="ev2-control-row">
-              <button className="ev2-button ev2-button-primary ev2-focus-ring" type="button">
-                <CeacIcon name="create" size="control" decorative />
-                Primary action
-              </button>
-              <button className="ev2-button ev2-button-secondary ev2-focus-ring" type="button">
-                Secondary
-              </button>
-              <button className="ev2-icon-action ev2-focus-ring" type="button" aria-label="Reference notifications">
-                <CeacIcon name="notification" size="nav" decorative />
-              </button>
+              <Button icon="create">Primary action</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="quiet">Quiet action</Button>
+              <IconButton icon="notification" label="Reference notifications" />
             </div>
 
-            <label className="ev2-field">
-              <span className="ev2-type-label">Reference input</span>
-              <input className="ev2-input ev2-focus-ring" defaultValue="Design-system sample" />
-            </label>
+            <InputField
+              label="Reference input"
+              leadingIcon="search"
+              defaultValue="Design-system sample"
+              help="Supporting text stays close to the field it explains."
+            />
 
-            <button className="ev2-button ev2-button-secondary" type="button" disabled>
-              Disabled state
-            </button>
+            <SelectField
+              label="Reference select"
+              defaultValue="ready"
+              options={[
+                { value: "ready", label: "Ready" },
+                { value: "waiting", label: "Waiting" },
+                { value: "complete", label: "Complete" },
+              ]}
+            />
+
+            <TextareaField
+              label="Reference note"
+              placeholder="Write a concise operational note"
+              help="Three-line default; expands only when the work needs it."
+            />
+
+            <div className="ev2-control-row">
+              <Button variant="secondary" disabled>Disabled state</Button>
+              <Button variant="danger">Destructive action</Button>
+            </div>
           </div>
         </section>
 
@@ -122,6 +147,34 @@ export default function ExperienceV2FoundationGallery() {
           </div>
 
           <div className="ev2-surface-proof">
+            <Surface variant="feature" padding="standard" className="ev2-component-feature-proof">
+              <div className="ev2-component-avatar-row">
+                <Avatar src="/ceac-icon-192.png" alt="CEAC reference mark" size="lg" />
+                <div>
+                  <span className="ev2-type-label">Image treatment</span>
+                  <div className="ev2-type-row">Contained, consistent cropping</div>
+                </div>
+                <Avatar name="Reference Person" size="md" />
+              </div>
+
+              <SegmentedControl
+                ariaLabel="Reference component state"
+                value={componentView}
+                onChange={setComponentView}
+                items={[
+                  { value: "ready", label: "Ready", icon: "check" },
+                  { value: "waiting", label: "Waiting", icon: "clock" },
+                  { value: "issue", label: "Issue", icon: "warning" },
+                ]}
+              />
+
+              <div className="ev2-status-row" aria-label="Production status examples">
+                <StatusBadge tone="success">Success</StatusBadge>
+                <StatusBadge tone="warning">Attention</StatusBadge>
+                <StatusBadge tone="danger">Issue</StatusBadge>
+              </div>
+            </Surface>
+
             <div className="ev2-reference-stat">
               <span className="ev2-icon-box ev2-icon-box-action"><CeacIcon name="chart" size="nav" decorative /></span>
               <div>
@@ -140,11 +193,7 @@ export default function ExperienceV2FoundationGallery() {
               <CeacIcon name="chevronRight" size="meta" decorative />
             </div>
 
-            <div className="ev2-status-row" aria-label="Semantic status examples">
-              <span className="ev2-status ev2-status-success"><CeacIcon name="check" size="meta" decorative />Success</span>
-              <span className="ev2-status ev2-status-warning"><CeacIcon name="warning" size="meta" decorative />Attention</span>
-              <span className="ev2-status ev2-status-danger"><CeacIcon name="error" size="meta" decorative />Issue</span>
-            </div>
+
           </div>
         </section>
 

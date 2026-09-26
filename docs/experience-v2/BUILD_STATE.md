@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 3 — Core Component System
-Current substage: 3A — Core controls and surface primitives
+Current substage: 3A — Core controls and surface primitives (implementation under verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -150,14 +150,14 @@ Stage 2B dependency checkpoint:
 Stage 3 builds the reusable V2 component system on the accepted Stage 2 foundation. It does not rebuild Staff/Manager/Admin/Executive role screens yet.
 
 Current substage 3A:
-- [ ] V2 Button and IconButton family.
-- [ ] V2 Input, Textarea and Select family.
-- [ ] V2 Status/Badge primitives.
-- [ ] V2 Surface/Panel primitives.
-- [ ] V2 Tabs/Segmented control foundation.
-- [ ] V2 Avatar primitive.
-- [ ] Core component accessibility/geometry tests.
-- [ ] Extend the protected V2 gallery to prove these components at phone and laptop widths.
+- [x] V2 Button and IconButton family.
+- [x] V2 Input, Textarea and Select family.
+- [x] V2 Status/Badge primitives.
+- [x] V2 Surface/Panel primitives.
+- [x] V2 Tabs/Segmented control foundation.
+- [x] V2 Avatar primitive.
+- [x] Core component accessibility/geometry tests.
+- [x] Extend the protected V2 gallery to prove these components at phone and laptop widths.
 
 Later Stage 3 substages:
 - 3B operational/data primitives: Stat, QueueRow, RecordRow, table/data panel, progress/status patterns.
@@ -165,14 +165,30 @@ Later Stage 3 substages:
 
 Do not start Stage 4 shell until Stage 3 is accepted.
 
+## Stage 3A implementation checkpoint
+
+Implemented on top of exact accepted Stage 2:
+- Button and IconButton families.
+- Input, Textarea and Select field families.
+- StatusBadge semantic states.
+- Surface variants.
+- SegmentedControl tab foundation.
+- Avatar image/fallback primitive.
+- Scoped production component stylesheet under src/experience-v2/components/.
+- Static architecture/accessibility tests.
+- Protected gallery proof updated to use the production components.
+- No role screen migrated.
+
+Pending before 3A acceptance:
+- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
+- rendered 390×844, 1366×768 and 1440×900 gallery review;
+- correct any shared component defect before 3B.
+
 ## Current handoff
 
-Chat is the active writer for Stage 3A. No unpushed Work state is known.
+Chat is the active writer for Stage 3A verification. No unpushed Work state is known.
 
-Stage 3 begins from exact accepted Stage 2 SHA:
-f1d53018000d4359809b9ff8ab0c85e4c84912d3
-
-Read docs/experience-v2/STAGE3_WORK_BRIEF.md before implementation.
+Do not begin Stage 3B until Stage 3A is engineering-green and visually inspected.
 
 ## Draft PR
 
