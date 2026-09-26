@@ -59,7 +59,7 @@ import Meeting from "./screens/Meeting";
 import DesignPrimitives from "./screens/DesignPrimitives";
 import AccountActivity from "./screens/AccountActivity";
 import MeetingScheduler from "./components/MeetingScheduler";
-import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./components/PremiumShell";
+import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./experience-v2/shell";
 import AuthFrame from "./components/AuthFrame";
 
 function routeFromLocation() {
@@ -307,18 +307,40 @@ export default function App() {
 
   return (
     <div className={`app ${appModeClass}`}>
-      <SideNav tab={tab} setTab={go} me={me} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onUnitChange={switchUnit} onMessages={() => go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
-      <div className="app-workspace">
-        <MobileTopBar me={me} roleLabel={roleLabel} onProfile={() => go("me")} onMessages={() => go("messages")} />
-        <AppTopBar me={me} roleLabel={roleLabel} tab={tab} onProfile={() => go("me")} onNavigate={go} isAdmin={isAdmin} isExec={isExec} isManager={isUnitManager} onMessages={() => go("messages")} onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")} onCreateWork={isManager ? () => startAssignment() : () => go("work")} onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })} />
-        {!isAdmin && (me.memberships?.length || 0) > 1 && <div className="mobile-unit-switch">
-          <select aria-label="Current unit" value={me.unit_id || ""} onChange={(event) => switchUnit(event.target.value)}>
-            {me.memberships.map((membership) => <option key={membership.unit_id} value={membership.unit_id}>
-              {membership.unit_name || "Unit"} · {membership.role === "manager" ? "Manager" : "Staff"}
-            </option>)}
-          </select>
-        </div>}
-        <main className="app-content">
+      <SideNav
+        tab={tab}
+        setTab={go}
+        me={me}
+        isAdmin={isAdmin}
+        isExec={isExec}
+        isManager={isUnitManager}
+        onUnitChange={switchUnit}
+      />
+      <div className="ev2s-workspace">
+        <MobileTopBar
+          me={me}
+          roleLabel={roleLabel}
+          isAdmin={isAdmin}
+          isExec={isExec}
+          isManager={isUnitManager}
+          onProfile={() => go("me")}
+          onUnitChange={switchUnit}
+        />
+        <AppTopBar
+          me={me}
+          roleLabel={roleLabel}
+          tab={tab}
+          onProfile={() => go("me")}
+          onNavigate={go}
+          isAdmin={isAdmin}
+          isExec={isExec}
+          isManager={isUnitManager}
+          onMessages={() => go("messages")}
+          onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")}
+          onCreateWork={isManager ? () => startAssignment() : () => go("work")}
+          onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
+        />
+        <main className="app-content ev2s-content">
           {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} openRoom={openRoom} back={closeUrlOverlay} />
             : assigning ? <Assign me={me}
                 initialProjectId={assigning.projectId}
@@ -342,7 +364,7 @@ export default function App() {
             : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} openRoom={openRoom} />
             : pageForTab()}
         </main>
-        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} onMessages={() => go("messages")} />}
+        {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} />}
       </div>
     </div>);
 }
