@@ -308,7 +308,12 @@ Stage 4A audit/contract checkpoint:
 - Stage 4B may now implement the isolated V2 shell structure.
 
 Stage 4B implementation checkpoint: IMPLEMENTED, VERIFICATION IN PROGRESS
-- Exact implementation SHA before this documentation checkpoint: 288122ef8bec4d9a1a8b7da38e86d0aa46cae065.
+- Latest corrective implementation SHA before this documentation checkpoint: d91c414f17a9158b4d1baa7f381d21ada9363b2f.
+- The first full Quality Gate on the initial V2 shell head exposed migration-gate failures rather than security/data failures: legacy acceptance tests still targeted PremiumShell selectors and the shared small Avatar rendered initials at 11px, below the ratified 12px operational floor.
+- Corrected the shared Avatar text floor at the component layer.
+- Migrated the affected shell acceptance tests to the V2 shell selectors and Stage 3 Drawer/Popover semantics without weakening role/destination assertions.
+- Kept the visual-regression threshold unchanged while excluding only the deliberately replaced shell chrome from the legacy role-content fingerprint comparison.
+- Centralised shell quick actions in the same role policy module as navigation; Staff is not offered work creation, while Manager, Administration and Executive retain the existing authorised assignment path.
 - Added isolated shared shell under src/experience-v2/shell/.
 - Centralised four-role destination metadata and role-authorised quick-action metadata.
 - Replaced active shell imports in App.jsx with the V2 shell without rebuilding role-page content.
@@ -323,7 +328,7 @@ Stage 4B implementation checkpoint: IMPLEMENTED, VERIFICATION IN PROGRESS
 - Staff is not offered a work-creation shortcut; Manager, Administration and Executive use the already-authorised assignment path.
 - Added Stage 4B architecture/browser coverage, including role-authorised quick-action verification.
 - No Supabase, RLS, RPC, migration, role-screen content or frozen PR #71 change.
-- Exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel verification is running. Do not open Stage 4C until the exact head is green.
+- Exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel verification is rerunning after these concrete Stage 4B corrections. Do not open Stage 4C until the exact head is green.
 
 ## Current handoff
 
