@@ -7,7 +7,7 @@ Last updated: 26 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 3 — Core Component System
-Current substage: 3A — Core controls and surface primitives (implementation under verification)
+Current substage: 3B — Operational and data primitives
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -159,8 +159,20 @@ Current substage 3A:
 - [x] Core component accessibility/geometry tests.
 - [x] Extend the protected V2 gallery to prove these components at phone and laptop widths.
 
-Later Stage 3 substages:
-- 3B operational/data primitives: Stat, QueueRow, RecordRow, table/data panel, progress/status patterns.
+Current substage 3B:
+- [ ] V2 Stat/KPI tile.
+- [ ] V2 QueueRow.
+- [ ] V2 RecordRow.
+- [ ] V2 Action/Focus card.
+- [ ] V2 DataPanel.
+- [ ] V2 Table shell.
+- [ ] V2 progress/status distribution.
+- [ ] V2 timeline foundation.
+- [ ] Extend the protected V2 gallery with compact operational/data examples.
+- [ ] Add architecture/accessibility/density tests.
+- [ ] Inspect phone/laptop/desktop proof before 3C.
+
+Later Stage 3 substage:
 - 3C interaction/state primitives: tooltip/popover/menu, drawer/sheet, modal/dialog, skeleton/loading, empty/error/configuration states, toast/confirmation.
 
 Do not start Stage 4 shell until Stage 3 is accepted.
@@ -179,16 +191,27 @@ Implemented on top of exact accepted Stage 2:
 - Protected gallery proof updated to use the production components.
 - No role screen migrated.
 
-Pending before 3A acceptance:
-- exact-head CI/Migration Replay/Account Security/Quality Gate/Vercel;
-- rendered 390×844, 1366×768 and 1440×900 gallery review;
-- correct any shared component defect before 3B.
+Stage 3A acceptance: COMPLETE
+- Exact accepted SHA: 591d042a77a97681952a513f94c72f97fd70b741.
+- CI PASS.
+- Migration Replay PASS.
+- Account Security PASS.
+- Complete Quality Gate PASS.
+- Vercel PASS.
+- Rendered proof inspected at 390×844, 1366×768 and 1440×900.
+- The production controls/surfaces remain visually coherent with the accepted Stage 2 foundation: consistent typography, Lucide icon treatment, control heights, focus geometry, surface restraint and responsive composition.
+- Persistent evidence:
+  CEAC OS / Experience V2 / Evidence / Stage 3 / 3A / 591d042a77a97681952a513f94c72f97fd70b741
+- No role screen was migrated.
 
 ## Current handoff
 
-Chat is the active writer for Stage 3A verification. No unpushed Work state is known.
+Chat is the active writer for Stage 3B. No unpushed Work state is known.
 
-Do not begin Stage 3B until Stage 3A is engineering-green and visually inspected.
+Stage 3B starts from exact accepted Stage 3A SHA:
+591d042a77a97681952a513f94c72f97fd70b741
+
+Do not begin Stage 3C until 3B is engineering-green and visually inspected.
 
 ## Draft PR
 
