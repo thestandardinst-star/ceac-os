@@ -83,6 +83,13 @@ for (const viewport of [
     );
     expect(overflow).toBeLessThanOrEqual(1);
 
+    if (viewport.width <= 599) {
+      const compactHeights = await page.locator(".managerv2 .ev2c-button-compact:visible").evaluateAll((buttons) =>
+        buttons.map((button) => button.getBoundingClientRect().height)
+      );
+      for (const height of compactHeights) expect(height).toBeGreaterThanOrEqual(44);
+    }
+
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage6-manager-${viewport.name}.png`,
       fullPage: true,

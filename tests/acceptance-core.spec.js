@@ -230,13 +230,14 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const blockerRow = page.locator(".home-blocker-row").filter({ hasText: title });
+    const blockerRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
     await expect(blockerRow).toBeVisible();
     await blockerRow.getByRole("button", { name: "Acknowledge" }).click();
-    await expect(page.locator(".home-blocker-row").filter({ hasText: title })).toContainText("acknowledged");
-    const acknowledgedRow = page.locator(".home-blocker-row").filter({ hasText: title });
+    const acknowledgedRow = page.locator(".managerv2-dependency-row").filter({ hasText: title });
+    await expect(acknowledgedRow).toBeVisible();
+    await expect(acknowledgedRow).toContainText("Acknowledged");
     await acknowledgedRow.getByRole("button", { name: "Mark resolved" }).click();
-    await expect(page.locator(".home-blocker-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.locator(".managerv2-dependency-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
 
