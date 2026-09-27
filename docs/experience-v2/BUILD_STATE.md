@@ -891,7 +891,8 @@ Family B — People/Team is ACTIVE.
 
 10B1 audit/contract: COMPLETE.
 10B2 Staff Team: ACCEPTED on engineering + visual evidence.
-10B3 Manager Team: ACTIVE.
+10B3 Manager Team: ACCEPTED on engineering + visual evidence.
+10B4 Manager Person workspace: ACTIVE.
 
 Canonical family scope:
 - Staff Team;
@@ -931,9 +932,9 @@ Protected rules for Family B:
 - Chat is the sole active writer.
 
 
-### 10B3 active — Manager Team
+### 10B3 accepted — Manager Team
 
-Manager Team is now the only active Family B product migration.
+Manager Team is accepted on exact-head engineering and visual evidence. Manager Person workspace is now the only active Family B product migration.
 
 10B3 must preserve:
 - unit-scoped people membership;
@@ -952,7 +953,52 @@ Presentation target:
 - team setup/resources visually secondary;
 - factual evidence buttons remain drill-downs, never productivity judgments.
 
-10B4 has NOT started.
+10B4 — Manager Person workspace is ACTIVE.
+10B5 has NOT started.
+10B6 has NOT started.
+Family C has NOT started.
+
+
+### 10B3 acceptance — Manager Team
+
+Accepted exact implementation head:
+- `847c3b2a16253016000d38d6d0a8e14cd92d1383`.
+
+Exact-head engineering gates:
+- CI PASS — run `36342903715`;
+- Migration Replay PASS — run `36342903673`;
+- Account Security PASS — run `36342903628`;
+- Complete Quality Gate PASS — run `36342903685`.
+
+Deployment status:
+- Vercel did not run because the connected free project is still over its 100-deployments-per-day allowance;
+- this is the same external deployment-rate limit already recorded for 10B2, not an application build failure;
+- Family B final acceptance remains blocked until an exact-head Vercel deployment can run successfully.
+
+10B3 outcomes:
+- Manager Team now uses the shared People/Team V2 family language;
+- unit identity, Unit Room and normal people context now precede setup/resource administration;
+- people rows expose factual presence, current-work and evidence context without introducing a score or ranking;
+- the five evidence drill-downs remain operational facts: recorded days, completed outcomes, overdue, awaiting review and submitted;
+- the existing unit-scoped Person workspace is still the drill-in destination;
+- private work remains excluded;
+- sub-team setup, safe attached-work reassignment, invitations, unit resources and Give out work preselection remain on the existing authority paths;
+- no schema, RLS, RPC, auth or role-authority change was introduced.
+
+Exact-head visual proof directly inspected:
+- 320×844;
+- 390×844;
+- 1366×768;
+- 1440×900.
+
+Observed full-page phone screenshots show the fixed bottom navigation crossing the long captured document. This is the existing full-page screenshot behaviour, not viewport overflow.
+
+No unresolved high-severity Manager Team hierarchy, overflow, typography or authority defect was found.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B3 / 847c3b2a16253016000d38d6d0a8e14cd92d1383 / stage10b3-r7-exact-head-evidence.zip`.
+
+10B4 — Manager Person workspace is now ACTIVE.
 10B5 has NOT started.
 10B6 has NOT started.
 Family C has NOT started.
