@@ -193,7 +193,6 @@
 }
 
 .adminv2-action-main,
-.adminv2-setup-row,
 .adminv2-unit-row {
   width: 100%;
   min-height: 4.25rem;
@@ -202,6 +201,22 @@
   gap: var(--ev2-space-3);
   align-items: center;
   padding: var(--ev2-space-3);
+}
+
+.adminv2-setup-row {
+  width: 100%;
+  min-height: 4.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ev2-space-2) var(--ev2-space-3);
+  align-items: start;
+  padding: var(--ev2-space-3);
+}
+
+.adminv2-setup-row > .ev2c-status,
+.adminv2-setup-row > .ev2c-button {
+  grid-column: 2;
+  justify-self: start;
 }
 
 .adminv2-action-main {
