@@ -5,9 +5,14 @@ import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar
 import { humanError } from "../lib/productLanguage";
 import {
   PeopleAdminPersonRow,
+  PeopleBackButton,
   PeopleEmpty,
+  PeopleEvidenceSummary,
+  PeopleFactRow,
   PeoplePageHeader,
+  PeoplePersonHeader,
   PeopleSection,
+  PeopleWorkspaceSection,
 } from "../experience-v2/people-family/PeopleFamilyV2";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
@@ -187,27 +192,41 @@ export default function People({ me, openItem }) {
   if (loading) return <div className="body"><LoadingState label="Loading People…" /></div>;
 
   if (person && drill) {
-    return <div className="body">
-      <button className="back" onClick={() => setDrill(null)}>← {person.full_name}</button>
-      <div className="sec"><span>{drill.label}</span><span>{drill.rows.length}</span></div>
-      {drill.rows.length === 0 && <div className="card small">Nothing recorded here yet.</div>}
-      {drill.kind === "work" && drill.rows.map((item) => <button key={item.id} className="row" onClick={() => openItem(item.id)}>
-        <div className="row-t">{item.title}</div>
-        <div className="row-m">{item.ref} · {item.completed_at ? "finished " + dateOnly(item.completed_at) : dueLabel(item.due_at)}{item.projects ? " · " + item.projects.name : ""}</div>
-        <div style={{ marginTop: 7 }}>{statusPill(item.status)}</div>
-      </button>)}
-      {drill.kind === "sessions" && drill.rows.map((session) => <div key={session.id} className="row">
-        <div className="row-t">{new Date(session.started_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
-        <div className="row-m">
-          started {new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
-          {session.ended_at ? " · ended " + new Date(session.ended_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : " · still open"}
-          {session.place === "office" ? " · at the office" : " · elsewhere"}
-        </div>
-      </div>)}
-      {drill.kind === "leave" && drill.rows.map((request) => <div key={request.id} className="row">
-        <div className="row-t">{request.days} day{request.days === 1 ? "" : "s"} {request.kind}</div>
-        <div className="row-m">{dateOnly(request.start_date)} — {dateOnly(request.end_date)} · {request.status}</div>
-      </div>)}
+    return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
+      <PeopleBackButton onClick={() => setDrill(null)} label={person.full_name} />
+      <PeoplePersonHeader
+        name={drill.label}
+        eyebrow="Employee record"
+        subtitle={person.full_name}
+        context="Factual employee evidence only."
+      />
+      <PeopleWorkspaceSection
+        title={drill.label}
+        description="Authorised factual records connected to this employee."
+        meta={`${drill.rows.length} recorded`}
+      >
+        {drill.rows.length === 0 && <PeopleEmpty title="Nothing recorded here yet" description="There is no authorised record in this group." />}
+        {drill.kind === "work" && drill.rows.map((item) => <button key={item.id} className="ev2p-link-row" onClick={() => openItem(item.id)}>
+          <span className="ev2p-link-row-main">
+            <strong>{item.title}</strong>
+            <span>{item.ref} · {item.completed_at ? "finished " + dateOnly(item.completed_at) : dueLabel(item.due_at)}{item.projects ? " · " + item.projects.name : ""}</span>
+          </span>
+          <span className="ev2p-link-row-tail">{statusPill(item.status)}</span>
+        </button>)}
+        {drill.kind === "sessions" && drill.rows.map((session) => <PeopleFactRow
+          key={session.id}
+          icon="time"
+          title={new Date(session.started_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+          subtitle={`Started ${new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}${session.ended_at ? " · ended " + new Date(session.ended_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : " · still open"}${session.place === "office" ? " · at the office" : " · elsewhere"}`}
+        />)}
+        {drill.kind === "leave" && drill.rows.map((request) => <PeopleFactRow
+          key={request.id}
+          icon="calendar"
+          title={`${request.days} day${request.days === 1 ? "" : "s"} ${request.kind}`}
+          subtitle={`${dateOnly(request.start_date)} — ${dateOnly(request.end_date)}`}
+          meta={request.status}
+        />)}
+      </PeopleWorkspaceSection>
     </div>;
   }
 
@@ -216,116 +235,150 @@ export default function People({ me, openItem }) {
     const employmentHistory = Array.isArray(person.employment?.history) ? person.employment.history : [];
     const taken = Number(person.balance?.annual_taken || 0);
     const entitlement = leavePolicy ? Number(leavePolicy.annual_days || 0) + Number(person.balance?.carryover_from_last_year || 0) : null;
-    const Fig = ({ n, label, kind, list }) => <button className="metric" style={{ textAlign: "left", width: "100%" }}
-      onClick={() => setDrill({ label, kind, rows: list })}><b>{n}</b><span>{label}</span></button>;
-    const Line = ({ l, v }) => <div style={{ display: "flex", justifyContent: "space-between", gap: 16, padding: "11px 0", borderTop: "1px solid var(--line-soft)", fontSize: 13.5 }}>
-      <span style={{ color: "var(--ink-soft)" }}>{l}</span><span style={{ fontWeight: 500, textAlign: "right" }}>{v}</span>
-    </div>;
+    const employmentState = (employmentCurrent?.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ");
+    const positionLabel = person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff";
 
-    return <div className="body">
-      <button className="back" onClick={() => { setPerson(null); setDrill(null); }}>← All people</button>
-      {error && <div className="flag flag-brick" style={{ marginTop: 12 }}>{error}</div>}
-      <section className="person-identity-header">
-        <Avatar name={person.full_name} size="lg" />
-        <div className="person-identity-copy">
-          <div className="eyebrow">{employmentCurrent?.unit_name || person.unit_name || "No unit"}{(employmentCurrent?.membership_role || person.role) === "manager" ? " · Unit head" : ""}</div>
-          <h1 className="h1">{person.full_name}</h1>
-          <p className="screen-note">{employmentCurrent?.job_title || person.job_title || "No job title recorded"}</p>
+    return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
+      <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" />
+
+      <PeoplePersonHeader
+        name={person.full_name}
+        eyebrow={`${employmentCurrent?.unit_name || person.unit_name || "No unit"} · ${positionLabel}`}
+        subtitle={employmentCurrent?.job_title || person.job_title || "No job title recorded"}
+        context={[person.email, person.phone, `Employment ${employmentState}`].filter(Boolean).join(" · ")}
+      />
+
+      {error && <ProductNotice tone="error" title="Employee record">{error}</ProductNotice>}
+      {person.on_leave_now && <ProductNotice tone="attention" title="On approved leave">This employee is currently away on approved leave.</ProductNotice>}
+      {!person.active && <ProductNotice tone="error" title="Inactive employee">This employee is marked inactive and cannot sign in.</ProductNotice>}
+
+      <PeopleWorkspaceSection
+        title="Identity & employment state"
+        description="Authorised identity context for this employee record."
+      >
+        <div className="ev2p-admin-record-grid">
+          <PeopleFactRow icon="people" title="Email" subtitle={person.email || "Not recorded"} />
+          {person.phone && <PeopleFactRow icon="info" title="Phone" subtitle={person.phone} />}
+          <PeopleFactRow icon="people" title="Position" subtitle={positionLabel} />
+          <PeopleFactRow icon="info" title="Status" subtitle={person.active ? "Active" : "Inactive"} />
+          {person.birthday && <PeopleFactRow icon="calendar" title="Birthday" subtitle={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
         </div>
-        <div className="person-identity-state">
-          <span>{employmentCurrent?.employment_status || (person.active ? "Active" : "Inactive")}</span>
-          {person.on_leave_now && <b>On approved leave</b>}
+      </PeopleWorkspaceSection>
+
+      <PeopleWorkspaceSection
+        title="Current employment"
+        description="The current authorised employment record. Recording a change creates a new historical snapshot rather than overwriting the past."
+        meta={<button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button>}
+      >
+        <div className="ev2p-admin-record-grid">
+          <PeopleFactRow icon="people" title="Employment type" subtitle={employmentCurrent?.employment_type || person.contract_type || "Not recorded"} />
+          <PeopleFactRow icon="work" title="Title" subtitle={employmentCurrent?.job_title || person.job_title || "Not recorded"} />
+          <PeopleFactRow icon="people" title="Primary unit" subtitle={employmentCurrent?.unit_name || person.unit_name || "Not recorded"} />
+          <PeopleFactRow icon="people" title="Manager" subtitle={employmentCurrent?.manager_name || "Not recorded"} />
+          <PeopleFactRow icon="people" title="Role" subtitle={(employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ")} />
+          <PeopleFactRow icon="calendar" title="Working pattern" subtitle={(employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ")} />
+          <PeopleFactRow icon="calendar" title="Joined" subtitle={employmentCurrent?.joined_on ? dateOnly(employmentCurrent.joined_on) : "Not recorded"} />
+          <PeopleFactRow icon="info" title="Employment status" subtitle={employmentState} />
+          {employmentCurrent?.exited_on && <PeopleFactRow icon="calendar" title="Exit date" subtitle={dateOnly(employmentCurrent.exited_on)} />}
         </div>
-      </section>
-      {person.on_leave_now && <div className="flag flag-amber"><h4>On leave today</h4>Currently away on approved leave.</div>}
-      {!person.active && <div className="flag flag-brick"><h4>Not active</h4>This person is marked inactive and cannot sign in.</div>}
+      </PeopleWorkspaceSection>
 
-      <div className="split" style={{ marginTop: 8 }}>
-        <div className="main-col">
-          <div className="sec"><span>Work</span></div>
-          <p className="small" style={{ marginBottom: 6 }}>Given work and self-added work are counted separately. Formal output uses Task and Deliverable only.</p>
-          <div className="metric-grid">
-            <Fig n={person.assigned.length} label="finished — given to them" kind="work" list={person.assigned} />
-            <Fig n={person.self.length} label="finished — added themselves" kind="work" list={person.self} />
-            <Fig n={person.onTime.length} label="completed on time" kind="work" list={person.onTime} />
-            <Fig n={person.done.length} label="completed outcomes" kind="work" list={person.done} />
-          </div>
-          <button className="row" style={{ marginTop: 10 }} onClick={() => setDrill({ label: "Open work", kind: "work", rows: person.openWork })}>
-            <div className="row-t">{person.openWork.length} open job{person.openWork.length === 1 ? "" : "s"}</div>
-            <div className="row-m">Press to see them</div>
-          </button>
-
-          <div className="sec"><span>Activity context</span></div>
-          <div className="metric-grid">
-            <Fig n={person.days_this_month || 0} label="days with a recorded session this month" kind="sessions" list={person.sessions} />
-            <div className="metric"><b>{avgStartLabel(person.avg_start_minutes)}</b><span>average recorded start</span></div>
-          </div>
-          <p className="small" style={{ marginTop: 8, lineHeight: 1.5 }}>These are factual work-session records only. They are not a productivity measure and are never a basis for pay.</p>
-        </div>
-
-        <div className="side-col">
-          <div className="sec"><span>Identity and employment</span></div>
-          <div className="card" style={{ padding: "4px 15px" }}>
-            <Line l="Email" v={person.email} />
-            {person.phone && <Line l="Phone" v={person.phone} />}
-            <Line l="Unit" v={person.unit_name || "—"} />
-            <Line l="Position" v={person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : "Staff"} />
-            <Line l="Contract" v={person.contract_type || "not recorded"} />
-            <Line l="Started" v={person.started_on ? dateOnly(person.started_on) : "not recorded"} />
-            <Line l="Status" v={person.active ? "Active" : "Inactive"} />
-            {person.birthday && <Line l="Birthday" v={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
-          </div>
-
-
-          <div className="sec"><span>Employment record</span><button className="text-action" onClick={openEmploymentEditor}>Record change</button></div>
-          <div className="card" style={{ padding: "4px 15px" }}>
-            <Line l="Employment type" v={employmentCurrent?.employment_type || person.contract_type || "not recorded"} />
-            <Line l="Title" v={employmentCurrent?.job_title || person.job_title || "not recorded"} />
-            <Line l="Primary unit" v={employmentCurrent?.unit_name || person.unit_name || "not recorded"} />
-            <Line l="Manager" v={employmentCurrent?.manager_name || "not recorded"} />
-            <Line l="Role" v={(employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ")} />
-            <Line l="Working pattern" v={(employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ")} />
-            <Line l="Joined" v={employmentCurrent?.joined_on ? dateOnly(employmentCurrent.joined_on) : "not recorded"} />
-            <Line l="Status" v={(employmentCurrent?.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ")} />
-            {employmentCurrent?.exited_on && <Line l="Exit" v={dateOnly(employmentCurrent.exited_on)} />}
-          </div>
-
-          <div className="sec"><span>Employment history</span><span>{employmentHistory.length}</span></div>
-          {employmentHistory.length === 0
-            ? <div className="card small">No employment history has been recorded yet.</div>
-            : employmentHistory.slice(0, 12).map((event) => <div className="row" key={event.id}>
-                <div className="row-t">{employmentChangeLabel(event.change_type)}</div>
-                <div className="row-m">
+      <PeopleWorkspaceSection
+        title="Employment history"
+        description="Audited employment snapshots in effective-date order."
+        meta={`${employmentHistory.length} recorded`}
+      >
+        {employmentHistory.length === 0
+          ? <PeopleEmpty title="No employment history yet" description="Employment changes recorded here will preserve their effective date, reason and audit context." />
+          : <div className="ev2p-admin-history-list">{employmentHistory.slice(0, 12).map((event) => <article className="ev2p-admin-history-row" key={event.id}>
+              <div>
+                <strong>{employmentChangeLabel(event.change_type)}</strong>
+                <span>
                   Effective {dateOnly(event.effective_on)}
                   {event.job_title ? " · " + event.job_title : ""}
                   {event.unit_name ? " · " + event.unit_name : ""}
-                  {event.actor_name ? " · recorded by " + event.actor_name : " · system baseline"}
-                </div>
-                {event.reason && <div className="small" style={{ marginTop: 6 }}>{event.reason}</div>}
-              </div>)}
+                </span>
+                {event.reason && <small>{event.reason}</small>}
+              </div>
+              <span>{event.actor_name ? `Recorded by ${event.actor_name}` : "System baseline"}</span>
+            </article>)}</div>}
+      </PeopleWorkspaceSection>
 
-          <div className="sec"><span>Leave</span></div>
-          <div className="card person-leave-card">
-            {leavePolicy
-              ? <ProgressMeter value={taken} max={entitlement} label="Annual leave used" detail={taken + " of " + entitlement + " configured days"} />
-              : <Line l="Annual taken" v={taken + " days recorded · entitlement not configured"} />}
-            <Line l="Sick taken" v={Number(person.balance?.sick_taken || 0) + " days recorded"} />
-          </div>
-          <button className="row" style={{ marginTop: 8 }} onClick={() => setDrill({ label: "Leave history", kind: "leave", rows: person.leave })}>
-            <div className="row-t">{person.leave.length} request{person.leave.length === 1 ? "" : "s"} on record</div>
-            <div className="row-m">Press to see them</div>
+      <PeopleWorkspaceSection
+        title="Work & activity context"
+        description="Factual authorised work and session evidence only. These records are not a productivity score, ranking, pay input or disciplinary conclusion."
+      >
+        <div className="ev2p-outcome-grid ev2p-admin-work-grid">
+          <button type="button" onClick={() => setDrill({ label: "Finished work — given to them", kind: "work", rows: person.assigned })}>
+            <b>{person.assigned.length}</b><span>finished — given to them</span>
           </button>
-
-          <div className="sec"><span>Protected HR</span></div>
-          <div className="protected-hr-shell">
-            <div><span>Salary & payroll</span><strong>Awaiting CEAC salary structure</strong></div>
-            <div><span>Identifiers & bank details</span><strong>Protected storage ready · fields not yet confirmed</strong></div>
-            <div><span>Contracts & documents</span><strong>Protected storage ready · access rules not yet configured</strong></div>
-            <div><span>Payslips</span><strong>Available after payroll is configured</strong></div>
-          </div>
-          <p className="screen-note">These records are deliberately not stored in the ordinary employee profile. CEAC policy must be confirmed before protected fields or payroll calculations are introduced.</p>
+          <button type="button" onClick={() => setDrill({ label: "Finished work — added themselves", kind: "work", rows: person.self })}>
+            <b>{person.self.length}</b><span>finished — added themselves</span>
+          </button>
+          <button type="button" onClick={() => setDrill({ label: "Completed on time", kind: "work", rows: person.onTime })}>
+            <b>{person.onTime.length}</b><span>completed on time</span>
+          </button>
+          <button type="button" onClick={() => setDrill({ label: "Completed outcomes", kind: "work", rows: person.done })}>
+            <b>{person.done.length}</b><span>completed outcomes</span>
+          </button>
         </div>
-      </div>
+
+        <button type="button" className="ev2p-link-row ev2p-admin-open-work" onClick={() => setDrill({ label: "Open work", kind: "work", rows: person.openWork })}>
+          <span className="ev2p-link-row-main">
+            <strong>{person.openWork.length} open job{person.openWork.length === 1 ? "" : "s"}</strong>
+            <span>Open the authorised current work record.</span>
+          </span>
+          <span className="ev2p-link-row-tail">›</span>
+        </button>
+
+        <PeopleEvidenceSummary
+          facts={[
+            { value: person.days_this_month || 0, label: "days with a recorded session this month" },
+            { value: avgStartLabel(person.avg_start_minutes), label: "average recorded start" },
+          ]}
+          note="Work-session context describes recorded activity only. It does not measure productivity or determine pay."
+        />
+        <button type="button" className="ev2p-link-row ev2p-admin-session-link" onClick={() => setDrill({ label: "Recorded work sessions", kind: "sessions", rows: person.sessions })}>
+          <span className="ev2p-link-row-main">
+            <strong>{person.sessions.length} session record{person.sessions.length === 1 ? "" : "s"}</strong>
+            <span>Inspect the underlying factual session records.</span>
+          </span>
+          <span className="ev2p-link-row-tail">›</span>
+        </button>
+      </PeopleWorkspaceSection>
+
+      <PeopleWorkspaceSection
+        title="Leave"
+        description={leavePolicy ? "Recorded leave against the currently configured leave policy." : "Leave actually taken is shown, but entitlement is not calculated because Administration has not configured the policy."}
+      >
+        <div className="ev2p-admin-leave-card">
+          {leavePolicy
+            ? <ProgressMeter value={taken} max={entitlement} label="Annual leave used" detail={taken + " of " + entitlement + " configured days"} />
+            : <PeopleFactRow icon="calendar" title="Annual leave taken" subtitle={taken + " days recorded · entitlement not configured"} />}
+          <PeopleFactRow icon="calendar" title="Sick leave taken" subtitle={Number(person.balance?.sick_taken || 0) + " days recorded"} />
+        </div>
+        <button type="button" className="ev2p-link-row ev2p-admin-leave-link" onClick={() => setDrill({ label: "Leave history", kind: "leave", rows: person.leave })}>
+          <span className="ev2p-link-row-main">
+            <strong>{person.leave.length} request{person.leave.length === 1 ? "" : "s"} on record</strong>
+            <span>Open the authorised leave history.</span>
+          </span>
+          <span className="ev2p-link-row-tail">›</span>
+        </button>
+      </PeopleWorkspaceSection>
+
+      <PeopleWorkspaceSection
+        title="Protected HR"
+        description="Protected HR is deliberately separated from the ordinary employee record. These areas remain unavailable until CEAC confirms the required policy and data fields."
+        className="ev2p-admin-protected-section"
+      >
+        <div className="ev2p-admin-protected-grid">
+          <div><span>Salary & payroll</span><strong>Awaiting CEAC salary structure</strong></div>
+          <div><span>Identifiers & bank details</span><strong>Protected storage ready · fields not yet confirmed</strong></div>
+          <div><span>Contracts & documents</span><strong>Protected storage ready · access rules not yet configured</strong></div>
+          <div><span>Payslips</span><strong>Available after payroll is configured</strong></div>
+        </div>
+        <p className="ev2p-admin-protected-note">No salary, bank, identifier, contract or payslip value is inferred from role, attendance or work records. Stage 13 Payroll remains blocked.</p>
+      </PeopleWorkspaceSection>
 
       {employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
         <div className="eyebrow">People & employment</div>
