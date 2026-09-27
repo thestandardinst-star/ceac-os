@@ -559,3 +559,62 @@ test("Stage 10 Family B5B employment change editor keeps the audited record cont
   });
   await context.close();
 });
+
+
+for (const viewport of [
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "tablet-900", width: 900, height: 900 },
+]) {
+  test(`Stage 10 Family B5C Administration People acceptance matrix at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openAdminPeople(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const row = page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first();
+    await expect(row).toBeVisible();
+    await row.click();
+    await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Employment record", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Protected HR", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10b5c-admin-employee-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
+
+test("Stage 10 Family B5C Administration People states stay factual and usable", async ({ browser }) => {
+  const { context, page } = await openAdminPeople(browser, { width: 390, height: 844 });
+
+  const search = page.getByLabel("Find a person");
+  await search.fill("No such CEAC person");
+  await expect(page.getByText("Nobody matches", { exact: true })).toBeVisible();
+  await search.fill("");
+  await expect(page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first()).toBeVisible();
+
+  await page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first().click();
+  await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible();
+  await page.getByRole("button", { name: "Record change", exact: true }).click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.locator(".h2").filter({ hasText: /^Record employment change$/ })).toBeVisible();
+  await dialog.getByLabel("Employment status", { exact: true }).selectOption("exited");
+  await expect(dialog.getByLabel("Exit date", { exact: true })).toBeVisible();
+  await dialog.getByLabel("Change", { exact: true }).selectOption("correction");
+  await expect(dialog.getByLabel("Event being corrected", { exact: true })).toBeVisible();
+
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+  await page.screenshot({
+    path: "test-artifacts/redesign-r7-stage10b5c-admin-employment-editor-phone-390.png",
+    fullPage: true,
+  });
+  await context.close();
+});
