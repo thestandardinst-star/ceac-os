@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 9 — Keystone Quality Gate and System Ratification (COMPLETE)
-Current substage: Stage 9 accepted; Stage 10 not started
+Current stage: Stage 10 — Operational Screen Families (ACTIVE)
+Current substage: 10A1 — Work lists and queues; contract locked, implementation next
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -601,40 +601,63 @@ Stage 9 has not started. Do not write Stage 9 product code until the live branch
 
 ## Current handoff
 
-The user has explicitly ended Codex/Work writer ownership because Work usage is exhausted. This Chat is the sole active writer at this checkpoint.
+This Chat is the sole active writer. Codex/Work is inactive.
 
-Stage 8 — Executive Overview is accepted and complete.
+Stage 9 — Keystone Quality Gate and System Ratification is ACCEPTED AND COMPLETE.
 
-Accepted exact implementation SHA:
-- `6b555613bde7f2d9b257f9c417af1cc11514a81a`
+Accepted Stage 9 visual implementation:
+- `b87a0552dd8408f962d8d999494cdefeada773b2`.
 
-Acceptance:
+Post-ratification deterministic regression hardening:
+- `7ca495a211e614c31a5fed80d71f527a77dd3390`;
 - CI PASS;
 - Migration Replay PASS;
 - Account Security PASS;
-- Complete Quality Gate PASS, run `36313554437`;
-- 179 Playwright role/acceptance tests passed;
+- Complete Quality Gate PASS — run `36325853986`;
 - Vercel PASS;
-- direct visual inspection completed at 320px, 390×844, 1366×768 and 1440×900;
-- acceptance record: `docs/experience-v2/STAGE8_ACCEPTANCE_RECORD.md`;
-- persistent evidence: `CEAC OS / Experience V2 / Evidence / Stage 8 / 6b555613bde7f2d9b257f9c417af1cc11514a81a / stage8-r7-exact-head-evidence.zip`.
+- no product presentation, data, authority or baseline change in that hardening commit.
 
-Stage 9 has not started.
+Stage 10 — Operational Screen Families is ACTIVE.
 
-Exact next safe action:
-- inspect the live PR #72 HEAD and checks before any further edit;
-- read `docs/experience-v2/START_HERE.md`, this file, `IMPLEMENTATION_SEQUENCE.md`, `CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`, `ACCEPTANCE_AND_HANDOFF.md` and `AGENTS.md`;
-- begin Stage 9 only as the keystone quality gate/system ratification defined by the canonical sequence;
-- do not reopen or rewrite accepted Stage 5–8 keystones unless Stage 9 finds a concrete cross-keystone defect;
-- keep PR #72 open and draft;
-- do not merge PR #72 yet.
+Current family:
+- Family A — Work.
 
-Protected boundaries remain unchanged:
-- PR #71 stays frozen and untouched;
-- Stage 13 Payroll remains blocked pending confirmed CEAC rules;
-- no security/RLS/RPC/auth weakening;
-- no invented data;
-- one active writer only.
+Current substage:
+- 10A1 — Work lists and queues.
+
+Contract:
+- `docs/experience-v2/STAGE10_WORK_BRIEF.md`.
+
+Exact Stage 10 entry audit:
+- inspected Staff, Manager, Administration and Executive Work source;
+- inspected shared Work Detail and Assign source;
+- inspected Work Management and Experience Stage 7 acceptance/security paths;
+- inspected exact-head R1/R2/R3/R4 Work screenshots from Quality Gate run `36325853986`;
+- confirmed the Family A scope is lists/queues, Work Detail, assignment/review/return/dependency states;
+- confirmed a real continuity gap: Manager Work → Needs review opens Work Detail, while approve/return currently lives in Manager Overview. Family A may expose that same existing manager authority inside the Work flow, but must not broaden authority to Administration or Executive.
+
+Protected behaviours include:
+- Staff Assigned / Agreed / Private and private-work isolation;
+- Manager Given out / Needs review / Team work / Mine;
+- Administration Given out / Needs review / Organisation / Mine;
+- Executive Given out / Needs review / Mine;
+- all seven work kinds;
+- assignment minimum of what / why / who / when;
+- typed-work, review, blocker, routine, request, decision, case, deliverable and meeting-outcome behaviours;
+- current RLS/RPC/auth/audit boundaries;
+- no invented delegation history;
+- no scores/rankings;
+- PR #71 frozen;
+- Stage 13 Payroll blocked.
+
+Exact next action:
+- wait for the current documentation-head checks only as a continuity gate;
+- begin 10A1 by building one shared V2 Work-list anatomy and migrate Staff, Manager, Administration and Executive Work presentation onto it without changing their queries/actions;
+- verify existing Work acceptance journeys after the first implementation SHA;
+- do not start 10A2 until 10A1 list/queue behaviour and responsive composition are green;
+- keep PR #72 OPEN + DRAFT; do not merge.
+
+There is no unpushed Work/Codex state.
 
 ## Draft PR
 
@@ -699,3 +722,29 @@ Product-owner acceptance:
 Stage 9 is ACCEPTED AND COMPLETE.
 
 Stage 10 has NOT started. The next safe action is to inspect the live exact HEAD after this closure, then open Stage 10 Family A — Work from the canonical operational-family sequence.
+
+
+## Stage 10 active work
+
+### 10A — Family A: Work
+
+Entry head before Stage 10 documentation:
+- `7ca495a211e614c31a5fed80d71f527a77dd3390` — exact-head green.
+
+Work brief:
+- `docs/experience-v2/STAGE10_WORK_BRIEF.md`.
+
+Pre-work visual evidence inspected from Quality Gate run `36325853986`:
+- R1 Staff Work artifact `10933758539`;
+- R2 Manager Work artifact `10933918142`;
+- R3 Administration Work artifact `10934376041`;
+- R4 Executive Work artifact `10934465802`;
+- full visual inventory artifact `10934405943`.
+
+10A internal sequence:
+1. 10A1 — Work lists and queues.
+2. 10A2 — Work Detail.
+3. 10A3 — assignment, review, return and dependency.
+4. 10A4 — Family A acceptance.
+
+Family B must not begin until Family A is accepted.
