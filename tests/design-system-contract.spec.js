@@ -113,7 +113,7 @@ test("Instrument Sans is the premium body family and PWA icons are shipped", asy
 
 
 test("Compliance populated metadata stays at the CEAC 12px floor", () => {
-  const css = readFileSync("src/styles.css", "utf8");
+  const css = fs.readFileSync("src/styles.css", "utf8");
   const selectors = [
     ".compliance-policy-card summary",
     ".compliance-meta span",
