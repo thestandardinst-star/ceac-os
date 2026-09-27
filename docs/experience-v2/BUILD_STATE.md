@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 8 — Executive Overview (COMPLETE)
-Current substage: Stage 8 acceptance complete; Stage 9 not started
+Current stage: Stage 9 — Keystone Quality Gate and System Ratification (ACTIVE)
+Current substage: Stage 9A — cross-keystone audit and defect hardening
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -643,3 +643,20 @@ Protected boundaries remain unchanged:
 ## Handoff rule
 
 At the end of every meaningful substage, update this file. Never depend on an agent remembering where it stopped. The incoming Chat or Work session must inspect GitHub and this file before continuing. One active writer only.
+
+
+## Stage 9 active work
+
+Stage 9 is the keystone quality gate and system-ratification stage defined by the canonical Experience V2 sequence.
+
+Stage 9A entry:
+- Starting exact HEAD: `21f1c18ba1f1c1fa149accebdc598ce6b3168af9`.
+- Stage 9 work brief: `docs/experience-v2/STAGE9_WORK_BRIEF.md`.
+- Exact-head Quality Gate evidence reviewed from run `36314474308`, artifact `redesign-r7-product-inspection` (`10931055910`).
+- Cross-role laptop and 390px first-viewport review is coherent.
+- Confirmed defect S9-01: populated Manager decision rows compress incorrectly at 320px.
+- Confirmed reliability defect S9-02: Stage 6 Workload persisted planning-capacity visibility failed twice and passed on the third run on the exact same documentation-only HEAD.
+- Stage 9 will fix actual root causes only; no timeout inflation, retries, skipped assertions or weakened persistence checks.
+- Accepted Stage 5–8 keystones remain protected except for concrete Stage 9 defects.
+- Chat is the sole active writer. No unpushed Work/Codex state is known.
+- Stage 10 has NOT started.
