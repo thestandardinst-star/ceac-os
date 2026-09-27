@@ -420,11 +420,14 @@ all four roles can move through their authorised destinations without shell over
 Stage 5 rebuilds the Staff Today keystone only. It must preserve the current Staff data/work-session behaviour, alerts, work, meetings, announcements, dependencies and authority/security while replacing the visible composition with the accepted V2 system.
 
 Current substage 5A — AUDIT AND CONTRACT:
-- inspect the exact current Staff Today implementation and its data/interaction behaviour;
-- compare it directly with the persistent V2 quality references and accepted Stage 2–4 system;
-- record the information hierarchy, responsive composition and migration boundary before product code changes;
-- define focused acceptance evidence for phone and 1366×768 laptop;
-- do not rebuild Manager/Admin/Executive pages in Stage 5.
+- [x] inspect the exact current Staff Today implementation and its data/interaction behaviour;
+- [x] compare it directly with the persistent V2 quality references and accepted Stage 2–4 system;
+- [x] record the information hierarchy, responsive composition and migration boundary before product code changes;
+- [x] define focused acceptance evidence for phone and 1366×768 laptop;
+- [x] persist `docs/experience-v2/STAGE5_WORK_BRIEF.md`;
+- [ ] implement the isolated Staff Today V2 composition without changing its data/security authority;
+- [ ] run focused Stage 5 browser acceptance and inspect phone/laptop proof;
+- [ ] accept Stage 5 only on an exact green head.
 
 Do not start Stage 6 until Staff Today is visually and functionally accepted.
 
