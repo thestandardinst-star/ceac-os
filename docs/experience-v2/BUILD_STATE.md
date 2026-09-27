@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 6 — Manager Overview
-Current substage: 6A — Manager Overview audit and contract
+Current stage: Stage 7 — Administration Overview
+Current substage: 7B — Administration Overview implementation
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -456,33 +456,87 @@ Visual evidence:
 
 Stage 5 exit gate is satisfied.
 
-## Stage 6 active work
+## Stage 6 — Manager Overview: COMPLETE
 
-Stage 6 rebuilds the Manager Overview keystone only. It must preserve the current manager queries, decision authority, work-review/leave/blocker workflows, workload/project/finance/reporting logic and drill-down behaviour while replacing the Overview composition with the accepted V2 system.
+Accepted exact implementation SHA:
+- `da586a16d6aacd7101879928a97b6f3b53e05956`
 
-Current substage 6A — AUDIT AND CONTRACT:
-- [x] inspect the exact current Manager Overview implementation and current rendered desktop/mobile evidence;
-- [x] identify the data/decision authority that must not change;
-- [x] compare the current composition with the persistent V2 quality direction and accepted Staff Today pattern;
-- [x] define the Manager Overview information hierarchy and mobile recomposition;
-- [x] persist `docs/experience-v2/STAGE6_WORK_BRIEF.md`;
-- [ ] implement the isolated Manager Overview V2 presentation without changing manager authority/data semantics;
-- [ ] run focused Stage 6 browser acceptance and inspect phone/laptop proof;
-- [ ] accept Stage 6 only on an exact green head.
+Exact-head engineering status:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36302666691`
+- Playwright role/acceptance suite: 169 passed
 
-Do not start Stage 7 until Manager Overview is visually and functionally accepted.
+Stage 6 accepted outcomes:
+- Manager Overview now uses an isolated V2 presentation under `src/experience-v2/manager-overview/`;
+- `src/screens/ManagerHome.jsx` remains the authoritative data/action container;
+- work review, return-for-correction and approval authority remain intact;
+- leave approval/decline/escalation logic remains intact;
+- blocker acknowledge/disagree/resolve flows remain intact;
+- meeting, project, person, finance and work drill-ins remain intact;
+- the Overview is decision-first rather than hero-first;
+- team availability and work movement are presented as separate factual context;
+- project/dependency attention, requests to the unit, finance position, weekly work horizon, recorded Sunday/midweek movement, personal work, routines and recent movement use the accepted V2 hierarchy;
+- the old ReferenceFocusPanel, DashboardCalendar and ReferenceModuleStrip are absent from Manager Overview;
+- 320px, 390×844, 1366×768 and 1440×900 compositions pass without page-level horizontal overflow;
+- Manager visual regression was deliberately re-baselined to the accepted V2 Manager Overview rather than weakening the regression threshold.
+
+Stage 6 verification notes:
+- the first implementation build exposed a render-closure syntax defect in `ManagerHome.jsx`; it was corrected immediately at the migration boundary;
+- the first full Quality Gate then exposed stale Manager acceptance selectors that still targeted legacy `.home-action-row` and `.home-blocker-row` presentation classes; the selectors were migrated to the V2 decision/dependency rows without weakening the real work-review or blocker workflow assertions;
+- direct laptop inspection exposed an overly narrow three-column lower row; Stage 6 moved the operational grid to an auto-fit layout and tightened the Work horizon density instead of shrinking typography;
+- full-gate inventory exposed one unrelated legacy Staff record feedback timestamp at 10.5px; the exact selector was raised to the already-ratified 12px operational floor;
+- the Manager baseline gate correctly failed after the intentional V2 composition change; the Manager baseline was re-recorded after direct rendered inspection, and the threshold remained unchanged.
+
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10925962948`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 6 / da586a16d6aacd7101879928a97b6f3b53e05956 / stage6-r7-exact-head-evidence.zip`;
+- direct inspection covered 320px phone, 390×844 phone, 1366×768 laptop and 1440×900 desktop;
+- acceptance record:
+  `docs/experience-v2/STAGE6_ACCEPTANCE_RECORD.md`.
+
+Stage 6 exit gate is satisfied.
+
+## Stage 7 active work
+
+Stage 7 rebuilds the Administration Overview keystone only. It must preserve Administration/HR people, workforce, finance, reporting, setup, leave, invitation, workflow-check, cross-unit blocker and meeting authority while replacing the current legacy overview composition with the accepted V2 operational-console system.
+
+Stage 7A — AUDIT AND CONTRACT: COMPLETE
+- [x] inspect exact current `AdminHome.jsx` queries, derived states and write paths;
+- [x] inspect exact-head Administration desktop proof;
+- [x] inspect exact-head 390px Administration mobile proof;
+- [x] identify current mobile squeeze/collision defects in the organisation pulse;
+- [x] identify the duplicate in-page Explore navigation already owned by the Stage 4 shell;
+- [x] define the operational-inbox, organisation-pulse, setup/configuration, reporting/workforce and responsive hierarchy;
+- [x] persist `docs/experience-v2/STAGE7_WORK_BRIEF.md`.
+
+Stage 7B — IMPLEMENTATION: ACTIVE
+- [ ] keep `AdminHome.jsx` as the authoritative data/action container;
+- [ ] build an isolated V2 Administration Overview presentation under `src/experience-v2/admin-overview/`;
+- [ ] preserve capability boundaries and all current invitation/leave/setup/workflow/blocker/meeting authority;
+- [ ] remove the legacy hero/calendar/focus/module-strip composition from Administration Overview only;
+- [ ] recompose the organisation pulse and action inbox for phone instead of shrinking two-column desktop panels;
+- [ ] run focused Stage 7 browser acceptance and exact-head full Quality Gate;
+- [ ] inspect phone/laptop/desktop proof directly before acceptance.
+
+Do not start Stage 8 until Administration Overview is visually and functionally accepted.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 5 is accepted and complete. Stage 6A Manager Overview audit/contract is active. No unpushed Chat state is known.
+Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 6 is accepted and complete. Stage 7B Administration Overview implementation is active. No unpushed Chat state is known.
 
 Exact next action:
-- keep `ManagerHome.jsx` as the authoritative data/action container;
-- build an isolated V2 Manager Overview presentation under `src/experience-v2/manager-overview/`;
-- preserve work-review, leave, blocker, meeting, project, person, finance and drill-down authority exactly;
-- replace the legacy hero/reference rail/card mosaic/module strip with a decision-first V2 command-centre composition;
-- prove phone and 1366×768 laptop first, then 1440×900 stretch control;
-- do not start Stage 7 until Stage 6 is accepted.
+- keep `AdminHome.jsx` as the authoritative Administration data/action container;
+- build the isolated V2 Administration Overview presentation under `src/experience-v2/admin-overview/`;
+- preserve invitation, leave, setup, workflow-check, reporting, cross-unit blocker, meeting and capability authority exactly;
+- replace the legacy hero, calendar rail, ReferenceFocusPanel and Explore module strip on Overview only;
+- make the action inbox and configuration gaps dominant, with organisation/workforce/reporting context secondary;
+- recompose phone layouts instead of retaining the current squeezed two-column organisation pulse;
+- do not start Stage 8 until Stage 7 is accepted.
 
 ## Draft PR
 
