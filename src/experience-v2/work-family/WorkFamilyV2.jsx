@@ -199,6 +199,51 @@ export function WorkEmpty({ title, description, actionLabel, onAction }) {
   );
 }
 
+export function WorkDetailHeader({
+  refCode,
+  kind,
+  title,
+  context,
+  due,
+  status,
+  onBack,
+}) {
+  return (
+    <>
+      <button type="button" className="ev2wd-back" onClick={onBack}>
+        <CeacIcon name="chevronLeft" size="control" decorative />
+        <span>Back</span>
+      </button>
+      <header className="ev2wd-header">
+        <div className="ev2wd-kicker">
+          {[refCode, kind ? workKindLabel(kind) : null, context].filter(Boolean).join(" · ")}
+        </div>
+        <h1>{title}</h1>
+        <div className="ev2wd-header-meta">
+          {due ? <span>{due}</span> : null}
+          <WorkStateBadge status={status} />
+        </div>
+      </header>
+    </>
+  );
+}
+
+export function WorkDetailSection({ title, meta, children, className = "" }) {
+  return (
+    <section className={`ev2wd-section ${className}`.trim()}>
+      <div className="ev2wd-section-head">
+        <h2>{title}</h2>
+        {meta ? <span>{meta}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function WorkDetailCopy({ children, tone = "plain" }) {
+  return <div className={`ev2wd-copy ev2wd-copy-${tone}`}>{children}</div>;
+}
+
 export function WorkFootnote({ children }) {
   return <p className="ev2w-footnote">{children}</p>;
 }
