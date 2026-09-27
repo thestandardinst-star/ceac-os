@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C1 — Projects / Portfolio audit and contract (ACTIVE)
+Current substage: 10C2 — Manager Projects + project workspace (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1268,6 +1268,18 @@ Current documentation-only entry head:
 - complete Quality Gate PASS;
 - Vercel currently blocked by the connected free-project deployment-rate limit only.
 
-10C2 — Manager Projects + project workspace has NOT started.
+10C1 — audit and contract is ACCEPTED.
+
+10C2 — Manager Projects + project workspace is ACTIVE.
+
+Current 10C2 implementation:
+- shared V2 Project-family presentation primitives added under `src/experience-v2/project-family/`;
+- Manager Projects list migrated to the shared project row/header/state language;
+- Manager project detail now uses the shared project workspace header/navigation shell;
+- existing proposal approval, project creation, objective management, Work hand-off, collaboration, participant register and close/reopen logic remains on the existing domain paths;
+- deterministic 320 / 390 / 1366 / 1440 Manager Projects and 320 / 1366 project-workspace regression proof has been added;
+- no schema, migration, RLS, RPC definition or auth change has been introduced.
+
+10C3 has NOT started.
 Family D has NOT started.
 Chat is the sole active writer.
