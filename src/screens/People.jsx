@@ -3,6 +3,12 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import {
+  PeopleAdminPersonRow,
+  PeopleEmpty,
+  PeoplePageHeader,
+  PeopleSection,
+} from "../experience-v2/people-family/PeopleFamilyV2";
 
 const FILTERS = [["all","Everyone"],["active","Active"],["on_leave","On leave"],["quiet","No submissions in 14 days"],["no_unit","No unit"]];
 const EMPLOYMENT_CHANGES = [
@@ -430,43 +436,65 @@ export default function People({ me, openItem }) {
         || a.full_name.localeCompare(b.full_name)),
     }));
 
-  return <div className="body">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">Employee record</div>
-      <h1 className="h1">People</h1>
-      <p className="screen-note">One factual employee record for identity, employment, work, leave and activity context. Protected HR remains behind a separate security boundary.</p>
-    </div>
+  return <div className="body ev2-people-page ev2-people-admin">
+    <PeoplePageHeader
+      eyebrow="Employee records"
+      title="People"
+      description="Authorised employee records for identity, employment, work, leave and factual activity context. Protected HR remains behind a separate security boundary."
+      count={rows.length}
+      countLabel={rows.length === 1 ? "person" : "people"}
+    />
+
     {error && <ProductNotice tone="error" title="People could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
     {detailLoading && <LoadingState label="Opening employee record…" />}
     {!leavePolicy && <ProductNotice tone="attention" title="Leave policy not configured">People records show leave actually taken, but CEAC OS will not calculate entitlement or remaining leave until Administration confirms the policy.</ProductNotice>}
-    <div className="people-search-row">
-      <FieldGroup label="Find a person"><input className="field" type="search" placeholder="Name, email, job title or unit" value={searchText} onChange={(event) => setSearchText(event.target.value)} /></FieldGroup>
+
+    <div className="ev2p-admin-toolbar">
+      <FieldGroup label="Find a person">
+        <input
+          className="field"
+          type="search"
+          placeholder="Name, email, job title or unit"
+          value={searchText}
+          onChange={(event) => setSearchText(event.target.value)}
+        />
+      </FieldGroup>
     </div>
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
-      {FILTERS.map(([key, label]) => <button key={key} onClick={() => setFilter(key)} style={{
-        fontSize: 12.5, padding: "6px 12px", borderRadius: 20, border: "1px solid var(--line)",
-        background: filter === key ? "var(--ink)" : "var(--card)",
-        color: filter === key ? "#fff" : "var(--ink-soft)", fontWeight: filter === key ? 600 : 400,
-      }}>{label}</button>)}
+
+    <div className="ev2p-admin-filters" role="tablist" aria-label="People filters">
+      {FILTERS.map(([key, label]) => <button
+        key={key}
+        type="button"
+        role="tab"
+        aria-selected={filter === key}
+        className={filter === key ? "is-selected" : ""}
+        onClick={() => setFilter(key)}
+      >{label}</button>)}
     </div>
-    <div className="sec"><span>{shown.length} {shown.length === 1 ? "person" : "people"}</span><span>{groups.length} {groups.length === 1 ? "unit" : "units"}</span></div>
-    {groups.map((group) => <div key={group.name}>
-      <div className="sec" style={{ marginBottom: 6 }}><span style={{ color: "var(--ink)" }}>{group.name}</span><span>{group.people.length}</span></div>
-      {group.people.map((p) => <button key={p.id} className="people-directory-row" disabled={detailLoading} onClick={() => openPerson(p)}>
-        <Avatar name={p.full_name} size="md" />
-        <div className="people-directory-main">
-          <div className="people-directory-name"><strong>{p.full_name}</strong>{p.on_leave_now && <span className="pill p-amber">On leave</span>}{!p.active && <span className="pill p-grey">Inactive</span>}</div>
-          <span>{rankLabel(p)}{p.job_title ? " · " + p.job_title : ""}</span>
-          <small>{p.unit_name || "No unit assigned"}</small>
-        </div>
-        <div className="people-directory-context">
-          {p.quiet
-            ? <><strong>Review context</strong><span>No submission recorded in 14 days</span></>
-            : <><strong>{p.open_count || 0} open</strong><span>{p.done_count || 0} finished on record</span></>}
-        </div>
-        <b className="people-directory-arrow" aria-hidden="true">→</b>
-      </button>)}
-    </div>)}
-    {shown.length === 0 && <EmptyState title="Nobody matches">Try a different filter or search term.</EmptyState>}
+    <p className="ev2p-admin-directory-note">
+      Work and submission counts are factual operating context only. They are not a performance score, ranking or disciplinary conclusion.
+    </p>
+
+    {groups.map((group) => <PeopleSection
+      key={group.name}
+      title={group.name}
+      meta={`${group.people.length} ${group.people.length === 1 ? "person" : "people"}`}
+    >
+      {group.people.map((p) => <PeopleAdminPersonRow
+        key={p.id}
+        name={p.full_name}
+        subtitle={`${rankLabel(p)}${p.job_title ? ` · ${p.job_title}` : ""}`}
+        context={p.unit_name || "No unit assigned"}
+        status={p.on_leave_now ? "On leave" : !p.active ? "Inactive" : undefined}
+        statusTone={p.on_leave_now ? "warning" : "neutral"}
+        primaryFact={p.quiet ? "Review context" : `${p.open_count || 0} open`}
+        secondaryFact={p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}
+        onClick={() => openPerson(p)}
+      />)}
+    </PeopleSection>)}
+
+    {shown.length === 0 && <div style={{ marginTop: "var(--ev2-space-5)" }}>
+      <PeopleEmpty title="Nobody matches" description="Try a different filter or search term." />
+    </div>}
   </div>;
 }
