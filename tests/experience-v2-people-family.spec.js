@@ -404,3 +404,158 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+async function openAdminEmployee(browser, viewport) {
+  const { context, page } = await openAdminPeople(browser, viewport);
+  const row = page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first();
+  await expect(row).toBeVisible();
+  await row.click();
+  await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible({ timeout: 15000 });
+  return { context, page };
+}
+
+test("Stage 10 Family B5B Administration employee workspace preserves employment authority", () => {
+  const screen = readFileSync("src/screens/People.jsx", "utf8");
+  const shared = readFileSync("src/experience-v2/people-family/PeopleFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  for (const symbol of [
+    "PeopleBackButton",
+    "PeoplePersonHeader",
+    "PeopleWorkspaceSection",
+    "PeopleEvidenceSummary",
+    "PeopleFactRow",
+  ]) {
+    expect(shared).toContain(`export function ${symbol}`);
+    expect(screen).toContain(symbol);
+  }
+
+  expect(screen).toContain('rpc("admin_people_summary")');
+  expect(screen).toContain('rpc("admin_person_detail"');
+  expect(screen).toContain('rpc("admin_employment_detail"');
+  expect(screen).toContain('rpc("admin_update_employment"');
+
+  const identity = screen.indexOf('title="Identity & employment state"');
+  const current = screen.indexOf('title="Current employment"');
+  const history = screen.indexOf('title="Employment history"');
+  const activity = screen.indexOf('title="Work & activity context"');
+  const leave = screen.indexOf('title="Leave"');
+  const protectedHr = screen.indexOf('title="Protected HR"');
+  expect(identity).toBeGreaterThan(-1);
+  expect(current).toBeGreaterThan(identity);
+  expect(history).toBeGreaterThan(current);
+  expect(activity).toBeGreaterThan(history);
+  expect(leave).toBeGreaterThan(activity);
+  expect(protectedHr).toBeGreaterThan(leave);
+
+  expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
+  expect(screen).toContain("Awaiting CEAC salary structure");
+  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+  expect(screen).toContain('employmentForm.changeType === "correction"');
+  expect(screen).toContain('employmentForm.status === "exited"');
+  expect(screen).toContain("Record employment change");
+
+  expect(css).toContain("/* Stage 10B5B — Administration employee workspace */");
+  expect(css).toContain(".ev2-admin-person-workspace");
+  expect(css).toContain(".ev2p-admin-record-grid");
+  expect(css).toContain(".ev2p-admin-protected-grid");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family B5B Administration employee workspace composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openAdminEmployee(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("heading", { name: "Staff Fixture", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Identity & employment state", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Current employment", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Employment history", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Work & activity context", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Leave", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Protected HR", exact: true })).toBeVisible();
+    await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
+    await expect(page.getByText(/not a productivity score, ranking, pay input or disciplinary conclusion/i)).toBeVisible();
+
+    const headings = await page.locator(".ev2p-workspace-section h2").evaluateAll((nodes) =>
+      nodes.map((node) => ({ text: node.textContent.trim(), y: node.getBoundingClientRect().top + window.scrollY }))
+    );
+    const positions = Object.fromEntries(headings.map((entry) => [entry.text, entry.y]));
+    expect(positions["Current employment"]).toBeLessThan(positions["Employment history"]);
+    expect(positions["Employment history"]).toBeLessThan(positions["Work & activity context"]);
+    expect(positions["Work & activity context"]).toBeLessThan(positions["Leave"]);
+    expect(positions["Leave"]).toBeLessThan(positions["Protected HR"]);
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const smallest = await page.locator(".ev2-admin-person-workspace").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden"
+            && style.display !== "none"
+            && rect.width > 0
+            && rect.height > 0
+            && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    const targets = page.locator(".ev2p-back:visible, .ev2p-admin-record-change:visible, .ev2-admin-person-workspace .ev2p-link-row:visible");
+    const targetCount = await targets.count();
+    for (let index = 0; index < targetCount; index += 1) {
+      const box = await targets.nth(index).boundingBox();
+      expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+    }
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10b5b-admin-employee-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
+
+test("Stage 10 Family B5B employment change editor keeps the audited record contract", async ({ browser }) => {
+  const { context, page } = await openAdminEmployee(browser, { width: 1366, height: 768 });
+
+  await page.getByRole("button", { name: "Record change", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("Record employment change", { exact: true })).toBeVisible();
+
+  for (const label of [
+    "Change",
+    "Effective date",
+    "Employment type",
+    "Job title",
+    "Primary unit",
+    "Role",
+    "Manager",
+    "Working pattern",
+    "Employment status",
+    "Joined",
+    "Reason / context",
+  ]) {
+    await expect(dialog.getByLabel(label, { exact: true })).toBeVisible();
+  }
+
+  await dialog.getByLabel("Employment status", { exact: true }).selectOption("exited");
+  await expect(dialog.getByLabel("Exit date", { exact: true })).toBeVisible();
+  await dialog.getByLabel("Change", { exact: true }).selectOption("correction");
+  await expect(dialog.getByLabel("Event being corrected", { exact: true })).toBeVisible();
+
+  await page.screenshot({
+    path: "test-artifacts/redesign-r7-stage10b5b-admin-employment-editor.png",
+    fullPage: true,
+  });
+  await context.close();
+});
