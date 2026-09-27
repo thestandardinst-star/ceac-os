@@ -206,7 +206,7 @@ body{color:var(--ceac-text)}
 .back{color:#1c69dd!important;font-weight:750!important}
 .text-action{color:#1769df!important;font-weight:750!important}
 .manager-person-detail,.manager-projects,.manager-calendar,.manager-finance,.manager-reports,.manager-work,
-.staff-work,.staff-team,.staff-record,.staff-me,.admin-work,.workforce,.finance,.reports,.control-center{
+.staff-work,.staff-record,.staff-me,.admin-work,.workforce,.finance,.reports,.control-center{
   width:100%!important;max-width:none!important
 }
 
