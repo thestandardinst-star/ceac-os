@@ -89,8 +89,8 @@ export default function ResourceWorkload({ me }) {
     const [p,e,c,pc,pr,w,r,l,u]=rows.map((row)=>row.data||[]);
     setProfiles(p); setEmployment(e); setCapacityVersions(c); setCommitmentVersions(pc); setProjects(pr);
     setWork(w); setRoutines(r); setLeave(l); setUnits(u);
-    if(!selectedProfileId && p.length) setSelectedProfileId(p[0].id);
-    if(!commitmentProjectId && pr.length) setCommitmentProjectId(pr[0].id);
+    // Scope-aware effects below own selection initialization. Async reloads must not
+    // overwrite a person or project that the manager has already selected.
     setLoading(false);
   }
 
