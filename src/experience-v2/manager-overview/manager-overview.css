@@ -527,7 +527,7 @@
   }
 
   .managerv2-decision-row {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 2rem minmax(0, 1fr);
   }
 
   .managerv2-decision-row > .ev2c-badge {
@@ -537,11 +537,14 @@
 
   .managerv2-decision-actions {
     grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
     justify-content: flex-start;
   }
 
   .managerv2-decision-actions .ev2c-button {
-    flex: 1 1 auto;
+    flex: 1 1 7rem;
+    min-width: 0;
   }
 
   .managerv2 .ev2c-button-compact {
