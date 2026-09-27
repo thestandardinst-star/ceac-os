@@ -37,9 +37,10 @@ test.describe("Premium redesign R2 Manager",()=>{
     await page.locator(".ev2s-sidebar").getByRole("button",{name:"Team",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Your team",exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:/Unit Room/})).toBeVisible();
-    const person=page.locator(".row").filter({hasText:"Staff Fixture"}).first();
+    await expect(page.getByText("People",{exact:true}).first()).toBeVisible();
+    const person=page.locator(".ev2p-evidence-person").filter({hasText:"Staff Fixture"}).first();
     if(await person.count()) {
-      await person.click();
+      await person.locator(".ev2p-evidence-person-main").click();
       await expect(page.locator(".manager-person-detail")).toBeVisible();
     }
     await page.screenshot({path:"test-artifacts/redesign-r2-manager-team.png",fullPage:true});
