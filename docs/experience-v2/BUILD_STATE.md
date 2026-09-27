@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 9 — Keystone Quality Gate and System Ratification (ACTIVE)
-Current substage: Stage 9A — cross-keystone audit and defect hardening
+Current substage: Stage 9C — technical ratification complete; product-owner acceptance pending
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -660,3 +660,39 @@ Stage 9A entry:
 - Accepted Stage 5–8 keystones remain protected except for concrete Stage 9 defects.
 - Chat is the sole active writer. No unpushed Work/Codex state is known.
 - Stage 10 has NOT started.
+
+
+## Stage 9 technical ratification checkpoint
+
+Exact technical implementation SHA:
+- `b87a0552dd8408f962d8d999494cdefeada773b2`
+
+Technical status:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Complete Quality Gate PASS — run `36320925112`;
+- 179 Playwright role/acceptance tests passed on the first exact-head run;
+- Vercel PASS;
+- exact-head 320px, 390×844, 1366×768 and 1440×900 keystone evidence reviewed;
+- exact-head evidence persisted at:
+  `CEAC OS / Experience V2 / Evidence / Stage 9 / b87a0552dd8408f962d8d999494cdefeada773b2 / stage9-r7-exact-head-evidence.zip`.
+
+Stage 9 corrections:
+- S9-01 Manager populated-decision composition at 320px corrected and regression-guarded;
+- S9-02 Workload selection race corrected without retry, timeout inflation, skipped coverage or weakened persistence assertions.
+
+System review:
+- typography floor and Instrument Sans remain intact;
+- single CEAC/Lucide icon registry remains intact;
+- phone/laptop/desktop geometry and role-specific density remain coherent;
+- keyboard/focus/touch/reduced-motion coverage remains green;
+- production bundle still carries the known >500 kB main-chunk warning; exact build is approximately 359.59 kB gzip JS and 62.14 kB gzip CSS. Canonical Stage 15 owns bundle/media/CSS-debt closure; Stage 10 must avoid unnecessary growth.
+
+Ratification record:
+- `docs/experience-v2/STAGE9_ACCEPTANCE_RECORD.md`.
+
+Remaining Stage 9 exit condition:
+- explicit product-owner acceptance of the four-keystone quality direction.
+
+Stage 10 has NOT started and remains blocked until that acceptance.
