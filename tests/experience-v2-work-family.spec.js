@@ -90,10 +90,76 @@ for (const viewport of [
       }
 
       await page.screenshot({
-        path: `test-artifacts/ev2-stage10a1-${role.key}-${viewport.name}.png`,
+        path: `test-artifacts/redesign-r7-stage10a1-${role.key}-${viewport.name}.png`,
         fullPage: true,
       });
       await context.close();
     });
   }
+}
+
+
+test("Stage 10 Family A2 Work Detail follows the approved working hierarchy", async () => {
+  const source = readFileSync("src/screens/Item.jsx", "utf8");
+  const shared = readFileSync("src/experience-v2/work-family/WorkFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/work-family/work-family.css", "utf8");
+
+  expect(source).toContain("WorkDetailHeader");
+  expect(source).toContain("WorkDetailSection");
+  expect(source).toContain("ev2-work-detail");
+  expect(source).not.toContain("statusPill(item.status)");
+
+  const purpose = source.indexOf('title="Why this matters"');
+  const finished = source.indexOf('title="What finished looks like"');
+  const instructions = source.indexOf('title="What to do"');
+  expect(purpose).toBeGreaterThan(-1);
+  expect(finished).toBeGreaterThan(purpose);
+  expect(instructions).toBeGreaterThan(finished);
+
+  for (const symbol of ["WorkDetailHeader", "WorkDetailSection", "WorkDetailCopy"]) {
+    expect(shared).toContain(`export function ${symbol}`);
+  }
+  expect(css).toContain("/* Stage 10A2 — Work Detail */");
+  expect(css).toContain(".ev2wd-header");
+  expect(css).toContain(".ev2wd-section");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+]) {
+  test(`Stage 10 Family A2 Staff Work Detail composes at ${viewport.name}`, async ({ browser }) => {
+    const role = roles[0];
+    const { context, page } = await openWork(browser, role, { width: viewport.width, height: viewport.height });
+
+    const firstRow = page.locator(".ev2w-row:visible").first();
+    await expect(firstRow).toBeVisible();
+    await firstRow.click();
+
+    await expect(page.locator(".ev2-work-detail")).toBeVisible();
+    await expect(page.locator(".ev2wd-header")).toBeVisible();
+    await expect(page.getByRole("button", { name: "← Back" })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const tiny = await page.locator(".ev2-work-detail").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(tiny).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10a2-staff-detail-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
 }
