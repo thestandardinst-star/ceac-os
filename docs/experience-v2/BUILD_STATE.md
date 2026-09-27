@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 4 — Shell V2
-Current substage: 5A — Staff Today audit and contract
+Current stage: Stage 6 — Manager Overview
+Current substage: 6A — Manager Overview audit and contract
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -415,32 +415,74 @@ Stage 4 — Shell V2: COMPLETE
 Stage 4 exit gate is satisfied:
 all four roles can move through their authorised destinations without shell overflow, clipping or navigation inconsistency at accepted phone, laptop and desktop widths.
 
-## Stage 5 active work
+## Stage 5 — Staff Today: COMPLETE
 
-Stage 5 rebuilds the Staff Today keystone only. It must preserve the current Staff data/work-session behaviour, alerts, work, meetings, announcements, dependencies and authority/security while replacing the visible composition with the accepted V2 system.
+Accepted exact implementation SHA:
+- `69eb0ca509f9b15047e4277667ea3016150b726e`
 
-Current substage 5A — AUDIT AND CONTRACT:
-- [x] inspect the exact current Staff Today implementation and its data/interaction behaviour;
-- [x] compare it directly with the persistent V2 quality references and accepted Stage 2–4 system;
-- [x] record the information hierarchy, responsive composition and migration boundary before product code changes;
-- [x] define focused acceptance evidence for phone and 1366×768 laptop;
-- [x] persist `docs/experience-v2/STAGE5_WORK_BRIEF.md`;
-- [ ] implement the isolated Staff Today V2 composition without changing its data/security authority;
-- [ ] run focused Stage 5 browser acceptance and inspect phone/laptop proof;
-- [ ] accept Stage 5 only on an exact green head.
+Exact-head engineering status:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36298098841`
+- Playwright role/acceptance suite: 164 passed
 
-Do not start Stage 6 until Staff Today is visually and functionally accepted.
+Stage 5 accepted outcomes:
+- Staff Today now uses an isolated V2 presentation layer under `src/experience-v2/staff-today/`;
+- existing Staff Today loading/query and work-session authority remain in `src/screens/Home.jsx`;
+- work-session Start work, End work and stale-session reconciliation remain intact;
+- dominant next action, Today schedule, Updates, Waiting, Coming up, This week and Announcements use the accepted V2 hierarchy/components;
+- recurring Ministry numbers remain available as a lower-priority factual record instead of competing with the daily focus;
+- Manager-created meetings remain reachable/openable from Staff Today;
+- duplicate Explore/navigation modules were removed from the Staff Today content layer;
+- the new Staff presentation uses the central V2 Lucide registry rather than a local icon dictionary;
+- 320px, 390×844, 1366×768 and 1440×900 compositions pass without horizontal overflow;
+- the legacy Staff home visual fingerprint was deliberately re-baselined to the accepted V2 Staff Today composition rather than weakening the regression threshold.
+
+Stage 5 verification notes:
+- early Stage 5 gates exposed two stale acceptance selectors that still targeted the removed `.home-meeting-row`; those tests were migrated to the new Staff V2 meeting row without weakening the meeting workflow assertion;
+- the first migration temporarily removed the recurring Ministry record from Today; the capability was restored using a Staff V2 presentation mode while keeping the existing write path;
+- one Quality Gate attempt was blocked by runner/Supabase container infrastructure, not product code; the exact accepted head later passed the complete gate;
+- final exact-head visual proof was inspected directly at phone, laptop and desktop widths and no high-severity visual defect remained.
+
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10924812946`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 5 / 69eb0ca509f9b15047e4277667ea3016150b726e / stage5-r7-exact-head-evidence.zip`;
+- acceptance record:
+  `docs/experience-v2/STAGE5_ACCEPTANCE_RECORD.md`.
+
+Stage 5 exit gate is satisfied.
+
+## Stage 6 active work
+
+Stage 6 rebuilds the Manager Overview keystone only. It must preserve the current manager queries, decision authority, work-review/leave/blocker workflows, workload/project/finance/reporting logic and drill-down behaviour while replacing the Overview composition with the accepted V2 system.
+
+Current substage 6A — AUDIT AND CONTRACT:
+- [x] inspect the exact current Manager Overview implementation and current rendered desktop/mobile evidence;
+- [x] identify the data/decision authority that must not change;
+- [x] compare the current composition with the persistent V2 quality direction and accepted Staff Today pattern;
+- [x] define the Manager Overview information hierarchy and mobile recomposition;
+- [x] persist `docs/experience-v2/STAGE6_WORK_BRIEF.md`;
+- [ ] implement the isolated Manager Overview V2 presentation without changing manager authority/data semantics;
+- [ ] run focused Stage 6 browser acceptance and inspect phone/laptop proof;
+- [ ] accept Stage 6 only on an exact green head.
+
+Do not start Stage 7 until Manager Overview is visually and functionally accepted.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 4 is accepted and complete. Stage 5A Staff Today audit/contract is active. No unpushed Chat state is known.
+Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 5 is accepted and complete. Stage 6A Manager Overview audit/contract is active. No unpushed Chat state is known.
 
 Exact next action:
-- inspect the existing Staff Today screen, its tests and the stored visual references;
-- persist `docs/experience-v2/STAGE5_WORK_BRIEF.md` before changing Staff Today product code;
-- preserve all existing Staff Today data, work-session, alert, meeting, announcement, dependency and authority behaviour;
-- rebuild only the Staff Today visible composition at the lowest V2 component/style layer;
-- accept on phone and 1366×768 laptop with exact-head engineering gates and rendered evidence before Stage 6.
+- keep `ManagerHome.jsx` as the authoritative data/action container;
+- build an isolated V2 Manager Overview presentation under `src/experience-v2/manager-overview/`;
+- preserve work-review, leave, blocker, meeting, project, person, finance and drill-down authority exactly;
+- replace the legacy hero/reference rail/card mosaic/module strip with a decision-first V2 command-centre composition;
+- prove phone and 1366×768 laptop first, then 1440×900 stretch control;
+- do not start Stage 7 until Stage 6 is accepted.
 
 ## Draft PR
 
