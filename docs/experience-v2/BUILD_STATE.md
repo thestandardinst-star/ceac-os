@@ -745,7 +745,7 @@ Pre-work visual evidence inspected from Quality Gate run `36325853986`:
 1. 10A1 — Work lists and queues — ACCEPTED.
 2. 10A2 — Work Detail — ACCEPTED.
 3. 10A3 — assignment, review, return and dependency — ACCEPTED.
-4. 10A4 — Family A acceptance — ACTIVE.
+4. 10A4 — Family A acceptance — ACCEPTED.
 
 Family B must not begin until Family A is accepted.
 
@@ -779,8 +779,8 @@ The first 10A1 Quality Gate attempt on `1683122790b0ac5be4f6d0fddbc5f833e705cc77
 
 10A2 — Work Detail is ACCEPTED.
 10A3 — assignment, review, return and dependency is ACCEPTED.
-10A4 — Family A acceptance is now ACTIVE.
-Family B has NOT started.
+10A4 — Family A acceptance is ACCEPTED.
+Family B — People/Team is now ACTIVE at audit/contract only.
 
 
 ### 10A2 acceptance — Work Detail
@@ -849,3 +849,60 @@ Writer ownership:
 
 10A4 — Family A acceptance is now ACTIVE.
 Family B has NOT started.
+
+
+### 10A4 acceptance — Family A Work complete
+
+Final accepted exact head:
+- `09305e679bca08edb08881d90991f1e4b45b25c3`.
+
+Exact-head gates:
+- CI PASS — run `36339639970`;
+- Migration Replay PASS — run `36339640003`;
+- Account Security PASS — run `36339639976`;
+- Complete Quality Gate PASS — run `36339640009`;
+- 213 Playwright tests passed in approximately 10.7 minutes;
+- Vercel PASS.
+
+Final viewport proof:
+- 320;
+- 360;
+- 375;
+- 390×844 class;
+- 414;
+- 430;
+- 900 intermediate/tablet;
+- 1366×768;
+- 1440×900.
+
+All four role Work lists were directly inspected across the shared acceptance matrix. Staff Work Detail, Manager assignment, returned-work and dependency states were also directly inspected. No unresolved high-severity Work-family defect remains.
+
+Final acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_A_ACCEPTANCE_RECORD.md`.
+
+Persistent final evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family A / Final / 09305e679bca08edb08881d90991f1e4b45b25c3 / stage10-family-a-final-r7.zip`.
+
+Stage 10 Family A — Work is ACCEPTED AND COMPLETE.
+
+## Stage 10 Family B active work
+
+Family B — People/Team is now ACTIVE at 10B1 audit/contract only.
+
+Canonical family scope:
+- Staff Team;
+- Manager Team;
+- Manager Person workspace;
+- Administration People / employee workspace.
+
+No Family B product code has been changed yet.
+
+Protected rules for Family B:
+- factual people/work/activity evidence must not become productivity scores or rankings;
+- private work must remain private;
+- Administration HR authority must not leak into Staff/Manager surfaces;
+- Manager unit scope must remain unit-scoped;
+- Staff Team remains a collaboration/availability surface, not a personnel file;
+- payroll remains blocked;
+- no schema/RLS/RPC/auth change is presumed;
+- Chat is the sole active writer.
