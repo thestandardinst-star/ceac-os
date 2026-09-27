@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 4 — Shell V2
-Current substage: 4D — Shell acceptance
+Current substage: 5A — Staff Today audit and contract
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -375,27 +375,69 @@ Verification note:
 - No Stage 4C shell test failed in the recorded Stage 4C sequence.
 - Attempt 3 passed the complete Quality Gate on the same exact product head without another product-code change.
 
-Current substage 4D: SHELL ACCEPTANCE
+Stage 4D: ACCEPTED
 
-Required closure:
-- prove every authorised production destination is reachable for Staff, Manager, Administration/HR and Executive;
-- re-confirm role/capability boundaries and absence of diagnostic/legacy destinations;
-- verify desktop and mobile active-state/navigation consistency;
-- persist exact-head Stage 4D evidence;
-- accept Stage 4 only when the exact Stage 4D head is green.
+Accepted exact implementation SHA:
+- `e6b26a07bf522ec63824bbaa9158fdd0b1d06ed4`
 
-Do not start Stage 5 until Stage 4D is accepted.
+Exact-head engineering status:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36293860529`
+
+Stage 4D accepted outcomes:
+- the approved four-role destination model matches the runtime route contract;
+- every authorised desktop destination is reachable for Staff, Manager, Administration/HR and Executive;
+- every mobile primary destination and every More-drawer destination is reachable and role-specific;
+- active-state behaviour remains consistent after navigation;
+- protected Primitives diagnostics remain absent from ordinary navigation;
+- Administration People remains capability-gated rather than represented by a dummy destination;
+- desktop and mobile navigation remain within the viewport across the accepted shell matrix;
+- the rendered operational 12px floor remains enforced on legacy surfaces exposed by the all-route inventory.
+
+Stage 4D verification note:
+- the first Stage 4D Quality Gate exposed genuine pre-existing sub-12px text on Staff/Manager performance and Manager finance routes while the new all-route matrix was running;
+- the correction was limited to the already-established transitional 12px floor in `premium-parity.css`;
+- no route authority, data query, RLS, RPC, auth/session or Stage 12 integration boundary changed;
+- the corrected exact head passed the complete Quality Gate.
+
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10923521832`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 4 / 4D / e6b26a07bf522ec63824bbaa9158fdd0b1d06ed4 / stage4d-r7-exact-head-evidence.zip`;
+- direct inspection covered Staff, Manager, Administration and Executive desktop shell proof and all four mobile More drawers.
+
+Stage 4 — Shell V2: COMPLETE
+
+Stage 4 exit gate is satisfied:
+all four roles can move through their authorised destinations without shell overflow, clipping or navigation inconsistency at accepted phone, laptop and desktop widths.
+
+## Stage 5 active work
+
+Stage 5 rebuilds the Staff Today keystone only. It must preserve the current Staff data/work-session behaviour, alerts, work, meetings, announcements, dependencies and authority/security while replacing the visible composition with the accepted V2 system.
+
+Current substage 5A — AUDIT AND CONTRACT:
+- inspect the exact current Staff Today implementation and its data/interaction behaviour;
+- compare it directly with the persistent V2 quality references and accepted Stage 2–4 system;
+- record the information hierarchy, responsive composition and migration boundary before product code changes;
+- define focused acceptance evidence for phone and 1366×768 laptop;
+- do not rebuild Manager/Admin/Executive pages in Stage 5.
+
+Do not start Stage 6 until Staff Today is visually and functionally accepted.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 4B and Stage 4C are accepted. Stage 4D shell acceptance is active. No unpushed Chat state is known.
+Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 4 is accepted and complete. Stage 5A Staff Today audit/contract is active. No unpushed Chat state is known.
 
 Exact next action:
-- add a focused Stage 4D browser acceptance matrix that proves every authorised production destination is reachable for all four roles;
-- preserve the existing role/capability boundaries and keep diagnostic routes out of ordinary navigation;
-- inspect the resulting exact-head evidence;
-- accept Stage 4 only after exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel are green;
-- do not start Stage 5 before Stage 4 acceptance.
+- inspect the existing Staff Today screen, its tests and the stored visual references;
+- persist `docs/experience-v2/STAGE5_WORK_BRIEF.md` before changing Staff Today product code;
+- preserve all existing Staff Today data, work-session, alert, meeting, announcement, dependency and authority behaviour;
+- rebuild only the Staff Today visible composition at the lowest V2 component/style layer;
+- accept on phone and 1366×768 laptop with exact-head engineering gates and rendered evidence before Stage 6.
 
 ## Draft PR
 
