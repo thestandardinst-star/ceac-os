@@ -178,14 +178,17 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const reviewRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
+    await go(page, "Work");
+    await page.getByRole("tab", { name: /Needs review/ }).click();
+    const reviewRow = page.locator(".ev2w-review-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
-    await reviewRow.getByRole("button", { name: "Review" }).click();
+    await reviewRow.click();
+    await expect(page.locator(".ev2-work-detail")).toBeVisible();
+    await expect(page.getByText("Review submitted work", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
     const approveDialog = page.getByRole("dialog");
-    await expect(approveDialog.getByText("Evidence-first review")).toBeVisible();
-    await approveDialog.getByRole("button", { name: "Approve", exact: true }).click();
     await approveDialog.getByRole("button", { name: "Confirm approval", exact: true }).click();
-    await expect(page.locator(".managerv2-decision-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
     await context.close();
   }
 
