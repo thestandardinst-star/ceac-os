@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
 import { isOverdue } from "../lib/time";
-import { Pill, Sheet, Avatar } from "../components/bits";
+import { LoadingState, ProductNotice, Sheet } from "../components/bits";
+import {
+  PeopleEmpty,
+  PeopleEvidencePerson,
+  PeoplePageHeader,
+  PeoplePersonRow,
+  PeopleRoomCard,
+  PeopleSection,
+} from "../experience-v2/people-family/PeopleFamilyV2";
 
 function weekStart() {
   const value = new Date();
@@ -20,29 +28,28 @@ function requireResult(result, label) {
   return result.data || [];
 }
 
-function CountLink({ children, onClick }) {
-  return <button onClick={(event) => { event.stopPropagation(); onClick(); }} style={{ textDecoration: "underline", color: "var(--ink-soft)" }}>{children}</button>;
-}
-
-function PersonRow({ person, openPerson }) {
-  return <div className="manager-person-card">
-    <button className="manager-person-main" onClick={() => openPerson(person.profile_id, "current")}>
-      <Avatar name={person.profiles?.full_name || "—"} size="md" />
-      <span className="manager-person-identity">
-        <strong>{person.profiles?.full_name || "—"}</strong>
-        <small>{person.profiles?.job_title || person.role}</small>
-        {person.current.length > 0 && <span>Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</span>}
-      </span>
-      <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
-    </button>
-    <div className="manager-person-evidence">
-      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>{person.presenceDays} recorded day{person.presenceDays === 1 ? "" : "s"}</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
-    </div>
-  </div>;
+function PersonRow({ person, openPerson, laneNames = [] }) {
+  const name = person.profiles?.full_name || "—";
+  const currentSummary = person.current.length
+    ? `Currently: ${person.current.slice(0, 2).map((item) => item.title).join(" · ")}${person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}`
+    : laneNames.length
+      ? `Part of ${laneNames.join(" · ")}`
+      : null;
+  return <PeopleEvidencePerson
+    name={name}
+    subtitle={person.profiles?.job_title || person.role}
+    context={currentSummary}
+    status={person.presence}
+    statusTone={person.presence === "Present" ? "success" : person.presence === "On leave" ? "warning" : "neutral"}
+    onOpen={() => openPerson(person.profile_id, "current")}
+    facts={[
+      { label: person.presenceDays === 1 ? "recorded day" : "recorded days", value: person.presenceDays, onClick: () => openPerson(person.profile_id, "sessions") },
+      { label: "completed outcomes", value: person.completed, onClick: () => openPerson(person.profile_id, "completed") },
+      { label: "overdue", value: person.overdue, onClick: () => openPerson(person.profile_id, "overdue") },
+      { label: "awaiting review", value: person.awaiting, onClick: () => openPerson(person.profile_id, "review") },
+      { label: "submitted", value: person.submitted, onClick: () => openPerson(person.profile_id, "submitted") },
+    ]}
+  />;
 }
 
 export default function Team({ me, openPerson, goAssign, openRoom }) {
@@ -69,7 +76,16 @@ export default function Team({ me, openPerson, goAssign, openRoom }) {
   useEffect(() => { load(); }, [me.id, me.unit_id]);
 
   async function load() {
-    if (!me.unit_id) return;
+    if (!me.unit_id) {
+      setPeople([]);
+      setSubTeams([]);
+      setMembers({});
+      setPending([]);
+      setResources([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
