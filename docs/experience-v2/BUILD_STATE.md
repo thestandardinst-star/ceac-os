@@ -1,13 +1,13 @@
 # CEAC OS Experience V2 — Build State
 
-Last updated: 26 September 2026
+Last updated: 27 September 2026
 
 ## Current programme state
 
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 4 — Shell V2
-Current substage: 4B — V2 shell structure
+Current substage: 4D — Shell acceptance
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -338,33 +338,64 @@ Stage 4B accepted outcomes:
 - 12px shared small-Avatar text floor;
 - legacy shell acceptance migrated without weakening authority or role assertions.
 
-Current substage 4C: RESPONSIVE AND INTERACTION HARDENING
+Stage 4C: ACCEPTED
 
-Required verification:
-- phone widths 320, 360, 375, 390, 414, 430;
-- laptop 1366×768;
-- desktop 1440+;
-- all four roles;
-- long person/unit names;
-- capability-limited Administration;
-- dual-unit context;
-- More Drawer/Escape/focus restoration;
-- destination search and keyboard flow;
-- overlay/back behaviour;
-- no horizontal overflow or clipped essential controls.
+Accepted exact implementation SHA:
+- `2768fafc78f59fc31eafb373d45d295c7acbbea3`
 
-Do not start Stage 4D or Stage 5 until 4C is green and visually inspected.
+Exact-head engineering status:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36291398713`, successful attempt 3
+
+Stage 4C accepted evidence:
+- Staff phone proof at 320, 360, 375, 390, 414 and 430px;
+- all four role shells at 390px;
+- all four role shells at 1366×768;
+- all four role shells at 1440×900;
+- Administration 320px bottom-navigation label readability;
+- Staff 320px More Drawer geometry, Escape close and focus restoration;
+- long identity/unit strings without shell widening;
+- capability-limited Administration policy;
+- dual-unit policy boundary;
+- truthful destination search and keyboard flow;
+- canonical mobile overlay/back behaviour;
+- no tested page-level horizontal overflow or clipped essential shell controls.
+
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10923251132`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 4 / 4C / 2768fafc78f59fc31eafb373d45d295c7acbbea3 / stage4c-r7-exact-head-evidence.zip`.
+
+Verification note:
+- Quality Gate attempts 1 and 2 failed on different unrelated legacy acceptance-core scenarios.
+- No Stage 4C shell test failed in the recorded Stage 4C sequence.
+- Attempt 3 passed the complete Quality Gate on the same exact product head without another product-code change.
+
+Current substage 4D: SHELL ACCEPTANCE
+
+Required closure:
+- prove every authorised production destination is reachable for Staff, Manager, Administration/HR and Executive;
+- re-confirm role/capability boundaries and absence of diagnostic/legacy destinations;
+- verify desktop and mobile active-state/navigation consistency;
+- persist exact-head Stage 4D evidence;
+- accept Stage 4 only when the exact Stage 4D head is green.
+
+Do not start Stage 5 until Stage 4D is accepted.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex is not active. Stage 4B is accepted. Stage 4C responsive and interaction hardening is active. No unpushed Chat state is known.
+Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 4B and Stage 4C are accepted. Stage 4D shell acceptance is active. No unpushed Chat state is known.
 
 Exact next action:
-- add focused Stage 4C browser coverage for the required viewport/role/interaction matrix;
-- use failing evidence to correct only genuine shared shell defects;
-- persist rendered 4C evidence;
-- accept 4C only when the exact head is green;
-- do not start Stage 5.
+- add a focused Stage 4D browser acceptance matrix that proves every authorised production destination is reachable for all four roles;
+- preserve the existing role/capability boundaries and keep diagnostic routes out of ordinary navigation;
+- inspect the resulting exact-head evidence;
+- accept Stage 4 only after exact-head CI, Migration Replay, Account Security, Complete Quality Gate and Vercel are green;
+- do not start Stage 5 before Stage 4 acceptance.
 
 ## Draft PR
 
