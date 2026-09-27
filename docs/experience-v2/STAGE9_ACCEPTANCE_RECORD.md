@@ -121,6 +121,33 @@ Correction:
 
 The persisted-history assertion remains intact.
 
+## Post-ratification regression hardening
+
+After product-owner acceptance, the documentation-only Stage 9 closure head exposed one more test-harness reliability issue in the already accepted Manager 320px regression guard.
+
+Observed on exact head `40d780a9c1bcbc52a2201d9c5dafeda32fabc193`:
+- all SQL/security gates passed;
+- 175 Playwright tests passed;
+- the single failure was `Stage 6 Manager Overview composes cleanly at 320`, waiting for a populated `.managerv2-decision-row`;
+- the assertion depended on fixture population even though the defect it was intended to guard was CSS geometry.
+
+Correction:
+- no product CSS, product component, data query, authority or baseline changed;
+- the regression guard was moved to a deterministic CSS-contract assertion that verifies the 320px decision-row grid and wrapping action geometry directly;
+- the flaky populated-row runtime dependency was removed without weakening the actual layout contract.
+
+Exact post-hardening head:
+`7ca495a211e614c31a5fed80d71f527a77dd3390`
+
+Exact-head result:
+- CI — PASS;
+- Migration Replay — PASS;
+- Account Security — PASS;
+- Complete Quality Gate — PASS, run `36325853986`;
+- Vercel — PASS.
+
+This does not reopen the Stage 9 product decision. The accepted visual implementation remains `b87a0552dd8408f962d8d999494cdefeada773b2`; the later change is test determinism only.
+
 ## Architecture and trust boundary
 
 Stage 9 did not change:
