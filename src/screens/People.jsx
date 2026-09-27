@@ -266,7 +266,7 @@ export default function People({ me, openItem }) {
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
-        title="Current employment"
+        title="Employment record"
         description="The current authorised employment record. Recording a change creates a new historical snapshot rather than overwriting the past."
         meta={<button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button>}
       >
