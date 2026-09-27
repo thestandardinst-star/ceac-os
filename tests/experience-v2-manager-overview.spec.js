@@ -90,6 +90,23 @@ for (const viewport of [
       for (const height of compactHeights) expect(height).toBeGreaterThanOrEqual(44);
     }
 
+    if (viewport.width === 320) {
+      const decisionRow = page.locator(".managerv2-decision-row").first();
+      await expect(decisionRow).toBeVisible();
+      const geometry = await decisionRow.evaluate((row) => {
+        const copy = row.querySelector(".managerv2-decision-copy");
+        const rowBox = row.getBoundingClientRect();
+        const copyBox = copy.getBoundingClientRect();
+        return {
+          rowWidth: rowBox.width,
+          copyWidth: copyBox.width,
+          copyOffset: copyBox.left - rowBox.left,
+        };
+      });
+      expect(geometry.copyWidth).toBeGreaterThanOrEqual(geometry.rowWidth * 0.65);
+      expect(geometry.copyOffset).toBeLessThanOrEqual(56);
+    }
+
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage6-manager-${viewport.name}.png`,
       fullPage: true,
