@@ -1083,9 +1083,9 @@ Work brief:
 - presentation/interaction migration only unless a concrete defect proves otherwise.
 
 Current 10B5 status:
-- audit/contract opened;
-- current Administration People / employee workspace source inspected;
-- no 10B5 product code changed yet;
+- 10B5A — Administration People directory ACCEPTED;
+- 10B5B — Administration employee workspace ACTIVE;
+- 10B5C has NOT started;
 - 10B6 has NOT started;
 - Family C has NOT started;
 - Chat is the sole active writer.
@@ -1093,3 +1093,48 @@ Current 10B5 status:
 Acceptance-checkpoint note:
 - 10B4 accepted implementation head `8817477f1eec19a36eb951999c129a2a8a1f8438` is exact-head green across CI, Migration Replay, Account Security, full Quality Gate and Vercel;
 - documentation-only acceptance checkpoint subsequently hit the external Vercel free-plan deployment-rate limit; this is not an application-code failure.
+
+
+### 10B5A acceptance — Administration People directory
+
+Accepted implementation head:
+- `08db5ba98a7275a974d674ad925409ac364faf6c`.
+
+Exact-head engineering gates:
+- CI PASS — run `36347415728`;
+- Migration Replay PASS — run `36347415738`;
+- Account Security PASS — run `36347415760`;
+- Complete Quality Gate PASS — run `36347415796`.
+
+Deployment status:
+- Vercel is blocked by the connected free project's external 100-deployments-per-day limit;
+- this is not an application build failure;
+- Family B final acceptance remains blocked until an exact-head Vercel deployment can run successfully.
+
+10B5A outcomes:
+- Administration People directory now uses the shared Experience V2 People-family language;
+- `admin_people_summary`, `admin_person_detail`, `admin_employment_detail` and `admin_update_employment` authority paths remain present and unchanged;
+- People directory search and factual filters remain intact;
+- people remain grouped by unit;
+- employee identity, role, unit and state are primary;
+- open/finished work and no-submission context remain secondary factual evidence and are explicitly non-scoring;
+- no payroll, bank, identifier, contract or payslip data was invented;
+- no schema, migration, RLS, RPC or auth change was introduced.
+
+Exact-head visual proof directly inspected:
+- 320×844;
+- approximately 390×844;
+- 1366×768;
+- 1440×900.
+
+Observed phone full-page screenshots show the fixed bottom navigation crossing the captured long document. This is the existing full-page capture behaviour, not page-level overflow.
+
+No unresolved high-severity 10B5A hierarchy, typography, overflow or authority defect was found.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B5A / 08db5ba98a7275a974d674ad925409ac364faf6c / stage10b5a-r7-exact-head-evidence.zip`.
+
+10B5B — Administration employee workspace is ACTIVE.
+10B5C has NOT started.
+10B6 has NOT started.
+Family C has NOT started.
