@@ -16,6 +16,7 @@ import "./experience-v2/staff-today/staff-today.css";
 import "./experience-v2/manager-overview/manager-overview.css";
 import "./experience-v2/admin-overview/admin-overview.css";
 import "./experience-v2/executive-overview/executive-overview.css";
+import "./experience-v2/work-family/work-family.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
