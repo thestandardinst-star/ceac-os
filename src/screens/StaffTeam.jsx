@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { LoadingState, ProductNotice } from "../components/bits";
+import {
+  PeopleEmpty,
+  PeopleFactRow,
+  PeoplePageHeader,
+  PeoplePersonRow,
+  PeopleResourceRow,
+  PeopleRoomCard,
+  PeopleSection,
+} from "../experience-v2/people-family/PeopleFamilyV2";
 
 function localDate(value) {
   return new Date(`${String(value).slice(0, 10)}T00:00:00`);
@@ -22,19 +32,6 @@ function nextBirthday(value) {
   const date = new Date(today.getFullYear(), month - 1, day);
   if (date < today) date.setFullYear(date.getFullYear() + 1);
   return date;
-}
-
-function Section({ title, meta, open, onToggle, children, tone = "" }) {
-  return <section className={`team-section ${tone}`}>
-    <button className="team-section-toggle" onClick={onToggle} aria-expanded={open}>
-      <span>
-        <strong>{title}</strong>
-        {meta && <small>{meta}</small>}
-      </span>
-      <b aria-hidden="true">{open ? "−" : "+"}</b>
-    </button>
-    {open && <div className="team-section-body">{children}</div>}
-  </section>;
 }
 
 export default function StaffTeam({ me, openRoom }) {
@@ -132,116 +129,130 @@ export default function StaffTeam({ me, openRoom }) {
     setOpen((current) => ({ ...current, [key]: !current[key] }));
   }
 
-  return <div className="body staff-team">
-    <div className="staff-page-intro">
-      <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1">Team</h1>
-      <p className="screen-note">People, leadership, availability and the shared references your unit uses.</p>
-      <div className="team-summary">
-        <strong>{team.length}</strong><span>people</span>
-        {unitHeads[0]?.profiles && <><i /> <span>{unitHeads[0].profiles.full_name}, Unit Head</span></>}
-      </div>
-      <nav className="team-primary-tabs" aria-label="Team areas">
-        <button onClick={() => document.getElementById("team-people")?.scrollIntoView({ behavior:"smooth", block:"start" })}>People</button>
-        {openRoom && <button onClick={openRoom}>Room</button>}
-        <button onClick={() => document.getElementById("team-resources")?.scrollIntoView({ behavior:"smooth", block:"start" })}>Resources</button>
-      </nav>
-      {openRoom && <button className="team-room-entry" onClick={openRoom}>
-        <span><strong>Unit Room</strong><small>Messages, mentions and coordination for {me.unit_name}</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-    </div>
+  return <div className="body staff-team ev2-people-page ev2-people-staff">
+    <PeoplePageHeader
+      eyebrow={me.unit_name}
+      title="Team"
+      description="People, leadership, availability and the shared references your unit uses."
+      count={team.length}
+      countLabel="people"
+    />
 
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}>
-      <h4>Team could not finish loading</h4>{error}
+    {openRoom && <PeopleRoomCard
+      title="Unit Room"
+      description={`Messages, mentions and coordination for ${me.unit_name}`}
+      onClick={openRoom}
+    />}
+
+    {error && <ProductNotice tone="error" title="Team could not finish loading">
+      {error}
       <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={load}>Try again</button>
-    </div>}
-    {loading && <div className="spin">Loading your team...</div>}
+    </ProductNotice>}
+    {loading && <LoadingState label="Loading your team…" />}
 
-    {!loading && !error && <div className="team-stack">
-      {onLeave.length > 0 && <Section
-        title="Away this week"
-        meta={`${onLeave.length} ${onLeave.length === 1 ? "person" : "people"}`}
-        open={open.away}
-        onToggle={() => toggle("away")}
-        tone="team-section-attention"
-      >
-        {onLeave.map((leave, index) => <div key={`${leave.profile_id}-${leave.start_date}-${index}`} className="team-compact-row">
-          <div><strong>{leave.full_name || "—"}</strong><span>{leave.kind} leave</span></div>
-          <time>{dateLabel(leave.start_date)} — {dateLabel(leave.end_date)}</time>
-        </div>)}
-      </Section>}
+    {!loading && !error && <>
+      {(onLeave.length > 0 || newJoiners.length > 0) && <div className="ev2p-attention-grid">
+        {onLeave.length > 0 && <PeopleSection
+          title="Away this week"
+          meta={`${onLeave.length} ${onLeave.length === 1 ? "person" : "people"}`}
+          open={open.away}
+          onToggle={() => toggle("away")}
+          tone="attention"
+        >
+          {onLeave.map((leave, index) => <PeopleFactRow
+            key={`${leave.profile_id}-${leave.start_date}-${index}`}
+            icon="calendar"
+            title={leave.full_name || "—"}
+            subtitle={`${leave.kind} leave`}
+            meta={`${dateLabel(leave.start_date)} — ${dateLabel(leave.end_date)}`}
+            tone="warning"
+          />)}
+        </PeopleSection>}
 
-      {newJoiners.length > 0 && <Section
-        title="New to the unit"
-        meta={`${newJoiners.length} joined recently`}
-        open={open.new}
-        onToggle={() => toggle("new")}
-      >
-        {newJoiners.map((row) => <div key={`new-${row.profiles.id}`} className="team-compact-row">
-          <div><strong>{row.profiles.full_name}</strong><span>{row.profiles.job_title || roleLabel(row.role)}</span></div>
-          <time>Joined {dateLabel(row.profiles.joined_at || row.profiles.started_on)}</time>
-        </div>)}
-      </Section>}
+        {newJoiners.length > 0 && <PeopleSection
+          title="New to the unit"
+          meta={`${newJoiners.length} joined recently`}
+          open={open.new}
+          onToggle={() => toggle("new")}
+        >
+          {newJoiners.map((row) => <PeopleFactRow
+            key={`new-${row.profiles.id}`}
+            icon="people"
+            title={row.profiles.full_name}
+            subtitle={row.profiles.job_title || roleLabel(row.role)}
+            meta={`Joined ${dateLabel(row.profiles.joined_at || row.profiles.started_on)}`}
+          />)}
+        </PeopleSection>}
+      </div>}
 
-      {leadership.length > 0 && <Section
-        title="Leadership"
-        meta={leadership.length === 1 ? leadership[0].name : `${leadership.length} people`}
-        open={open.leadership}
-        onToggle={() => toggle("leadership")}
-      >
-        {leadership.map((person) => <div key={person.id} className="team-person-row">
-          <div>
-            <strong>{person.name}</strong>
-            <span>{person.unitHead ? "Unit Head" : "Team lead"}{person.jobTitle ? ` · ${person.jobTitle}` : ""}</span>
-          </div>
-          {person.lanes.length > 0 && <p>{person.lanes.length === 1 ? `Leads ${person.lanes[0]}` : `Leads ${person.lanes.length} work lanes: ${person.lanes.join(", ")}`}</p>}
-        </div>)}
-      </Section>}
+      <div className="ev2p-stack">
+        {leadership.length > 0 && <PeopleSection
+          title="Leadership"
+          meta={leadership.length === 1 ? leadership[0].name : `${leadership.length} people`}
+          open={open.leadership}
+          onToggle={() => toggle("leadership")}
+        >
+          {leadership.map((person) => <PeoplePersonRow
+            key={person.id}
+            name={person.name}
+            subtitle={`${person.unitHead ? "Unit Head" : "Team lead"}${person.jobTitle ? ` · ${person.jobTitle}` : ""}`}
+            context={person.lanes.length > 0
+              ? person.lanes.length === 1
+                ? `Leads ${person.lanes[0]}`
+                : `Leads ${person.lanes.length} work lanes: ${person.lanes.join(", ")}`
+              : null}
+          />)}
+        </PeopleSection>}
 
-      <div id="team-people" className="team-scroll-anchor" />
-      <Section
-        title="People"
-        meta={`${team.length} in ${me.unit_name}`}
-        open={open.people}
-        onToggle={() => toggle("people")}
-      >
-        {team.map((row) => <div key={row.profiles?.id} className="team-person-row">
-          <div>
-            <strong>{row.profiles?.full_name || "—"}</strong>
-            <span>{row.profiles?.job_title || roleLabel(row.role)}</span>
-          </div>
-        </div>)}
-      </Section>
+        <div id="team-people" className="team-scroll-anchor" />
+        <PeopleSection
+          title="People"
+          meta={`${team.length} in ${me.unit_name}`}
+          open={open.people}
+          onToggle={() => toggle("people")}
+        >
+          {team.length > 0 ? team.map((row) => <PeoplePersonRow
+            key={row.profiles?.id}
+            name={row.profiles?.full_name || "—"}
+            subtitle={row.profiles?.job_title || roleLabel(row.role)}
+          />) : <PeopleEmpty
+            title="No people are listed in this unit"
+            description="People will appear here when they are part of your current unit."
+          />}
+        </PeopleSection>
 
-      {birthdays.length > 0 && <Section
-        title="Birthdays"
-        meta={`${birthdays.length} in the next 30 days`}
-        open={open.birthdays}
-        onToggle={() => toggle("birthdays")}
-      >
-        {birthdays.map((birthday) => <div key={birthday.id} className="team-compact-row">
-          <div><strong>{birthday.full_name}</strong><span>Birthday</span></div>
-          <time>{birthday.nextBirthday.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</time>
-        </div>)}
-      </Section>}
+        {birthdays.length > 0 && <PeopleSection
+          title="Birthdays"
+          meta={`${birthdays.length} in the next 30 days`}
+          open={open.birthdays}
+          onToggle={() => toggle("birthdays")}
+        >
+          {birthdays.map((birthday) => <PeopleFactRow
+            key={birthday.id}
+            icon="calendar"
+            title={birthday.full_name}
+            subtitle="Birthday"
+            meta={birthday.nextBirthday.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}
+          />)}
+        </PeopleSection>}
 
-      <div id="team-resources" className="team-scroll-anchor" />
-      {resources.length > 0 && <Section
-        title="Unit resources"
-        meta={`${resources.length} shared ${resources.length === 1 ? "reference" : "references"}`}
-        open={open.resources}
-        onToggle={() => toggle("resources")}
-      >
-        {resources.map((resource) => <a key={resource.id} className="team-resource-row" href={resource.reference_url} target="_blank" rel="noreferrer noopener">
-          <div>
-            <strong>{resource.pinned ? "Pinned · " : ""}{resource.title}</strong>
-            <span>{resource.category.replace("_", " ")}</span>
-          </div>
-          <b aria-hidden="true">↗</b>
-          {resource.description && <p>{resource.description}</p>}
-        </a>)}
-      </Section>}
-    </div>}
+        <div id="team-resources" className="team-scroll-anchor" />
+        {resources.length > 0 && <PeopleSection
+          title="Unit resources"
+          meta={`${resources.length} shared ${resources.length === 1 ? "reference" : "references"}`}
+          open={open.resources}
+          onToggle={() => toggle("resources")}
+        >
+          {resources.map((resource) => <PeopleResourceRow
+            key={resource.id}
+            title={resource.title}
+            category={resource.category.replace("_", " ")}
+            description={resource.description}
+            href={resource.reference_url}
+            pinned={resource.pinned}
+          />)}
+        </PeopleSection>}
+      </div>
+    </>}
   </div>;
 }
