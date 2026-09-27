@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 8 — Executive Overview
-Current substage: 8A — Executive Overview audit and contract
+Current stage: Stage 8 — Executive Overview (COMPLETE)
+Current substage: Stage 8 acceptance complete; Stage 9 not started
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -547,74 +547,93 @@ Visual evidence:
 
 Stage 7 exit gate is satisfied.
 
-## Stage 8 active work
+## Stage 8 — Executive Overview: COMPLETE
 
-Stage 8 rebuilds the Executive Overview keystone only.
+Accepted exact implementation SHA:
+- `6b555613bde7f2d9b257f9c417af1cc11514a81a`
 
-Purpose:
-- prove the executive briefing pattern;
-- keep Executive related to the same V2 product system while using appropriately different density and emphasis.
+Stage 8 accepted outcomes:
+- Executive Overview now uses an isolated V2 presentation under `src/experience-v2/executive-overview/`;
+- `src/screens/ExecutiveHome.jsx` remains the authoritative Executive query/derivation/action container;
+- senior attention leads the hierarchy;
+- ministry movement and recurring ministry-number evidence remain factual and drillable;
+- objective status and Portfolio context remain explicit records without synthetic scoring;
+- reporting coverage and Finance remain separate authoritative contexts;
+- organisation delivery movement uses canonical Task/Deliverable completion;
+- manager-owned review remains labelled as manager-owned unless escalated by an existing rule;
+- upcoming meetings remain visible and schedulable through the existing handlers;
+- the legacy scenic hero, fixed calendar rail and duplicate module strip are removed from Executive Overview;
+- 320px, 390×844, 1366×768 and 1440×900 compositions were directly inspected;
+- the Executive visual fingerprint was deliberately re-recorded only after direct inspection; the regression threshold remains unchanged.
 
-Preserve:
-- ministry, portfolio, finance, reporting and meeting data;
-- drill-down and Executive authority.
+Stage 8 verification notes:
+- the first Stage 8B Quality Gate exposed a real recurring ministry-number presentation regression: the numeric value and value label had no separating text node, so the authoritative record did not expose `17 People received` as expected;
+- the correction was presentation-only and preserved the existing recurring-operation write/read authority, RLS/RPC and data model;
+- a subsequent complete Quality Gate passed that workflow;
+- the intentional Executive V2 redesign correctly failed the old Executive visual fingerprint before acceptance;
+- fresh phone/laptop/desktop proof was inspected against the Stage 8 work brief, accepted Stages 5–7 and persistent V2 quality references;
+- only the Executive baseline was re-recorded; Staff, Manager and Administration baselines were not changed.
 
-Rebuild:
-- attention first;
-- ministry movement;
-- department/project context;
-- finance/reporting;
-- schedule;
-- restrained executive visual language.
+Exact-head engineering status at accepted implementation SHA:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Complete Quality Gate PASS;
+- Vercel PASS;
+- Quality Gate run `36313554437`;
+- Playwright role/acceptance suite: 179 passed.
 
-Current substage 8A — AUDIT AND CONTRACT:
-- inspect exact current Executive Overview implementation, data/authority paths and tests;
-- inspect exact-head desktop and mobile proof before editing;
-- compare the current screen with persistent V2 quality references and accepted Stages 5–7;
-- record the Executive information hierarchy and responsive composition;
-- persist `docs/experience-v2/STAGE8_WORK_BRIEF.md` before product-code migration;
-- do not start Stage 9 until Stage 8 is visually and functionally accepted.
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10930196769`;
+- exact Stage 8 screenshots inspected:
+  - `redesign-r7-stage8-executive-320.png`;
+  - `redesign-r7-stage8-executive-390.png`;
+  - `redesign-r7-stage8-executive-laptop.png`;
+  - `redesign-r7-stage8-executive-desktop.png`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 8 / 6b555613bde7f2d9b257f9c417af1cc11514a81a / stage8-r7-exact-head-evidence.zip`;
+- acceptance record:
+  `docs/experience-v2/STAGE8_ACCEPTANCE_RECORD.md`.
 
-Stage 8A contract checkpoint — 27 September 2026:
-- canonical starting SHA verified as `887ace356224e81512f9a6ecdddef29d2f3d3059`;
-- PR #72 remains open, draft and mergeable;
-- exact-head CI PASS;
-- exact-head Migration Replay PASS;
-- exact-head Account Security PASS;
-- exact-head Vercel PASS;
-- exact-head Complete Quality Gate PASS, run `36309941948`;
-- the existing Executive query, derivation, handler and authority boundary was audited in full;
-- exact-head Executive phone, laptop and desktop evidence was downloaded and directly inspected;
-- persistent V2 quality references and accepted Stages 5–7 were compared directly;
-- the legacy scenic hero, fixed calendar rail, equal-card stack, early full ministry table and duplicate module strip were confirmed as presentation problems rather than authority/data defects;
-- the binding Stage 8 migration contract is now recorded in `docs/experience-v2/STAGE8_WORK_BRIEF.md`;
-- no Executive product code, database, RLS, RPC, auth or session boundary changed during this checkpoint.
+Stage 8 exit gate is satisfied.
 
-Next Stage 8 action:
-- commit and verify this contract checkpoint;
-- only after the checkpoint is canonical, migrate Executive Overview to the isolated V2 presentation boundary defined in the Stage 8 work brief;
-- do not start Stage 9 before exact-head Stage 8 acceptance.
+Stage 9 has not started. Do not write Stage 9 product code until the live branch HEAD and Stage 9 sequence are re-read from GitHub.
 
 ## Current handoff
 
-Writer ownership has been handed from Chat to Codex/Work at the user's request. Codex/Work is the sole active writer from this checkpoint. Chat must not modify the branch while Codex/Work is active.
+The user has explicitly ended Codex/Work writer ownership because Work usage is exhausted. This Chat is the sole active writer at this checkpoint.
 
-Stage 7 is accepted and complete. Stage 8A — Executive Overview audit and contract is now active. No unpushed Chat state is known.
+Stage 8 — Executive Overview is accepted and complete.
 
-Exact next action for Codex/Work:
-- inspect the exact current branch HEAD and this handoff before editing;
-- read `docs/experience-v2/START_HERE.md`, `BUILD_STATE.md`, `IMPLEMENTATION_SEQUENCE.md`, `DESIGN_FOUNDATION_V2.md`, `STAGE7_ACCEPTANCE_RECORD.md` and the persistent quality-reference index;
-- audit the existing Executive Overview implementation, its current data/authority paths, tests and rendered phone/laptop evidence;
-- persist `docs/experience-v2/STAGE8_WORK_BRIEF.md` before changing Executive product code;
-- preserve ministry, portfolio, finance, reporting, meeting, drill-down and Executive authority exactly;
-- rebuild only Executive Overview as the Stage 8 keystone;
-- prove 320px/390×844 phone, 1366×768 laptop and 1440×900 desktop;
-- do not start Stage 9 until Stage 8 is accepted on an exact green head.
+Accepted exact implementation SHA:
+- `6b555613bde7f2d9b257f9c417af1cc11514a81a`
+
+Acceptance:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Complete Quality Gate PASS, run `36313554437`;
+- 179 Playwright role/acceptance tests passed;
+- Vercel PASS;
+- direct visual inspection completed at 320px, 390×844, 1366×768 and 1440×900;
+- acceptance record: `docs/experience-v2/STAGE8_ACCEPTANCE_RECORD.md`;
+- persistent evidence: `CEAC OS / Experience V2 / Evidence / Stage 8 / 6b555613bde7f2d9b257f9c417af1cc11514a81a / stage8-r7-exact-head-evidence.zip`.
+
+Stage 9 has not started.
+
+Exact next safe action:
+- inspect the live PR #72 HEAD and checks before any further edit;
+- read `docs/experience-v2/START_HERE.md`, this file, `IMPLEMENTATION_SEQUENCE.md`, `CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`, `ACCEPTANCE_AND_HANDOFF.md` and `AGENTS.md`;
+- begin Stage 9 only as the keystone quality gate/system ratification defined by the canonical sequence;
+- do not reopen or rewrite accepted Stage 5–8 keystones unless Stage 9 finds a concrete cross-keystone defect;
+- keep PR #72 open and draft;
+- do not merge PR #72 yet.
 
 Protected boundaries remain unchanged:
 - PR #71 stays frozen and untouched;
 - Stage 13 Payroll remains blocked pending confirmed CEAC rules;
 - no security/RLS/RPC/auth weakening;
+- no invented data;
 - one active writer only.
 
 ## Draft PR
