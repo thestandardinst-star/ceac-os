@@ -2217,15 +2217,14 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
   }
 });
 
-test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
-  test.setTimeout(120000);
-  const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
+const administrationPhoneWidths = [320, 360, 375, 390, 414, 430];
+const administrationPrimaryDestinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
 
-  for (const width of widths) {
+for (const width of administrationPhoneWidths) {
+  test(`Administration primary surfaces stay within the ${width}px phone width`, async ({ browser }) => {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
 
-    for (const destination of destinations) {
+    for (const destination of administrationPrimaryDestinations) {
       await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const geometry = await page.evaluate(() => {
@@ -2247,8 +2246,8 @@ test("Administration primary surfaces stay within supported phone widths", async
       expect(Math.abs((geometry.bodyRight ?? geometry.viewport) - geometry.viewport), `Administration body left a right-side gap at ${width}px`).toBeLessThanOrEqual(1);
     }
     await context.close();
-  }
-});
+  });
+}
 
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [
