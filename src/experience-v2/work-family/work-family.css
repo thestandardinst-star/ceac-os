@@ -802,6 +802,15 @@
   border-color: var(--ev2-line-strong);
   background: var(--ev2-surface);
   color: var(--ev2-text);
+  font-size: var(--ev2-type-supporting);
+}
+
+.ev2-work-assignment .voice-button,
+.ev2-work-assignment .voice-live-transcript,
+.ev2-work-assignment .voice-error,
+.ev2-work-assignment .voice-unavailable {
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
 }
 
 .ev2-work-assignment > .split {
