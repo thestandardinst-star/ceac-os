@@ -998,7 +998,66 @@ No unresolved high-severity Manager Team hierarchy, overflow, typography or auth
 Persistent exact-head evidence:
 - `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B3 / 847c3b2a16253016000d38d6d0a8e14cd92d1383 / stage10b3-r7-exact-head-evidence.zip`.
 
-10B4 — Manager Person workspace is now ACTIVE.
+10B4 — Manager Person workspace is ACCEPTED AND COMPLETE.
+10B5 — Administration People / employee workspace has NOT started.
+10B6 has NOT started.
+Family C has NOT started.
+
+
+### 10B4 acceptance — Manager Person workspace
+
+Accepted exact implementation head:
+- `8817477f1eec19a36eb951999c129a2a8a1f8438`.
+
+Exact-head gates:
+- CI PASS — run `36345097892`;
+- Migration Replay PASS — run `36345097900`;
+- Account Security PASS — run `36345097911`;
+- Complete Quality Gate PASS — run `36345097956`;
+- 234 Playwright tests passed;
+- Vercel PASS.
+
+Exact-head Manager Person proof directly inspected:
+- 320×844;
+- approximately 390×844;
+- 1366×768;
+- 1440×900.
+
+Accepted Manager Person hierarchy:
+- identity and current unit/role context;
+- current responsibilities;
+- recent outcomes;
+- submissions;
+- projects/objectives;
+- factual activity/session context;
+- attributable visible feedback.
+
+Authority/trust confirmation:
+- Manager Person remains unit-scoped;
+- private work remains excluded;
+- session/work evidence remains factual context and explicitly non-scoring;
+- visible feedback remains attributable and visible to the staff member;
+- no private manager notes;
+- no Administration/HR authority leaked into Manager;
+- no payroll/protected-HR authority was introduced;
+- no schema, migration, RLS, RPC definition or auth file changed in 10B4.
+
+Deterministic Administration phone-width evidence passed at:
+- 320;
+- 360;
+- 375;
+- 390;
+- 414;
+- 430.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B4 / 8817477f1eec19a36eb951999c129a2a8a1f8438 / stage10b4-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_B_10B4_ACCEPTANCE_RECORD.md`.
+
+10B4 is ACCEPTED AND COMPLETE.
 10B5 has NOT started.
 10B6 has NOT started.
 Family C has NOT started.
+Chat remains the sole active writer.
