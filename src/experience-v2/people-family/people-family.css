@@ -858,7 +858,7 @@
 }
 
 .ev2p-filter-tab {
-  min-height: var(--ev2-control-compact);
+  min-height: var(--ev2-control-min);
   display: inline-flex;
   align-items: center;
   gap: var(--ev2-space-2);
@@ -1041,7 +1041,7 @@
 }
 
 .ev2p-objective-toggle {
-  min-height: var(--ev2-control-compact);
+  min-height: var(--ev2-control-min);
   padding: 0;
   border: 0;
   background: transparent;
