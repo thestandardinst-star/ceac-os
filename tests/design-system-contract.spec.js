@@ -110,3 +110,25 @@ test("Instrument Sans is the premium body family and PWA icons are shipped", asy
     expect(result.bytes).toBeGreaterThan(1000);
   }
 });
+
+
+test("Compliance populated metadata stays at the CEAC 12px floor", () => {
+  const css = readFileSync("src/styles.css", "utf8");
+  const selectors = [
+    ".compliance-policy-card summary",
+    ".compliance-meta span",
+    ".compliance-meta b",
+    ".compliance-self-item span,.compliance-self-item small",
+    ".compliance-chip-list button",
+    ".compliance-history summary",
+    ".compliance-history>div strong",
+    ".compliance-history>div span",
+  ];
+
+  for (const selector of selectors) {
+    const escaped = selector.replace(/[.*+?^$()|[\]{}]/g, "\\$&");
+    const match = css.match(new RegExp(escaped + "\\{[^}]*font-size:([0-9.]+)px"));
+    expect(match, `Missing explicit font size for ${selector}`).not.toBeNull();
+    expect(Number(match[1]), `${selector} must stay at or above 12px`).toBeGreaterThanOrEqual(12);
+  }
+});
