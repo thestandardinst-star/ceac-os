@@ -239,7 +239,7 @@ export default function People({ me, openItem }) {
     const positionLabel = person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff";
 
     return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
-      <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" />
+      <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" ariaLabel="← All people" />
 
       <PeoplePersonHeader
         name={person.full_name}
