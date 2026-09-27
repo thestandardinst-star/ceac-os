@@ -177,6 +177,35 @@ export function PeoplePersonRow({
 }
 
 
+
+export function PeopleAdminPersonRow({
+  name,
+  subtitle,
+  context,
+  status,
+  statusTone = "neutral",
+  primaryFact,
+  secondaryFact,
+  onClick,
+}) {
+  return (
+    <button type="button" className="ev2p-admin-person-row" onClick={onClick}>
+      <Avatar name={name} size="md" />
+      <span className="ev2p-person-copy">
+        <strong>{name || "—"}</strong>
+        {subtitle ? <span>{subtitle}</span> : null}
+        {context ? <small>{context}</small> : null}
+      </span>
+      <span className="ev2p-admin-person-context">
+        {status ? <StatusBadge tone={statusTone} icon={false}>{status}</StatusBadge> : null}
+        {primaryFact ? <strong>{primaryFact}</strong> : null}
+        {secondaryFact ? <small>{secondaryFact}</small> : null}
+      </span>
+      <CeacIcon name="chevronRight" size="meta" decorative />
+    </button>
+  );
+}
+
 export function PeopleEvidencePerson({
   name,
   subtitle,
