@@ -110,6 +110,44 @@ export function PeoplePersonRow({
   );
 }
 
+
+export function PeopleEvidencePerson({
+  name,
+  subtitle,
+  context,
+  status,
+  statusTone = "neutral",
+  onOpen,
+  facts = [],
+}) {
+  return (
+    <article className="ev2p-evidence-person">
+      <button type="button" className="ev2p-evidence-person-main" onClick={onOpen}>
+        <Avatar name={name} size="md" />
+        <span className="ev2p-person-copy">
+          <strong>{name || "—"}</strong>
+          {subtitle ? <span>{subtitle}</span> : null}
+          {context ? <small>{context}</small> : null}
+        </span>
+        <span className="ev2p-person-tail">
+          {status ? <StatusBadge tone={statusTone} icon={false}>{status}</StatusBadge> : null}
+          <CeacIcon name="chevronRight" size="meta" decorative />
+        </span>
+      </button>
+      {facts.length ? (
+        <div className="ev2p-evidence-strip" aria-label={`Factual context for ${name || "person"}`}>
+          {facts.map((fact) => (
+            <button key={fact.label} type="button" onClick={fact.onClick}>
+              <strong>{fact.value}</strong>
+              <span>{fact.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 export function PeopleFactRow({
   icon = "info",
   title,
