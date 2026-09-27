@@ -13,6 +13,7 @@ import "./experience-v2.css";
 import "./experience-v2/components/components.css";
 import "./experience-v2/shell/shell.css";
 import "./experience-v2/staff-today/staff-today.css";
+import "./experience-v2/manager-overview/manager-overview.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -14,9 +14,11 @@ async function openAs(browser, viewport={width:1440,height:960}) {
 test.describe("Premium redesign R2 Manager",()=>{
   test("Manager Overview is a command centre",async({browser})=>{
     const {context,page}=await openAs(browser);
-    await expect(page.locator(".manager-command-surface")).toBeVisible();
-    await expect(page.getByText("Decisions first.",{exact:false})).toBeVisible();
+    await expect(page.locator(".managerv2")).toBeVisible();
+    await expect(page.locator(".managerv2-main")).toBeVisible({timeout:15000});
+    await expect(page.locator(".managerv2-decisions")).toBeVisible();
     await expect(page.getByRole("button",{name:"Give out work",exact:true})).toBeVisible();
+    await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     await page.screenshot({path:"test-artifacts/redesign-r2-manager-overview.png",fullPage:true});
     await context.close();
   });
@@ -46,6 +48,9 @@ test.describe("Premium redesign R2 Manager",()=>{
   test("Manager mobile remains within viewport",async({browser})=>{
     const {context,page}=await openAs(browser,{width:390,height:844});
     await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+    await expect(page.locator(".managerv2-main")).toBeVisible({timeout:15000});
+    await expect(page.locator(".managerv2-decisions")).toBeVisible();
+    await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({path:"test-artifacts/redesign-r2-manager-mobile.png",fullPage:true});

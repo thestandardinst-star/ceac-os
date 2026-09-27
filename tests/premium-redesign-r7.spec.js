@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 const password = process.env.ROLE_FIXTURE_PASSWORD;
 const roles = [
   ["staff@ceac.local.test", ".staff-app", "Staff", ".staffv2"],
-  ["manager@ceac.local.test", ".manager-app", "Manager", ".home-dashboard"],
+  ["manager@ceac.local.test", ".manager-app", "Manager", ".managerv2"],
   ["admin@ceac.local.test", ".office-app", "Administration", ".admin-home-section"],
   ["exec@ceac.local.test", ".executive-app", "Executive", ".executive-intelligence-grid"],
 ];
@@ -39,12 +39,16 @@ test.describe("Premium redesign R7 closure", () => {
         await expect(page.locator(".staffv2-schedule-panel")).toBeVisible();
         await expect(page.locator(".reference-module-strip")).toHaveCount(0);
         await expect(page.locator(".staff-command-surface")).toHaveCount(0);
+      } else if (label === "Manager") {
+        await expect(page.locator(".managerv2")).toBeVisible();
+        await expect(page.locator(".managerv2-main")).toBeVisible({ timeout: 15000 });
+        await expect(page.locator(".managerv2-decisions")).toBeVisible();
+        await expect(page.locator(".reference-module-strip")).toHaveCount(0);
+        await expect(page.locator(".manager-command-surface")).toHaveCount(0);
       } else {
         await expect(page.locator(".reference-rail")).toBeVisible();
         await expect(page.locator(".reference-calendar-card")).toBeVisible();
-        const command = label === "Manager" ? ".manager-command-surface"
-          : label === "Administration" ? ".admin-command-surface"
-          : ".executive-command-surface";
+        const command = label === "Administration" ? ".admin-command-surface" : ".executive-command-surface";
         await expect(page.locator(command)).toBeVisible();
         const heroBackground = await page.locator(command).evaluate((el) => getComputedStyle(el).backgroundImage);
         expect(heroBackground).toContain("ceac-hero-landscape.svg");
