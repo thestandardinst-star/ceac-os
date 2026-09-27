@@ -575,6 +575,26 @@ Current substage 8A — AUDIT AND CONTRACT:
 - persist `docs/experience-v2/STAGE8_WORK_BRIEF.md` before product-code migration;
 - do not start Stage 9 until Stage 8 is visually and functionally accepted.
 
+Stage 8A contract checkpoint — 27 September 2026:
+- canonical starting SHA verified as `887ace356224e81512f9a6ecdddef29d2f3d3059`;
+- PR #72 remains open, draft and mergeable;
+- exact-head CI PASS;
+- exact-head Migration Replay PASS;
+- exact-head Account Security PASS;
+- exact-head Vercel PASS;
+- exact-head Complete Quality Gate PASS, run `36309941948`;
+- the existing Executive query, derivation, handler and authority boundary was audited in full;
+- exact-head Executive phone, laptop and desktop evidence was downloaded and directly inspected;
+- persistent V2 quality references and accepted Stages 5–7 were compared directly;
+- the legacy scenic hero, fixed calendar rail, equal-card stack, early full ministry table and duplicate module strip were confirmed as presentation problems rather than authority/data defects;
+- the binding Stage 8 migration contract is now recorded in `docs/experience-v2/STAGE8_WORK_BRIEF.md`;
+- no Executive product code, database, RLS, RPC, auth or session boundary changed during this checkpoint.
+
+Next Stage 8 action:
+- commit and verify this contract checkpoint;
+- only after the checkpoint is canonical, migrate Executive Overview to the isolated V2 presentation boundary defined in the Stage 8 work brief;
+- do not start Stage 9 before exact-head Stage 8 acceptance.
+
 ## Current handoff
 
 Writer ownership has been handed from Chat to Codex/Work at the user's request. Codex/Work is the sole active writer from this checkpoint. Chat must not modify the branch while Codex/Work is active.
