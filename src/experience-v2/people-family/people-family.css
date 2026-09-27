@@ -1374,3 +1374,240 @@
     grid-column: 2;
   }
 }
+
+
+/* Stage 10B5B — Administration employee workspace */
+
+.ev2-admin-person-workspace {
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  padding-bottom: var(--ev2-space-12);
+}
+
+.ev2-admin-person-workspace .ev2p-person-header {
+  margin-bottom: var(--ev2-space-2);
+}
+
+.ev2p-admin-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ev2-space-2);
+}
+
+.ev2p-admin-record-grid .ev2p-fact-row {
+  min-height: 4.5rem;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2p-admin-record-change {
+  min-height: var(--ev2-control-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--ev2-space-3);
+  border: 1px solid var(--ev2-line-strong);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface);
+  color: var(--ev2-action);
+  font: inherit;
+  font-size: var(--ev2-type-supporting);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ev2p-admin-record-change:hover {
+  background: var(--ev2-action-soft);
+  border-color: color-mix(in srgb, var(--ev2-action) 28%, var(--ev2-line));
+}
+
+.ev2p-admin-record-change:focus-visible,
+.ev2p-admin-history-row:focus-visible,
+.ev2-admin-person-workspace .ev2p-link-row:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+}
+
+.ev2p-admin-history-list {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2p-admin-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ev2-space-4);
+  align-items: start;
+  padding: var(--ev2-space-4);
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2p-admin-history-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2p-admin-history-row > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+}
+
+.ev2p-admin-history-row strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-row-mobile);
+  line-height: 1.35;
+}
+
+.ev2p-admin-history-row span,
+.ev2p-admin-history-row small {
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.ev2p-admin-history-row > span {
+  max-width: 12rem;
+  color: var(--ev2-text-tertiary);
+  text-align: right;
+}
+
+.ev2p-admin-work-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ev2-admin-person-workspace .ev2p-outcome-grid button {
+  min-height: 6rem;
+}
+
+.ev2-admin-person-workspace .ev2p-outcome-grid button b {
+  overflow-wrap: anywhere;
+}
+
+.ev2p-admin-open-work,
+.ev2p-admin-session-link,
+.ev2p-admin-leave-link {
+  margin-top: var(--ev2-space-3);
+}
+
+.ev2-admin-person-workspace .ev2p-evidence-summary {
+  margin-top: var(--ev2-space-4);
+}
+
+.ev2p-admin-leave-card {
+  padding: var(--ev2-space-4);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2p-admin-leave-card .ev2p-fact-row {
+  margin-top: var(--ev2-space-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2p-admin-protected-section .ev2p-workspace-section-head {
+  border-color: color-mix(in srgb, var(--ev2-warning) 22%, var(--ev2-line));
+}
+
+.ev2p-admin-protected-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ev2-space-3);
+}
+
+.ev2p-admin-protected-grid > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+  padding: var(--ev2-space-4);
+  border: 1px solid color-mix(in srgb, var(--ev2-warning) 24%, var(--ev2-line));
+  border-radius: var(--ev2-radius-card);
+  background: color-mix(in srgb, var(--ev2-warning-soft) 42%, var(--ev2-surface));
+}
+
+.ev2p-admin-protected-grid span {
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-label);
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.ev2p-admin-protected-grid strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-row-mobile);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ev2p-admin-protected-note {
+  margin: var(--ev2-space-3) 0 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.5;
+}
+
+.ev2-admin-person-workspace .sheet .field,
+.ev2-admin-person-workspace .sheet textarea.field,
+.ev2-admin-person-workspace .sheet select.field {
+  font-size: var(--ev2-type-body-mobile);
+}
+
+@media (min-width: 900px) {
+  .ev2p-admin-history-row strong,
+  .ev2p-admin-protected-grid strong {
+    font-size: var(--ev2-type-row-desktop);
+  }
+
+  .ev2-admin-person-workspace .sheet .field,
+  .ev2-admin-person-workspace .sheet textarea.field,
+  .ev2-admin-person-workspace .sheet select.field {
+    font-size: var(--ev2-type-body-desktop);
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-admin-person-workspace {
+    padding-bottom: calc(var(--ev2-space-12) + 4.5rem);
+  }
+
+  .ev2p-admin-record-grid,
+  .ev2p-admin-protected-grid,
+  .ev2p-admin-work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2p-admin-history-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ev2-space-2);
+  }
+
+  .ev2p-admin-history-row > span {
+    max-width: none;
+    text-align: left;
+  }
+
+  .ev2p-admin-record-change {
+    width: 100%;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2p-admin-record-grid .ev2p-fact-row,
+  .ev2p-admin-history-row,
+  .ev2p-admin-protected-grid > div,
+  .ev2p-admin-leave-card {
+    padding-inline: var(--ev2-space-3);
+  }
+}
