@@ -1,9 +1,9 @@
 # CEAC OS Experience V2 — Stage 10 Family B 10B4 Acceptance Record
 
-Date: 27 September 2026  
-Stage: 10 — Operational Screen Families  
-Family: B — People / Team  
-Substage: 10B4 — Manager Person workspace  
+Date: 27 September 2026
+Stage: 10 — Operational Screen Families
+Family: B — People / Team
+Substage: 10B4 — Manager Person workspace
 Status: ACCEPTED AND COMPLETE
 
 ## Accepted implementation
