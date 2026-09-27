@@ -149,6 +149,8 @@ test.describe("CEAC visual regression", () => {
       await expect(page.locator(".body").first()).toBeVisible({ timeout: 15000 });
       if (role === "manager") {
         await expect(page.locator(".managerv2-main")).toBeVisible({ timeout: 15000 });
+      } else if (role === "administration") {
+        await expect(page.locator(".adminv2-main")).toBeVisible({ timeout: 15000 });
       }
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(250);

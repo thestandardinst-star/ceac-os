@@ -14,8 +14,12 @@ async function openAdmin(browser,viewport={width:1440,height:960}){
 test.describe("Premium redesign R3 Administration",()=>{
   test("Overview is an organisation operations console",async({browser})=>{
     const {context,page}=await openAdmin(browser);
-    await expect(page.locator(".admin-command-surface")).toBeVisible();
-    await expect(page.getByText("Need your action",{exact:true})).toBeVisible();
+    await expect(page.locator(".adminv2")).toBeVisible();
+    await expect(page.locator(".adminv2-main")).toBeVisible({timeout:15000});
+    await expect(page.locator(".adminv2-inbox")).toBeVisible();
+    await expect(page.getByText("Needs Administration",{exact:true})).toBeVisible();
+    await expect(page.locator(".admin-command-surface")).toHaveCount(0);
+    await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     await page.screenshot({path:"test-artifacts/redesign-r3-admin-overview.png",fullPage:true});
     await context.close();
   });
@@ -59,6 +63,9 @@ test.describe("Premium redesign R3 Administration",()=>{
   test("Administration mobile stays within the viewport",async({browser})=>{
     const {context,page}=await openAdmin(browser,{width:390,height:844});
     await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+    await expect(page.locator(".adminv2-main")).toBeVisible({timeout:15000});
+    await expect(page.locator(".adminv2-inbox")).toBeVisible();
+    await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({path:"test-artifacts/redesign-r3-admin-mobile.png",fullPage:true});

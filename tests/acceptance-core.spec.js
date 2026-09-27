@@ -1890,9 +1890,9 @@ test("Administration surfaces use policy-safe HR states and real employee record
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
 
   await expect(page.getByRole("heading", { name: "Administration", exact: true })).toBeVisible();
-  await expect(page.getByText("Need your action", { exact: true })).toBeVisible();
-  await expect(page.getByText("Reporting gaps", { exact: true })).toBeVisible();
-  await expect(page.getByText("Delivery risks", { exact: true })).toBeVisible();
+  await expect(page.getByText("Needs Administration", { exact: true })).toBeVisible();
+  await expect(page.getByText("Reporting coverage", { exact: true })).toBeVisible();
+  await expect(page.getByText("Delivery signals", { exact: true })).toBeVisible();
   await expect(page.getByText("Administration could not finish loading", { exact: true })).toHaveCount(0);
 
   await go(page, "Units");
