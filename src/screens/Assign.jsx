@@ -5,6 +5,7 @@ import VoiceInput from "../components/VoiceInput";
 import { parseWorkInput } from "../lib/parseTask";
 import { humanError } from "../lib/productLanguage";
 import { FieldGroup } from "../components/bits";
+import { WorkBackButton, WorkPageHeader } from "../experience-v2/work-family/WorkFamilyV2";
 
 const WORK_KINDS = [
   ["task", "Task", "A specific action for someone to complete.", true],
@@ -464,8 +465,8 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
 
   if (done) {
     return (
-      <div className="body assign-screen assign-done">
-        <button className="back" onClick={back}>← Back</button>
+      <div className="body assign-screen assign-done ev2-work-assignment">
+        <WorkBackButton onClick={back} />
         <div className="empty">
           <h3>{done} is with them</h3>
           <p>They will see what needs doing, why it matters and when it is due.</p>
@@ -477,12 +478,14 @@ export default function Assign({ me, back, initialProjectId = "", initialObjecti
   }
 
   return (
-    <div className="body assign-screen">
-      <section className="assign-intro">
-        <button className="back" onClick={back}>← Back</button>
-        <div className="eyebrow">Create work</div>
-        <h1 className="h1">Give out work</h1>
-        <p className="screen-note">Describe the outcome naturally, then review exactly what CEAC understood before anything is sent.</p>
+    <div className="body assign-screen ev2-work-assignment">
+      <section className="assign-intro ev2wa-intro">
+        <WorkBackButton onClick={back} />
+        <WorkPageHeader
+          eyebrow="Create work"
+          title="Give out work"
+          description="Choose the work intent, capture the minimum accountable contract, then add only the context that matters."
+        />
         <div className="assign-voice">
           <div><strong>Speak or type</strong><span>Voice can prefill the form. You remain in control.</span></div>
           <VoiceInput onResult={handleVoice} label="Speak your instruction" />
