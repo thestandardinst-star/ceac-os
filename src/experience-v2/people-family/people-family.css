@@ -1215,3 +1215,162 @@
     padding-inline: var(--ev2-space-3);
   }
 }
+
+
+/* Stage 10B5 — Administration People / employee workspace */
+
+.ev2-people-admin .ev2p-admin-toolbar {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr);
+  gap: var(--ev2-space-3);
+  margin-top: var(--ev2-space-4);
+}
+
+.ev2-people-admin .ev2p-admin-toolbar .field-group {
+  margin: 0;
+}
+
+.ev2-people-admin .ev2p-admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ev2-space-2);
+  margin-top: var(--ev2-space-3);
+}
+
+.ev2-people-admin .ev2p-admin-filters button {
+  min-height: var(--ev2-control-min);
+  padding: 0 var(--ev2-space-3);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-pill);
+  background: var(--ev2-surface);
+  color: var(--ev2-text-secondary);
+  font: inherit;
+  font-size: var(--ev2-type-supporting);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ev2-people-admin .ev2p-admin-filters button:hover {
+  border-color: var(--ev2-line-strong);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2-people-admin .ev2p-admin-filters button:focus-visible,
+.ev2p-admin-person-row:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+}
+
+.ev2-people-admin .ev2p-admin-filters button.is-selected {
+  border-color: color-mix(in srgb, var(--ev2-action) 32%, var(--ev2-line));
+  background: var(--ev2-action-soft);
+  color: var(--ev2-action);
+}
+
+.ev2p-admin-person-row {
+  width: 100%;
+  min-height: 4.5rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(9rem, auto) auto;
+  gap: var(--ev2-space-3);
+  align-items: center;
+  padding: var(--ev2-space-3) var(--ev2-space-4);
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  background: transparent;
+  color: var(--ev2-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ev2p-section-body > .ev2p-admin-person-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2p-admin-person-row:hover {
+  background: var(--ev2-surface-soft);
+}
+
+.ev2p-admin-person-context {
+  min-width: 0;
+  display: grid;
+  justify-items: end;
+  gap: var(--ev2-space-1);
+  color: var(--ev2-text-secondary);
+  text-align: right;
+}
+
+.ev2p-admin-person-context strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.ev2p-admin-person-context small {
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ev2-people-admin .ev2p-admin-directory-note {
+  margin: var(--ev2-space-2) 0 0;
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .ev2p-admin-person-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--ev2-space-2);
+    padding-inline: var(--ev2-space-3);
+  }
+
+  .ev2p-admin-person-context {
+    grid-column: 2;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .ev2p-admin-person-row > .ceac-icon:last-child {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .ev2-people-admin .ev2p-admin-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: var(--ev2-space-1);
+    scrollbar-width: none;
+  }
+
+  .ev2-people-admin .ev2p-admin-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ev2-people-admin .ev2p-admin-filters button {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2p-admin-person-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .ev2p-admin-person-row > .ev2c-avatar {
+    display: none;
+  }
+
+  .ev2p-admin-person-context {
+    grid-column: 1;
+  }
+
+  .ev2p-admin-person-row > .ceac-icon:last-child {
+    grid-column: 2;
+  }
+}
