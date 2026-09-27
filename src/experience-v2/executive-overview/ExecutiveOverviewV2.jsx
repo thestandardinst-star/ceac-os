@@ -80,7 +80,7 @@ function MinistryRecord({ row }) {
       {row.note ? <small>{row.note}</small> : null}
     </span>
     <span className="executivev2-record-value">
-      <strong>{row.value === null ? "—" : Number(row.value).toLocaleString("en-GH")}</strong>
+      <strong>{row.value === null ? "—" : Number(row.value).toLocaleString("en-GH")}</strong>{" "}
       <small>{row.value_label}</small>
     </span>
   </div>;
