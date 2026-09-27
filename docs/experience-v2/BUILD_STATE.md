@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10B3 — Manager Team migration
+Current substage: 10B5 — Administration People / employee workspace (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -999,7 +999,7 @@ Persistent exact-head evidence:
 - `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B3 / 847c3b2a16253016000d38d6d0a8e14cd92d1383 / stage10b3-r7-exact-head-evidence.zip`.
 
 10B4 — Manager Person workspace is ACCEPTED AND COMPLETE.
-10B5 — Administration People / employee workspace has NOT started.
+10B5 — Administration People / employee workspace is ACTIVE at audit/contract.
 10B6 has NOT started.
 Family C has NOT started.
 
@@ -1061,3 +1061,35 @@ Acceptance record:
 10B6 has NOT started.
 Family C has NOT started.
 Chat remains the sole active writer.
+
+
+## Stage 10 Family B — 10B5 active work
+
+10B5 — Administration People / employee workspace is now ACTIVE.
+
+Work brief:
+- `docs/experience-v2/STAGE10_FAMILY_B_10B5_WORK_BRIEF.md`.
+
+10B5 entry contract:
+- preserve `admin_people_summary`;
+- preserve `admin_person_detail`;
+- preserve `admin_employment_detail`;
+- preserve `admin_update_employment`;
+- preserve `people.manage` capability boundary;
+- preserve invitations/role/capability boundaries already enforced elsewhere in Administration;
+- preserve effective-date/change-type/reason/correction employment semantics;
+- preserve protected-HR boundaries;
+- preserve payroll block;
+- presentation/interaction migration only unless a concrete defect proves otherwise.
+
+Current 10B5 status:
+- audit/contract opened;
+- current Administration People / employee workspace source inspected;
+- no 10B5 product code changed yet;
+- 10B6 has NOT started;
+- Family C has NOT started;
+- Chat is the sole active writer.
+
+Acceptance-checkpoint note:
+- 10B4 accepted implementation head `8817477f1eec19a36eb951999c129a2a8a1f8438` is exact-head green across CI, Migration Replay, Account Security, full Quality Gate and Vercel;
+- documentation-only acceptance checkpoint subsequently hit the external Vercel free-plan deployment-rate limit; this is not an application-code failure.
