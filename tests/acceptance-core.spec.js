@@ -2169,7 +2169,7 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
     await expect(page.getByText("Acceptance task — review loop", { exact: true })).toBeVisible();
 
     await go(page, "Home");
-    await expect(page.locator(".home-meeting-row").filter({ hasText: "Acceptance unit meeting" })).toBeVisible();
+    await expect(page.locator(".staffv2").getByRole("button").filter({ hasText: "Acceptance unit meeting" })).toBeVisible();
 
     await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();

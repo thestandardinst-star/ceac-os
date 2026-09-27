@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { EmptyState, FieldGroup, ProductNotice, SectionHeader, Sheet } from "./bits";
 import { Table } from "./primitives";
+import { Button as V2Button, DataPanel as V2DataPanel, Surface as V2Surface } from "../experience-v2/components";
+import { CeacIcon } from "../experience-v2/icons";
 
 const todayKey = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Accra" });
 
-export default function MinistryNumbers({ me, compact = false }) {
+export default function MinistryNumbers({ me, compact = false, presentation = "legacy" }) {
   const [operations, setOperations] = useState([]);
   const [occurrences, setOccurrences] = useState([]);
   const [recording, setRecording] = useState(null);
@@ -87,6 +89,68 @@ export default function MinistryNumbers({ me, compact = false }) {
     operation_name: operationById.get(row.operation_id)?.name || "Recorded number",
     value_label: operationById.get(row.operation_id)?.value_label || "Value",
   }));
+
+  if (presentation === "staffV2") {
+    return <V2DataPanel
+      className="staffv2-ministry-panel"
+      eyebrow="Ministry record"
+      title="Recurring numbers"
+      supporting="Record what the unit actually did. CEAC OS does not infer a score or invent a reporting cadence."
+      action={<span className="staffv2-count">{operations.length}</span>}
+    >
+      {error && <V2Surface variant="soft" padding="compact" className="staffv2-ministry-notice is-error" role="alert">
+        <CeacIcon name="error" size="row" decorative />
+        <span>{error}</span>
+      </V2Surface>}
+      {notice && <V2Surface variant="soft" padding="compact" className="staffv2-ministry-notice is-success" role="status">
+        <CeacIcon name="checkCircle" size="row" decorative />
+        <span>{notice}</span>
+      </V2Surface>}
+      <div className="staffv2-ministry-list">
+        {operations.map((operation) => {
+          const latest = latestByOperation.get(operation.id);
+          return <div className="staffv2-ministry-row" key={operation.id}>
+            <span className="staffv2-ministry-icon"><CeacIcon name="chart" size="row" decorative /></span>
+            <span className="staffv2-ministry-copy">
+              <strong>{operation.name}</strong>
+              <span>{operation.value_label}</span>
+              <small>{latest
+                ? `Latest: ${Number(latest.value).toLocaleString("en-GH")} · ${latest.occurred_on}`
+                : "Nothing recorded yet"}</small>
+            </span>
+            <V2Button
+              variant="quiet"
+              size="compact"
+              onClick={() => {
+                setRecording(operation);
+                setValue("");
+                setNote("");
+                setOccurredOn(todayKey());
+              }}
+            >
+              Record
+            </V2Button>
+          </div>;
+        })}
+      </div>
+
+      {recording && <Sheet onClose={() => !busy && setRecording(null)}>
+        <div className="eyebrow">Ministry record</div>
+        <div className="h2">{recording.name}</div>
+        <p className="screen-note">Record the number CEAC actually observed. Earlier entries remain unchanged.</p>
+        <FieldGroup label={recording.value_label || "Value"}>
+          <input className="field" type="number" step="any" inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} />
+        </FieldGroup>
+        <FieldGroup label="Date">
+          <input className="field" type="date" value={occurredOn} onChange={(event) => setOccurredOn(event.target.value)} />
+        </FieldGroup>
+        <FieldGroup label="Context" hint="Optional. Add only what helps someone interpret this entry later.">
+          <textarea className="field" rows={3} value={note} onChange={(event) => setNote(event.target.value)} />
+        </FieldGroup>
+        <button className="btn" style={{ marginTop: 14 }} disabled={busy || value === "" || !occurredOn} onClick={saveOccurrence}>{busy ? "Saving…" : "Record number"}</button>
+      </Sheet>}
+    </V2DataPanel>;
+  }
 
   return <section className={compact ? "home-panel home-panel-secondary" : "card"} style={{ marginTop: 16 }}>
     <SectionHeader

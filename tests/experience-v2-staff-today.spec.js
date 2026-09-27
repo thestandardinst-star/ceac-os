@@ -28,6 +28,7 @@ test("Stage 5 Staff Today is isolated V2 presentation on preserved Home logic", 
   const view = fs.readFileSync("src/experience-v2/staff-today/StaffTodayV2.jsx", "utf8");
   const css = fs.readFileSync("src/experience-v2/staff-today/staff-today.css", "utf8");
   const main = fs.readFileSync("src/main.jsx", "utf8");
+  const ministry = fs.readFileSync("src/components/MinistryNumbers.jsx", "utf8");
 
   expect(home).toContain('from "../experience-v2/staff-today/StaffTodayV2"');
   expect(home).toContain("startWork(me.org_id, me.id");
@@ -36,7 +37,7 @@ test("Stage 5 Staff Today is isolated V2 presentation on preserved Home logic", 
   expect(home).not.toContain("ReferenceModuleStrip");
   expect(home).not.toContain("DashboardCalendar");
   expect(home).toContain('import MinistryNumbers from "../components/MinistryNumbers"');
-  expect(home).toContain("ministryRecord={<MinistryNumbers me={me} compact />");
+  expect(home).toContain('ministryRecord={<MinistryNumbers me={me} compact presentation="staffV2" />');
 
   expect(view).toContain('from "../components"');
   expect(view).toContain('from "../icons"');
@@ -48,6 +49,9 @@ test("Stage 5 Staff Today is isolated V2 presentation on preserved Home logic", 
   expect(view).not.toContain('from "../../components/MinistryNumbers"');
   expect(view).toContain("ministryRecord");
   expect(view).not.toContain("<Icon ");
+  expect(ministry).toContain('presentation === "staffV2"');
+  expect(ministry).toContain("staffv2-ministry-panel");
+  expect(ministry).toContain("V2DataPanel");
 
   expect((css.match(/!important\b/g) || []).length).toBe(0);
   expect(css).toContain(".staffv2");

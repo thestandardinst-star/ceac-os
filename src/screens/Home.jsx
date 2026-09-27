@@ -378,7 +378,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       getBlockerFollowupState={blockerFollowupState}
       onFollowUpReview={followUpReview}
       onFollowUpDependency={followUpDependency}
-      ministryRecord={<MinistryNumbers me={me} compact />}
+      ministryRecord={<MinistryNumbers me={me} compact presentation="staffV2" />}
     />
 
     {ask && <Sheet onClose={() => setAsk(false)}>
