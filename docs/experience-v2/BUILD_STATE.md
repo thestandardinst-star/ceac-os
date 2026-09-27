@@ -742,9 +742,41 @@ Pre-work visual evidence inspected from Quality Gate run `36325853986`:
 - full visual inventory artifact `10934405943`.
 
 10A internal sequence:
-1. 10A1 — Work lists and queues.
-2. 10A2 — Work Detail.
+1. 10A1 — Work lists and queues — ACCEPTED.
+2. 10A2 — Work Detail — ACTIVE.
 3. 10A3 — assignment, review, return and dependency.
 4. 10A4 — Family A acceptance.
 
 Family B must not begin until Family A is accepted.
+
+
+### 10A1 acceptance — Work lists and queues
+
+Accepted exact implementation head:
+- `da4d690a6a0268f47b743798009658993aed068e`.
+
+Exact-head gates:
+- CI PASS — run `36328359726`;
+- Migration Replay PASS — run `36328359691`;
+- Account Security PASS — run `36328359652`;
+- Complete Quality Gate PASS — run `36328359699`;
+- Vercel PASS.
+
+10A1 outcomes:
+- one shared Experience V2 Work-family presentation layer now serves Staff, Manager, Administration and Executive Work lists;
+- Staff Assigned / Agreed / Private and status filters are preserved;
+- Manager Given out / Needs review / Team work / Mine are preserved;
+- Administration Given out / Needs review / Organisation / Mine are preserved;
+- Executive Given out / Needs review / Mine are preserved;
+- current query, RLS, RPC, ownership and delegation semantics are unchanged;
+- role-specific legacy Work-list CSS was retired where replaced rather than layered over;
+- no new `!important` debt was added;
+- Work metadata now respects the 12px operational floor;
+- Stage 10 Family A regression coverage proves 320px and 1366×768 composition for all four Work surfaces with no page-level horizontal overflow;
+- exact-head 1440-class Staff, Manager, Administration and Executive Work screenshots were directly inspected from Quality Gate artifacts and show coherent hierarchy/density with no high-severity defect.
+
+The first 10A1 Quality Gate attempt on `1683122790b0ac5be4f6d0fddbc5f833e705cc77` correctly caught one real visual-system violation: inherited `small` styling rendered Work-row due metadata at 10.833px. The source CSS was corrected; no threshold or test was weakened.
+
+10A2 — Work Detail is now ACTIVE.
+10A3 has NOT started.
+Family B has NOT started.
