@@ -799,7 +799,12 @@
   }
 
   .ev2s-mobile-nav button span {
+    overflow: visible;
     font-size: var(--ev2-type-label);
+    line-height: 1.05;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
   }
 }
 
