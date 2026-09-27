@@ -130,6 +130,54 @@ export function ProjectListRow({
   );
 }
 
+
+export function ProjectContextRow({
+  eyebrow,
+  title,
+  meta,
+  note,
+  status,
+  health,
+  facts = [],
+  actions = [],
+}) {
+  return (
+    <article className="ev2p-context-row">
+      <span className="ev2p-context-row-icon"><CeacIcon name="projects" size="row" decorative /></span>
+      <div className="ev2p-context-row-main">
+        {eyebrow ? <small>{eyebrow}</small> : null}
+        <strong>{title}</strong>
+        {meta ? <span>{meta}</span> : null}
+        {note ? <p>{note}</p> : null}
+        {facts.length ? <div className="ev2p-context-facts" aria-label={`${title} factual context`}>
+          {facts.map((fact) => (
+            <span key={fact.label}>
+              <b>{fact.value}</b>
+              <small>{fact.label}</small>
+            </span>
+          ))}
+        </div> : null}
+      </div>
+      <div className="ev2p-context-row-state">
+        {health ? <ProjectHealthBadge health={health} /> : status ? <ProjectStatusBadge status={status} /> : null}
+        {actions.length ? <div className="ev2p-context-actions">
+          {actions.map((action) => (
+            <Button
+              key={action.label}
+              variant="secondary"
+              size="compact"
+              onClick={action.onClick}
+              disabled={action.disabled}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </div> : null}
+      </div>
+    </article>
+  );
+}
+
 export function ProjectAttentionCard({
   eyebrow,
   title,
