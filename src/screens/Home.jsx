@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { startWork, endWork, reconcileWorkSession } from "../lib/session";
-import { since, dueLabel, isOverdue } from "../lib/time";
-import { Icon, Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
+import { isOverdue } from "../lib/time";
+import { Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocus } from "../components/ReferenceDashboard";
-import MinistryNumbers from "../components/MinistryNumbers";
+import StaffTodayV2 from "../experience-v2/staff-today/StaffTodayV2";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -39,14 +38,6 @@ function nextBirthday(value) {
   const date = new Date(today.getFullYear(), month - 1, day);
   if (date < today) date.setFullYear(date.getFullYear() + 1);
   return date;
-}
-
-function WorkRow({ item, openItem, tone = "neutral" }) {
-  return <button className={`row home-work-row home-tone-${tone}`} onClick={() => openItem(item.id)}>
-    <div className="row-t">{item.title}</div>
-    <div className="row-m">{item.ref} · {dueLabel(item.due_at)}</div>
-    <div style={{ marginTop: 7 }}>{statusPill(item.status)}</div>
-  </button>;
 }
 
 export default function Home({ me, session, setSession, openItem, openMeeting, openRoom, openWork, openMe, openAnnouncements, openTeam, openCalendar }) {
@@ -327,244 +318,57 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
   const nextMeeting = upcomingMeetings[0] || null;
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  return <div className="body staff-home">
-    <section className="staff-command-surface">
-    <header className="staff-home-intro">
-      <div className="staff-home-context">
-        <span>{me.unit_name}</span>
-        <time>{todayLabel}</time>
-      </div>
-      <h1 className="h1">{greeting}, {me.full_name.split(" ")[0]}</h1>
-      <p className="screen-note">Your work, updates and next steps in one place.</p>
-    </header>
-
-    <section className={`staff-work-status ${session ? "live" : ""} ${staleSession ? "needs-review" : ""}`} aria-label="Work session">
-      <div className="staff-work-status-icon"><Icon name="work" size={20} /></div>
-      <div className="staff-work-status-copy">
-        <span>{session
-          ? "Working since " + new Date(session.started_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" })
-          : "Work session"}</span>
-        <strong>{session ? staleSession ? "Needs reconciliation" : since(session.started_at) : "Not working"}</strong>
-        {session && !staleSession && <small>{session.place === "office" ? "At the office" : "Working off-site"}</small>}
-        {!session && <small>Start when you begin CEAC work.</small>}
-      </div>
-      {session
-        ? staleSession
-          ? <button className="btn btn-ghost btn-sm staff-status-action" onClick={() => setRecoveryOpen(true)} disabled={busy}>Review</button>
-          : <button className="btn btn-ghost btn-sm staff-status-action" onClick={stop} disabled={busy}>End work</button>
-        : <button className="btn btn-sm staff-status-action" onClick={() => setAsk(true)} disabled={busy}>Start work</button>}
-    </section>
-
-    <nav className="staff-quick-actions" aria-label="Quick actions">
-      {nextMeeting && <button className="staff-quick-action primary" onClick={() => openMeeting?.(nextMeeting.id)}>
-        <span className="staff-quick-icon"><Icon name="calendar" size={17} /></span>
-        <span><strong>Next meeting</strong><small>{nextMeeting.title}</small></span>
-      </button>}
-      {!nextMeeting && primaryNextItem && <button className="staff-quick-action primary" onClick={() => openItem(primaryNextItem.id)}>
-        <span className="staff-quick-icon"><Icon name="work" size={17} /></span>
-        <span><strong>Open next</strong><small>{primaryNextItem.title}</small></span>
-      </button>}
-      <button className="staff-quick-action" onClick={openWork}>
-        <span className="staff-quick-icon"><Icon name="record" size={17} /></span>
-        <span><strong>My work</strong><small>See all work</small></span>
-      </button>
-      <button className="staff-quick-action" onClick={openMe}>
-        <span className="staff-quick-icon"><Icon name="me" size={17} /></span>
-        <span><strong>My space</strong><small>Goals, leave, personal</small></span>
-      </button>
-    </nav>
-    </section>
-
-    <DashboardCalendar meetings={upcomingMeetings} events={calendarEvents} leave={upcomingLeave} />
-
-    {!loading && !loadFailed && <ReferenceFocus
-      item={primaryNextItem}
-      meeting={nextMeeting}
+  return <>
+    <StaffTodayV2
+      me={me}
+      session={session}
+      staleSession={staleSession}
+      busy={busy}
+      greeting={greeting}
+      todayLabel={todayLabel}
+      loading={loading}
+      loadFailed={loadFailed}
+      error={error}
+      primaryNextItem={primaryNextItem}
+      nextMeeting={nextMeeting}
+      nextMoveItems={nextMoveItems}
+      visibleAlerts={visibleAlerts}
+      announcementAttention={announcementAttention}
+      feedback={feedback}
+      completedThisWeek={completedThisWeek}
+      leaveUpdates={leaveUpdates}
+      roomMentions={roomMentions}
+      waitingReviews={waitingReviews}
+      waitingDependencies={waitingDependencies}
+      reviewSubmissions={reviewSubmissions}
+      dueSoon={dueSoon}
+      upcomingMeetings={upcomingMeetings}
+      calendarEvents={calendarEvents}
+      birthdays={birthdays}
+      upcomingLeave={upcomingLeave}
+      announcements={announcements}
+      dueThisWeek={dueThisWeek}
+      overdue={overdue}
+      drill={drill}
+      drillRows={drillRows}
+      onStartWork={() => setAsk(true)}
+      onEndWork={stop}
+      onReviewSession={() => setRecoveryOpen(true)}
+      onContinueRecoveredSession={continueRecoveredSession}
+      onCloseRecoveredSession={() => setRecoveryOpen(true)}
       onOpenItem={openItem}
       onOpenMeeting={openMeeting}
-      dueText={primaryNextItem ? dueLabel(primaryNextItem.due_at) : ""}
-    />}
-
-    {staleSession && <div className="flag flag-amber" style={{ marginTop: 14 }}>
-      <h4>You still have a work session open from an earlier day</h4>
-      CEAC OS has paused the running duration until you confirm what happened. It will not record continuous overnight work by itself.
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-        <button className="btn btn-sm" onClick={continueRecoveredSession} disabled={busy}>{busy ? "Saving..." : "Continue this session"}</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => setRecoveryOpen(true)} disabled={busy}>Close at the actual time</button>
-      </div>
-    </div>}
-
-    {error && <ProductNotice tone="error" title={loadFailed ? "Home could not finish loading" : "Could not complete that"} action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
-    {loading && <LoadingState label="Loading Home…" />}
-
-    {!loading && !loadFailed && <div className="home-dashboard staff-home-dashboard">
-      {(feedback.length > 0 || completedThisWeek.length > 0 || leaveUpdates.length > 0 || roomMentions.length > 0) && <section className="home-panel home-panel-movement" aria-labelledby="staff-changed-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Since you last checked</div><h2 id="staff-changed-heading">Updates</h2></div></div>
-        {roomMentions.slice(0, 3).map((message) => {
-          const room = message.rooms;
-          const roomName = room?.kind === "project" ? room.projects?.name : room?.kind === "sub_team" ? room.sub_teams?.name : room?.units?.name;
-          return <button key={`mention-${message.id}`} className="row home-work-row home-room-mention" onClick={() => openRoom?.({
-            kind: room?.kind,
-            unitId: room?.unit_id,
-            subTeamId: room?.sub_team_id,
-            projectId: room?.project_id,
-          })}>
-            <div className="row-t">{message.profiles?.full_name || "A teammate"} mentioned you</div>
-            <div className="row-m">{roomName || "Room"} · {new Date(message.created_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
-            <div className="row-note">{message.body}</div>
-          </button>;
-        })}
-        {feedback.slice(0, 2).map((note) => <div key={note.id} className="row home-feedback-row">
-          <div className="row-t">{note.profiles?.full_name || "Manager"} left feedback</div>
-          <div className="row-m">{new Date(note.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-          <div className="row-note">{note.note}</div>
-        </div>)}
-        {completedThisWeek.slice(0, 3).map((item) => <WorkRow key={`moved-${item.id}`} item={item} openItem={openItem} tone="success" />)}
-        {leaveUpdates.slice(0, 2).map((request) => <div key={`leave-update-${request.id}`} className="row">
-          <div className="row-t">Your leave request was {request.status}</div>
-          <div className="row-m">{request.kind} leave · {request.start_date} to {request.end_date}</div>
-          {request.decision_note && <div className="row-note">{request.decision_note}</div>}
-        </div>)}
-      </section>}
-
-      <section className={`home-panel ${attention > 0 ? "home-panel-priority" : "home-panel-pulse home-panel-empty"}`} aria-labelledby="staff-next-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Actionable now</div><h2 id="staff-next-heading">Needs your attention</h2></div>
-          {attention > 0 && <span className="home-count home-count-attention">{attention}</span>}
-        </div>
-        {nextMoveItems.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone={item.status === "returned" || isOverdue(item.due_at) ? "danger" : "info"} />)}
-        {visibleAlerts.map((alert) => alert.subject_id
-          ? <button key={alert.id} className="row home-work-row home-tone-attention" onClick={() => openItem(alert.subject_id)}>
-              <div className="row-t">{alert.message}</div>
-              <div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-            </button>
-          : <div key={alert.id} className="row home-tone-attention">
-              <div className="row-t">{alert.message}</div>
-              <div className="row-m">Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>
-            </div>)}
-        {announcementAttention.map((announcement) => <button key={`ack-${announcement.id}`} className="row home-work-row home-tone-attention" onClick={openAnnouncements}>
-          <div className="row-t">Acknowledge: {announcement.title}</div>
-          <div className="row-m">Organisation announcement</div>
-        </button>)}
-        {attention === 0 && activeWork.length === 0 && <div className="home-quiet home-quiet-success">Nothing urgent is waiting on you right now.</div>}
-        {activeWork.length > 0 && <>
-          <div className="home-subhead home-subhead-spaced">Continue</div>
-          {activeWork.map((item) => <WorkRow key={`active-${item.id}`} item={item} openItem={openItem} />)}
-        </>}
-      </section>
-
-      <section className="home-panel home-panel-waiting" aria-labelledby="staff-waiting-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Already moved from your side</div><h2 id="staff-waiting-heading">Waiting on others</h2></div>
-          <span className="home-count">{waitingReviews.length + waitingDependencies.length}</span>
-        </div>
-
-        {waitingReviews.length === 0 && waitingDependencies.length === 0 && <div className="home-quiet">Nothing is waiting on someone else right now.</div>}
-        {waitingReviews.length > 0 && <div className="home-subhead">Waiting for manager review</div>}
-        {waitingReviews.map((item) => {
-          const follow = reviewFollowupState(item);
-          const submission = reviewSubmissions.find((row) => row.work_item_id === item.id);
-          return <div className="row home-work-row" key={`review-${item.id}`}>
-            <button style={{ width: "100%", textAlign: "left" }} onClick={() => openItem(item.id)}>
-              <div className="row-t">{item.title}</div>
-              <div className="row-m">{item.ref} · sent {submission ? new Date(submission.submitted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "for review"}</div>
-              <div className="row-note">Waiting for your manager to check it.</div>
-            </button>
-            <div className="waiting-action">
-              {follow.canFollowUp
-                ? <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => followUpReview(item.id)}>{follow.label}</button>
-                : <span className="waiting-note">{follow.label}</span>}
-            </div>
-          </div>;
-        })}
-
-        {waitingDependencies.length > 0 && <div className="home-subhead home-subhead-spaced">Waiting on another unit or dependency</div>}
-        {waitingDependencies.map((item) => {
-          const blocker = blockerFor(item);
-          const follow = blockerFollowupState(blocker);
-          return <div className="row home-work-row" key={`waiting-${item.id}`}>
-            <button style={{ width: "100%", textAlign: "left" }} onClick={() => openItem(item.id)}>
-              <div className="row-t">{item.title}</div>
-              <div className="row-m">{item.ref}{blocker ? ` · ${blocker.units?.name || blocker.party_text}` : ""}</div>
-              <div className="row-note">{blocker?.state === "acknowledged" ? "The dependency has been acknowledged." : "Waiting for a response."}</div>
-            </button>
-            <div className="waiting-action">
-              {follow.canFollowUp
-                ? <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => followUpDependency(blocker.id)}>{follow.label}</button>
-                : <span className="waiting-note">{follow.label}</span>}
-            </div>
-          </div>;
-        })}
-      </section>
-
-      <section className="home-panel home-panel-coming" aria-labelledby="staff-soon-heading">
-        <div className="home-section-head"><div><div className="home-kicker">Next few days</div><h2 id="staff-soon-heading">Coming up</h2></div></div>
-        {dueSoon.length === 0 && upcomingMeetings.length === 0 && calendarEvents.length === 0 && birthdays.length === 0 && upcomingLeave.length === 0 && <div className="home-quiet">Nothing is scheduled in the next few days.</div>}
-        {dueSoon.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} tone="info" />)}
-        {upcomingMeetings.map((meeting) => <button key={meeting.id} className="row home-work-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
-          <div className="row-t">{meeting.title}</div>
-          <div className="row-m">{new Date(meeting.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", weekday:"short", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" })} · {meeting.provider === "zoom" ? "Zoom" : "Meeting"}</div>
-          <div className="row-note">{meeting.scope === "project" ? meeting.projects?.name : meeting.scope === "unit" ? meeting.units?.name : "CEAC"}</div>
-        </button>)}
-        {calendarEvents.map((event) => <button key={event.id} className="row home-work-row" onClick={() => setEventDetail(event)}>
-          <div className="row-t">{event.cancelled ? "Cancelled · " : ""}{event.title}</div>
-          <div className="row-m">{new Date(event.starts_at).toLocaleString("en-GB", { timeZone: "Africa/Accra", day: "numeric", month: "short", hour: event.all_day ? undefined : "2-digit", minute: event.all_day ? undefined : "2-digit" })}{event.location ? ` · ${event.location}` : ""}</div>
-        </button>)}
-        {birthdays.map((profile) => <div className="row compact-context-row" key={`birthday-${profile.id}`}>
-          <div className="row-t">{profile.full_name}'s birthday</div>
-          <div className="row-m">{profile.nextBirthday.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
-        </div>)}
-        {upcomingLeave.map((request) => <div className="row compact-context-row" key={`leave-${request.id}`}>
-          <div className="row-t">Your approved {request.kind} leave begins</div>
-          <div className="row-m">{new Date(`${request.start_date}T00:00:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}</div>
-        </div>)}
-      </section>
-
-      {announcements.length > 0 && <details className="home-panel home-panel-secondary">
-        <summary className="home-secondary-summary">
-          <span><small>From CEAC</small><strong>Announcements</strong></span>
-          <b>{announcements.length}</b>
-        </summary>
-        <div className="home-secondary-body">
-          {announcements.slice(0, 2).map((announcement) => {
-            const receipt = (announcement.announcement_receipts || []).find((entry) => entry.profile_id === me.id);
-            return <button key={announcement.id} className={`row home-work-row ${!receipt ? "home-tone-info" : ""}`} onClick={openAnnouncements}>
-              <div className="row-t">{!receipt ? "New · " : ""}{announcement.title}</div>
-              <div className="row-m">{announcement.priority !== "normal" ? `${announcement.priority} · ` : ""}{announcement.profiles?.full_name || "CEAC"}</div>
-              {announcement.requires_acknowledgement && !receipt?.acknowledged_at && <div className="row-note">Acknowledgement required</div>}
-            </button>;
-          })}
-          <button className="text-action" onClick={openAnnouncements}>See all announcements</button>
-        </div>
-      </details>}
-
-      <details className="home-panel home-panel-week home-panel-secondary">
-        <summary className="home-secondary-summary">
-          <span><small>Your factual record</small><strong>This week</strong></span>
-          <b>{completedThisWeek.length}</b>
-        </summary>
-        <div className="home-secondary-body">
-        <div className="home-stat-grid">
-          <button className="home-stat home-tone-info" onClick={() => setDrill({ title: "Work due this week", rows: dueThisWeek })}><b>{dueThisWeek.length}</b><span>Due</span></button>
-          <button className="home-stat home-tone-success" onClick={() => setDrill({ title: "Work completed this week", rows: completedThisWeek })}><b>{completedThisWeek.length}</b><span>Completed</span></button>
-          <button className="home-stat home-tone-danger" onClick={() => setDrill({ title: "Overdue work", rows: overdue })}><b>{overdue.length}</b><span>Overdue</span></button>
-        </div>
-        {drill && <div className="home-drill"><div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-          {drillRows.length ? drillRows.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No work in this group.</div>}
-        </div>}
-        </div>
-      </details>
-    </div>}
-
-    <MinistryNumbers me={me} compact />
-
-    <ReferenceModuleStrip items={[
-      {label:"Work",icon:"work",note:"Get things done.",onClick:openWork},
-      {label:"Team",icon:"team",note:"Your people and context.",onClick:openTeam},
-      {label:"Calendar",icon:"calendar",note:"Meetings and dates.",onClick:openCalendar},
-      {label:"My Hub",icon:"hub",note:"Goals, leave and records.",onClick:openMe},
-      {label:"Announcements",icon:"messages",note:"CEAC updates.",onClick:openAnnouncements},
-    ]}/>
+      onOpenRoom={openRoom}
+      onOpenAnnouncements={openAnnouncements}
+      onOpenEvent={setEventDetail}
+      onRetry={load}
+      onSelectDrill={setDrill}
+      getReviewFollowupState={reviewFollowupState}
+      getBlockerFor={blockerFor}
+      getBlockerFollowupState={blockerFollowupState}
+      onFollowUpReview={followUpReview}
+      onFollowUpDependency={followUpDependency}
+    />
 
     {ask && <Sheet onClose={() => setAsk(false)}>
       <div className="h2">Where are you working?</div>
@@ -599,5 +403,6 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
         {eventDetail.notes && <div className="row-note">{eventDetail.notes}</div>}
       </div>
     </Sheet>}
-  </div>;
+
+  </>;
 }
