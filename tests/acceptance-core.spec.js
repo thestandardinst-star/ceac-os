@@ -152,6 +152,7 @@ test("Staff and Manager complete the real work loop, including return and approv
     await page.getByText(title, { exact: true }).click();
     await expect(page.getByText("Sent back by your manager")).toBeVisible();
     await expect(page.getByText("Please correct the acceptance item.")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-stage10a3-returned-work.png", fullPage: true });
 
     const check = page.getByRole("button", { name: new RegExp(step) });
     const klass = await check.getAttribute("class");
@@ -228,6 +229,7 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await blockerDialog.getByRole("button", { name: "Test Unit A" }).click();
     await blockerDialog.getByRole("button", { name: "Mark as waiting" }).click();
     await expect(page.getByText(/Waiting on Test Unit A/)).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-stage10a3-dependency-work.png", fullPage: true });
     await context.close();
   }
 

@@ -250,6 +250,68 @@ export function WorkDetailCopy({ children, tone = "plain" }) {
   return <div className={`ev2wd-copy ev2wd-copy-${tone}`}>{children}</div>;
 }
 
+export function WorkReturnedNotice({ comment, checklistItems = [] }) {
+  return (
+    <section className="ev2ws-panel ev2ws-returned" aria-label="Returned work guidance">
+      <div className="ev2ws-icon"><CeacIcon name="warning" size="row" decorative /></div>
+      <div className="ev2ws-main">
+        <div className="ev2ws-heading">
+          <h2>Sent back by your manager</h2>
+          <StatusBadge tone="warning" icon={false}>Correction needed</StatusBadge>
+        </div>
+        {comment ? <p>{comment}</p> : null}
+        {checklistItems.length > 0 ? (
+          <div className="ev2ws-checklist">
+            <strong>Checklist points to redo</strong>
+            <ul>{checklistItems.map((item) => <li key={item.id}>{item.label}</li>)}</ul>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+export function WorkDependencyNotice({
+  party,
+  state,
+  request,
+  note,
+  responseNote,
+  canResolve = false,
+  resolving = false,
+  onResolve,
+}) {
+  const stateMeta = {
+    claimed: ["Awaiting response", "warning"],
+    acknowledged: ["Acknowledged", "action"],
+    disputed: ["Disputed", "warning"],
+  };
+  const [stateLabel, tone] = stateMeta[state] || [workKindLabel(state || "Active"), "neutral"];
+
+  return (
+    <section className="ev2ws-panel ev2ws-dependency" aria-label={`Waiting on ${party}`}>
+      <div className="ev2ws-icon"><CeacIcon name="clock" size="row" decorative /></div>
+      <div className="ev2ws-main">
+        <div className="ev2ws-heading">
+          <h2>Waiting on {party}</h2>
+          <StatusBadge tone={tone} icon={false}>{stateLabel}</StatusBadge>
+        </div>
+        {request ? <p>{request}</p> : null}
+        {note ? <blockquote>{note}</blockquote> : null}
+        {state === "claimed" ? <small>Waiting for the named unit to reply. This work is not counting as late.</small> : null}
+        {state === "acknowledged" ? <small>The named unit has confirmed the dependency. It remains active until resolved.</small> : null}
+        {state === "disputed" ? <small>The named unit has disputed this dependency. The claim remains recorded for follow-up.</small> : null}
+        {state === "disputed" && responseNote ? <div className="ev2ws-response"><strong>Response</strong><span>{responseNote}</span></div> : null}
+        {canResolve ? (
+          <Button variant="secondary" size="compact" busy={resolving} onClick={onResolve}>
+            Mark resolved
+          </Button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function WorkFootnote({ children }) {
   return <p className="ev2w-footnote">{children}</p>;
 }

@@ -185,10 +185,13 @@ test("Stage 10 Family A3 preserves assignment review return and dependency autho
   expect(detail).toContain('title="Review submitted work"');
   expect(detail).toContain('sheet === "manager-review-return"');
   expect(detail).toContain('sheet === "manager-review-approve"');
+  expect(detail).toContain("WorkReturnedNotice");
+  expect(detail).toContain("WorkDependencyNotice");
 
   expect(css).toContain("/* Stage 10A3 — Assignment / review / dependency */");
   expect(css).toContain(".ev2-work-assignment");
   expect(css).toContain(".ev2wr-panel");
+  expect(css).toContain(".ev2ws-panel");
   expect(css).not.toContain("!important");
 });
 

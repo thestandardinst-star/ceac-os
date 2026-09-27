@@ -7,6 +7,8 @@ import {
   WorkDetailCopy,
   WorkDetailHeader,
   WorkDetailSection,
+  WorkDependencyNotice,
+  WorkReturnedNotice,
 } from "../experience-v2/work-family/WorkFamilyV2";
 
 const MANAGER_SELF_CERTIFICATION_READY = true;
@@ -511,29 +513,22 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
       {review && review.decision === "returned" && (
-        <div className="flag flag-brick">
-          <h4>Sent back by your manager</h4>
-          {review.comment}
-          {review.review_checklist_items?.length > 0 && <div style={{ marginTop: 8 }}>
-            <div className="small" style={{ fontWeight: 700 }}>Checklist points to redo</div>
-            {review.review_checklist_items.map((row) => {
-              const item = checks.find((check) => check.id === row.checklist_item_id);
-              return item ? <div className="small" key={row.checklist_item_id}>• {item.label}</div> : null;
-            })}
-          </div>}
-        </div>)}
+        <WorkReturnedNotice
+          comment={review.comment}
+          checklistItems={(review.review_checklist_items || []).map((row) => checks.find((check) => check.id === row.checklist_item_id)).filter(Boolean)}
+        />)}
 
       {blocker && (
-        <div className="flag flag-amber">
-          <h4>Waiting on {blocker.units ? blocker.units.name : blocker.party_text}
-            {blocker.state === "acknowledged" ? " — they have confirmed" : ""}
-            {blocker.state === "disputed" ? " — they disagree" : ""}</h4>
-          {blocker.party_text}
-          {blocker.note && <div style={{ marginTop: 5 }}>&ldquo;{blocker.note}&rdquo;</div>}
-          {blocker.state === "claimed" && <div style={{ marginTop: 6, fontSize: 12.5 }}>Waiting for them to reply. This is not counting as late.</div>}
-          {blocker.state === "disputed" && blocker.response_note && <div style={{ marginTop: 6 }}>They said: &ldquo;{blocker.response_note}&rdquo;</div>}
-          {blocker.claimed_by === me.id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={resolveActiveBlocker} disabled={busy}>Mark resolved</button>}
-        </div>)}
+        <WorkDependencyNotice
+          party={blocker.units ? blocker.units.name : blocker.party_text}
+          state={blocker.state}
+          request={blocker.party_text}
+          note={blocker.note}
+          responseNote={blocker.response_note}
+          canResolve={blocker.claimed_by === me.id}
+          resolving={busy}
+          onResolve={resolveActiveBlocker}
+        />)}
 
       {item.purpose && <WorkDetailSection title="Why this matters">
         <WorkDetailCopy>{item.purpose}</WorkDetailCopy>
