@@ -1,0 +1,126 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+
+const password = process.env.ROLE_FIXTURE_PASSWORD;
+
+async function openManagerProjects(browser, viewport) {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("manager@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".manager-app")).toBeVisible({ timeout: 15000 });
+  await page.goto("/?tab=projects");
+  await expect(page.locator(".ev2-project-manager")).toBeVisible({ timeout: 15000 });
+  return { context, page };
+}
+
+test("Stage 10 Family C2 uses the shared V2 Project family without changing project authority paths", async () => {
+  const shared = readFileSync("src/experience-v2/project-family/ProjectFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/project-family/project-family.css", "utf8");
+  const manager = readFileSync("src/screens/ManagerProjects.jsx", "utf8");
+  const main = readFileSync("src/main.jsx", "utf8");
+
+  for (const symbol of [
+    "ProjectPageHeader",
+    "ProjectWorkspaceHeader",
+    "ProjectTabs",
+    "ProjectListRow",
+    "ProjectAttentionCard",
+    "ProjectSectionHeader",
+  ]) {
+    expect(shared).toContain(`export function ${symbol}`);
+  }
+
+  expect(css).toContain(".ev2-project-page");
+  expect(css).toContain(".ev2-project-workspace");
+  expect(css).not.toContain("!important");
+  expect(main).toContain('import "./experience-v2/project-family/project-family.css";');
+
+  expect(manager).toContain("create_project_with_participants");
+  expect(manager).toContain("decide_project_proposal");
+  expect(manager).toContain('neq("visibility", "private")');
+  expect(manager).toContain("ProjectParticipantRegister");
+  expect(manager).toContain("ManagerProjectClose");
+  expect(manager).toContain("ev2-project-manager");
+  expect(manager).toContain("ev2-project-workspace");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family C2 Manager Projects composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openManagerProjects(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const rows = page.locator(".ev2p-row:visible");
+    expect(await rows.count()).toBeGreaterThan(0);
+    const first = rows.first();
+    const box = await first.boundingBox();
+    expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+
+    const smallest = await page.locator(".ev2-project-manager").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10c2-manager-projects-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+]) {
+  test(`Stage 10 Family C2 Manager project workspace composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openManagerProjects(browser, { width: viewport.width, height: viewport.height });
+
+    await page.locator(".ev2p-row:visible").first().click();
+    await expect(page.locator(".ev2-project-workspace")).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Overview/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Work/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Objectives/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Register/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Collaboration/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /^Close & record/ })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const smallest = await page.locator(".ev2-project-workspace").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10c2-manager-project-workspace-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
