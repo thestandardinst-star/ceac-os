@@ -1565,7 +1565,7 @@ textarea{width:100%}
   padding:14px 0;border-top:1px solid var(--staff-line-soft)
 }
 .staff-record .feedback-quote p{font-size:13px;line-height:1.55}
-.staff-record .feedback-quote span{display:block;margin-top:6px;color:var(--staff-ink-faint);font-size:10.5px}
+.staff-record .feedback-quote span{display:block;margin-top:6px;color:var(--staff-ink-faint);font-size:12px}
 .staff-record .timeline,.staff-record .session-list,.staff-record .info-list{border-top:1px solid var(--staff-line)}
 .staff-record .timeline-row{
   display:grid;grid-template-columns:54px minmax(0,1fr);gap:12px;width:100%;padding:14px 0;
