@@ -2,7 +2,7 @@
    Manager is a team command centre: decisions, delegation, people, delivery and money.
 */
 .manager-app .app-content>.body{max-width:1280px!important;margin:0 auto!important}
-.manager-app .manager-home,.manager-app .manager-team,.manager-app .manager-person-detail,
+.manager-app .manager-home,.manager-app .manager-person-detail,
 .manager-app .manager-projects,.manager-app .manager-calendar,.manager-app .manager-finance,
 .manager-app .manager-reports{padding-top:14px!important}
 
@@ -61,20 +61,6 @@
 .manager-app .home-quiet{border-radius:11px!important;background:#f8fafc!important;color:#78879a!important}
 
 
-/* Team */
-.manager-app .manager-team{max-width:1080px!important}
-.manager-app .manager-page-intro{padding:8px 0 16px!important}
-.manager-app .manager-page-intro .h1{font-size:34px!important;letter-spacing:-.045em!important}
-.manager-app .manager-room-entry{
-  border:1px solid #d9e5f6!important;background:linear-gradient(135deg,#f3f8ff,#f7fbff 60%,#f0faf8)!important;
-  border-radius:15px!important;box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
-}
-.manager-app .manager-team>.sec{margin-top:18px!important}
-.manager-app .manager-team>.card,
-.manager-app .manager-team .row{
-  border-color:#e2e7ee!important;border-radius:12px!important;background:#fff!important;box-shadow:0 5px 18px rgba(35,53,79,.035)!important;
-}
-.manager-app .manager-team .row:hover{border-color:#cfdaea!important}
 
 /* Person workspace */
 .manager-person-detail{max-width:1050px!important}
