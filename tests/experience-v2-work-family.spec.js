@@ -230,3 +230,120 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family A4 shared Work family acceptance contract", async () => {
+  const shared = readFileSync("src/experience-v2/work-family/WorkFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/work-family/work-family.css", "utf8");
+  const detail = readFileSync("src/screens/Item.jsx", "utf8");
+  const assign = readFileSync("src/screens/Assign.jsx", "utf8");
+
+  for (const symbol of [
+    "WorkPageHeader",
+    "WorkTabs",
+    "WorkRow",
+    "WorkReviewRow",
+    "WorkDetailHeader",
+    "WorkReturnedNotice",
+    "WorkDependencyNotice",
+  ]) {
+    expect(shared).toContain(`export function ${symbol}`);
+  }
+
+  expect(css).toContain("/* Stage 10A3 — Assignment / review / dependency */");
+  expect(css).not.toContain("!important");
+  expect(detail).toContain('supabase.rpc("approve_work_submission"');
+  expect(detail).toContain('supabase.rpc("return_work_for_correction"');
+  expect(detail).toContain('supabase.rpc("raise_work_blocker"');
+  expect(detail).toContain('supabase.rpc("resolve_blocker"');
+  expect(assign).toContain("WORK_INTENTS");
+});
+
+for (const viewport of [
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  for (const role of roles) {
+    test(`Stage 10 Family A4 ${role.key} Work acceptance at ${viewport.name}`, async ({ browser }) => {
+      const { context, page } = await openWork(browser, role, { width: viewport.width, height: viewport.height });
+
+      await expect(page.locator(".ev2-work-page")).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+      const tabs = page.locator(".ev2w-tabs").first().getByRole("tab");
+      expect(await tabs.count()).toBeGreaterThanOrEqual(3);
+
+      const smallest = await page.locator(".ev2-work-page").evaluate((root) => {
+        const values = [...root.querySelectorAll("*")]
+          .filter((node) => {
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+          })
+          .map((node) => parseFloat(getComputedStyle(node).fontSize))
+          .filter((value) => Number.isFinite(value));
+        return Math.min(...values);
+      });
+      expect(smallest).toBeGreaterThanOrEqual(12);
+
+      await page.screenshot({
+        path: `test-artifacts/redesign-r7-stage10a4-${role.key}-${viewport.name}.png`,
+        fullPage: true,
+      });
+      await context.close();
+    });
+  }
+}
+
+for (const viewport of [
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "tablet-900", width: 900, height: 900 },
+]) {
+  test(`Stage 10 Family A4 shared Work geometry at ${viewport.name}`, async ({ browser }) => {
+    const role = roles[0];
+    const { context, page } = await openWork(browser, role, { width: viewport.width, height: viewport.height });
+
+    await expect(page.locator(".ev2-work-page")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10a4-shared-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
+
+for (const viewport of [
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family A4 Staff Work Detail acceptance at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openWork(browser, roles[0], { width: viewport.width, height: viewport.height });
+    const firstRow = page.locator(".ev2w-row:visible").first();
+    await expect(firstRow).toBeVisible();
+    await firstRow.click();
+    await expect(page.locator(".ev2-work-detail")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10a4-staff-detail-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+
+  test(`Stage 10 Family A4 Manager assignment acceptance at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openWork(browser, roles[1], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "Give out work", exact: true }).first().click();
+    await expect(page.locator(".ev2-work-assignment")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10a4-manager-assignment-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
