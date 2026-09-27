@@ -199,6 +199,15 @@ export function WorkEmpty({ title, description, actionLabel, onAction }) {
   );
 }
 
+export function WorkBackButton({ onClick, label = "Back" }) {
+  return (
+    <button type="button" className="ev2wd-back" aria-label="← Back" onClick={onClick}>
+      <CeacIcon name="chevronLeft" size="control" decorative />
+      <span>{label}</span>
+    </button>
+  );
+}
+
 export function WorkDetailHeader({
   refCode,
   kind,
@@ -210,10 +219,7 @@ export function WorkDetailHeader({
 }) {
   return (
     <>
-      <button type="button" className="ev2wd-back" aria-label="← Back" onClick={onBack}>
-        <CeacIcon name="chevronLeft" size="control" decorative />
-        <span>Back</span>
-      </button>
+      <WorkBackButton onClick={onBack} />
       <header className="ev2wd-header">
         <div className="ev2wd-kicker">
           {[refCode, kind ? workKindLabel(kind) : null, context].filter(Boolean).join(" · ")}
