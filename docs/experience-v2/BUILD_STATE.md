@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C2 — Manager Projects + project workspace (ACTIVE)
+Current substage: 10C3 — Administration Projects (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1280,6 +1280,49 @@ Current 10C2 implementation:
 - deterministic 320 / 390 / 1366 / 1440 Manager Projects and 320 / 1366 project-workspace regression proof has been added;
 - no schema, migration, RLS, RPC definition or auth change has been introduced.
 
-10C3 has NOT started.
+10C2 — Manager Projects + project workspace is ACCEPTED.
+
+Accepted exact implementation head:
+- `e9353015a394fee9d762fc4659f032165fb5d8b1`.
+
+Exact-head gates:
+- CI PASS — run `36354614444`;
+- Migration Replay PASS — run `36354614499`;
+- Account Security PASS — run `36354614549`;
+- Complete Quality Gate PASS — run `36354614523`;
+- 258 Playwright tests passed.
+
+Deployment status:
+- Vercel is currently blocked by the connected free project's external 100-deployments-per-day limit;
+- this is not an application build failure;
+- Family C final acceptance remains blocked until an exact-head Vercel deployment succeeds.
+
+10C2 outcomes:
+- shared V2 Project-family presentation primitives are established;
+- Manager Projects list now uses one V2 project identity/state language;
+- project proposals remain on the existing Unit Head decision path;
+- project workspace now has a coherent V2 identity/header and deliberate workspace tabs for Overview, Work, Objectives, Register, Collaboration and Close & record;
+- existing project creation, objective management, project Work hand-off, participant register and close/reopen logic remain unchanged;
+- current-unit lead/participant scope remains intact;
+- private project work remains excluded;
+- no schema, migration, RLS, RPC definition or auth change was introduced.
+
+Exact-head visual proof directly inspected:
+- Manager Projects 320×844;
+- Manager Projects approximately 390×844;
+- Manager Projects 1366×768;
+- Manager Projects 1440×900;
+- project workspace 320×844;
+- project workspace 1366×768.
+
+Observed full-page phone screenshots show the existing fixed bottom navigation crossing the captured long document; there is no page-level horizontal overflow and this is not a workspace-layout defect.
+
+No unresolved high-severity 10C2 hierarchy, typography, overflow, touch-target or authority defect was found.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C2 / e9353015a394fee9d762fc4659f032165fb5d8b1 / stage10c2-r7-exact-head-evidence.zip`.
+
+10C3 — Administration Projects is now ACTIVE.
+10C4 has NOT started.
 Family D has NOT started.
 Chat is the sole active writer.
