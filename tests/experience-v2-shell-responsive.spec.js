@@ -58,6 +58,15 @@ test("Stage 4C capability and multi-unit policies remain explicit", async () => 
   );
   expect(authorisedAdmin.map((item) => item.label)).toContain("People");
 
+  const limitedAdminPrimary = getMobilePrimaryNavigation(
+    roleContext("admin", { capabilities: [] })
+  );
+  expect(limitedAdminPrimary.map((item) => item.label)).toEqual([
+    "Overview",
+    "Time & Leave",
+    "Finance",
+  ]);
+
   const twoUnits = {
     memberships: [
       { unit_id: "unit-a", unit_name: "Unit A", role: "staff" },
@@ -148,6 +157,49 @@ test("Stage 4C Administration keeps essential bottom-nav labels readable at 320p
       `mobile label "${label.text}" is visually clipped`
     ).toBeLessThanOrEqual(1);
   }
+
+  await page.screenshot({
+    path: "test-artifacts/redesign-r7-stage4c-admin-320.png",
+    fullPage: true,
+  });
+});
+
+test("Stage 4C narrow-phone More drawer preserves viewport and focus", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await signIn(page, roles[0]);
+
+  const mobileNav = page.locator(".ev2s-mobile-nav");
+  const more = mobileNav.getByRole("button", { name: "More", exact: true });
+  await more.click();
+
+  const drawer = page.getByRole("dialog", { name: "More" });
+  await expect(drawer).toBeVisible();
+
+  const geometry = await page.evaluate(() => {
+    const dialog = document.querySelector('[role="dialog"][aria-label="More"]')
+      || document.querySelector('[role="dialog"]');
+    const rect = dialog?.getBoundingClientRect();
+    return {
+      documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+      left: rect?.left ?? 0,
+      right: rect ? rect.right - window.innerWidth : 0,
+    };
+  });
+
+  expect(geometry.documentOverflow).toBeLessThanOrEqual(1);
+  expect(geometry.bodyOverflow).toBeLessThanOrEqual(1);
+  expect(geometry.left).toBeGreaterThanOrEqual(-1);
+  expect(geometry.right).toBeLessThanOrEqual(1);
+
+  await page.screenshot({
+    path: "test-artifacts/redesign-r7-stage4c-staff-more-320.png",
+    fullPage: false,
+  });
+
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+  await expect(more).toBeFocused();
 });
 
 test("Stage 4C all four mobile role shells stay within the 390px viewport", async ({ browser }) => {
@@ -218,6 +270,38 @@ test("Stage 4C 1366x768 laptop shell keeps navigation and account chrome stable"
 
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage4c-${role.key}-laptop.png`,
+      fullPage: true,
+    });
+    await context.close();
+  }
+});
+
+test("Stage 4C 1440x900 desktop shell remains stable across all roles", async ({ browser }) => {
+  test.setTimeout(120000);
+  for (const role of roles) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await signIn(page, role);
+
+    await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+    await expect(page.locator(".ev2s-topbar")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-topbar")).toBeHidden();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeHidden();
+
+    const geometry = await page.evaluate(() => ({
+      documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+      sidebarOverflow:
+        (document.querySelector(".ev2s-sidebar")?.scrollWidth || 0)
+        - (document.querySelector(".ev2s-sidebar")?.clientWidth || 0),
+    }));
+
+    expect(geometry.documentOverflow, `${role.key} desktop document overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.bodyOverflow, `${role.key} desktop body overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.sidebarOverflow, `${role.key} desktop sidebar overflow`).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage4c-${role.key}-desktop.png`,
       fullPage: true,
     });
     await context.close();
