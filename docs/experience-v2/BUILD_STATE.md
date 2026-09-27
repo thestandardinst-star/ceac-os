@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 9 — Keystone Quality Gate and System Ratification (ACTIVE)
-Current substage: Stage 9C — technical ratification complete; product-owner acceptance pending
+Current stage: Stage 9 — Keystone Quality Gate and System Ratification (COMPLETE)
+Current substage: Stage 9 accepted; Stage 10 not started
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -692,7 +692,10 @@ System review:
 Ratification record:
 - `docs/experience-v2/STAGE9_ACCEPTANCE_RECORD.md`.
 
-Remaining Stage 9 exit condition:
-- explicit product-owner acceptance of the four-keystone quality direction.
+Product-owner acceptance:
+- on 27 September 2026, after the technical-ratification checkpoint, the product owner instructed “Continue”;
+- this is recorded as acceptance of the four-keystone quality direction and authorisation to proceed.
 
-Stage 10 has NOT started and remains blocked until that acceptance.
+Stage 9 is ACCEPTED AND COMPLETE.
+
+Stage 10 has NOT started. The next safe action is to inspect the live exact HEAD after this closure, then open Stage 10 Family A — Work from the canonical operational-family sequence.
