@@ -744,8 +744,8 @@ Pre-work visual evidence inspected from Quality Gate run `36325853986`:
 10A internal sequence:
 1. 10A1 — Work lists and queues — ACCEPTED.
 2. 10A2 — Work Detail — ACCEPTED.
-3. 10A3 — assignment, review, return and dependency — ACTIVE.
-4. 10A4 — Family A acceptance.
+3. 10A3 — assignment, review, return and dependency — ACCEPTED.
+4. 10A4 — Family A acceptance — ACTIVE.
 
 Family B must not begin until Family A is accepted.
 
@@ -778,7 +778,8 @@ Exact-head gates:
 The first 10A1 Quality Gate attempt on `1683122790b0ac5be4f6d0fddbc5f833e705cc77` correctly caught one real visual-system violation: inherited `small` styling rendered Work-row due metadata at 10.833px. The source CSS was corrected; no threshold or test was weakened.
 
 10A2 — Work Detail is ACCEPTED.
-10A3 — assignment, review, return and dependency is now ACTIVE.
+10A3 — assignment, review, return and dependency is ACCEPTED.
+10A4 — Family A acceptance is now ACTIVE.
 Family B has NOT started.
 
 
@@ -805,4 +806,46 @@ Exact-head gates:
 During 10A2, the cumulative visual inventory also exposed a pre-existing populated Compliance typography-floor defect (9.5–11px metadata). That defect was corrected at source to the ratified 12px floor and regression-guarded. The gate was not weakened.
 
 10A3 — assignment, review, return and dependency is now ACTIVE.
+Family B has NOT started.
+
+
+### 10A3 acceptance — assignment, review, return and dependency
+
+Accepted exact implementation head:
+- `c54ad9a73088372ff24db7e4f510005b3fb641a6`.
+
+Exact-head gates:
+- CI PASS — run `36337707980`;
+- Migration Replay PASS — run `36337707972`;
+- Account Security PASS — run `36337707925`;
+- Complete Quality Gate PASS — run `36337707987`;
+- Vercel PASS.
+
+10A3 outcomes:
+- Give out work now inherits the V2 Work-family hierarchy and progressive-disclosure language;
+- the seven existing work intents remain on the existing create/RPC paths;
+- Manager Work now closes the review-flow continuity gap by opening Work Detail and exposing the already-authorised approve / return path there;
+- review remains evidence-first and attributable, with submission note, evidence, checklist context, explicit approval and concrete return comments;
+- returned state now clearly shows correction guidance and checklist points to redo;
+- dependency state now clearly shows named party/unit, acknowledgement/dispute state, late-count pause wording and resolve action only for the authorised claimant;
+- existing `submit_work_for_review`, `approve_work_submission`, `return_work_for_correction`, blocker and typed-work authority paths remain unchanged;
+- Administration and Executive did not receive new manager review authority;
+- no schema, migration, RLS, auth or RPC grant change was introduced.
+
+Visual evidence directly inspected from exact-head Quality Gate:
+- Manager assignment at 320px;
+- Manager assignment at 1366×768;
+- returned Staff Work Detail state;
+- dependency/waiting Work Detail state;
+- all show coherent V2 hierarchy with no high-severity layout defect.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family A / 10A3 / c54ad9a73088372ff24db7e4f510005b3fb641a6 / stage10a3-r7-exact-head-evidence.zip`.
+
+Writer ownership:
+- Codex/Work usage is exhausted;
+- this Chat is now the sole active writer;
+- no parallel writer should be assumed.
+
+10A4 — Family A acceptance is now ACTIVE.
 Family B has NOT started.
