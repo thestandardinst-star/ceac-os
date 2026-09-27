@@ -437,7 +437,7 @@ test("Stage 10 Family B5B Administration employee workspace preserves employment
   expect(screen).toContain('rpc("admin_update_employment"');
 
   const identity = screen.indexOf('title="Identity & employment state"');
-  const current = screen.indexOf('title="Current employment"');
+  const current = screen.indexOf('title="Employment record"');
   const history = screen.indexOf('title="Employment history"');
   const activity = screen.indexOf('title="Work & activity context"');
   const leave = screen.indexOf('title="Leave"');
@@ -474,7 +474,7 @@ for (const viewport of [
 
     await expect(page.getByRole("heading", { name: "Staff Fixture", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Identity & employment state", exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Current employment", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Employment record", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Employment history", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Work & activity context", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Leave", exact: true })).toBeVisible();
@@ -486,7 +486,7 @@ for (const viewport of [
       nodes.map((node) => ({ text: node.textContent.trim(), y: node.getBoundingClientRect().top + window.scrollY }))
     );
     const positions = Object.fromEntries(headings.map((entry) => [entry.text, entry.y]));
-    expect(positions["Current employment"]).toBeLessThan(positions["Employment history"]);
+    expect(positions["Employment record"]).toBeLessThan(positions["Employment history"]);
     expect(positions["Employment history"]).toBeLessThan(positions["Work & activity context"]);
     expect(positions["Work & activity context"]).toBeLessThan(positions["Leave"]);
     expect(positions["Leave"]).toBeLessThan(positions["Protected HR"]);
