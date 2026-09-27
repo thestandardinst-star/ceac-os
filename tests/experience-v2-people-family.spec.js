@@ -203,3 +203,107 @@ test("Stage 10 Family B3 Manager Team evidence opens the existing unit-scoped pe
   await expect(page.getByText(/operational context only/i)).toBeVisible();
   await context.close();
 });
+
+
+async function openManagerPerson(browser, viewport) {
+  const { context, page } = await openManagerTeam(browser, viewport);
+  const person = page.locator(".ev2p-evidence-person").filter({ hasText: "Staff Fixture" }).first();
+  await expect(person).toBeVisible();
+  await person.locator(".ev2p-evidence-person-main").click();
+  await expect(page.locator(".ev2-person-workspace")).toBeVisible({ timeout: 15000 });
+  return { context, page };
+}
+
+test("Stage 10 Family B4 Manager Person preserves unit scope and visible feedback authority", () => {
+  const screen = readFileSync("src/screens/PersonDetail.jsx", "utf8");
+  const shared = readFileSync("src/experience-v2/people-family/PeopleFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  for (const symbol of [
+    "PeopleBackButton",
+    "PeoplePersonHeader",
+    "PeopleEvidenceSummary",
+    "PeopleWorkspaceSection",
+  ]) {
+    expect(shared).toContain(`export function ${symbol}`);
+    expect(screen).toContain(symbol);
+  }
+
+  expect(screen).toContain('.eq("unit_id", me.unit_id)');
+  expect(screen).toContain('.eq("profile_id", profileId)');
+  expect(screen).toContain('.neq("visibility", "private")');
+  expect(screen).toContain('from("work_sessions")');
+  expect(screen).toContain('from("submissions")');
+  expect(screen).toContain('from("feedback_notes")');
+  expect(screen).toContain('rpc("record_performance_feedback"');
+  expect(screen).toContain("They are not a productivity score, ranking or judgement about this person.");
+  expect(screen).toContain("There are no private manager notes.");
+  expect(screen).toContain("They do not measure productivity or determine the quality of this person’s work.");
+
+  const current = screen.indexOf('title="Current responsibilities"');
+  const outcomes = screen.indexOf('title="Recent outcomes"');
+  const submissions = screen.indexOf('title="Submissions"');
+  const objectives = screen.indexOf('title="Projects & objectives"');
+  const activity = screen.indexOf('title="Activity context"');
+  const feedback = screen.indexOf('title="Visible feedback"');
+  expect(current).toBeGreaterThan(-1);
+  expect(outcomes).toBeGreaterThan(current);
+  expect(submissions).toBeGreaterThan(outcomes);
+  expect(objectives).toBeGreaterThan(submissions);
+  expect(activity).toBeGreaterThan(objectives);
+  expect(feedback).toBeGreaterThan(activity);
+
+  expect(css).toContain("/* Stage 10B4 — Manager Person workspace */");
+  expect(css).toContain(".ev2p-evidence-summary");
+  expect(css).toContain(".ev2p-workspace-section");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family B4 Manager Person composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openManagerPerson(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("heading", { name: "Staff Fixture", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Current responsibilities", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent outcomes", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Activity context", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Visible feedback", exact: true })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const smallest = await page.locator(".ev2-person-workspace").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden"
+            && style.display !== "none"
+            && rect.width > 0
+            && rect.height > 0
+            && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    const touchTargets = page.locator(".ev2p-back:visible, .ev2p-filter-tab:visible, .ev2p-link-row:visible, .ev2p-objective-toggle:visible");
+    const count = await touchTargets.count();
+    for (let index = 0; index < count; index += 1) {
+      const box = await touchTargets.nth(index).boundingBox();
+      expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+    }
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10b4-manager-person-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
