@@ -40,14 +40,23 @@ export default function StaffTeam({ me, openRoom }) {
   const [birthdays, setBirthdays] = useState([]);
   const [subTeamLeads, setSubTeamLeads] = useState([]);
   const [resources, setResources] = useState([]);
-  const [open, setOpen] = useState({ away: true, new: true, leadership: false, people: false, birthdays: true, resources: false });
+  const [open, setOpen] = useState({ away: true, new: true, leadership: true, people: true, birthdays: false, resources: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => { load(); }, [me.unit_id]);
 
   async function load() {
-    if (!me.unit_id) return;
+    if (!me.unit_id) {
+      setTeam([]);
+      setOnLeave([]);
+      setBirthdays([]);
+      setSubTeamLeads([]);
+      setResources([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true); setError(null);
     try {
       const membershipResult = await supabase.from("unit_memberships")
@@ -135,7 +144,7 @@ export default function StaffTeam({ me, openRoom }) {
       title="Team"
       description="People, leadership, availability and the shared references your unit uses."
       count={team.length}
-      countLabel="people"
+      countLabel={team.length === 1 ? "person" : "people"}
     />
 
     {openRoom && <PeopleRoomCard
@@ -150,7 +159,12 @@ export default function StaffTeam({ me, openRoom }) {
     </ProductNotice>}
     {loading && <LoadingState label="Loading your team…" />}
 
-    {!loading && !error && <>
+    {!loading && !error && !me.unit_id && <PeopleEmpty
+      title="No unit context"
+      description="Your Team surface will appear when your authorised unit membership is available."
+    />}
+
+    {!loading && !error && me.unit_id && <>
       {(onLeave.length > 0 || newJoiners.length > 0) && <div className="ev2p-attention-grid">
         {onLeave.length > 0 && <PeopleSection
           title="Away this week"
