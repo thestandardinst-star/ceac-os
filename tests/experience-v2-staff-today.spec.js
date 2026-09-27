@@ -35,7 +35,8 @@ test("Stage 5 Staff Today is isolated V2 presentation on preserved Home logic", 
   expect(home).toContain('supabase.rpc("follow_up_blocker"');
   expect(home).not.toContain("ReferenceModuleStrip");
   expect(home).not.toContain("DashboardCalendar");
-  expect(home).not.toContain("MinistryNumbers");
+  expect(home).toContain('import MinistryNumbers from "../components/MinistryNumbers"');
+  expect(home).toContain("ministryRecord={<MinistryNumbers me={me} compact />");
 
   expect(view).toContain('from "../components"');
   expect(view).toContain('from "../icons"');
@@ -44,7 +45,8 @@ test("Stage 5 Staff Today is isolated V2 presentation on preserved Home logic", 
   expect(view).toContain("QueueRow");
   expect(view).not.toContain("components/bits");
   expect(view).not.toContain("ReferenceDashboard");
-  expect(view).not.toContain("MinistryNumbers");
+  expect(view).not.toContain('from "../../components/MinistryNumbers"');
+  expect(view).toContain("ministryRecord");
   expect(view).not.toContain("<Icon ");
 
   expect((css.match(/!important\b/g) || []).length).toBe(0);
@@ -75,6 +77,11 @@ for (const viewport of [
     await expect(page.getByText("Next up", { exact: true }).first()).toBeVisible();
     await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     await expect(page.locator(".staff-command-surface")).toHaveCount(0);
+
+    const primaryTitle = await page.locator(".staffv2-focus-card .ev2c-focus-title").textContent();
+    if (primaryTitle && primaryTitle !== "You're clear for now") {
+      await expect(page.locator(".staffv2-coming").getByText(primaryTitle, { exact: true })).toHaveCount(0);
+    }
 
     const sessionActions = page.locator(".staffv2-session").getByRole("button", { name: /^(Start work|End work|Review)$/ });
     await expect(sessionActions).toHaveCount(1);

@@ -98,7 +98,7 @@ The visible order is locked for Stage 5:
 
 The ordinary page must not render a duplicate Explore/navigation module.
 
-The ordinary page must not make recurring ministry-number capture compete with the daily personal-work hierarchy. Stage 5 does not delete that underlying capability or data; it removes it from the Staff Today keystone composition.
+Recurring ministry-number capture must not compete with the daily personal-work hierarchy. Preserve the existing capability as a lower-priority factual record after the primary Today content; if no recurring operation exists, the existing MinistryNumbers component remains non-rendering. Do not delete its data or write path.
 
 ## 5. Dominant next action
 

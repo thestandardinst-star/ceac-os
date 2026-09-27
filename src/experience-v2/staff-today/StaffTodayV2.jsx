@@ -120,6 +120,7 @@ export default function StaffTodayV2({
   getBlockerFollowupState,
   onFollowUpReview,
   onFollowUpDependency,
+  ministryRecord,
 }) {
   const todayKey = accraDateKey();
   const todaySchedule = [
@@ -145,14 +146,16 @@ export default function StaffTodayV2({
   const futureMeetings = upcomingMeetings.filter((meeting) => accraDateKey(meeting.starts_at) !== todayKey);
   const futureEvents = calendarEvents.filter((event) => accraDateKey(event.starts_at) !== todayKey);
   const comingEntries = [
-    ...dueSoon.map((item) => ({
-      id: `work-${item.id}`,
-      type: "work",
-      at: item.due_at || "9999-12-31",
-      title: item.title,
-      meta: `${item.ref} · ${dueLabel(item.due_at)}`,
-      source: item,
-    })),
+    ...dueSoon
+      .filter((item) => item.id !== primaryNextItem?.id)
+      .map((item) => ({
+        id: `work-${item.id}`,
+        type: "work",
+        at: item.due_at || "9999-12-31",
+        title: item.title,
+        meta: `${item.ref} · ${dueLabel(item.due_at)}`,
+        source: item,
+      })),
     ...futureMeetings.map((meeting) => ({
       id: `meeting-${meeting.id}`,
       type: "meeting",
@@ -643,6 +646,12 @@ export default function StaffTodayV2({
                 </DataPanel>
               ) : null}
             </div>
+
+            {ministryRecord ? (
+              <section className="staffv2-ministry-record" aria-label="Ministry record">
+                {ministryRecord}
+              </section>
+            ) : null}
           </>
         ) : null}
       </div>

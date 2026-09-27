@@ -6,6 +6,7 @@ import { isOverdue } from "../lib/time";
 import { Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import StaffTodayV2 from "../experience-v2/staff-today/StaffTodayV2";
+import MinistryNumbers from "../components/MinistryNumbers";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -311,12 +312,21 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
     finally { setBusy(false); }
   }
 
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const accraHour = Number(new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Accra",
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date()));
+  const greeting = accraHour < 12 ? "Good morning" : accraHour < 17 ? "Good afternoon" : "Good evening";
   const drillRows = drill?.rows || [];
   const primaryNextItem = nextMoveItems[0] || activeWork[0] || dueSoon[0] || null;
   const nextMeeting = upcomingMeetings[0] || null;
-  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const todayLabel = new Date().toLocaleDateString("en-GB", {
+    timeZone: "Africa/Accra",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return <>
     <StaffTodayV2
@@ -368,6 +378,7 @@ export default function Home({ me, session, setSession, openItem, openMeeting, o
       getBlockerFollowupState={blockerFollowupState}
       onFollowUpReview={followUpReview}
       onFollowUpDependency={followUpDependency}
+      ministryRecord={<MinistryNumbers me={me} compact />}
     />
 
     {ask && <Sheet onClose={() => setAsk(false)}>

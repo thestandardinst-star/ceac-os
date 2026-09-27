@@ -625,7 +625,8 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    const meetingRow = page.locator(".home-meeting-row").filter({ hasText: title });
+    const meetingRow = page.locator(".staffv2").getByRole("button").filter({ hasText: title });
+    await expect(meetingRow).toHaveCount(1);
     await expect(meetingRow).toBeVisible();
     await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
