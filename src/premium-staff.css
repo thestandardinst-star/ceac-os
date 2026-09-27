@@ -5,7 +5,6 @@
 
 .staff-app .app-content>.body{max-width:1180px!important}
 .staff-app .premium-page,
-.staff-app .staff-work,
 .staff-app .staff-team,
 .staff-app .staff-record,
 .staff-app .staff-me{padding-top:14px!important}
@@ -94,36 +93,6 @@
   background:#f8fafc!important;border:1px solid #e7ebf0!important;border-radius:11px!important;
 }
 
-/* Work */
-.staff-app .staff-work{max-width:1000px!important}
-.staff-app .work-actions{display:flex;gap:8px;margin:4px 0 18px!important}
-.staff-app .status-filter{
-  display:flex;gap:6px;padding:0 0 12px;border-bottom:1px solid #e5eaf0;margin-bottom:4px!important;
-}
-.staff-app .status-filter button{
-  padding:7px 10px!important;border-radius:8px!important;border:1px solid transparent!important;
-  color:#748297!important;background:transparent!important;
-}
-.staff-app .status-filter button.on{
-  background:#eef4ff!important;border-color:#dce8ff!important;color:var(--ceac-action-blue)!important;
-}
-.staff-app .work-group{margin-top:18px!important}
-.staff-app .work-group-head{
-  padding:0 2px 8px!important;border-bottom:1px solid #e7ebf0!important;color:#66768b!important;
-}
-.staff-app .work-list{
-  border:1px solid #e2e7ee;border-radius:15px;overflow:hidden;background:#fff;
-  box-shadow:0 8px 25px rgba(32,51,76,.04);
-}
-.staff-app .work-list-row{
-  margin:0!important;border:0!important;border-bottom:1px solid #edf0f4!important;border-radius:0!important;
-  padding:15px 16px!important;background:#fff!important;box-shadow:none!important;transition:background .16s ease,transform .16s ease;
-}
-.staff-app .work-list-row:last-child{border-bottom:0!important}
-.staff-app .work-list-row:hover{background:#f8fbff!important}
-.staff-app .work-list-main strong{font-size:13px!important;color:#16283d!important}
-.staff-app .work-list-main span,.staff-app .work-list-main small{color:#7a889b!important}
-.staff-app .work-list-side>span:last-child{font-size:12px!important;color:#8896a8!important}
 
 /* Team */
 .staff-app .staff-team{max-width:980px!important}
