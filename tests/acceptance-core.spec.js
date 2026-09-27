@@ -1041,7 +1041,7 @@ test("Experience Stage 7 keeps work capture simple, staff-owned and manager-conf
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
-    const proposal = page.locator(".row").filter({ hasText: proposalName }).first();
+    const proposal = page.locator(".ev2p-attention").filter({ hasText: proposalName }).first();
     await expect(proposal).toBeVisible();
     await proposal.getByRole("button", { name: "Confirm project", exact: true }).click();
     await expect(page.getByRole("heading", { name: proposalName, exact: true })).toBeVisible();
