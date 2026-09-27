@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Sheet } from "../components/bits";
+import {
+  WorkDetailCopy,
+  WorkDetailHeader,
+  WorkDetailSection,
+} from "../experience-v2/work-family/WorkFamilyV2";
 
 const MANAGER_SELF_CERTIFICATION_READY = true;
 
@@ -436,16 +441,19 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
     : <div className="spin">Loading...</div>;
 
   return (
-    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"}`}>
-      <button className="back work-detail-back" onClick={back}>← Back</button>
-      <header className="work-detail-head">
-        <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
-        <h1 className="h2">{item.title}</h1>
-        <div className="work-detail-meta">
-          <span>{dueLabel(item.due_at)}</span>
-          {statusPill(item.status)}
-        </div>
-      </header>
+    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"} ev2-work-detail`}>
+      <WorkDetailHeader
+        refCode={item.ref}
+        kind={item.kind}
+        title={item.title}
+        context={[
+          item.projects?.name,
+          item.sub_teams?.name,
+        ].filter(Boolean).join(" · ")}
+        due={dueLabel(item.due_at)}
+        status={item.status}
+        onBack={back}
+      />
 
       {openRoom && (item.project_id || item.sub_team_id || item.unit_id) && <button className="work-room-entry" onClick={() => openRoom({
         ...(item.project_id
@@ -486,14 +494,17 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
           {blocker.claimed_by === me.id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={resolveActiveBlocker} disabled={busy}>Mark resolved</button>}
         </div>)}
 
-      {item.purpose && (<><div className="sec"><span>Why this matters</span></div>
-        <div className="card work-context-card">{item.purpose}</div></>)}
+      {item.purpose && <WorkDetailSection title="Why this matters">
+        <WorkDetailCopy>{item.purpose}</WorkDetailCopy>
+      </WorkDetailSection>}
 
-      {item.instructions && (<><div className="sec"><span>What to do</span></div>
-        <div className="card work-context-card">{item.instructions}</div></>)}
+      {item.expected_outcome && <WorkDetailSection title="What finished looks like">
+        <WorkDetailCopy tone="emphasis">{item.expected_outcome}</WorkDetailCopy>
+      </WorkDetailSection>}
 
-      {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
-        <div className="card work-context-card">{item.expected_outcome}</div></>)}
+      {item.instructions && <WorkDetailSection title="What to do">
+        <WorkDetailCopy>{item.instructions}</WorkDetailCopy>
+      </WorkDetailSection>}
 
       {item.kind === "deliverable" && deliverableRecord && <>
         <div className="sec"><span>Deliverable evidence</span></div>
