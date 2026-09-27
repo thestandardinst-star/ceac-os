@@ -342,4 +342,3 @@ Family A is complete only when:
 - exact-head Work-family evidence is inspected and persisted;
 - an acceptance record is committed;
 - BUILD_STATE is current.
-
