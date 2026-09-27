@@ -109,7 +109,7 @@
 
 .managerv2-operational-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
   gap: var(--ev2-space-4);
   align-items: start;
 }
@@ -408,6 +408,21 @@
   color: var(--ev2-text-secondary);
   font-size: var(--ev2-type-label);
   line-height: 1.3;
+}
+
+.managerv2-coming .ev2c-stat {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ev2-space-2);
+  padding: var(--ev2-space-3);
+}
+
+.managerv2-coming .ev2c-stat > svg:last-child {
+  display: none;
+}
+
+.managerv2-coming .ev2c-stat-icon {
+  width: 2rem;
+  height: 2rem;
 }
 
 .managerv2-drill {

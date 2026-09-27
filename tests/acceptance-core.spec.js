@@ -132,7 +132,7 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
+    const reviewRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
     await reviewRow.getByRole("button", { name: "Review" }).click();
     const returnDialog = page.getByRole("dialog");
@@ -142,7 +142,7 @@ test("Staff and Manager complete the real work loop, including return and approv
     if (await redo.count()) await redo.click();
     await returnDialog.getByPlaceholder("Explain exactly what needs changing").fill("Please correct the acceptance item.");
     await returnDialog.getByRole("button", { name: "Return work", exact: true }).click();
-    await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.locator(".managerv2-decision-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
 
@@ -178,14 +178,14 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
+    const reviewRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
     await reviewRow.getByRole("button", { name: "Review" }).click();
     const approveDialog = page.getByRole("dialog");
     await expect(approveDialog.getByText("Evidence-first review")).toBeVisible();
     await approveDialog.getByRole("button", { name: "Approve", exact: true }).click();
     await approveDialog.getByRole("button", { name: "Confirm approval", exact: true }).click();
-    await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.locator(".managerv2-decision-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
 
