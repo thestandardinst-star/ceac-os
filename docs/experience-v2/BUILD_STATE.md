@@ -6,8 +6,8 @@ Last updated: 27 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 7 — Administration Overview
-Current substage: 7B — Administration Overview implementation
+Current stage: Stage 8 — Executive Overview
+Current substage: 8A — Executive Overview audit and contract
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -501,42 +501,101 @@ Visual evidence:
 
 Stage 6 exit gate is satisfied.
 
-## Stage 7 active work
+## Stage 7 — Administration Overview: COMPLETE
 
-Stage 7 rebuilds the Administration Overview keystone only. It must preserve Administration/HR people, workforce, finance, reporting, setup, leave, invitation, workflow-check, cross-unit blocker and meeting authority while replacing the current legacy overview composition with the accepted V2 operational-console system.
+Accepted exact implementation SHA:
+- `1e55846f9f65f084f850efc2dae57bd0e1ef6f63`
 
-Stage 7A — AUDIT AND CONTRACT: COMPLETE
-- [x] inspect exact current `AdminHome.jsx` queries, derived states and write paths;
-- [x] inspect exact-head Administration desktop proof;
-- [x] inspect exact-head 390px Administration mobile proof;
-- [x] identify current mobile squeeze/collision defects in the organisation pulse;
-- [x] identify the duplicate in-page Explore navigation already owned by the Stage 4 shell;
-- [x] define the operational-inbox, organisation-pulse, setup/configuration, reporting/workforce and responsive hierarchy;
-- [x] persist `docs/experience-v2/STAGE7_WORK_BRIEF.md`.
+Exact-head engineering status:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Complete Quality Gate PASS
+- Vercel PASS
+- Quality Gate run `36308872363`
+- Playwright role/acceptance suite: 174 passed
 
-Stage 7B — IMPLEMENTATION: ACTIVE
-- [ ] keep `AdminHome.jsx` as the authoritative data/action container;
-- [ ] build an isolated V2 Administration Overview presentation under `src/experience-v2/admin-overview/`;
-- [ ] preserve capability boundaries and all current invitation/leave/setup/workflow/blocker/meeting authority;
-- [ ] remove the legacy hero/calendar/focus/module-strip composition from Administration Overview only;
-- [ ] recompose the organisation pulse and action inbox for phone instead of shrinking two-column desktop panels;
-- [ ] run focused Stage 7 browser acceptance and exact-head full Quality Gate;
-- [ ] inspect phone/laptop/desktop proof directly before acceptance.
+Stage 7 accepted outcomes:
+- Administration Overview now uses an isolated V2 presentation under `src/experience-v2/admin-overview/`;
+- `src/screens/AdminHome.jsx` remains the authoritative Administration data/action container;
+- invitation, leave, setup, workflow-check, reporting, cross-unit blocker, meeting and capability authority remain intact;
+- Administration authority/configuration gaps now lead the hierarchy through the operational inbox and setup state;
+- reporting coverage, organisation pulse, workforce context, delivery signals, meetings, units and personal work are secondary factual context;
+- workforce/session facts remain explicitly non-performance and non-ranking;
+- the legacy scenic hero, fixed calendar rail, ReferenceFocusPanel and duplicate ReferenceModuleStrip are removed from Administration Overview;
+- 320px and 390×844 mobile compositions are intentionally recomposed instead of retaining the previous squeezed two-column layout;
+- 1366×768 laptop and 1440×900 desktop remain dense without clipping or horizontal overflow;
+- the Administration visual fingerprint was deliberately re-baselined after direct inspection rather than weakening the regression threshold.
 
-Do not start Stage 8 until Administration Overview is visually and functionally accepted.
+Stage 7 verification notes:
+- the first implementation needed a render-boundary correction in `AdminHome.jsx`;
+- exact-head full-gate inventory exposed setup-density and rendered-text-floor issues, corrected without shrinking below the 12px operational floor;
+- the final exact head passed every engineering gate and the full 174-test role/acceptance suite;
+- direct visual inspection of 320px, 390×844, 1366×768 and 1440×900 proof found no remaining high-severity Stage 7 visual defect.
+
+Visual evidence:
+- successful exact-head Quality Gate artifact `redesign-r7-product-inspection`, artifact ID `10928585555`;
+- exact Stage 7 screenshots inspected:
+  - `redesign-r7-stage7-admin-320.png`;
+  - `redesign-r7-stage7-admin-390.png`;
+  - `redesign-r7-stage7-admin-laptop.png`;
+  - `redesign-r7-stage7-admin-desktop.png`;
+- persistent Library package:
+  `CEAC OS / Experience V2 / Evidence / Stage 7 / 1e55846f9f65f084f850efc2dae57bd0e1ef6f63 / stage7-r7-exact-head-evidence.zip`;
+- acceptance record:
+  `docs/experience-v2/STAGE7_ACCEPTANCE_RECORD.md`.
+
+Stage 7 exit gate is satisfied.
+
+## Stage 8 active work
+
+Stage 8 rebuilds the Executive Overview keystone only.
+
+Purpose:
+- prove the executive briefing pattern;
+- keep Executive related to the same V2 product system while using appropriately different density and emphasis.
+
+Preserve:
+- ministry, portfolio, finance, reporting and meeting data;
+- drill-down and Executive authority.
+
+Rebuild:
+- attention first;
+- ministry movement;
+- department/project context;
+- finance/reporting;
+- schedule;
+- restrained executive visual language.
+
+Current substage 8A — AUDIT AND CONTRACT:
+- inspect exact current Executive Overview implementation, data/authority paths and tests;
+- inspect exact-head desktop and mobile proof before editing;
+- compare the current screen with persistent V2 quality references and accepted Stages 5–7;
+- record the Executive information hierarchy and responsive composition;
+- persist `docs/experience-v2/STAGE8_WORK_BRIEF.md` before product-code migration;
+- do not start Stage 9 until Stage 8 is visually and functionally accepted.
 
 ## Current handoff
 
-Chat is the sole active writer. Work/Codex usage is exhausted and Work is not active. Stage 6 is accepted and complete. Stage 7B Administration Overview implementation is active. No unpushed Chat state is known.
+Writer ownership has been handed from Chat to Codex/Work at the user's request. Codex/Work is the sole active writer from this checkpoint. Chat must not modify the branch while Codex/Work is active.
 
-Exact next action:
-- keep `AdminHome.jsx` as the authoritative Administration data/action container;
-- build the isolated V2 Administration Overview presentation under `src/experience-v2/admin-overview/`;
-- preserve invitation, leave, setup, workflow-check, reporting, cross-unit blocker, meeting and capability authority exactly;
-- replace the legacy hero, calendar rail, ReferenceFocusPanel and Explore module strip on Overview only;
-- make the action inbox and configuration gaps dominant, with organisation/workforce/reporting context secondary;
-- recompose phone layouts instead of retaining the current squeezed two-column organisation pulse;
-- do not start Stage 8 until Stage 7 is accepted.
+Stage 7 is accepted and complete. Stage 8A — Executive Overview audit and contract is now active. No unpushed Chat state is known.
+
+Exact next action for Codex/Work:
+- inspect the exact current branch HEAD and this handoff before editing;
+- read `docs/experience-v2/START_HERE.md`, `BUILD_STATE.md`, `IMPLEMENTATION_SEQUENCE.md`, `DESIGN_FOUNDATION_V2.md`, `STAGE7_ACCEPTANCE_RECORD.md` and the persistent quality-reference index;
+- audit the existing Executive Overview implementation, its current data/authority paths, tests and rendered phone/laptop evidence;
+- persist `docs/experience-v2/STAGE8_WORK_BRIEF.md` before changing Executive product code;
+- preserve ministry, portfolio, finance, reporting, meeting, drill-down and Executive authority exactly;
+- rebuild only Executive Overview as the Stage 8 keystone;
+- prove 320px/390×844 phone, 1366×768 laptop and 1440×900 desktop;
+- do not start Stage 9 until Stage 8 is accepted on an exact green head.
+
+Protected boundaries remain unchanged:
+- PR #71 stays frozen and untouched;
+- Stage 13 Payroll remains blocked pending confirmed CEAC rules;
+- no security/RLS/RPC/auth weakening;
+- one active writer only.
 
 ## Draft PR
 
