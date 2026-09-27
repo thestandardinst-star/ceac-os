@@ -503,4 +503,3 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
     </> : null}
   </>;
 }
-}
