@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: Stage 10 Family B — People / Team (ACCEPTED AND COMPLETE); Family C not started
+Current substage: 10C1 — Projects / Portfolio audit and contract (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1243,3 +1243,31 @@ Next safe action:
 2. read the canonical Stage 10 Family C sequence and current Projects/Portfolio authority/data paths;
 3. persist the Family C work brief before changing Projects/Portfolio product code;
 4. keep PR #72 OPEN + DRAFT and PR #71 frozen.
+
+
+## Stage 10 Family C active work
+
+Family C — Projects / Portfolio is ACTIVE at 10C1 audit/contract.
+
+Work brief:
+- `docs/experience-v2/STAGE10_FAMILY_C_WORK_BRIEF.md`.
+
+Family C entry audit confirms:
+- Manager Projects is the unit operating workspace and enforces current-unit lead/participant scope;
+- Administration Projects is organisation delivery context and does not currently expose Manager project-edit controls;
+- Executive Portfolio is the `Delivery.jsx` surface and already stores explicit health/priority, programme/portfolio links, milestones, risks/issues and dependencies without hidden scoring;
+- project close/reopen history and project participant/payment/custody/remittance registers are mature audited domain flows and are protected from presentation-driven rewrites;
+- current project/work queries exclude private work where applicable;
+- no schema, migration, RLS, RPC definition or auth change is presumed.
+
+Current documentation-only entry head:
+- `442abd8b69e7e97c52e58f12382695c47eff87c0`;
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- complete Quality Gate PASS;
+- Vercel currently blocked by the connected free-project deployment-rate limit only.
+
+10C2 — Manager Projects + project workspace has NOT started.
+Family D has NOT started.
+Chat is the sole active writer.
