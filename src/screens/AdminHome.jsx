@@ -226,10 +226,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   });
   const canManagePeople = (me.capabilities || []).includes("people.manage");
 
-  return <div className="body admin-home">
-    <section className="admin-command-surface">
-      <div className="admin-command-context"><span>Administration &amp; HR</span><time>{adminDate}</time></div>
-      <div className="eyebrow">Organisation command su  return <>
+  return <>
     <AdminOverviewV2
       me={me}
       dateLabel={adminDate}
@@ -276,5 +273,4 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       <button className="btn" style={{ marginTop:14 }} onClick={sendInvite} disabled={busy || !name.trim() || !email.trim()}>{busy ? "Sending…" : "Send Staff invitation"}</button>
     </Sheet>}
   </>;
-
 }
