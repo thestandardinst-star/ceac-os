@@ -892,7 +892,7 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
     await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
-    await page.getByRole("button", { name: "Register", exact: true }).click();
+    await page.getByRole("tab", { name: /^Register/ }).click();
     await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Add slot type", exact: true }).click();
