@@ -1084,8 +1084,8 @@ Work brief:
 
 Current 10B5 status:
 - 10B5A — Administration People directory ACCEPTED;
-- 10B5B — Administration employee workspace ACTIVE;
-- 10B5C has NOT started;
+- 10B5B — Administration employee workspace ACCEPTED;
+- 10B5C — Administration People acceptance ACTIVE;
 - 10B6 has NOT started;
 - Family C has NOT started;
 - Chat is the sole active writer.
@@ -1134,7 +1134,51 @@ No unresolved high-severity 10B5A hierarchy, typography, overflow or authority d
 Persistent exact-head evidence:
 - `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B5A / 08db5ba98a7275a974d674ad925409ac364faf6c / stage10b5a-r7-exact-head-evidence.zip`.
 
-10B5B — Administration employee workspace is ACTIVE.
-10B5C has NOT started.
+10B5B — Administration employee workspace is ACCEPTED.
+10B5C — Administration People acceptance is ACTIVE.
+10B6 has NOT started.
+Family C has NOT started.
+
+
+### 10B5B acceptance — Administration employee workspace
+
+Accepted exact implementation head:
+- `aaeb209e277a21366f254a25c4f245d5a66d3dd2`.
+
+Exact-head engineering gates:
+- CI PASS — run `36349010636`;
+- Migration Replay PASS — run `36349010698`;
+- Account Security PASS — run `36349010691`;
+- Complete Quality Gate PASS — run `36349010714`;
+- 245 Playwright tests passed.
+
+Deployment status:
+- Vercel is still blocked by the connected free project's external 100-deployments-per-day limit;
+- this is not an application build failure;
+- Family B final acceptance remains blocked until an exact-head Vercel deployment can run successfully.
+
+10B5B outcomes:
+- employee detail now uses the shared V2 People workspace hierarchy;
+- identity/employment state, employment record, audited history, factual work/activity, leave and protected-HR readiness are ordered deliberately;
+- existing `admin_person_detail`, `admin_employment_detail` and `admin_update_employment` paths remain unchanged;
+- employment changes still preserve effective date, change type, reason, correction linkage and historical snapshots;
+- work/session context is explicitly non-scoring and excluded from pay or disciplinary inference;
+- protected-HR placeholders remain policy-gated; salary, bank, identifiers, contracts and payslips are not invented;
+- Stage 13 Payroll remains blocked;
+- no schema, migration, RLS, RPC definition or auth change was introduced.
+
+Exact-head visual proof directly inspected:
+- 320×844;
+- approximately 390×844;
+- 1366×768;
+- 1440×900;
+- employment-change editor with correction workflow.
+
+No unresolved high-severity hierarchy, overflow, typography, touch-target or protected-HR boundary defect was found.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B5B / aaeb209e277a21366f254a25c4f245d5a66d3dd2 / stage10b5b-r7-exact-head-evidence.zip`.
+
+10B5C — Administration People acceptance is ACTIVE.
 10B6 has NOT started.
 Family C has NOT started.
