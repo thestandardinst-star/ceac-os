@@ -34,8 +34,11 @@ test.describe("Premium redesign R1 Staff",()=>{
   test("Staff Team makes the Room obvious without DMs",async({browser})=>{
     const {context,page}=await openStaff(browser);
     await side(page,"Team");
-    for(const label of ["People","Room","Resources"]) await expect(page.locator(".team-primary-tabs").getByRole("button",{name:label,exact:true})).toBeVisible();
+    await expect(page.locator(".ev2-people-page.ev2-people-staff")).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Team",exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:/Unit Room/})).toBeVisible();
+    await expect(page.getByText("People",{exact:true}).first()).toBeVisible();
+    await expect(page.getByText(/Direct message/i)).toHaveCount(0);
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-team.png",fullPage:true});
     await context.close();
   });
