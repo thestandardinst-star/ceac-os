@@ -1,7 +1,7 @@
 # Experience V2 — Stage 9 Ratification Record
 
 Date: 27 September 2026
-Status: TECHNICAL RATIFICATION COMPLETE — PRODUCT OWNER ACCEPTANCE PENDING
+Status: ACCEPTED AND COMPLETE
 
 ## Ratified technical implementation
 
@@ -146,10 +146,16 @@ Quality Gate artifact:
 Persistent evidence:
 `CEAC OS / Experience V2 / Evidence / Stage 9 / b87a0552dd8408f962d8d999494cdefeada773b2 / stage9-r7-exact-head-evidence.zip`
 
-## Remaining exit condition
+## Product-owner acceptance
 
-Engineering, visual and system-ratification work is complete.
+On 27 September 2026, after the technical-ratification checkpoint was presented, the product owner instructed: “Continue”.
 
-The canonical Stage 9 exit gate still requires product-owner acceptance of the keystone quality direction.
+That instruction is recorded as acceptance of the ratified four-keystone quality direction and authorisation to proceed to the next canonical stage.
 
-Stage 10 must not start until the product owner explicitly accepts Stage 9.
+## Exit decision
+
+Stage 9 exit gate is satisfied.
+
+Proceed to Stage 10 — Operational Screen Families.
+
+Stage 10 must rebuild by shared family, beginning with Family A — Work, and must preserve the existing work-engine behaviours, authority, evidence, auditability and security boundaries. Each family requires its own acceptance checkpoint before the next family begins.
