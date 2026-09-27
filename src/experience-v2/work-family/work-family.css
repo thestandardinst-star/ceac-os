@@ -257,6 +257,8 @@
 
 .ev2w-row-context span,
 .ev2w-row-context small {
+  font-size: inherit;
+  line-height: inherit;
   overflow-wrap: anywhere;
 }
 
