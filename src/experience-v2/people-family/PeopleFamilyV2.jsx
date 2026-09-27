@@ -1,9 +1,9 @@
 import { CeacIcon } from "../icons";
 import { Avatar, Button, StatusBadge } from "../components";
 
-export function PeopleBackButton({ onClick, label = "Team" }) {
+export function PeopleBackButton({ onClick, label = "Team", ariaLabel }) {
   return (
-    <button type="button" className="ev2p-back" aria-label={`Back to ${label}`} onClick={onClick}>
+    <button type="button" className="ev2p-back" aria-label={ariaLabel || `Back to ${label}`} onClick={onClick}>
       <CeacIcon name="chevronLeft" size="control" decorative />
       <span>{label}</span>
     </button>
