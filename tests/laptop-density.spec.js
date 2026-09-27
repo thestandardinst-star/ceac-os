@@ -24,30 +24,37 @@ async function expectNoPageOverflow(page) {
 
 test.describe.configure({ mode: "serial" });
 
-for (const [width, expectedColumns] of [[1024, 1], [1180, 2], [1366, 2]]) {
+for (const width of [1024, 1180, 1366]) {
   test(`Manager Overview keeps laptop proportions at ${width}px`, async ({ browser }) => {
     const { context, page } = await signIn(browser, "manager@ceac.local.test", { width, height: 820 });
 
-    const dashboard = page.locator(".manager-app .home-dashboard");
-    await expect(dashboard).toBeVisible();
+    const overview = page.locator(".manager-app .managerv2");
+    const main = page.locator(".manager-app .managerv2-main");
+    await expect(overview).toBeVisible();
+    await expect(main).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".manager-app .managerv2-decisions")).toBeVisible();
 
     const geometry = await page.evaluate(() => {
       const body = document.querySelector(".manager-app .app-content > .body");
-      const dashboard = document.querySelector(".manager-app .home-dashboard");
-      const rail = document.querySelector(".manager-app .reference-rail");
-      const rowTitle = document.querySelector(".manager-app .row-t");
+      const overview = document.querySelector(".manager-app .managerv2");
+      const command = document.querySelector(".manager-app .managerv2-command-grid");
+      const decisions = document.querySelector(".manager-app .managerv2-decisions");
+      const schedule = document.querySelector(".manager-app .managerv2-schedule");
       return {
         bodyWidth: body?.getBoundingClientRect().width || 0,
-        columns: dashboard ? getComputedStyle(dashboard).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
-        railPosition: rail ? getComputedStyle(rail).position : null,
-        rowTitleSize: rowTitle ? parseFloat(getComputedStyle(rowTitle).fontSize) : null,
+        overviewWidth: overview?.getBoundingClientRect().width || 0,
+        commandColumns: command ? getComputedStyle(command).gridTemplateColumns.split(" ").filter(Boolean).length : 0,
+        decisionsTop: decisions?.getBoundingClientRect().top || 0,
+        scheduleTop: schedule?.getBoundingClientRect().top || 0,
       };
     });
 
     expect(geometry.bodyWidth).toBeLessThanOrEqual(1281);
-    expect(geometry.columns).toBe(expectedColumns);
-    if (geometry.railPosition) expect(geometry.railPosition).toBe("relative");
-    if (geometry.rowTitleSize !== null) expect(geometry.rowTitleSize).toBeGreaterThanOrEqual(13);
+    expect(geometry.overviewWidth).toBeLessThanOrEqual(1217);
+    expect(geometry.commandColumns).toBe(2);
+    expect(geometry.decisionsTop).toBeLessThanOrEqual(geometry.scheduleTop + 1);
+    await expect(page.locator(".manager-app .reference-rail")).toHaveCount(0);
+    await expect(page.locator(".manager-app .reference-module-strip")).toHaveCount(0);
     await expectNoPageOverflow(page);
 
     if (width === 1180) {
