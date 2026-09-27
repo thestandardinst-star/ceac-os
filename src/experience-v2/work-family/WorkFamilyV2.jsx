@@ -210,7 +210,7 @@ export function WorkDetailHeader({
 }) {
   return (
     <>
-      <button type="button" className="ev2wd-back" onClick={onBack}>
+      <button type="button" className="ev2wd-back" aria-label="← Back" onClick={onBack}>
         <CeacIcon name="chevronLeft" size="control" decorative />
         <span>Back</span>
       </button>
