@@ -108,17 +108,19 @@ export default function ResourceWorkload({ me }) {
   }),[profiles,employmentByProfile,orgAuthority,managedUnitIds.join("|")]);
 
   useEffect(()=>{
-    if(visiblePeople.length && !visiblePeople.some((row)=>row.id===selectedProfileId)){
-      setSelectedProfileId(visiblePeople[0].id);
-    }
+    if(!visiblePeople.length) return;
+    setSelectedProfileId((current)=>
+      visiblePeople.some((row)=>row.id===current) ? current : visiblePeople[0].id
+    );
   },[visiblePeople.map((row)=>row.id).join("|")]);
 
   const manageableProjects=projects.filter((project)=>project.status!=="closed" && (orgAuthority||managedUnitIds.includes(project.lead_unit_id)));
 
   useEffect(()=>{
-    if(manageableProjects.length && !manageableProjects.some((row)=>row.id===commitmentProjectId)){
-      setCommitmentProjectId(manageableProjects[0].id);
-    }
+    if(!manageableProjects.length) return;
+    setCommitmentProjectId((current)=>
+      manageableProjects.some((row)=>row.id===current) ? current : manageableProjects[0].id
+    );
   },[manageableProjects.map((row)=>row.id).join("|")]);
 
   function latestCapacity(profileId){
