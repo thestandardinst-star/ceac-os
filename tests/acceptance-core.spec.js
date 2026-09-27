@@ -1085,11 +1085,14 @@ test("Stage 6 Workload keeps capacity components factual and manager-scoped", as
     await expect(page.getByText("Project commitment recorded.", { exact: true })).toBeVisible();
 
     await page.reload();
-    await page.getByLabel("Workload person").selectOption("31000000-0000-4000-8000-000000000001");
+    const workloadPerson = page.getByLabel("Workload person");
+    await workloadPerson.selectOption("31000000-0000-4000-8000-000000000001");
+    await expect(workloadPerson).toHaveValue("31000000-0000-4000-8000-000000000001");
     await expect(page.getByText("35 h", { exact: true }).first()).toBeVisible();
 
     const capacityMetric = page.getByRole("button", { name: /weekly planning capacity/i }).last();
     await capacityMetric.click();
+    await expect(workloadPerson).toHaveValue("31000000-0000-4000-8000-000000000001");
     await expect(page.getByText("Planning capacity history", { exact: true })).toBeVisible();
     await expect(page.getByText("Acceptance Stage 6 planning capacity", { exact: true })).toBeVisible();
 
