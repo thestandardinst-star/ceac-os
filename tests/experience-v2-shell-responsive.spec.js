@@ -220,6 +220,20 @@ test("Stage 4C all four mobile role shells stay within the 390px viewport", asyn
     expect(overflow.document, `${role.key} document overflow`).toBeLessThanOrEqual(1);
     expect(overflow.body, `${role.key} body overflow`).toBeLessThanOrEqual(1);
 
+    const labels = await mobileNav.locator("button span").evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        text: (node.textContent || "").trim(),
+        clientWidth: node.clientWidth,
+        scrollWidth: node.scrollWidth,
+      }))
+    );
+    for (const label of labels) {
+      expect(
+        label.scrollWidth - label.clientWidth,
+        `${role.key} mobile label "${label.text}" is visually clipped`
+      ).toBeLessThanOrEqual(1);
+    }
+
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage4c-${role.key}-390.png`,
       fullPage: true,

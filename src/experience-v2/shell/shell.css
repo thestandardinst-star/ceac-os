@@ -772,12 +772,13 @@
 
   .ev2s-mobile-nav button span {
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
     font-size: var(--ev2-type-label);
-    line-height: 1.1;
+    line-height: 1.05;
     font-weight: 650;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
   }
 }
 
@@ -799,12 +800,7 @@
   }
 
   .ev2s-mobile-nav button span {
-    overflow: visible;
     font-size: var(--ev2-type-label);
-    line-height: 1.05;
-    text-align: center;
-    text-overflow: clip;
-    white-space: normal;
   }
 }
 
