@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10B5 — Administration People / employee workspace (ACTIVE)
+Current substage: Stage 10 Family B — People / Team (ACCEPTED AND COMPLETE); Family C not started
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1085,8 +1085,9 @@ Work brief:
 Current 10B5 status:
 - 10B5A — Administration People directory ACCEPTED;
 - 10B5B — Administration employee workspace ACCEPTED;
-- 10B5C — Administration People acceptance ACTIVE;
-- 10B6 has NOT started;
+- 10B5C — Administration People acceptance ACCEPTED;
+- 10B5 — ACCEPTED AND COMPLETE;
+- 10B6 — Family B final acceptance ACCEPTED AND COMPLETE;
 - Family C has NOT started;
 - Chat is the sole active writer.
 
@@ -1182,3 +1183,63 @@ Persistent exact-head evidence:
 10B5C — Administration People acceptance is ACTIVE.
 10B6 has NOT started.
 Family C has NOT started.
+
+
+## Stage 10 Family B final acceptance
+
+Stage 10 Family B — People / Team is ACCEPTED AND COMPLETE.
+
+Exact accepted Family B head:
+- `2efd54803789ed0d8f92bb700c034149debc5e88`.
+
+Exact-head gates:
+- CI PASS — run `36351269890`;
+- Migration Replay PASS — run `36351269898`;
+- Account Security PASS — run `36351269929`;
+- Complete Quality Gate PASS — run `36351269909`;
+- 251 Playwright tests passed;
+- Vercel PASS — exact-head deployment `2pZ9DVYqrVrspKkvBj35vvKnHqWX`.
+
+Accepted Family B surfaces:
+- 10B2 Staff Team;
+- 10B3 Manager Team;
+- 10B4 Manager Person workspace;
+- 10B5 Administration People / employee workspace.
+
+Trust boundaries preserved:
+- no productivity score, ranking or inferred performance grade;
+- Staff Team remains collaboration/availability context, not a personnel file;
+- Manager Team and Manager Person remain unit-scoped;
+- private work remains excluded from Manager people evidence;
+- feedback remains attributable and visible; no private manager notes;
+- Administration employment authority remains behind `people.manage`;
+- protected-HR boundaries remain intact;
+- Stage 13 Payroll remains blocked;
+- no schema, migration, RLS, RPC definition, auth or capability change was introduced by Family B.
+
+Responsive acceptance covers:
+- 320;
+- 360;
+- 375;
+- approximately 390×844;
+- 414;
+- 430;
+- representative tablet/intermediate width;
+- 1366×768;
+- 1440×900.
+
+Persistent final technical/visual evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / Final / 97370ae1f3d58bf10b616907907229fc9d79201e / stage10-family-b-technical-final-r7.zip`.
+
+Family B acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_B_ACCEPTANCE_RECORD.md`.
+
+Closure documentation commits after the accepted head change documentation only; they do not alter the accepted runtime implementation or reopen the Family B product gate.
+
+Family C — Projects / Portfolio has NOT started.
+
+Next safe action:
+1. inspect the live exact branch head and current checks;
+2. read the canonical Stage 10 Family C sequence and current Projects/Portfolio authority/data paths;
+3. persist the Family C work brief before changing Projects/Portfolio product code;
+4. keep PR #72 OPEN + DRAFT and PR #71 frozen.
