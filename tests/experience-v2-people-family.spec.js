@@ -530,7 +530,7 @@ test("Stage 10 Family B5B employment change editor keeps the audited record cont
 
   await page.getByRole("button", { name: "Record change", exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Record employment change", { exact: true })).toBeVisible();
+  await expect(dialog.locator(".h2").filter({ hasText: /^Record employment change$/ })).toBeVisible();
 
   for (const label of [
     "Change",
