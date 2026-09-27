@@ -5,7 +5,6 @@
 
 .staff-app .app-content>.body{max-width:1180px!important}
 .staff-app .premium-page,
-.staff-app .staff-team,
 .staff-app .staff-record,
 .staff-app .staff-me{padding-top:14px!important}
 
@@ -94,37 +93,7 @@
 }
 
 
-/* Team */
-.staff-app .staff-team{max-width:980px!important}
-.staff-app .team-summary{
-  display:inline-flex!important;align-items:center!important;gap:8px!important;
-  padding:7px 10px!important;border-radius:999px!important;background:#eef4f8!important;color:#5d6f82!important;
-}
-.team-primary-tabs{
-  display:flex;gap:6px;margin:16px 0 8px;padding:5px;background:#edf2f7;border-radius:12px;width:max-content;max-width:100%;
-}
-.team-primary-tabs button{
-  border:0;background:transparent;color:#66778c;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:700;
-}
-.team-primary-tabs button:hover{background:#fff;color:var(--ceac-action-blue);box-shadow:0 3px 9px rgba(31,51,78,.07)}
-.staff-app .team-room-entry{
-  margin-top:8px!important;min-height:78px!important;border-radius:15px!important;padding:15px 17px!important;
-  border:1px solid #dbe6f5!important;
-  background:linear-gradient(135deg,#f3f8ff 0%,#f7fbff 55%,#eefaf7 100%)!important;
-  box-shadow:0 8px 25px rgba(37,64,96,.045)!important;
-}
-.staff-app .team-room-entry strong{font-size:14px!important;color:#173655!important}
-.staff-app .team-room-entry small{color:#728297!important}
-.staff-app .team-stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px!important;margin-top:16px!important}
-.staff-app .team-section{
-  margin:0!important;border:1px solid #e2e7ee!important;border-radius:15px!important;background:#fff!important;overflow:hidden;
-  box-shadow:0 7px 22px rgba(35,53,79,.04)!important;
-}
-.staff-app .team-section-toggle{padding:14px 15px!important;background:#fff!important}
-.staff-app .team-section-body{border-top:1px solid #edf0f4!important}
-.staff-app .team-person-row,.staff-app .team-compact-row,.staff-app .team-resource-row{
-  margin:0!important;border:0!important;border-bottom:1px solid #edf0f4!important;border-radius:0!important;background:#fff!important;padding:12px 15px!important;
-}
+/* Team V2 keeps the shared scroll-anchor behaviour only. */
 .team-scroll-anchor{scroll-margin-top:88px}
 
 /* My Hub */
