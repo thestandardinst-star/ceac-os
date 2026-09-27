@@ -1,6 +1,72 @@
 import { CeacIcon } from "../icons";
 import { Avatar, Button, StatusBadge } from "../components";
 
+export function PeopleBackButton({ onClick, label = "Team" }) {
+  return (
+    <button type="button" className="ev2p-back" aria-label={`Back to ${label}`} onClick={onClick}>
+      <CeacIcon name="chevronLeft" size="control" decorative />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+export function PeoplePersonHeader({
+  name,
+  eyebrow,
+  subtitle,
+  context,
+}) {
+  return (
+    <header className="ev2p-person-header">
+      <Avatar name={name} size="lg" />
+      <div className="ev2p-person-header-copy">
+        {eyebrow ? <span className="ev2p-eyebrow">{eyebrow}</span> : null}
+        <h1>{name || "—"}</h1>
+        {subtitle ? <p>{subtitle}</p> : null}
+        {context ? <small>{context}</small> : null}
+      </div>
+    </header>
+  );
+}
+
+export function PeopleEvidenceSummary({ facts = [], note }) {
+  return (
+    <section className="ev2p-evidence-summary" aria-label="Factual operating context">
+      <div className="ev2p-evidence-summary-grid">
+        {facts.map((fact) => (
+          <div key={fact.label} className={`ev2p-evidence-summary-item ${fact.tone ? `is-${fact.tone}` : ""}`}>
+            <strong>{fact.value}</strong>
+            <span>{fact.label}</span>
+          </div>
+        ))}
+      </div>
+      {note ? <p>{note}</p> : null}
+    </section>
+  );
+}
+
+export function PeopleWorkspaceSection({
+  id,
+  title,
+  description,
+  meta,
+  children,
+  className = "",
+}) {
+  return (
+    <section id={id} className={`ev2p-workspace-section ${className}`.trim()}>
+      <div className="ev2p-workspace-section-head">
+        <div>
+          <h2>{title}</h2>
+          {description ? <p>{description}</p> : null}
+        </div>
+        {meta ? <div className="ev2p-workspace-section-meta">{meta}</div> : null}
+      </div>
+      <div className="ev2p-workspace-section-body">{children}</div>
+    </section>
+  );
+}
+
 export function PeoplePageHeader({
   eyebrow,
   title,
