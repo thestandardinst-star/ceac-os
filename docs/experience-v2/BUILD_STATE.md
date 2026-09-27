@@ -7,7 +7,7 @@ Last updated: 27 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10A1 — Work lists and queues; contract locked, implementation next
+Current substage: 10B3 — Manager Team migration
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -887,7 +887,11 @@ Stage 10 Family A — Work is ACCEPTED AND COMPLETE.
 
 ## Stage 10 Family B active work
 
-Family B — People/Team is now ACTIVE at 10B1 audit/contract only.
+Family B — People/Team is ACTIVE.
+
+10B1 audit/contract: COMPLETE.
+10B2 Staff Team: ACCEPTED on engineering + visual evidence.
+10B3 Manager Team: ACTIVE.
 
 Canonical family scope:
 - Staff Team;
@@ -895,7 +899,26 @@ Canonical family scope:
 - Manager Person workspace;
 - Administration People / employee workspace.
 
-No Family B product code has been changed yet.
+10B2 accepted implementation head:
+- `bee47248aad438359599af3821ae4f2dc347ba79`.
+
+10B2 exact-head verification:
+- CI PASS — run `36341805409`;
+- Migration Replay PASS — run `36341805419`;
+- Account Security PASS — run `36341805416`;
+- Complete Quality Gate PASS — run `36341805405`;
+- exact-head Staff Team evidence directly inspected at 320×844, 390×844, 1366×768 and 1440×900;
+- no page-level overflow, sub-12px operational text or high-severity hierarchy defect observed;
+- Staff Team remains unit-scoped and retains the existing Unit Room, approved leave, recent joiner, leadership, birthday and unit-resource authority paths;
+- no direct-message feature, manager-only evidence, protected HR data, schema, RLS, RPC or auth expansion was introduced.
+
+Persistent 10B2 evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family B / 10B2 / bee47248aad438359599af3821ae4f2dc347ba79 / stage10b2-r7-exact-head-evidence.zip`.
+
+Deployment note:
+- Vercel did not run for this head because the connected free project exceeded its 100-deployments-per-day limit;
+- this is an external deployment-rate limit, not an application build failure;
+- Family B final acceptance remains blocked on an exact-head Vercel deployment once that limit opens.
 
 Protected rules for Family B:
 - factual people/work/activity evidence must not become productivity scores or rankings;
@@ -906,3 +929,30 @@ Protected rules for Family B:
 - payroll remains blocked;
 - no schema/RLS/RPC/auth change is presumed;
 - Chat is the sole active writer.
+
+
+### 10B3 active — Manager Team
+
+Manager Team is now the only active Family B product migration.
+
+10B3 must preserve:
+- unit-scoped people membership;
+- private-work exclusion;
+- factual presence/session/submission/current-work context;
+- current completed/overdue/awaiting/submitted derivations without scoring or ranking;
+- Person workspace focus links;
+- invitations;
+- sub-team add/rename/reorder/removal with attached-work reassignment protection;
+- unit resources and Unit Room;
+- Give out work preselection by sub-team.
+
+Presentation target:
+- unit identity and coordination first;
+- factual people context and people rows before secondary setup;
+- team setup/resources visually secondary;
+- factual evidence buttons remain drill-downs, never productivity judgments.
+
+10B4 has NOT started.
+10B5 has NOT started.
+10B6 has NOT started.
+Family C has NOT started.
