@@ -5,7 +5,7 @@ const roles = [
   ["staff@ceac.local.test", ".staff-app", "Staff", ".staffv2"],
   ["manager@ceac.local.test", ".manager-app", "Manager", ".managerv2"],
   ["admin@ceac.local.test", ".office-app", "Administration", ".adminv2"],
-  ["exec@ceac.local.test", ".executive-app", "Executive", ".executive-intelligence-grid"],
+  ["exec@ceac.local.test", ".executive-app", "Executive", ".executivev2"],
 ];
 
 async function openRole(browser, email, appClass, readySelector, reducedMotion = "no-preference", viewport = { width: 1440, height: 960 }) {
@@ -53,11 +53,12 @@ test.describe("Premium redesign R7 closure", () => {
         await expect(page.locator(".reference-calendar-card")).toHaveCount(0);
         await expect(page.locator(".admin-command-surface")).toHaveCount(0);
       } else {
-        await expect(page.locator(".reference-rail")).toBeVisible();
-        await expect(page.locator(".reference-calendar-card")).toBeVisible();
-        await expect(page.locator(".executive-command-surface")).toBeVisible();
-        const heroBackground = await page.locator(".executive-command-surface").evaluate((el) => getComputedStyle(el).backgroundImage);
-        expect(heroBackground).toContain("ceac-hero-landscape.svg");
+        await expect(page.locator(".executivev2")).toBeVisible();
+        await expect(page.locator(".executivev2-main")).toBeVisible({ timeout: 15000 });
+        await expect(page.locator(".executivev2-attention")).toBeVisible();
+        await expect(page.locator(".reference-module-strip")).toHaveCount(0);
+        await expect(page.locator(".reference-calendar-card")).toHaveCount(0);
+        await expect(page.locator(".executive-command-surface")).toHaveCount(0);
       }
 
       const unnamed = await page.evaluate(() => [...document.querySelectorAll("button,a,input,select,textarea")]
