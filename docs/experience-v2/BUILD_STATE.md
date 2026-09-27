@@ -743,8 +743,8 @@ Pre-work visual evidence inspected from Quality Gate run `36325853986`:
 
 10A internal sequence:
 1. 10A1 — Work lists and queues — ACCEPTED.
-2. 10A2 — Work Detail — ACTIVE.
-3. 10A3 — assignment, review, return and dependency.
+2. 10A2 — Work Detail — ACCEPTED.
+3. 10A3 — assignment, review, return and dependency — ACTIVE.
 4. 10A4 — Family A acceptance.
 
 Family B must not begin until Family A is accepted.
@@ -777,6 +777,32 @@ Exact-head gates:
 
 The first 10A1 Quality Gate attempt on `1683122790b0ac5be4f6d0fddbc5f833e705cc77` correctly caught one real visual-system violation: inherited `small` styling rendered Work-row due metadata at 10.833px. The source CSS was corrected; no threshold or test was weakened.
 
-10A2 — Work Detail is now ACTIVE.
-10A3 has NOT started.
+10A2 — Work Detail is ACCEPTED.
+10A3 — assignment, review, return and dependency is now ACTIVE.
+Family B has NOT started.
+
+
+### 10A2 acceptance — Work Detail
+
+Accepted exact implementation head:
+- `74fddf56d096f3bf2125de76810935c0ca5870c8`.
+
+Exact-head gates:
+- CI PASS — run `36332693790`;
+- Migration Replay PASS — run `36332693776`;
+- Account Security PASS — run `36332693786`;
+- Complete Quality Gate PASS — run `36332693778`;
+- Vercel PASS.
+
+10A2 outcomes:
+- shared Work Detail presentation now uses the V2 Work-family hierarchy while preserving the existing `Item.jsx` work-engine behaviour;
+- identity/status, room trace, purpose, expected outcome, type-specific detail, checklist/actions and supporting state remain on the same underlying data/RPC paths;
+- purpose now precedes finished-result and instructions in the approved working hierarchy;
+- no Work RPC, RLS, auth, private-work, ownership, blocker or review authority changed;
+- 320px and 1366×768 Staff Work Detail regression proof passes with no page-level horizontal overflow and a 12px minimum operational-text floor;
+- direct exact-head screenshot inspection found no high-severity Work Detail geometry, hierarchy or responsive defect.
+
+During 10A2, the cumulative visual inventory also exposed a pre-existing populated Compliance typography-floor defect (9.5–11px metadata). That defect was corrected at source to the ratified 12px floor and regression-guarded. The gate was not weakened.
+
+10A3 — assignment, review, return and dependency is now ACTIVE.
 Family B has NOT started.
