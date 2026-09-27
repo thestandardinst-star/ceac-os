@@ -163,3 +163,67 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family A3 preserves assignment review return and dependency authority", async () => {
+  const assign = readFileSync("src/screens/Assign.jsx", "utf8");
+  const detail = readFileSync("src/screens/Item.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/work-family/work-family.css", "utf8");
+
+  expect(assign).toContain("ev2-work-assignment");
+  expect(assign).toContain("WorkBackButton");
+  expect(assign).toContain("WorkPageHeader");
+  for (const kind of ["task", "deliverable", "request", "routine", "decision", "case", "meeting_outcome"]) {
+    expect(assign).toContain(`["${kind}"`);
+  }
+
+  expect(detail).toContain('supabase.rpc("submit_work_for_review"');
+  expect(detail).toContain('supabase.rpc("approve_work_submission"');
+  expect(detail).toContain('supabase.rpc("return_work_for_correction"');
+  expect(detail).toContain('supabase.rpc("raise_work_blocker"');
+  expect(detail).toContain('supabase.rpc("resolve_blocker"');
+  expect(detail).toContain('title="Review submitted work"');
+  expect(detail).toContain('sheet === "manager-review-return"');
+  expect(detail).toContain('sheet === "manager-review-approve"');
+
+  expect(css).toContain("/* Stage 10A3 — Assignment / review / dependency */");
+  expect(css).toContain(".ev2-work-assignment");
+  expect(css).toContain(".ev2wr-panel");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "laptop", width: 1366, height: 768 },
+]) {
+  test(`Stage 10 Family A3 Manager assignment composes at ${viewport.name}`, async ({ browser }) => {
+    const role = roles[1];
+    const { context, page } = await openWork(browser, role, { width: viewport.width, height: viewport.height });
+
+    await page.getByRole("button", { name: "Give out work", exact: true }).first().click();
+    await expect(page.locator(".ev2-work-assignment")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Give out work", exact: true })).toBeVisible();
+    await expect(page.getByRole("radiogroup", { name: "Work intention" })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const tiny = await page.locator(".ev2-work-assignment").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(tiny).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10a3-assignment-manager-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
