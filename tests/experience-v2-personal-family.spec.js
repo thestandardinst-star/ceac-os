@@ -589,3 +589,26 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family H Administration cannot be reached from ordinary Staff or Manager roles", async ({ browser }) => {
+  for (const role of [roles[0], roles[1]]) {
+    const { context, page } = await openHub(browser, role, { width: 390, height: 844 });
+    await page.goto("/?tab=settings");
+    await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toHaveCount(0);
+    await page.goto("/?tab=units");
+    await expect(page.getByRole("heading", { name: "Units", exact: true })).toHaveCount(0);
+    await page.goto("/?tab=office-settings");
+    await expect(page.getByRole("heading", { name: "Organisation settings", exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
+
+test("Stage 10 Family H Executive Organisation stays Executive-only", async ({ browser }) => {
+  for (const role of [roles[0], roles[1], roles[2]]) {
+    const { context, page } = await openHub(browser, role, { width: 390, height: 844 });
+    await page.goto("/?tab=exec-organisation");
+    await expect(page.getByText("Read-only leadership context", { exact: true })).toHaveCount(0);
+    await context.close();
+  }
+});
