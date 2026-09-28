@@ -2025,15 +2025,63 @@ Quality Gate evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_E_10E4_ACCEPTANCE_RECORD.md`.
 
-10E5 — Family E final acceptance is ACTIVE.
+10E5 — Family E final acceptance is ACCEPTED AND COMPLETE.
 
-Family-level verification basis:
-- exact application SHA `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb` already passed the complete Level B gate after the final 10E4 correction;
-- #1038 includes Family E2 Manager Finance across every required viewport, Finance-handler scoping, Family E3 Administration Finance across every required viewport, Family E4 Executive Finance across every required viewport, the Stage 6 Manager finance path and the closure finance request → authority → evidence → actual-spend journey;
-- no product code has changed after that Level B application SHA;
-- 10E5 must inspect the family-wide evidence, persist the final Family E acceptance record and pass the documentation fast path before Family F writes begin.
+Exact accepted Family E application head:
+- `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb`.
 
-Family F — Reports has NOT started.
+Complete family Level B:
+- CI PASS — run `36416271591` (#1229);
+- Migration Replay PASS — run `36416271736` (#840);
+- Account Security PASS — run `36416271604` (#1012);
+- Complete Quality Gate PASS — run `36416271615` (#1038);
+- Vercel PASS;
+- complete SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS.
+
+Family-wide proof on #1038:
+- Manager Finance across every required viewport;
+- ordinary Manager / Finance-handler authority separation;
+- Administration Finance across every required viewport;
+- Executive Finance across every required viewport;
+- Stage 6 Manager own-unit spend path;
+- closure finance request → authority → evidence reference → actual-spend journey;
+- currency separation, append-only spend history, reversal relationships, two-sided transfer truth, missing-budget truthfulness and explicit not-a-bank-balance semantics preserved;
+- no schema, migration, RLS, RPC, authentication or capability change;
+- no payroll, forecast, finance score, ranking, estimate, probability or unsupported KPI introduced.
+
+Final evidence:
+- `redesign-r7-product-inspection` artifact `10967568018`;
+- digest `sha256:19ef5da5d3b3ab8b5a61cd33d6a40d1fc3fc0078d778684d2dad4c5bd706eca6`;
+- exact application head `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_E_ACCEPTANCE_RECORD.md`.
+
+Stage 10 Family E — Finance is ACCEPTED AND COMPLETE.
+
+## Stage 10 Family F — Reports
+
+10F1 — Reports audit and contract is ACTIVE.
+
+Read-only audit already established:
+- there is no separate Staff Reports surface in the approved shell;
+- Manager Reports is the managed-unit authoring/evidence workspace and already owns period/project evidence, draft/submission/correction history and Ministry Numbers context;
+- Administration Reports owns reporting periods, coverage/filing operations and organisation-wide reporting context;
+- Executive Reports is read-only leadership coverage/context and must not gain period configuration or report-authoring authority;
+- Family F must preserve report evidence references, submitted/frozen report history, superseding/correction semantics, role scope and existing report authority;
+- current Reports surfaces contain legacy metric/card/chart geometries that should migrate into one shared Experience V2 reporting family;
+- Stage 11 remains responsible for the dedicated data-visualisation refinement pass, so Family F must not introduce new decorative chart capability;
+- no schema, migration, RLS, RPC, authentication or capability change is authorised unless a separately proven defect requires it.
+
+Immediate next action:
+- lock the Family F Reports work brief from the existing report domain and authority contracts;
+- verify the documentation head through the documentation fast path;
+- then begin Manager Reports as the first implementation substage.
+
+Family G — My Hub / Account has NOT started.
+Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
 Chat remains the sole active writer.
