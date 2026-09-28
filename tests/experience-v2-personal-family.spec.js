@@ -492,7 +492,7 @@ for (const viewport of [
 ]) {
   test(`Stage 10 Family G7 Your account composes at ${viewport.name}`, async ({ browser }) => {
     const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
-    await page.goto("/?tab=account-activity");
+    await page.goto("/?tab=account");
 
     await expect(page.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
     await expect(page.getByText("Self-only security", { exact: true })).toBeVisible();
