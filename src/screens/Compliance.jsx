@@ -247,12 +247,18 @@ export default function Compliance({ me }) {
 
   if(loading)return <div className="body"><LoadingState label="Loading compliance…" /></div>;
 
-  return <div className="body compliance-page">
-    <div style={{paddingTop:26}}>
+  const personalCompliance = !canManage && !isManager && !me.is_admin;
+  return <div className={`body compliance-page ${personalCompliance ? "ev2-personal-page ev2-personal-compliance" : ""}`.trim()}>
+    {personalCompliance ? <PersonalPageHeader
+      eyebrow="My Hub"
+      title="Compliance"
+      description="Policies that apply to you, your acknowledgements, factual evidence and approved exceptions. CEAC OS does not calculate a personal compliance score."
+      statusLabel="My compliance"
+    /> : <div style={{paddingTop:26}}>
       <div className="eyebrow">Rules + evidence + exceptions</div>
       <h1 className="h1">Compliance</h1>
       <p className="screen-note">Policy applicability, acknowledgement, evidence, expiry and approved exceptions are recorded as facts. CEAC OS does not calculate an employee compliance score.</p>
-    </div>
+    </div>}
     {error&&<ProductNotice tone="error" title="Compliance">{error}</ProductNotice>}
     {notice&&<ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}
 
