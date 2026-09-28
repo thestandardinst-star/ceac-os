@@ -651,3 +651,31 @@
     justify-self: start;
   }
 }
+
+
+/* Family H2 — Organisation settings compatibility. */
+.ev2-office-settings {
+  width: min(100%, 82rem);
+  margin-inline: auto;
+}
+
+.ev2-office-settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.ev2-office-settings-header > div {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .ev2-office-settings-header {
+    display: grid;
+  }
+
+  .ev2-office-settings-header > .ev2c-status {
+    justify-self: start;
+  }
+}
