@@ -469,6 +469,7 @@ test("Stage 10 Family H1 keeps Control Center capability-filtered while aligning
   expect(control).toContain('action:()=>go("office-settings")');
   expect(control).toContain("Everyday employee and manager work stays outside this area.");
   expect(control).toContain("CeacIcon");
+  expect(control).toContain('icon:"add"');
   expect(control).toContain("StatusBadge");
   expect(control).toContain("ev2-control-center");
 });
