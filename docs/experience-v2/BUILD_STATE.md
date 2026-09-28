@@ -6,8 +6,8 @@ Last updated: 28 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10G3 — Personal leave in My Hub (ACTIVE)
+Current stage: Stage 11 — Calendar and Data Visualisation (ACTIVE)
+Current substage: 11A — Calendar and data-visualisation audit and contract (ACTIVE)
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
@@ -2395,36 +2395,112 @@ Vercel reconciliation:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_G_10G2_ACCEPTANCE_RECORD.md`.
 
-10G3–10G8 implementation is now present on canonical branch and awaiting exact-head acceptance:
-- 10G3 — personal Leave migrated into the personal-family language while preserving `workforce_request_leave`, employee cancellation, confirmed-policy truth and Family D decision authority;
-- 10G4 — personal Reviews & development aligned to the My Hub family while preserving evidence-first review, human judgement, employee reply and all accepted Stage 7 RPC paths;
-- 10G5 — personal Learning aligned to My Hub while preserving assignment/completion evidence and the no-score contract;
-- 10G6 — personal Assets aligned to My Hub while preserving factual custody/lifecycle authority and no remote-device-management claim;
-- 10G7 — personal Compliance aligned to My Hub while preserving policy acknowledgement, evidence and exception authority and the no-score contract;
-- 10G8 — My work history aligned to My Hub while preserving factual work/session/feedback history, human month/year controls and correction authority.
+10G3–10G8 — ACCEPTED AND COMPLETE.
 
-No schema, migration, RLS, RPC, authentication or capability change was introduced by 10G3–10G8.
+Exact accepted Family G application head:
+- `910878c2298713c1fa75aba909d43deda2341c87`.
 
-Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Subsequent canonical work completed 10G4–10G8 and moved into Family H, so superseded intermediate runs were intentionally cancelled by the committed CI/build acceleration protocol. The current exact head must receive CI, Migration Replay, Account Security and complete Quality Gate green before Family G/H acceptance is recorded.
+Complete Family G Level B:
+- CI PASS — run `36481141199` (#1345);
+- Migration Replay PASS — run `36481141002` (#956);
+- Account Security PASS — run `36481141005` (#1128);
+- Complete Quality Gate PASS — run `36481141060` (#1154);
+- all four browser shards PASS;
+- complete SQL/RLS/authority contracts PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
 
-Family H — Ministry / Organisation / Control Center is ACTIVE.
+Family G final evidence:
+- `redesign-r7-product-inspection` artifact `10997285580`;
+- digest `sha256:63156b36c1d79b4c84d89cfc8d6bdd57f42cb541e9a24444e5e3cd99a1f24438`;
+- responsive proof spans My Hub, personal leave, reviews/development, learning, assets, compliance and Your account;
+- direct exact-head inspection covered the 390px leave-request sheet, 1366px Reviews & development, 1366px Assets & devices, and Your account at 320px and 1366px;
+- account sessions and account-activity RPC failures remain independently truthful rather than collapsing into empty-state claims;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
 
-Implemented so far:
-- 10H1 — Control Center aligned to shared V2 icon/status primitives while preserving capability-filtered navigation;
-- 10H2 — Organisation settings hierarchy clarified while preserving office-location, leave-policy, threshold and invitation persistence;
-- 10H3 — Executive Organisation explicitly presents read-only leadership context and retains query-only authority;
-- 10H4 — Administration Units retain the accepted workspace model while strengthening shared Unit identity and factual Unit Head state.
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_G_ACCEPTANCE_RECORD.md`.
 
-Acceptance is not yet claimed; exact-head gates are pending. Responsive acceptance coverage now spans Control Center at 320/390/900/1366/1440, Executive Organisation at 320/390/1366/1440, Organisation settings at 320/390/1366/1440 and Administration Units at 320/390/1366/1440, with page-level overflow checks and screenshots.
+Stage 10 Family G — My Hub / Account is ACCEPTED AND COMPLETE.
 
-Family H authority boundary:
-- Administration Control Center remains the configuration/governance entry point;
-- Organisation settings retain current office-location, confirmed leave-policy, deterministic attention-rule and invitation persistence;
-- Units retain their accepted organisation/work/project/objective/finance/report/workforce context and unit-head authority;
-- Executive Organisation remains read-only leadership context;
-- no settings surface may imply policy or configuration that CEAC has not confirmed;
-- no schema, migration, RLS, RPC, authentication or capability change without a separately accepted authority need.
-- acceptance coverage also verifies Administration Control Center/Units/Organisation settings are not reachable as those surfaces from ordinary Staff/Manager roles, and Executive Organisation stays Executive-only.
+## Stage 10 Family H — Ministry / Organisation / Control Center
+
+Family H implementation is ACCEPTED AND COMPLETE.
+
+Exact accepted Family H application head:
+- `910878c2298713c1fa75aba909d43deda2341c87`.
+
+The implementation was already present on canonical history before Family G documentation reconciliation. It was preserved rather than reverted, then formally accepted only after Family G acceptance and after the same exact application SHA passed the complete Level B boundary.
+
+Accepted Family H scope:
+- 10H1 — Administration Control Center;
+- 10H2 — Organisation settings;
+- 10H3 — Executive Organisation;
+- 10H4 — Administration Units;
+- Family H authority and route-boundary coverage.
+
+Complete Family H Level B:
+- CI PASS — run `36481141199` (#1345);
+- Migration Replay PASS — run `36481141002` (#956);
+- Account Security PASS — run `36481141005` (#1128);
+- Complete Quality Gate PASS — run `36481141060` (#1154);
+- all four browser shards PASS;
+- complete SQL/RLS/authority contracts PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+Family H evidence:
+- `redesign-r7-product-inspection` artifact `10997285580`;
+- Control Center, Executive Organisation, Organisation settings and Administration Units cover 320/360/375/390/414/430/900/1366/1440;
+- direct exact-head inspection covered 1366px Control Center, 390px Organisation settings, 1366px Executive Organisation and 390px Administration Units;
+- ordinary Staff/Manager routes remain outside Administration governance surfaces;
+- Executive Organisation remains Executive-only and read-only;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_H_ACCEPTANCE_RECORD.md`.
+
+Stage 10 Family H — Ministry / Organisation / Control Center is ACCEPTED AND COMPLETE.
+
+Stage 10 — Operational Screen Families is ACCEPTED AND COMPLETE.
+
+## Stage 11 — Calendar and Data Visualisation
+
+Stage 11 is ACTIVE.
+
+Current substage:
+- 11A — Calendar and data-visualisation audit and contract.
+
+Binding scope from `IMPLEMENTATION_SEQUENCE.md`:
+- calendar month/week/day behaviour only where supported;
+- selected-date state;
+- schedule detail;
+- event/meeting relationship;
+- responsive layout;
+- keyboard/touch states;
+- transitions;
+- coherent CEAC chart language;
+- tooltips/focus states;
+- chart/table parity where required;
+- finance/workload/reporting visualisations;
+- no decorative or invented data.
+
+Stage 11 protected boundaries:
+- preserve existing Calendar data/RLS/RPC/meeting/work/leave/project/ministry authority;
+- preserve chart/table traceability and authoritative row access;
+- do not invent unsupported calendar views or trend data;
+- do not introduce decorative charts;
+- do not begin Experience V2 Stage 12 motion work early except motion required for truthful Stage 11 calendar/data interaction;
+- frozen enterprise PR #71 remains untouched;
+- no schema, migration, RLS, RPC, auth or capability change without a separately proven need.
+
+Exact next action:
+- read the Calendar/collaboration and data-visualisation domain contracts;
+- audit Staff, Manager and Administration calendars plus every active Chart consumer and current Chart primitive;
+- persist the Stage 11 work brief before product-code changes;
+- then begin the first bounded Stage 11 implementation under the Level A/Level B protocol.
 
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
