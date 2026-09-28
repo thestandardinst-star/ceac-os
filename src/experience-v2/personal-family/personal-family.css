@@ -521,3 +521,26 @@
 .ev2-personal-page .ev2pf-row-action .ev2c-button-compact {
   min-height: var(--ev2-control-min);
 }
+
+
+/* Family G4 — personal review compatibility: the shared personal header frames the
+   existing evidence-first review workflow without changing its authority or data model. */
+.ev2-personal-review {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-review > .ev2pf-header {
+  margin-bottom: var(--ev2-space-4);
+}
+
+.ev2-personal-review .performance-layout,
+.ev2-personal-review .performance-review,
+.ev2-personal-review .performance-case-list {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .ev2-personal-review .performance-layout {
+    margin-top: var(--ev2-space-3);
+  }
+}
