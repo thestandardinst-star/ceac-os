@@ -22,6 +22,9 @@ case "$scope" in
   reports)
     tests=(tests/premium-redesign-r7.spec.js tests/role-routing.spec.js)
     ;;
+  personal)
+    tests=(tests/experience-v2-personal-*.spec.js tests/role-routing.spec.js)
+    ;;
   shell)
     tests=(
       tests/experience-v2-components.spec.js

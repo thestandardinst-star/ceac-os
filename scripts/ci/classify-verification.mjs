@@ -60,6 +60,7 @@ const levelB =
     databaseOrSecurityChanged);
 
 const scopeRules = [
+  ["personal", /personal-family|\/Me\.jsx$|\/AccountActivity\.jsx$|\/Performance\.jsx$|\/Learning\.jsx$|\/Assets\.jsx$|\/Compliance\.jsx$/i],
   ["finance", /finance|cost|spend|budget|transfer|expense/i],
   ["workforce", /workforce|attendance|leave|session|calendar/i],
   ["project", /project|portfolio|delivery|objective/i],
