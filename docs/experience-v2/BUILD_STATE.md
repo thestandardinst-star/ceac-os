@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C4 — Executive Portfolio / Delivery (ACTIVE)
+Current substage: 10C5 — Family C final acceptance (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1367,3 +1367,51 @@ Persistent exact-head evidence:
 10C5 has NOT started.
 Family D has NOT started.
 Chat is the sole active writer.
+
+
+### 10C4 acceptance — Executive Portfolio / Delivery
+
+10C4 — Executive Portfolio / Delivery is ACCEPTED AND COMPLETE.
+
+Accepted exact implementation head:
+- `a99f6add6ef7dd0a32e12b40bb14c3917533589f`.
+
+Exact-head gates:
+- CI PASS — run `36374879190`;
+- Migration Replay PASS — run `36374879069`;
+- Account Security PASS — run `36374879055`;
+- Complete Quality Gate PASS — run `36374878986`;
+- 278 Playwright tests passed;
+- Vercel PASS — exact-head deployment `EtLcEadjuPqty2X9FLZeTXQeqr5h`.
+
+10C4 outcomes:
+- Executive Portfolio now uses the shared Experience V2 Project-family hierarchy;
+- portfolio briefing and factual recorded attention precede programme structure and detailed project controls;
+- attention uses only explicit Watch / At risk / Blocked health or open high / critical register items;
+- selected-project, programme/portfolio, milestone, risk/issue, participant-register and dependency context remain on the existing data and authority paths;
+- explicit priority/health, sponsor/owner and change-reason semantics remain intact;
+- participant-register actions recompose into practical 44px controls on narrow phones;
+- no hidden scoring, probability, ranking, schema, migration, RLS, RPC definition, auth or capability change was introduced.
+
+Responsive proof covers:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Exact-head rendered evidence was directly inspected. No unresolved high-severity 10C4 hierarchy, typography, overflow, touch-target, authority or hidden-scoring defect remains.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C4 / a99f6add6ef7dd0a32e12b40bb14c3917533589f / stage10c4-a99-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_C_10C4_ACCEPTANCE_RECORD.md`.
+
+10C5 — Family C final acceptance is now ACTIVE.
+Family D has NOT started.
+Codex/Work is the sole active writer.
