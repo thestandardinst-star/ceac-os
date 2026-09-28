@@ -34,9 +34,39 @@ test("Stage 10 Family E3 preserves Administration finance authority and ledger s
   expect(finance).toContain("not a bank balance");
   expect(finance).toContain("unconfirmed transfers are not counted as confirmed money in");
   expect(finance).toContain("ev2-finance-admin");
+  expect(finance).toContain("const [loadError, setLoadError]");
+  expect(finance).toContain("results.find((result) => result.error)");
+  expect(finance).toContain('title="Finance records could not be loaded"');
+  expect(finance).toContain("const hasBudget = budgets.some");
+  expect(finance).toContain('"Not recorded"');
   expect(finance).not.toContain(".delete(");
   expect(css).toContain(".ev2-finance-admin");
   expect(css).not.toContain("!important");
+});
+
+test("Stage 10 Family E3 keeps a failed finance read distinct from a truthful empty ledger", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("admin@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".office-app")).toBeVisible({ timeout: 15000 });
+
+  await page.route("**/rest/v1/budgets*", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "fixture finance read failed" }),
+    });
+  });
+
+  await page.goto("/?tab=finance");
+  await expect(page.locator(".ev2-finance-admin")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Finance records could not be loaded", { exact: true })).toBeVisible();
+  await expect(page.getByText("No finance records yet", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Try again", exact: true })).toBeVisible();
+  await context.close();
 });
 
 for (const viewport of [
@@ -58,6 +88,21 @@ for (const viewport of [
       await expect(financeTabs.getByRole("button", { name: tab, exact: true })).toBeVisible();
     }
     await expect(financeTabs.getByRole("button", { name: "Overview", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+    const tabBounds = await financeTabs.evaluate((container) => {
+      const parent = container.getBoundingClientRect();
+      return [...container.querySelectorAll("button")].map((button) => {
+        const rect = button.getBoundingClientRect();
+        return { left: rect.left - parent.left, right: parent.right - rect.right };
+      });
+    });
+    for (const bounds of tabBounds) {
+      expect(bounds.left, `Finance section starts outside ${viewport.width}px tab area`).toBeGreaterThanOrEqual(-1);
+      expect(bounds.right, `Finance section ends outside ${viewport.width}px tab area`).toBeGreaterThanOrEqual(-1);
+    }
+    if (viewport.width <= 760) {
+      await expect(financeTabs).toHaveCSS("display", "grid");
+    }
     await expect(page.getByText("Requests needing Administration", { exact: true })).toBeVisible();
     await expect(page.getByText(/not a bank balance/i).first()).toBeVisible();
 
