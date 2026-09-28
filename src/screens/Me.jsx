@@ -363,14 +363,15 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
           const dayLabel = request.days === null || request.days === undefined
             ? "Day count not recorded"
             : `${request.days} recorded day${Number(request.days) === 1 ? "" : "s"}`;
-          return <PersonalRecordRow
-            key={request.id}
-            title={`${kindLabel} leave`}
-            meta={`${dayLabel} · ${dateOnly(request.start_date)} — ${dateOnly(request.end_date)} · ${statusLabel}`}
-            action={(request.status === "pending" || request.status === "escalated")
-              ? <Button variant="quiet" size="sm" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</Button>
-              : null}
-          />;
+          return <div className="leave-request-row" key={request.id}>
+            <PersonalRecordRow
+              title={`${kindLabel} leave`}
+              meta={`${dayLabel} · ${dateOnly(request.start_date)} — ${dateOnly(request.end_date)} · ${statusLabel}`}
+              action={(request.status === "pending" || request.status === "escalated")
+                ? <Button variant="quiet" size="sm" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</Button>
+                : null}
+            />
+          </div>;
         })
         : <PersonalEmpty title="No leave requests recorded" description="Your own requests will remain visible here after they are submitted." />}
     </PersonalSection> : null}
