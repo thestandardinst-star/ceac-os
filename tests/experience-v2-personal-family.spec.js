@@ -458,3 +458,17 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family H1 keeps Control Center capability-filtered while aligning shared V2 primitives", async () => {
+  const control = readFileSync("src/screens/ControlCenter.jsx", "utf8");
+  expect(control).toContain('caps.has("authority.manage")');
+  expect(control).toContain('caps.has("compliance.manage")');
+  expect(control).toContain('caps.has("audit.view")');
+  expect(control).toContain('caps.has("integration.manage")');
+  expect(control).toContain('action:()=>go("office-settings")');
+  expect(control).toContain("Everyday employee and manager work stays outside this area.");
+  expect(control).toContain("CeacIcon");
+  expect(control).toContain("StatusBadge");
+  expect(control).toContain("ev2-control-center");
+});
