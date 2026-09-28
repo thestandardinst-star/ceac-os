@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { humanError } from "../lib/productLanguage";
+import { PersonalPageHeader } from "../experience-v2/personal-family/PersonalFamilyV2";
 import { Sheet } from "../components/bits";
 
 function accraDateKey(value) {
