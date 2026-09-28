@@ -424,3 +424,37 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G8 keeps My work history factual while aligning it with My Hub", async () => {
+  const record = readFileSync("src/screens/Record.jsx", "utf8");
+  expect(record).toContain('supabase.from("work_items")');
+  expect(record).toContain('supabase.from("work_sessions")');
+  expect(record).toContain('supabase.from("feedback_notes")');
+  expect(record).toContain('supabase.rpc("reconcile_closed_work_session"');
+  expect(record).toContain("Private work and personal goals remain outside this history.");
+  expect(record).toContain("ev2-personal-record");
+  expect(record).toContain('aria-label="History month"');
+  expect(record).toContain('aria-label="History year"');
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G8 My work history composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "My work history", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "My work history", exact: true })).toBeVisible();
+    await expect(page.locator(".ev2-personal-record")).toBeVisible();
+    await expect(page.getByLabel("History month")).toBeVisible();
+    await expect(page.getByLabel("History year")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `My work history overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g8-record-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
