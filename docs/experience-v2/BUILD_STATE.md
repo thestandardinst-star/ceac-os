@@ -2063,35 +2063,48 @@ Stage 10 Family E — Finance is ACCEPTED AND COMPLETE.
 
 ## Stage 10 Family F — Reports
 
-10F1 — Reports audit and contract is ACTIVE.
+10F1 — Reports audit and contract is ACCEPTED AND COMPLETE.
 
 Contract:
 - `docs/experience-v2/STAGE10_FAMILY_F_WORK_BRIEF.md`.
 
-10F1 audit outcomes:
-- approved Reports family contains Manager, Administration and Executive surfaces only; no Staff Reports route is authorised;
-- Manager Reports remains the managed-unit/project authoring workspace;
-- Administration Reports remains the reporting-period and organisation coverage workspace;
-- Executive Reports remains read-only leadership context;
-- `report_periods` write authority remains Administration-only;
-- Manager report RPCs accept only unit/project scope inside managed-unit/project authority;
-- submitted reports are final and `confirm_report` must not be reintroduced;
-- corrections create a new draft version with `supersedes_report_id` and attributable correction reason;
-- submitted evidence snapshots remain frozen and non-zero claimed counts require matching `report_evidence_refs`;
-- person-scope reports remain deliberately unbuilt;
-- report coverage is factual operational context, not a performance score or ranking;
-- recurring Ministry Numbers remains existing Manager reporting context without becoming a report score;
-- Stage 11 owns dedicated chart/data-visualisation refinement, so Family F will not expand chart capability;
-- no schema, migration, RLS, RPC, authentication or capability change is authorised by this presentation family.
+Exact accepted 10F1 documentation head:
+- `db53eca1cc1d8966e36ca702c23832b8e4f688fc`.
 
-Planned sequence:
-- 10F2 Manager Reports;
-- 10F3 Administration Reports;
-- 10F4 Executive Reports;
-- 10F5 Family F final acceptance.
+Documentation-head verification:
+- CI PASS — run `36419744522` (#1235);
+- Migration Replay PASS — run `36419744513` (#846);
+- Account Security PASS — run `36419744629` (#1018);
+- Quality Gate PASS — run `36419744642` (#1044);
+- documentation contract PASS;
+- role-and-RLS coordinator PASS;
+- Level B browser/SQL work correctly skipped by the documentation fast path.
 
-10F2 product-code work may begin only after the documentation head containing this contract and BUILD_STATE update is exact-head green.
+10F1 locked rules:
+- no Staff Reports route;
+- Manager authoring remains managed-unit/project scoped;
+- Administration owns reporting periods and organisation coverage;
+- Executive remains read-only;
+- submitted is final and `confirm_report` remains removed;
+- correction creates a new attributable draft version;
+- frozen evidence remains immutable and traceable through evidence references;
+- person-scope reports remain unbuilt;
+- reporting coverage is factual operational context, not a performance score/ranking;
+- Stage 11 owns dedicated visualisation refinement;
+- no schema, migration, RLS, RPC, auth or capability change is authorised by Family F presentation work.
 
+10F2 — Manager Reports is ACTIVE.
+
+Planned 10F2 implementation:
+- establish shared Experience V2 reporting-family primitives under `src/experience-v2/reporting-family/`;
+- migrate Manager Reports identity, period/scope controls, live-vs-frozen status, core evidence counts, traceable drill-down, authoring actions and version history into that family;
+- preserve `save_report_draft`, `save_and_submit_report` / report submission path, `correct_report`, report evidence references and existing Ministry Numbers context;
+- keep analysis/visualisation secondary and do not expand chart vocabulary before Stage 11;
+- preserve the exact existing report queries and authority paths;
+- add full 320/360/375/390/414/430/900/1366/1440 acceptance coverage;
+- change no schema, migration, RLS, RPC, authentication or capability grant.
+
+10F3 Administration Reports, 10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
