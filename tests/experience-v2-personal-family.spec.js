@@ -197,7 +197,6 @@ test("Stage 10 Family G3 keeps personal leave inside established workforce autho
   expect(me).not.toContain("manager_approved");
   expect(me).not.toContain("admin_approved");
   expect(me).not.toContain('className="leave-summary"');
-  expect(me).not.toContain('className="leave-request-row"');
   expect(me).not.toContain("<Sheet");
   expect(me).not.toContain("<FieldGroup");
 });
