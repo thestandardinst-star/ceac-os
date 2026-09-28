@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D3 — Manager Workforce context (ACCEPTED; 10D4 entry pending documentation-head verification)
+Current substage: 10D4 — Administration Time & Leave (ACCEPTED; 10D5 Family D final acceptance pending documentation-head verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1646,7 +1646,47 @@ Implementation on top of exact-head-green 10D3 acceptance documentation:
 - introduces no attendance score, ranking, absence inference, payroll-time interpretation or salary logic;
 - changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
 
-10D4 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration viewport inspection are required.
-10D5 Family D final acceptance has NOT started.
+10D4 — Administration Time & Leave is ACCEPTED AND COMPLETE.
+
+Exact accepted 10D4 head:
+- `e7aaf606591f9715c76df8dd27757bc93da67e0f`.
+
+Exact-head gates:
+- CI PASS — run `36387409415`;
+- Migration Replay PASS — run `36387409412`;
+- Account Security PASS — run `36387409396`;
+- Complete Quality Gate PASS — run `36387409479` (#1009);
+- Vercel PASS.
+
+Accepted Administration behaviour:
+- Administration Workforce uses the shared Experience V2 Workforce family across Today, Calendar, Sessions, Recorded differences, Leave, Corrections and Schedules & policy;
+- Administration actions precede organisation-wide factual context;
+- organisation scope remains on the existing Stage 9 RLS/domain reads and includes both Unit A and Unit B fixture records;
+- `workforce.manage` and `attendance.correct` remain explicit capabilities and existing mutation RPCs are unchanged;
+- correction/reversal, leave, schedule and policy history remain append-only and original work-session evidence is not rewritten;
+- leave requests remain usable with no confirmed policy and CEAC OS does not invent entitlement, accrual, carry-over or remaining balance from seeded defaults;
+- no attendance score, ranking, automatic absence finding, payroll-time interpretation or salary logic was introduced;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Responsive proof directly inspected:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Acceptance enforces at least 12px operational text, at least 44px tabs and no page-level horizontal overflow. The fixed bottom navigation crossing long full-page phone captures is the established capture behaviour rather than content overflow.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family D / 10D4 / e7aaf606591f9715c76df8dd27757bc93da67e0f / stage10d4-e7a-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_D_10D4_ACCEPTANCE_RECORD.md`.
+
+10D5 — Family D final acceptance has NOT started. It is the next substage after this documentation-only acceptance head is exact-head green.
 Family E has NOT started.
 Chat remains the sole active writer.
