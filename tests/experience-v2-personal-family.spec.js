@@ -362,3 +362,34 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G6 keeps personal Assets custody factual while aligning it with My Hub", async () => {
+  const assets = readFileSync("src/screens/Assets.jsx", "utf8");
+  expect(assets).toContain('supabase.from("asset_items")');
+  expect(assets).toContain('supabase.from("asset_assignment_events")');
+  expect(assets).toContain('supabase.from("asset_lifecycle_events")');
+  expect(assets).toContain("does not remotely wipe, lock, configure or monitor device operating systems");
+  expect(assets).toContain("ev2-personal-assets");
+  expect(assets).toContain('statusLabel="My custody"');
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G6 Staff Assets composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "My assets", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
+    await expect(page.locator(".ev2-personal-assets")).toBeVisible();
+    await expect(page.getByText(/does not remotely manage your device/i)).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Staff Assets overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g6-staff-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
