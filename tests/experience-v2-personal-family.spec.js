@@ -393,3 +393,34 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G7 keeps personal Compliance factual while aligning it with My Hub", async () => {
+  const compliance = readFileSync("src/screens/Compliance.jsx", "utf8");
+  expect(compliance).toContain('rpc("compliance_acknowledge_policy"');
+  expect(compliance).toContain('rpc("compliance_submit_evidence"');
+  expect(compliance).toContain('rpc("compliance_request_exception"');
+  expect(compliance).toContain("does not calculate an employee compliance score");
+  expect(compliance).toContain("ev2-personal-compliance");
+  expect(compliance).toContain('statusLabel="My compliance"');
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G7 Staff Compliance composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "My compliance", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
+    await expect(page.locator(".ev2-personal-compliance")).toBeVisible();
+    await expect(page.getByText(/does not calculate a personal compliance score/i)).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Staff Compliance overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g7-staff-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
