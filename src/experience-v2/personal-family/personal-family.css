@@ -679,3 +679,26 @@
     justify-self: start;
   }
 }
+
+
+/* Family H4 — Unit identity compatibility. */
+.admin-unit-identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.admin-unit-identity > div {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .admin-unit-identity {
+    display: grid;
+  }
+
+  .admin-unit-identity > .ev2c-status {
+    justify-self: start;
+  }
+}
