@@ -259,3 +259,17 @@ test("Stage 10 Family G3 leave request uses the V2 guided modal without inventin
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await context.close();
 });
+
+
+for (const role of roles) {
+  test(`Stage 10 Family G3 preserves personal Time & Leave deep-link scope for ${role.key}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, role, { width: 390, height: 844 });
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+
+    const link = page.getByRole("button", { name: "Open Time & Leave", exact: true });
+    if (role.personalDomains) await expect(link).toBeVisible();
+    else await expect(link).toHaveCount(0);
+
+    await context.close();
+  });
+}
