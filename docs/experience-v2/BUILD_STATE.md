@@ -2405,7 +2405,7 @@ Acceptance record:
 
 No schema, migration, RLS, RPC, authentication or capability change was introduced by 10G3–10G8.
 
-Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Exact-head CI, Migration Replay, Account Security and complete Quality Gate must be green before Family G is accepted.
+Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Subsequent canonical work completed 10G4–10G8 and moved into Family H, so superseded intermediate runs were intentionally cancelled by the committed CI/build acceleration protocol. The current exact head must receive CI, Migration Replay, Account Security and complete Quality Gate green before Family G/H acceptance is recorded.
 
 Family H — Ministry / Organisation / Control Center is ACTIVE.
 
