@@ -486,3 +486,16 @@ test("Stage 10 Family H2 keeps Organisation settings factual and persistence-bac
   expect(settings).toContain("ev2-office-settings");
   expect(settings).toContain("StatusBadge");
 });
+
+
+test("Stage 10 Family H3 keeps Executive Organisation read-only leadership context", async () => {
+  const organisation = readFileSync("src/screens/ExecutiveOrganisation.jsx", "utf8");
+  expect(organisation).toContain('supabase.from("units")');
+  expect(organisation).toContain('supabase.from("unit_memberships")');
+  expect(organisation).toContain("Administration remains responsible for changing organisation records.");
+  expect(organisation).toContain("Read-only leadership context");
+  expect(organisation).not.toContain(".insert(");
+  expect(organisation).not.toContain(".update(");
+  expect(organisation).not.toContain(".delete(");
+  expect(organisation).not.toContain("supabase.rpc(");
+});
