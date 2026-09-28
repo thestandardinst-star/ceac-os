@@ -110,11 +110,17 @@ export function ProjectListRow({
   note,
   status,
   health,
+  selected = false,
   onClick,
   trailing,
 }) {
   return (
-    <button type="button" className="ev2p-row" onClick={onClick}>
+    <button
+      type="button"
+      className={`ev2p-row${selected ? " is-selected" : ""}`}
+      aria-pressed={selected || undefined}
+      onClick={onClick}
+    >
       <span className="ev2p-row-icon"><CeacIcon name="projects" size="row" decorative /></span>
       <span className="ev2p-row-main">
         {eyebrow ? <small>{eyebrow}</small> : null}
