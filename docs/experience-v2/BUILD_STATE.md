@@ -2104,6 +2104,32 @@ Planned 10F2 implementation:
 - add full 320/360/375/390/414/430/900/1366/1440 acceptance coverage;
 - change no schema, migration, RLS, RPC, authentication or capability grant.
 
+10F2 Level B application candidate:
+- exact application head `067d138042e5a3c4c78678e997e32ef745c801c5`;
+- CI PASS — run `36421502181` (#1242);
+- Migration Replay PASS — run `36421502210` (#853);
+- Account Security PASS — run `36421502179` (#1025);
+- Complete Quality Gate PASS — run `36421502186` (#1051);
+- Level B SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+10F2 direct product inspection:
+- exact-head Manager Reports evidence inspected at 320×844, 360×800, 375×812, approximately 390×844, 414×896, 430×932, 900×900, 1366×768 and 1440×900;
+- phone layouts recompose without page-level horizontal overflow;
+- laptop/desktop density remains deliberate rather than stretched;
+- live preview is visually and verbally distinct from a filed/frozen report;
+- no-period state remains truthful and disables save/submit rather than inventing a report;
+- factual evidence counts remain traceable and are not framed as scores, rankings or performance measures;
+- recurring Ministry Numbers remains separate factual ministry context;
+- no schema, migration, RLS, RPC, authentication or capability grant changed.
+
+10F2 external deployment status:
+- GitHub combined status on the application head reports Vercel build-rate-limit failure;
+- this is an external provider capacity status, not an application/build/test failure;
+- 10F2 acceptance is NOT YET recorded and 10F3 writes remain closed until the unchanged application code receives a valid Vercel acceptance result.
+
 10F3 Administration Reports, 10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
