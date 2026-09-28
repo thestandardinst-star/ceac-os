@@ -331,3 +331,34 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G5 keeps personal Learning factual while aligning it with My Hub", async () => {
+  const learning = readFileSync("src/screens/Learning.jsx", "utf8");
+  expect(learning).toContain('supabase.rpc("learning_complete_module"');
+  expect(learning).toContain('supabase.from("training_records")');
+  expect(learning).toContain("does not turn learning activity into a skill, performance or potential score");
+  expect(learning).toContain("No employee learning score is calculated.");
+  expect(learning).toContain("ev2-personal-learning");
+  expect(learning).toContain('statusLabel="Personal learning"');
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G5 Staff Learning composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "Learning", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible();
+    await expect(page.locator(".ev2-personal-learning")).toBeVisible();
+    await expect(page.getByText(/not converted into a skill, performance or potential score/i)).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Staff Learning overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g5-staff-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
