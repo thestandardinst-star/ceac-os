@@ -65,3 +65,14 @@
 @media(max-width:900px){.ev2rep-evidence-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.ev2-reporting-page{padding:var(--ev2-space-3) var(--ev2-space-3) calc(var(--ev2-space-10) + 4.5rem)}.ev2rep-header{display:grid;gap:var(--ev2-space-3);padding-top:var(--ev2-space-3)}.ev2rep-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}.ev2rep-tabs button{width:100%;min-width:0;padding-inline:var(--ev2-space-2)}.ev2rep-control-grid{grid-template-columns:1fr}.ev2rep-section-head{align-items:flex-start}.ev2rep-row{grid-template-columns:auto minmax(0,1fr)}.ev2rep-row>.ev2c-status{grid-column:2}.ev2rep-row-actions{grid-column:1/-1;width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ev2rep-row-actions>*{width:100%}}
 @media(max-width:359px){.ev2-reporting-page{padding-inline:var(--ev2-space-2)}.ev2rep-evidence-grid{grid-template-columns:1fr}.ev2rep-tabs{grid-template-columns:1fr}.ev2rep-row{padding-inline:var(--ev2-space-3)}}
+
+.ev2rep-loading,.ev2rep-state{display:grid;gap:var(--ev2-space-3);margin-top:var(--ev2-space-5)}
+.ev2-reporting-admin .ev2rep-inline-note{display:inline-flex;align-items:center;min-height:2rem;padding:0 var(--ev2-space-2);border-radius:999px;background:var(--ev2-warning-soft);color:var(--ev2-text-secondary);font-size:var(--ev2-type-label);font-weight:650}
+.ev2-reporting-admin .ev2rep-kind-picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ev2-space-2);margin:var(--ev2-space-4) 0}
+.ev2-reporting-admin .ev2rep-kind-picker button{min-height:var(--ev2-control-min);border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-control);background:var(--ev2-surface);color:var(--ev2-text-secondary);font:inherit;font-size:var(--ev2-type-supporting);font-weight:650;cursor:pointer}
+.ev2-reporting-admin .ev2rep-kind-picker button.is-active{border-color:var(--ev2-line-strong);background:var(--ev2-action-soft);color:var(--ev2-text)}
+.ev2-reporting-admin .ev2rep-kind-picker button:focus-visible{outline:3px solid rgba(12,93,249,.20);outline-offset:2px}
+.ev2rep-field-label{display:grid;gap:var(--ev2-space-1);color:var(--ev2-text-secondary);font-size:var(--ev2-type-supporting);font-weight:650}
+.ev2rep-field-label .field{width:100%;margin:0}
+@media(max-width:760px){.ev2-reporting-admin .ev2rep-kind-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.ev2-reporting-admin .ev2rep-row-actions{grid-template-columns:1fr}}
+@media(max-width:359px){.ev2-reporting-admin .ev2rep-kind-picker{grid-template-columns:1fr}}
