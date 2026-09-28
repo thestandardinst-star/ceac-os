@@ -459,7 +459,6 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       <FieldGroup label="Leave starts"><input className="field" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></FieldGroup>
       <FieldGroup label="Leave ends"><input className="field" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></FieldGroup>
       <FieldGroup label="Reason" hint="Optional. Keep it brief."><textarea className="field" rows={2} placeholder="A short reason" value={reason} onChange={(event) => setReason(event.target.value)} /></FieldGroup>
-      {startDate && endDate ? <div className="small" style={{ marginTop: 8 }}>That is {daysBetween(startDate, endDate)} day{daysBetween(startDate, endDate) === 1 ? "" : "s"}.</div> : null}
       <button className="btn" style={{ marginTop: 14 }} onClick={requestLeave} disabled={busy || !startDate || !endDate}>{busy ? "Sending..." : "Send request"}</button>
     </Sheet> : null}
   </div>;
