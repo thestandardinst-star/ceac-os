@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { Sheet, ProductNotice, FieldGroup, StatusDistribution } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import MinistryNumbers from "../components/MinistryNumbers";
-import { Skeleton } from "../experience-v2/components";
+import { Skeleton, StatePanel } from "../experience-v2/components";
 import {
   ReportingPageHeader,
   ReportingTabs,
@@ -133,13 +133,14 @@ export default function ManagerReports({ me, openItem }) {
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
 
   useEffect(() => { loadBase(); }, [me.id, me.unit_id]);
 
   async function loadBase() {
-    setLoading(true); setError(null);
+    setLoading(true); setError(null); setLoadFailed(false);
     const [projectResult, periodResult, workResult, memberResult, objectiveResult] = await Promise.all([
       supabase.from("projects").select("id,name,starts_on,ends_on,status,lead_unit_id,project_units(unit_id)").order("starts_on", { ascending: false, nullsFirst: false }),
       supabase.from("report_periods").select("id,kind,label,starts_on,ends_on,status").order("starts_on", { ascending: false }),
@@ -148,7 +149,7 @@ export default function ManagerReports({ me, openItem }) {
       supabase.from("objectives").select("id,project_id,unit_id,ref,name,status").eq("unit_id", me.unit_id),
     ]);
     const first = [projectResult.error, periodResult.error, workResult.error, memberResult.error, objectiveResult.error].find(Boolean);
-    if (first) { setError(first.message); setLoading(false); return; }
+    if (first) { setLoadFailed(true); setError(first.message); setLoading(false); return; }
     setProjects((projectResult.data || []).filter((project) => project.lead_unit_id === me.unit_id || (project.project_units || []).some((row) => row.unit_id === me.unit_id)));
     setPeriods(periodResult.data || []);
     setWork(workResult.data || []);
@@ -495,6 +496,26 @@ export default function ManagerReports({ me, openItem }) {
     <div className="ev2rep-control-panel" aria-busy="true" aria-label="Preparing reports">
       <Skeleton variant="block" height="5rem" />
       <Skeleton variant="block" height="10rem" />
+    </div>
+  </div>;
+
+  if (loadFailed) return <div className="body manager-reports ev2-reporting-page ev2-reporting-manager">
+    <ReportingPageHeader
+      eyebrow={me.unit_name}
+      title="Reports"
+      description="Built from work, submissions, projects and recorded work sessions already in CEAC OS. Submitted versions keep the evidence they were filed with."
+      statusLabel="Evidence unavailable"
+      statusTone="danger"
+    />
+    <div className="ev2rep-control-panel">
+      <StatePanel
+        state="error"
+        title="Report evidence could not be loaded"
+        description="No report figures are being shown because the current work, period or reporting records could not be retrieved."
+        actionLabel="Try again"
+        onAction={loadBase}
+        icon="reports"
+      />
     </div>
   </div>;
 
