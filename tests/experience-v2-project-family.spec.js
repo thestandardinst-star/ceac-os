@@ -13,6 +13,7 @@ async function openManagerProjects(browser, viewport) {
   await expect(page.locator(".manager-app")).toBeVisible({ timeout: 15000 });
   await page.goto("/?tab=projects");
   await expect(page.locator(".ev2-project-manager")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText("Unit delivery", { exact: true })).toBeVisible();
   return { context, page };
 }
 
