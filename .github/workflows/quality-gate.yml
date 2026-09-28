@@ -26,7 +26,7 @@ jobs:
       - name: Classify exact-head change
         id: classify
         env:
-          VERIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VERIFICATION_BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
           VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           VERIFICATION_EVENT_NAME: ${{ github.event_name }}
         run: node scripts/ci/classify-verification.mjs
@@ -42,7 +42,7 @@ jobs:
           fetch-depth: 0
       - name: Verify documentation-only checkpoint
         env:
-          VERIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VERIFICATION_BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
           VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node scripts/ci/check-documentation.mjs
 
