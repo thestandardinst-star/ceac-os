@@ -457,3 +457,31 @@ button.ev2cal-event:hover {
     scroll-behavior: auto;
   }
 }
+
+
+/* Protected Stage 11 foundation proof only. */
+.ev2-stage11-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr);
+  gap: var(--ev2-space-4);
+  min-width: 0;
+}
+
+.ev2-stage11-calendar-proof {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-3);
+}
+
+.ev2-stage11-proof > .ev2dv-chart {
+  align-self: start;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+@media (max-width: 899px) {
+  .ev2-stage11-proof {
+    grid-template-columns: 1fr;
+  }
+}
