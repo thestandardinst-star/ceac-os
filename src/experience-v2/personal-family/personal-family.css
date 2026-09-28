@@ -544,3 +544,18 @@
     margin-top: var(--ev2-space-3);
   }
 }
+
+
+/* Family G5 — personal learning compatibility. */
+.ev2-personal-learning {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-learning > .ev2pf-header {
+  margin-bottom: var(--ev2-space-4);
+}
+
+.ev2-personal-learning .learning-two-col,
+.ev2-personal-learning .learning-history-list {
+  min-width: 0;
+}
