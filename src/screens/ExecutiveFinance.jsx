@@ -116,7 +116,7 @@ export default function ExecutiveFinance({ me }) {
       <FinancePageHeader
         eyebrow="Leadership finance"
         title="Finance"
-        description="Leadership context from recorded budgets, requests and actual spend. Currencies stay separate, and only requests requiring Group Pastor authority appear in the decision queue."
+        description="Leadership context from recorded budgets, requests and actual spend. Currencies stay separate. Requests that specifically require Group Pastor authority appear below."
         statusLabel={statusLabel}
         statusTone={error ? "danger" : "neutral"}
       />
