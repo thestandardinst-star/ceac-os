@@ -336,31 +336,42 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
     {!loading && area === "leave" ? <PersonalSection
       eyebrow="Time away"
       title="Leave"
-      description="Your own request and balance context. Manager and Administration decisions remain in Time & Leave."
-      action={<Button size="sm" onClick={() => setSheet("leave")} disabled={Boolean(datasetErrors.leaveRequests)}>Ask for leave</Button>}
+      description="Your own request and confirmed-policy context. Manager and Administration decisions remain in Time & Leave."
+      action={<div className="ev2pf-inline-actions">
+        {openWorkforce ? <Button variant="secondary" size="sm" onClick={() => openWorkforce()}>Open Time & Leave</Button> : null}
+        <Button size="sm" onClick={() => setSheet("leave")} disabled={Boolean(datasetErrors.leaveRequests)}>Ask for leave</Button>
+      </div>}
     >
       {datasetErrors.leavePolicy || datasetErrors.leaveRules ? <ProductNotice tone="attention" title="Leave policy unavailable">{datasetErrors.leavePolicy || datasetErrors.leaveRules}</ProductNotice>
         : !policyConfigured ? <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>
         : (annualLeft === null || sickLeft === null) ? <ProductNotice tone="info" title="Some balances are unavailable">A confirmed policy exists, but CEAC OS only calculates a remaining balance when the relevant rule has explicit day entitlement, a supported accrual method, no carry-over, and no unresolved opening-balance requirement.</ProductNotice>
         : null}
-      {!datasetErrors.leavePolicy && !datasetErrors.leaveRules ? <div className="leave-summary">
-        <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual balance unavailable" : "annual days left"}</span></div>
-        <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick balance unavailable" : "sick days left"}</span></div>
+
+      {!datasetErrors.leavePolicy && !datasetErrors.leaveRules ? <div className="ev2pf-facts">
+        <PersonalFact value={annualLeft === null ? "—" : String(annualLeft)} label={annualLeft === null ? "annual balance unavailable" : "annual days left"} />
+        <PersonalFact value={sickLeft === null ? "—" : String(sickLeft)} label={sickLeft === null ? "sick balance unavailable" : "sick days left"} />
       </div> : null}
 
       {datasetErrors.leaveRequests ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Leave requests could not be loaded" description={datasetErrors.leaveRequests} actionLabel="Try again" onAction={load} icon="error" /></div>
-        : myRequests.length ? myRequests.map((request) => <div key={request.id} className="leave-request-row">
-          <div>
-            <strong>{request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
-            <span>{dateOnly(request.start_date)} — {dateOnly(request.end_date)}</span>
-          </div>
-          <div className="leave-request-actions">
-            <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" || request.status === "cancelled" ? "p-brick" : "p-amber"}`}>
-              {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "cancelled" ? "Cancelled" : request.status === "escalated" ? "With admin" : "Waiting"}
-            </span>
-            {(request.status === "pending" || request.status === "escalated") ? <button className="text-action" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</button> : null}
-          </div>
-        </div>)
+        : myRequests.length ? myRequests.map((request) => {
+          const statusLabel = request.status === "approved" ? "Approved"
+            : request.status === "declined" ? "Declined"
+            : request.status === "cancelled" ? "Cancelled"
+            : request.status === "escalated" ? "With admin"
+            : "Waiting";
+          const kindLabel = request.kind ? request.kind.charAt(0).toUpperCase() + request.kind.slice(1) : "Leave";
+          const dayLabel = request.days === null || request.days === undefined
+            ? "Day count not recorded"
+            : `${request.days} recorded day${Number(request.days) === 1 ? "" : "s"}`;
+          return <PersonalRecordRow
+            key={request.id}
+            title={`${kindLabel} leave`}
+            meta={`${dayLabel} · ${dateOnly(request.start_date)} — ${dateOnly(request.end_date)} · ${statusLabel}`}
+            action={(request.status === "pending" || request.status === "escalated")
+              ? <Button variant="quiet" size="sm" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</Button>
+              : null}
+          />;
+        })
         : <PersonalEmpty title="No leave requests recorded" description="Your own requests will remain visible here after they are submitted." />}
     </PersonalSection> : null}
 
