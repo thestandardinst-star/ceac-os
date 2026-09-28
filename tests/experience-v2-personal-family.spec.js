@@ -275,3 +275,59 @@ for (const role of roles) {
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G4 keeps Reviews & development evidence-first while aligning the personal surface", async () => {
+  const performance = readFileSync("src/screens/Performance.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/personal-family/personal-family.css", "utf8");
+
+  for (const contract of [
+    'supabase.rpc("record_appraisal_entry"',
+    'supabase.rpc("record_development_plan_version"',
+    'supabase.rpc("record_performance_feedback"',
+    'supabase.rpc("respond_to_performance_feedback"',
+    "There is no employee score or ranking.",
+    "Activity sessions are shown only as context.",
+    "There are no private manager notes in this surface.",
+    "Employee response",
+    "Development plan",
+  ]) {
+    expect(performance).toContain(contract);
+  }
+
+  expect(performance).toContain('title="Reviews & development"');
+  expect(performance).toContain('statusLabel="Evidence-first review"');
+  expect(performance).toContain("ev2-personal-review");
+  expect(css).toContain(".ev2-personal-review");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G4 Staff Reviews & development composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.getByRole("button", { name: "Reviews & development", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: "Reviews & development", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not score or rank you/i)).toBeVisible();
+    await expect(page.locator(".ev2-personal-review")).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Staff Reviews & development overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10g4-staff-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
