@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import {
+  PersonalBoundary,
+  PersonalEmpty,
+  PersonalPageHeader,
+  PersonalRecordRow,
+  PersonalSection,
+} from "../experience-v2/personal-family/PersonalFamilyV2";
 
 // Your own account, and nobody else's. Both database functions filter on
 // the signed-in person and take no parameter naming anyone, so this cannot
@@ -17,6 +24,7 @@ function friendlyDevice(ua) {
     : /Linux/.test(ua) ? "Linux" : "";
   return os ? browser + " on " + os : browser;
 }
+
 const when = (t) => new Date(t).toLocaleString("en-GB",
   { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -30,84 +38,110 @@ export default function AccountActivity({ me }) {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    setLoading(true); setErr(null);
+    setLoading(true);
+    setErr(null);
     const [s, a] = await Promise.all([
       supabase.rpc("my_sessions"),
       supabase.rpc("my_account_activity", { p_limit: 50 }),
     ]);
-    if (s.error) setErr(s.error.message);
-    setSessions(s.data || []); setEvents(a.data || []);
+    setErr(s.error?.message || a.error?.message || null);
+    setSessions(s.data || []);
+    setEvents(a.data || []);
     setLoading(false);
   }
 
   async function signOutHere() {
-    setBusy(true); setErr(null);
+    setBusy(true);
+    setErr(null);
     try {
       const { error } = await supabase.auth.signOut({ scope: "local" });
       if (error) setErr(error.message);
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   // Ends every session everywhere, including this one.
   async function signOutEverywhere() {
     if (!confirm("Sign out on every device, including this one? You will need to sign in again.")) return;
     setBusy(true);
-    try { await supabase.auth.signOut({ scope: "global" }); }
-    finally { setBusy(false); }
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "global" });
+      if (error) setErr(error.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
-  if (loading) return <div className="body"><div className="spin">Loading your account...</div></div>;
+  if (loading) {
+    return <div className="body ev2-personal-page ev2-personal-account"><div className="spin">Loading your account...</div></div>;
+  }
 
   return (
-    <div className="body">
-      <div style={{ paddingTop: 26 }}>
-        <h1 className="h1">Your account</h1>
-        <p className="screen-note">Where you are signed in, and what has happened under your name. Only you can see this.</p>
-      </div>
+    <div className="body ev2-personal-page ev2-personal-account">
+      <PersonalPageHeader
+        eyebrow="Account security"
+        title="Your account"
+        description="Where you are signed in, and what has happened under your name. Only you can see this."
+        statusLabel="Self-only security"
+      />
 
-      {err && <div className="flag flag-brick"><h4>Could not load sessions</h4>{err}</div>}
+      {err && <div className="flag flag-brick ev2pf-partial-error"><h4>Account activity could not load completely</h4>{err}</div>}
 
-      <div className="sec"><span>Signed in on</span><span>{sessions.length}</span></div>
-      {sessions.length === 0 && <div className="card small">No other device is signed in.</div>}
-      {sessions.map((s) => (
-        <div key={s.session_id} className="row">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10 }}>
-            <div className="row-t">{friendlyDevice(s.device)}</div>
-            {s.is_current && <span className="pill p-green">This device</span>}
+      <PersonalSection
+        eyebrow="Sessions"
+        title="Signed in devices"
+        description={sessions.length === 1 ? "1 session is recorded for your account." : `${sessions.length} sessions are recorded for your account.`}
+      >
+        {sessions.length === 0 && <PersonalEmpty title="No signed-in device is recorded" description="No active session record is available for your account." />}
+        {sessions.map((s) => (
+          <PersonalRecordRow
+            key={s.session_id}
+            title={friendlyDevice(s.device)}
+            meta={`Last used ${when(s.last_seen)}`}
+            detail={`Signed in ${when(s.signed_in_at)} · from ${s.ip}`}
+            action={s.is_current ? <span className="pill p-green">This device</span> : null}
+          />
+        ))}
+
+        {sessions.length > 1 && (
+          <div className="flag flag-amber ev2pf-account-warning">
+            <h4>More than one device is signed in</h4>
+            That is normal if you use a phone and a computer. If you do not recognise one of them, sign out everywhere below and change your password.
           </div>
-          <div className="row-m">last used {when(s.last_seen)} · signed in {when(s.signed_in_at)}</div>
-          <div className="row-m">from {s.ip}</div>
-        </div>))}
+        )}
 
-      {sessions.length > 1 && (
-        <div className="flag flag-amber">
-          <h4>More than one device is signed in</h4>
-          That is normal if you use a phone and a computer. If you do not recognise one of them, sign out everywhere below and change your password.
-        </div>)}
+        <div className="ev2pf-inline-actions ev2pf-account-actions">
+          <button type="button" className="btn wide-auto" onClick={signOutHere} disabled={busy}>
+            {busy ? "Signing out..." : "Sign out on this device"}
+          </button>
+          <button type="button" className="btn btn-ghost wide-auto" onClick={signOutEverywhere} disabled={busy}>
+            Sign out on every device
+          </button>
+        </div>
+      </PersonalSection>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-        <button className="btn wide-auto" onClick={signOutHere} disabled={busy}>
-          {busy ? "Signing out..." : "Sign out on this device"}</button>
-        <button className="btn btn-ghost wide-auto" onClick={signOutEverywhere} disabled={busy}>
-          Sign out on every device</button>
-      </div>
+      <PersonalSection
+        eyebrow="Audit trail"
+        title="Recent activity"
+        description="Consequential activity recorded under your account. This is not a colleague-monitoring surface."
+      >
+        {events.length === 0 && <PersonalEmpty title="Nothing recorded yet" description="Recent attributable account activity will appear here when available." />}
+        {events.map((e, i) => (
+          <PersonalRecordRow
+            key={i}
+            title={String(e.action).replace(/[._]/g, " ")}
+            meta={`${when(e.at)} · ${e.by_me ? "by you" : "by " + e.actor_name}`}
+            detail={e.resource_type ? String(e.resource_type).replace(/_/g, " ") : null}
+          />
+        ))}
+      </PersonalSection>
 
-      <div className="sec"><span>Recent activity</span><span>{events.length}</span></div>
-      {events.length === 0 && <div className="card small">Nothing recorded yet.</div>}
-      {events.map((e, i) => (
-        <div key={i} className="row">
-          <div className="row-t">{String(e.action).replace(/[._]/g, " ")}</div>
-          <div className="row-m">
-            {when(e.at)} · {e.by_me ? "by you" : "by " + e.actor_name}
-            {e.resource_type ? " · " + String(e.resource_type).replace(/_/g, " ") : ""}
-          </div>
-        </div>))}
-
-      <div className="sec"><span>Staying safe</span></div>
-      <div className="card small" style={{ lineHeight: 1.6 }}>
-        Nobody from CEAC will ever email or message you asking you to sign in, confirm your password,
-        or open a link to &ldquo;verify your account&rdquo;. If you receive one, it is not from us.
-        Tell Administration rather than replying to it.
-      </div>
-    </div>);
+      <PersonalSection eyebrow="Security" title="Staying safe">
+        <PersonalBoundary title="CEAC will not ask for your password">
+          Nobody from CEAC will email or message you asking you to sign in, confirm your password, or open a link to “verify your account”. If you receive one, tell Administration rather than replying to it.
+        </PersonalBoundary>
+      </PersonalSection>
+    </div>
+  );
 }
