@@ -472,3 +472,17 @@ test("Stage 10 Family H1 keeps Control Center capability-filtered while aligning
   expect(control).toContain("StatusBadge");
   expect(control).toContain("ev2-control-center");
 });
+
+
+test("Stage 10 Family H2 keeps Organisation settings factual and persistence-backed", async () => {
+  const settings = readFileSync("src/screens/OfficeSettings.jsx", "utf8");
+  expect(settings).toContain('supabase.from("office_locations")');
+  expect(settings).toContain('supabase.from("leave_policy_versions")');
+  expect(settings).toContain('supabase.from("thresholds")');
+  expect(settings).toContain('supabase.from("pending_invitations")');
+  expect(settings).toContain("Unconfirmed policy stays visibly unconfigured rather than being guessed.");
+  expect(settings).toContain("Awaiting CEAC policy");
+  expect(settings).toContain("does not change the underlying work or create a score");
+  expect(settings).toContain("ev2-office-settings");
+  expect(settings).toContain("StatusBadge");
+});
