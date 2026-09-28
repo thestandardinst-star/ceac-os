@@ -20,8 +20,8 @@ export function FinancePageHeader({ eyebrow, title = "Finance", description, sta
 
 
 export function FinanceTabs({ items, value, onChange, label = "Finance sections" }) {
-  return <div className="ev2fin-tabs" role="tablist" aria-label={label}>
-    {items.map(([key, text]) => <button key={key} type="button" role="tab" aria-selected={value === key} className={value === key ? "is-active" : ""} onClick={() => onChange(key)}>{text}</button>)}
+  return <div className="ev2fin-tabs" aria-label={label}>
+    {items.map(([key, text]) => <button key={key} type="button" aria-pressed={value === key} className={value === key ? "is-active" : ""} onClick={() => onChange(key)}>{text}</button>)}
   </div>;
 }
 

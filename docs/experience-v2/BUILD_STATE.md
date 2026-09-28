@@ -1847,6 +1847,13 @@ This implementation tranche:
 - aligns shared Finance row/empty-state and Manager action icons with the existing CEAC `finance` semantic instead of the unregistered `money` icon name;
 - changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
 
+10E3 Quality Gate reconciliation:
+- Quality Gate #1020 on implementation head `7601feceb70b855e5afc631d7690ed48e73efab6` produced 309 passing Playwright tests and 2 failures;
+- both failures were established Administration Finance journeys waiting for the existing `button` role on “Money out” and “Between departments” after the new shared section switcher had changed those controls to explicit ARIA `tab` roles;
+- the Experience Stage 6 finance gate, CI, Migration Replay, Account Security and Vercel all passed on that implementation head;
+- subsequent heads retained the same role mismatch while adding valid currency-neutral validation copy and registered Finance semantic icons;
+- the correction restores button semantics with `aria-pressed` selected state. It does not change finance authority, weaken assertions, add retries/skips or increase timeouts.
+
 10E3 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration Finance viewport inspection are required.
 10E4 Executive Finance and 10E5 Family E final acceptance have NOT started.
 Family F — Reports has NOT started.
