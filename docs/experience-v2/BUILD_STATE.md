@@ -2407,7 +2407,16 @@ No schema, migration, RLS, RPC, authentication or capability change was introduc
 
 Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Exact-head CI, Migration Replay, Account Security and complete Quality Gate must be green before Family G is accepted.
 
-Family H — Ministry / Organisation / Control Center has NOT started.
+Family H — Ministry / Organisation / Control Center is next and has NOT started.
+
+Family H planned authority boundary:
+- Administration Control Center remains the configuration/governance entry point;
+- Organisation settings retain current office-location, confirmed leave-policy, deterministic attention-rule and invitation persistence;
+- Units retain their accepted organisation/work/project/objective/finance/report/workforce context and unit-head authority;
+- Executive Organisation remains read-only leadership context;
+- no settings surface may imply policy or configuration that CEAC has not confirmed;
+- no schema, migration, RLS, RPC, authentication or capability change without a separately accepted authority need.
+
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
 Chat is the sole active writer. Codex/Work and the previous Chat writer are inactive.
