@@ -871,7 +871,7 @@ export default function Workforce({ me }) {
       <WorkforcePageHeader
         eyebrow="Organisation time & leave"
         title="Workforce"
-        description="Organisation-wide schedule, recorded-session, leave and attributable correction context. Missing activity remains descriptive evidence and never becomes an automatic absence or performance judgement."
+        description="Organisation-wide schedule, recorded-session, leave and attributable correction context. “No session recorded” is descriptive context only and is never an automatic absence finding or performance judgement."
         statusLabel={people.length+" people visible"}
         statusTone="neutral"
       />
