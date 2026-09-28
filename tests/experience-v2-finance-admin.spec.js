@@ -56,7 +56,8 @@ for (const viewport of [
     for (const tab of ["Overview", "Money in", "Money out", "Between departments"]) {
       await expect(page.getByRole("button", { name: tab, exact: true })).toBeVisible();
     }
-    await expect(page.getByRole("button", { name: "Overview", exact: true })).toHaveAttribute("aria-pressed", "true");\n    await expect(page.getByText("Requests needing Administration", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Overview", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText("Requests needing Administration", { exact: true })).toBeVisible();
     await expect(page.getByText(/not a bank balance/i).first()).toBeVisible();
 
     await page.getByRole("button", { name: "Money in", exact: true }).click();
