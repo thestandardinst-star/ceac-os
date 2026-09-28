@@ -84,6 +84,15 @@ Baseline before sharding:
 
 Record the first successful sharded Level B duration in `BUILD_STATE.md` and compare it with this baseline.
 
+First validated sharded result:
+- Quality Gate #1027, run `36408710547`;
+- exact head `d0f20aee8d18fc3ba3ab50911903ab4dc9861ca4`;
+- 329/329 Playwright tests passed across four isolated shards;
+- slowest shard: 86 tests in 6.2 minutes;
+- workflow wall clock: approximately 10 minutes 9 seconds;
+- improvement from the 17-minute baseline: approximately 40%;
+- complete SQL/RLS/security contracts and merged exact-head evidence also passed.
+
 ## 5. Productive work while Level B runs
 
 The sole writer may perform read-only preparation for the next approved substage:

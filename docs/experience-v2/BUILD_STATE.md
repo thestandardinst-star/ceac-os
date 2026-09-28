@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: Verification acceleration protocol (ACTIVE before 10E3 acceptance)
+Current substage: 10E3 — Administration Finance (ACTIVE)
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
@@ -22,7 +22,28 @@ Pre-acceleration benchmark:
 - workflow wall clock was approximately 17 minutes;
 - CI, Migration Replay, Account Security and Vercel also passed on that exact head.
 
-The first successful sharded Level B run must be recorded here before the acceleration protocol is accepted. 10E3 visual inspection and acceptance then resume from the already-green application head; 10E4 remains unopened until 10E3 acceptance.
+Verification acceleration protocol: ACCEPTED AND ACTIVE.
+
+Exact accepted protocol head:
+- `d0f20aee8d18fc3ba3ab50911903ab4dc9861ca4`.
+
+Exact-head gates:
+- CI PASS — run `36408710529` (#1218);
+- Migration Replay PASS — run `36408710503` (#829);
+- Account Security PASS — run `36408710597` (#1001);
+- Complete sharded Quality Gate PASS — run `36408710547` (#1027);
+- 329/329 Playwright tests passed across four isolated shards;
+- complete SQL/RLS/security contracts PASS;
+- evidence merge PASS;
+- Vercel PASS.
+
+Measured improvement:
+- pre-acceleration wall clock: approximately 17 minutes;
+- first sharded wall clock: approximately 10 minutes 9 seconds;
+- reduction: approximately 40%;
+- slowest shard: 86 tests in 6.2 minutes.
+
+No test, assertion, retry, timeout, security gate or acceptance criterion was removed or weakened. 10E3 visual inspection resumes from the already-green application head; 10E4 remains unopened until 10E3 acceptance.
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
