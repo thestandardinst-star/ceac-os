@@ -122,7 +122,7 @@
   min-width: 0;
 }
 
-.ev2wf-today-head strong {
+.ev2wf-today-head > div > strong {
   display: block;
   color: var(--ev2-text);
   font-size: var(--ev2-type-row-mobile);
@@ -130,7 +130,7 @@
   overflow-wrap: anywhere;
 }
 
-.ev2wf-today-head span {
+.ev2wf-today-head > div > span {
   display: block;
   margin-top: var(--ev2-space-1);
   color: var(--ev2-text-secondary);
