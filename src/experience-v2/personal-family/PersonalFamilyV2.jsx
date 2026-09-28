@@ -61,10 +61,10 @@ export function PersonalSection({ eyebrow, title, description, action, children,
   );
 }
 
-export function PersonalRecordRow({ title, meta, detail, action, onClick }) {
+export function PersonalRecordRow({ title, meta, detail, action, onClick, className = "" }) {
   const Tag = onClick ? "button" : "article";
   return (
-    <Tag type={onClick ? "button" : undefined} className={`ev2pf-row ${onClick ? "is-action" : ""}`.trim()} onClick={onClick}>
+    <Tag type={onClick ? "button" : undefined} className={`ev2pf-row ${onClick ? "is-action" : ""} ${className}`.trim()} onClick={onClick}>
       <span className="ev2pf-row-copy">
         <strong>{title}</strong>
         {meta ? <span>{meta}</span> : null}
