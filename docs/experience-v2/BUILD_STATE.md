@@ -2412,9 +2412,10 @@ Family H — Ministry / Organisation / Control Center is ACTIVE.
 Implemented so far:
 - 10H1 — Control Center aligned to shared V2 icon/status primitives while preserving capability-filtered navigation;
 - 10H2 — Organisation settings hierarchy clarified while preserving office-location, leave-policy, threshold and invitation persistence;
-- 10H3 — Executive Organisation explicitly presents read-only leadership context and retains query-only authority.
+- 10H3 — Executive Organisation explicitly presents read-only leadership context and retains query-only authority;
+- 10H4 — Administration Units retain the accepted workspace model while strengthening shared Unit identity and factual Unit Head state.
 
-Acceptance is not yet claimed; remaining Family H surfaces and exact-head gates are pending.
+Acceptance is not yet claimed; exact-head gates and final Family H responsive/product evidence are pending.
 
 Family H authority boundary:
 - Administration Control Center remains the configuration/governance entry point;
