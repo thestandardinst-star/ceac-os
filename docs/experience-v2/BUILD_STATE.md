@@ -2395,17 +2395,18 @@ Vercel reconciliation:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_G_10G2_ACCEPTANCE_RECORD.md`.
 
-10G3 — Personal leave in My Hub is ACTIVE.
+10G3–10G8 implementation is now present on canonical branch and awaiting exact-head acceptance:
+- 10G3 — personal Leave migrated into the personal-family language while preserving `workforce_request_leave`, employee cancellation, confirmed-policy truth and Family D decision authority;
+- 10G4 — personal Reviews & development aligned to the My Hub family while preserving evidence-first review, human judgement, employee reply and all accepted Stage 7 RPC paths;
+- 10G5 — personal Learning aligned to My Hub while preserving assignment/completion evidence and the no-score contract;
+- 10G6 — personal Assets aligned to My Hub while preserving factual custody/lifecycle authority and no remote-device-management claim;
+- 10G7 — personal Compliance aligned to My Hub while preserving policy acknowledgement, evidence and exception authority and the no-score contract;
+- 10G8 — My work history aligned to My Hub while preserving factual work/session/feedback history, human month/year controls and correction authority.
 
-10G3 implementation boundary:
-- migrate only the personal Leave area inside My Hub into the personal-family language;
-- preserve `workforce_request_leave` and the employee cancellation path;
-- preserve confirmed-policy truth and missing/unconfigured balance semantics;
-- preserve accepted Family D Manager/Administration decision authority;
-- retain the deep link to personal Time & Leave rather than duplicating Workforce history;
-- introduce no schema, migration, RLS, RPC, authentication or capability change.
+No schema, migration, RLS, RPC, authentication or capability change was introduced by 10G3–10G8.
 
-10G4–10G8 have NOT started.
+Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Exact-head CI, Migration Replay, Account Security and complete Quality Gate must be green before Family G is accepted.
+
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
