@@ -4,7 +4,7 @@ import { dateOnly } from "../lib/time";
 import { Sheet, ProgressMeter, ProductNotice } from "../components/bits";
 import FinanceRequestQueue from "../components/FinanceRequestQueue";
 import { Table } from "../components/primitives";
-import { Button } from "../experience-v2/components";
+import { Button, Skeleton, StatePanel } from "../experience-v2/components";
 import { FinanceCurrencyCard, FinanceEmpty, FinanceFootnote, FinancePageHeader, FinanceRecordRow, FinanceSection, FinanceTabs } from "../experience-v2/finance-family/FinanceFamilyV2";
 
 // Finance — the whole church in one place. In, out, and what is moving
@@ -49,6 +49,7 @@ export default function Finance({ me, openExpenses }) {
   const [myUnits, setMyUnits] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const year = new Date().getFullYear();
@@ -71,20 +72,30 @@ export default function Finance({ me, openExpenses }) {
 
   async function load() {
     setLoading(true);
-    const [us, inc, sp, tr, bg, mem] = await Promise.all([
-      supabase.from("units").select("id, name, code, handles_finance").eq("active", true).order("name"),
-      supabase.from("income_lines").select("id, received_on, source_kind, description, amount_minor, source_note, reverses_id, entered_at, currency"),
-      supabase.from("spend_lines").select("id, unit_id, spent_on, description, amount_minor, source_note, reverses_id, currency"),
-      supabase.from("internal_transfers").select("id, from_unit_id, to_unit_id, amount_minor, sent_on, purpose, state, response_note, sent_at, currency"),
-      supabase.from("budgets").select("unit_id, project_id, year, amount_minor, currency").eq("year", year),
-      supabase.from("unit_memberships").select("unit_id, role, units(name, handles_finance)").eq("profile_id", me.id),
-    ]);
-    setUnits(us.data || []); setIncome(inc.data || []); setSpend(sp.data || []);
-    setTransfers(tr.data || []); setBudgets(bg.data || []);
-    const mine = (mem.data || []);
-    setMyUnits(mine.filter((m) => m.role === "manager").map((m) => m.unit_id));
-    setCanEnter(me.is_admin || mine.some((m) => m.units && m.units.handles_finance));
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const results = await Promise.all([
+        supabase.from("units").select("id, name, code, handles_finance").eq("active", true).order("name"),
+        supabase.from("income_lines").select("id, received_on, source_kind, description, amount_minor, source_note, reverses_id, entered_at, currency"),
+        supabase.from("spend_lines").select("id, unit_id, spent_on, description, amount_minor, source_note, reverses_id, currency"),
+        supabase.from("internal_transfers").select("id, from_unit_id, to_unit_id, amount_minor, sent_on, purpose, state, response_note, sent_at, currency"),
+        supabase.from("budgets").select("unit_id, project_id, year, amount_minor, currency").eq("year", year),
+        supabase.from("unit_memberships").select("unit_id, role, units(name, handles_finance)").eq("profile_id", me.id),
+      ]);
+      const failed = results.find((result) => result.error);
+      if (failed?.error) throw failed.error;
+
+      const [us, inc, sp, tr, bg, mem] = results;
+      setUnits(us.data || []); setIncome(inc.data || []); setSpend(sp.data || []);
+      setTransfers(tr.data || []); setBudgets(bg.data || []);
+      const mine = (mem.data || []);
+      setMyUnits(mine.filter((m) => m.role === "manager").map((m) => m.unit_id));
+      setCanEnter(me.is_admin || mine.some((m) => m.units && m.units.handles_finance));
+    } catch (error) {
+      setLoadError(error?.message || "Finance records could not be loaded.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const nameOf = (id) => { const u = units.find((x) => x.id === id); return u ? u.name : "Central church funds"; };
@@ -138,7 +149,44 @@ export default function Finance({ me, openExpenses }) {
     await load();
   }
 
-  if (loading) return <div className="body ev2-finance-page ev2-finance-admin"><div className="spin">Loading finance...</div></div>;
+  if (loading) return (
+    <div className="body ev2-finance-page ev2-finance-admin" aria-busy="true">
+      <FinancePageHeader
+        eyebrow="Organisation finance"
+        title="Finance"
+        description="Administration view of requests, recorded income, spend, budgets and two-sided transfers. Currencies stay separate and recorded position is not a bank balance."
+        statusLabel="Loading records"
+        statusTone="neutral"
+      />
+      <div className="ev2fin-loading" aria-label="Loading finance">
+        <Skeleton variant="block" height="5rem" />
+        <Skeleton variant="block" height="10rem" />
+        <Skeleton variant="block" height="8rem" />
+      </div>
+    </div>
+  );
+
+  if (loadError) return (
+    <div className="body ev2-finance-page ev2-finance-admin">
+      <FinancePageHeader
+        eyebrow="Organisation finance"
+        title="Finance"
+        description="Administration view of requests, recorded income, spend, budgets and two-sided transfers. Currencies stay separate and recorded position is not a bank balance."
+        statusLabel="Records unavailable"
+        statusTone="danger"
+      />
+      <div className="ev2fin-state">
+        <StatePanel
+          state="error"
+          title="Finance records could not be loaded"
+          description="No finance figures are being shown because the current records could not be retrieved."
+          actionLabel="Try again"
+          onAction={load}
+          icon="finance"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="body ev2-finance-page ev2-finance-admin">
@@ -162,12 +210,13 @@ export default function Finance({ me, openExpenses }) {
           {financeCurrencies.map((currency) => {
             const received = Number(inBy[currency] || 0);
             const spent = Number(outBy[currency] || 0);
+            const hasBudget = budgets.some((budget) => (budget.currency || "GHS") === currency);
             const budgeted = Number(budBy[currency] || 0);
             const difference = received - spent;
             return <FinanceCurrencyCard key={currency} currency={currency} contextLabel={String(year)} facts={[
               {label:"Received",value:money(received,currency),onClick:()=>setTab("in")},
               {label:"Spent",value:money(spent,currency),onClick:()=>setTab("out")},
-              {label:"Budgeted",value:money(budgeted,currency)},
+              {label:"Budgeted",value:hasBudget ? money(budgeted,currency) : "Not recorded",detail:hasBudget ? null : "No budget recorded for this currency"},
               {label:"Recorded in minus out",value:money(difference,currency)},
             ]}>
               {budgeted > 0 && <ProgressMeter value={spent} max={budgeted} label="Spend against recorded budget" detail={money(spent,currency) + " of " + money(budgeted,currency)} />}
