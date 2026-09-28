@@ -507,3 +507,11 @@
     padding-inline: var(--ev2-space-3);
   }
 }
+
+
+/* Family G touch-target contract: compact personal controls stay practical on touch. */
+.ev2-personal-page .ev2c-segmented-item,
+.ev2-personal-page .ev2pf-section-action .ev2c-button-compact,
+.ev2-personal-page .ev2pf-row-action .ev2c-button-compact {
+  min-height: var(--ev2-control-min);
+}

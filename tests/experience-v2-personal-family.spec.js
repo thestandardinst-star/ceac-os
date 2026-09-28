@@ -146,6 +146,16 @@ for (const viewport of [
     );
     expect(Math.min(...destinationHeights)).toBeGreaterThanOrEqual(44);
 
+    const tabHeights = await page.locator(".ev2pf-tabs .ev2c-segmented-item").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height)
+    );
+    expect(Math.min(...tabHeights)).toBeGreaterThanOrEqual(44);
+
+    const compactActionHeights = await page.locator(".ev2pf-section-action .ev2c-button:visible, .ev2pf-row-action .ev2c-button:visible").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height)
+    );
+    if (compactActionHeights.length) expect(Math.min(...compactActionHeights)).toBeGreaterThanOrEqual(44);
+
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `Staff My Hub overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
 
