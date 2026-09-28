@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10E3 — Administration Finance (ACTIVE)
+Current substage: 10G3 — Personal leave in My Hub (ACTIVE)
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
@@ -2344,7 +2344,7 @@ Exact Family G sequence:
 - 10G7 Account activity and session security;
 - 10G8 Family G final acceptance.
 
-10G2 — My Hub foundation, profile, private goals and reminders is ACTIVE.
+10G2 — My Hub foundation, profile, private goals and reminders is ACCEPTED AND COMPLETE.
 
 10G2 implementation boundary:
 - establish shared Experience V2 personal-family primitives under `src/experience-v2/personal-family/`;
@@ -2357,9 +2357,56 @@ Exact Family G sequence:
 - do not change leave behaviour beyond presentation needed to keep the page coherent; 10G3 owns personal leave;
 - introduce no schema, migration, RLS, RPC, authentication or capability change.
 
-No 10G2 product-code change has yet been committed.
-10G3–10G8 have NOT started.
+Exact accepted 10G2 application head:
+- `05ad969d0586c4f94fba43f13096e7c45c2e6acb`.
+
+Exact-head Level B:
+- CI PASS — run `36439231728` (#1265);
+- Migration Replay PASS — run `36439231642` (#876);
+- Account Security PASS — run `36439231356` (#1048);
+- Complete Quality Gate PASS — run `36439231293` (#1074);
+- 395/395 Playwright tests passed across four isolated shards;
+- complete SQL/RLS/authority contracts PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+Accepted 10G2 behaviour:
+- shared Experience V2 personal-family primitives are active;
+- My Hub core composition, ordinary profile presentation and private goals/reminders use the personal-family language;
+- ordinary self-profile mutation remains `update_my_personal_details`;
+- protected HR remains separate;
+- owner-only goals/reminders remain private and outside CEAC reporting;
+- private-details read failure disables editing rather than exposing an editable blank form;
+- role-specific personal-domain links remain capability/role limited;
+- no schema, migration, RLS, RPC, authentication or capability change was introduced.
+
+Responsive evidence was directly inspected across the full 320/360/375/390/414/430/900/1366/1440 matrix.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10978536081`;
+- digest `sha256:b2bde54e9c84b4349daf30e9abc1b4472514bff4b476a5d5d71a63809955c9de`.
+
+Vercel reconciliation:
+- exact application SHA received the known external `api-deployments-free-per-day` limit;
+- local production build and all exact-head engineering/security/product gates passed;
+- no Vercel setting or product contract changed;
+- deployment reconciliation remains pending and does not stop the owner-authorised canonical sequence.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_G_10G2_ACCEPTANCE_RECORD.md`.
+
+10G3 — Personal leave in My Hub is ACTIVE.
+
+10G3 implementation boundary:
+- migrate only the personal Leave area inside My Hub into the personal-family language;
+- preserve `workforce_request_leave` and the employee cancellation path;
+- preserve confirmed-policy truth and missing/unconfigured balance semantics;
+- preserve accepted Family D Manager/Administration decision authority;
+- retain the deep link to personal Time & Leave rather than duplicating Workforce history;
+- introduce no schema, migration, RLS, RPC, authentication or capability change.
+
+10G4–10G8 have NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
-Chat remains the sole active writer.
+Codex/Work remains the sole active writer.
