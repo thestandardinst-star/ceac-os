@@ -2303,25 +2303,62 @@ Acceptance record:
 
 ## Stage 10 Family G — My Hub / Account
 
-10G1 — Family G audit and contract is ACTIVE.
+10G1 — Family G audit and contract is ACCEPTED AND COMPLETE.
 
-Binding scope from `IMPLEMENTATION_SEQUENCE.md`:
-- profile;
-- leave;
-- development;
-- learning;
-- assets/compliance;
-- account activity.
+Contract:
+- `docs/experience-v2/STAGE10_FAMILY_G_WORK_BRIEF.md`.
 
-10G1 requirements:
-- inspect actual My Hub/account routes and role variants before decomposition;
-- inspect data/RPC/capability/privacy/security boundaries for profile, leave, development, learning, asset/compliance and account-activity context;
-- inspect existing responsive states and current visual hierarchy;
-- identify what belongs inside My Hub versus linked role/domain workspaces;
-- preserve existing authority and privacy rather than duplicating management/admin controls into the personal hub;
-- persist the exact Family G numbered substages and work brief before product-code migration.
+Exact accepted 10G1 documentation head:
+- `0febcc4867305aaf419ff71715112c2ae1fcf037`.
 
-No Family G product-code migration has started.
+Documentation-head verification:
+- CI PASS — run `36435770218` (#1258);
+- Migration Replay PASS — run `36435770288` (#869);
+- Account Security PASS — run `36435770408` (#1041);
+- Quality Gate PASS — run `36435770487` (#1067);
+- Vercel PASS;
+- documentation contract PASS;
+- role-and-RLS coordinator PASS;
+- browser/SQL Level B work correctly skipped by the documentation fast path.
+
+10G1 locked boundaries:
+- My Hub remains a personal workspace over authoritative existing domain contracts;
+- Your account remains separate self-only session/activity security context;
+- protected HR records remain outside ordinary profile details;
+- private goals/reminders remain owner-only and outside organisational reporting;
+- Manager/Admin leave decisions remain in accepted Family D;
+- Performance reviewer/Admin authority is not duplicated into My Hub;
+- Learning Administration/team authority is not duplicated into My Hub;
+- asset inventory/custody/lifecycle mutation remains behind `asset.manage`;
+- compliance policy/review/decision authority remains behind existing capability/scope rules;
+- account session/activity RPCs remain self-only via `auth.uid()`;
+- no employee score, ranking, learning inference, asset ownership inference, compliance score or leave-policy assumption is authorised.
+
+Exact Family G sequence:
+- 10G1 Audit and contract — COMPLETE;
+- 10G2 My Hub foundation, profile, private goals and reminders — ACTIVE;
+- 10G3 Personal leave in My Hub;
+- 10G4 Personal development;
+- 10G5 Personal learning;
+- 10G6 Personal assets and compliance;
+- 10G7 Account activity and session security;
+- 10G8 Family G final acceptance.
+
+10G2 — My Hub foundation, profile, private goals and reminders is ACTIVE.
+
+10G2 implementation boundary:
+- establish shared Experience V2 personal-family primitives under `src/experience-v2/personal-family/`;
+- migrate the core `src/screens/Me.jsx` composition into the personal family;
+- preserve ordinary self-profile reads and `update_my_personal_details`;
+- preserve protected-HR separation;
+- preserve owner-only personal goals/reminders and their existing mutations;
+- improve truthful loading/error/empty/busy/success presentation;
+- keep the existing domain destination links and role visibility;
+- do not change leave behaviour beyond presentation needed to keep the page coherent; 10G3 owns personal leave;
+- introduce no schema, migration, RLS, RPC, authentication or capability change.
+
+No 10G2 product-code change has yet been committed.
+10G3–10G8 have NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
