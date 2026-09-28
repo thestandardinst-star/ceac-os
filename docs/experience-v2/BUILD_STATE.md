@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C5 — Family C final acceptance (ACTIVE)
+Current substage: 10C5 — Family C final acceptance (ACCEPTED; Family D entry pending documentation-head verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1412,6 +1412,67 @@ Persistent evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_C_10C4_ACCEPTANCE_RECORD.md`.
 
-10C5 — Family C final acceptance is now ACTIVE.
-Family D has NOT started.
-Codex/Work is the sole active writer.
+10C5 — Family C final acceptance is ACCEPTED AND COMPLETE.
+Family D has NOT started; it is the next family after this documentation head is exact-head green.
+Chat is the sole active writer.
+
+## Stage 10 Family C final acceptance
+
+Stage 10 Family C — Projects / Portfolio is ACCEPTED AND COMPLETE.
+
+Exact accepted Family C head:
+- `4b10e4f54981d996a164f9024ab37ecbf2806e09`.
+
+Exact-head gates:
+- CI PASS — run `36376143438`;
+- Migration Replay PASS — run `36376143557`;
+- Account Security PASS — run `36376143534`;
+- Complete Quality Gate PASS — run `36376143593`;
+- 278 Playwright tests passed in 12.7 minutes;
+- Vercel PASS on the exact head.
+
+Accepted Family C surfaces:
+- Manager Projects list and project workspace;
+- Administration Projects;
+- Executive Portfolio / Delivery.
+
+Family-level authority and trust checks:
+- Family C changed no Supabase migration, RLS policy, RPC definition, authentication configuration or capability grant;
+- Manager project visibility remains current-unit lead/participant scoped and private work remains excluded;
+- Administration Projects remains contextual/read-only apart from the existing project-meeting action;
+- Executive Portfolio remains on the existing `delivery.manage`, Executive/Administration and managed lead-unit authority paths;
+- Executive attention remains factual and uses explicit stored health/register state only; no hidden score, probability or ranking was introduced.
+
+Protected project-register verification:
+- the Experience Stage 5 project-register SQL gate passed on the accepted head;
+- the complete Quality Gate passed the existing end-to-end register journey for participant, payment, slot, custody and two-sided remittance behaviour;
+- payment reversals remain append-only, slot allocation remains payment/capacity guarded, custody remains attributable and receiving-unit confirmation remains on the existing finance record.
+
+Protected project-close verification:
+- `ManagerProjectClose.jsx` is unchanged from the Family C entry head;
+- `project_close_readiness`, `save_and_submit_project_close`, `close_project` and `reopen_project` remain on their existing RPC paths;
+- unit returns, objective outcomes/notes, deliverables, factual cost snapshots, challenges and next-time learning remain in the close record;
+- reopen still requires a reason and prior submitted close versions remain visible and unchanged;
+- missing cost values and unfiled unit returns remain explicitly recorded rather than silently treated as zero.
+
+Responsive and visual proof:
+- Manager Projects: 320×844, approximately 390×844, 1366×768 and 1440×900;
+- Manager project workspace: 320×844 and 1366×768;
+- Administration Projects: 320×844, 360×800, 375×812, approximately 390×844, 414×896, 430×932, 900×900, 1366×768 and 1440×900;
+- Executive Portfolio: the same full 320 / 360 / 375 / 390 / 414 / 430 / 900 / 1366 / 1440 matrix.
+
+The exact-head R7 artifact was directly inspected. No unresolved high-severity Family C hierarchy, typography, overflow, touch-target, authority, register-presentation or hidden-scoring defect remains. Full-page phone captures can show the fixed bottom navigation crossing the long captured document; this is the established capture behaviour rather than page-level horizontal overflow.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C2 / e9353015a394fee9d762fc4659f032165fb5d8b1 / stage10c2-r7-exact-head-evidence.zip`;
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C3 / 90aba31498c24003751c5719e0d94a63b8da4324 / stage10c3-r7-exact-head-evidence.zip`;
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C4 / a99f6add6ef7dd0a32e12b40bb14c3917533589f / stage10c4-a99-r7-exact-head-evidence.zip`;
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / Final / 4b10e4f54981d996a164f9024ab37ecbf2806e09 / stage10-family-c-final-r7.zip`.
+
+The previously missing Drive persistence for the accepted 10C2 and 10C4 evidence was repaired during 10C5 without changing application code.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_C_ACCEPTANCE_RECORD.md`.
+
+Family D has NOT started. Open Family D only after this documentation-only acceptance commit is itself exact-head green.
+
