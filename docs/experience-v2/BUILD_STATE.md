@@ -2426,6 +2426,15 @@ Family H authority boundary:
 - no schema, migration, RLS, RPC, authentication or capability change without a separately accepted authority need.
 - acceptance coverage also verifies Administration Control Center/Units/Organisation settings are not reachable as those surfaces from ordinary Staff/Manager roles, and Executive Organisation stays Executive-only.
 
+Current exact-head verification target: `1aa1ce0a9a224c3c5c3671d498652ffe060d03c3`.
+- CI run #1333 is pending;
+- Migration Replay run #944 is pending;
+- Account Security run #1116 is pending;
+- complete Quality Gate run #1142 is pending;
+- Vercel remains subject to the known external free-plan deployment rate limit until a new exact-head deployment is admitted.
+
+Do not claim Family G/H acceptance until these exact-head gates settle green.
+
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
 Chat is the sole active writer. Codex/Work and the previous Chat writer are inactive.
