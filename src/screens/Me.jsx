@@ -3,6 +3,35 @@ import { supabase } from "../lib/supabase";
 import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { dateOnly } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
+import {
+  Button,
+  Drawer,
+  InputField,
+  ModalDialog,
+  Skeleton,
+  StatePanel,
+  TextareaField,
+} from "../experience-v2/components";
+import {
+  PersonalBoundary,
+  PersonalDestinationCard,
+  PersonalDestinationGrid,
+  PersonalDetailGrid,
+  PersonalEmpty,
+  PersonalFact,
+  PersonalPageHeader,
+  PersonalRecordRow,
+  PersonalSection,
+  PersonalTabs,
+} from "../experience-v2/personal-family/PersonalFamilyV2";
+
+const EMPTY_DETAILS = {
+  emergency_contact_name: "",
+  emergency_contact_phone: "",
+  emergency_contact_relationship: "",
+  address_text: "",
+  social_handles: {},
+};
 
 export default function Me({ me, openGoal, openRecord, openPerformance, openWorkforce, openLearning, openAssets, openCompliance }) {
   const [profile, setProfile] = useState(me);
@@ -11,7 +40,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   const [myRequests, setMyRequests] = useState([]);
   const [goals, setGoals] = useState([]);
   const [reminders, setReminders] = useState([]);
-  const [details, setDetails] = useState({ emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relationship: "", address_text: "", social_handles: {} });
+  const [details, setDetails] = useState(EMPTY_DETAILS);
   const [profileForm, setProfileForm] = useState({ preferred_name: "", phone: "", birthday: "", emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relationship: "", address_text: "", instagram: "", linkedin: "" });
   const [area, setArea] = useState("goals");
   const [sheet, setSheet] = useState(null);
@@ -24,56 +53,68 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   const [remindTitle, setRemindTitle] = useState("");
   const [remindAt, setRemindAt] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [datasetErrors, setDatasetErrors] = useState({});
   const [message, setMessage] = useState(null);
 
   useEffect(() => { load(); }, [me.id]);
 
   async function load() {
-    setMessage(null);
-    const { data: requests, error: requestsError } = await supabase.from("leave_requests")
-      .select("id, kind, start_date, end_date, days, status, requested_at")
-      .eq("profile_id", me.id).order("requested_at", { ascending: false }).limit(100);
-    if (requestsError) { setMessage(requestsError.message); return; }
-    setMyRequests(requests || []);
+    setLoading(true);
 
-    const { data: policy, error: policyError } = await supabase.from("leave_policy_versions")
-      .select("*").eq("org_id", me.org_id).eq("state", "active")
-      .order("confirmed_at", { ascending: false }).limit(1).maybeSingle();
-    if (policyError) { setMessage(policyError.message); return; }
-    setLeavePolicy(policy || null);
+    const [requestsResult, policyResult, goalsResult, remindersResult, detailsResult, profileResult] = await Promise.all([
+      supabase.from("leave_requests")
+        .select("id, kind, start_date, end_date, days, status, requested_at")
+        .eq("profile_id", me.id).order("requested_at", { ascending: false }).limit(100),
+      supabase.from("leave_policy_versions")
+        .select("*").eq("org_id", me.org_id).eq("state", "active")
+        .order("confirmed_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("personal_goals")
+        .select("id, title, target_date, status, achieved_at")
+        .eq("profile_id", me.id).order("created_at", { ascending: false }),
+      supabase.from("personal_reminders")
+        .select("id, title, remind_at, linked_goal_id").eq("profile_id", me.id)
+        .is("seen_at", null).order("remind_at", { ascending: true }).limit(10),
+      supabase.from("profile_personal_details")
+        .select("emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, address_text, social_handles")
+        .eq("profile_id", me.id).maybeSingle(),
+      supabase.from("profiles")
+        .select("full_name, preferred_name, email, phone, birthday, job_title, joined_at, contract_type")
+        .eq("id", me.id).single(),
+    ]);
 
+    const errors = {};
+    if (requestsResult.error) errors.leaveRequests = humanError(requestsResult.error, "Your leave requests could not load.");
+    else setMyRequests(requestsResult.data || []);
+
+    if (policyResult.error) errors.leavePolicy = humanError(policyResult.error, "The confirmed leave policy could not load.");
+    else setLeavePolicy(policyResult.data || null);
+
+    if (goalsResult.error) errors.goals = humanError(goalsResult.error, "Your personal goals could not load.");
+    else setGoals(goalsResult.data || []);
+
+    if (remindersResult.error) errors.reminders = humanError(remindersResult.error, "Your reminders could not load.");
+    else setReminders(remindersResult.data || []);
+
+    if (detailsResult.error) errors.details = humanError(detailsResult.error, "Your private contact details could not load.");
+    else setDetails(detailsResult.data || EMPTY_DETAILS);
+
+    if (profileResult.error) errors.profile = humanError(profileResult.error, "Your ordinary profile could not load.");
+    else if (profileResult.data) setProfile((value) => ({ ...value, ...profileResult.data }));
+
+    const policy = policyResult.error ? null : policyResult.data;
     if (policy) {
-      const { data: rules, error: rulesError } = await supabase.from("leave_policy_rules")
+      const rulesResult = await supabase.from("leave_policy_rules")
         .select("*").eq("policy_version_id", policy.id).order("leave_kind");
-      if (rulesError) { setMessage(rulesError.message); return; }
-      setLeavePolicyRules(rules || []);
-    } else {
+      if (rulesResult.error) errors.leaveRules = humanError(rulesResult.error, "The leave policy rules could not load.");
+      else setLeavePolicyRules(rulesResult.data || []);
+    } else if (!policyResult.error) {
       setLeavePolicyRules([]);
     }
 
-    const { data: goalRows, error: goalsError } = await supabase.from("personal_goals")
-      .select("id, title, target_date, status, achieved_at")
-      .eq("profile_id", me.id).order("created_at", { ascending: false });
-    if (goalsError) { setMessage(goalsError.message); return; }
-    setGoals(goalRows || []);
-
-    const { data: reminderRows, error: remindersError } = await supabase.from("personal_reminders")
-      .select("id, title, remind_at, linked_goal_id").eq("profile_id", me.id)
-      .is("seen_at", null).order("remind_at", { ascending: true }).limit(10);
-    if (remindersError) { setMessage(remindersError.message); return; }
-    setReminders(reminderRows || []);
-
-    const { data: personal, error: personalError } = await supabase.from("profile_personal_details")
-      .select("emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, address_text, social_handles")
-      .eq("profile_id", me.id).maybeSingle();
-    if (personalError) { setMessage(personalError.message); return; }
-    setDetails(personal || { emergency_contact_name: "", emergency_contact_phone: "", emergency_contact_relationship: "", address_text: "", social_handles: {} });
-
-    const { data: currentProfile, error: profileError } = await supabase.from("profiles")
-      .select("full_name, preferred_name, email, phone, birthday, job_title, joined_at, contract_type")
-      .eq("id", me.id).single();
-    if (profileError) { setMessage(profileError.message); return; }
-    if (currentProfile) setProfile((value) => ({ ...value, ...currentProfile }));
+    setDatasetErrors(errors);
+    setLoading(false);
+    return { errors };
   }
 
   const policyConfigured = Boolean(leavePolicy);
@@ -98,6 +139,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   const sickLeft = sickEntitlement === null ? null : sickEntitlement - sickTaken;
   const activeGoals = goals.filter((goal) => goal.status === "active");
   const achievedGoals = goals.filter((goal) => goal.status === "achieved");
+  const hasProfileReadError = Boolean(datasetErrors.profile || datasetErrors.details);
 
   function daysBetween(a, b) {
     if (!a || !b) return 0;
@@ -105,7 +147,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   }
 
   async function requestLeave() {
-    setBusy(true);
+    setBusy(true); setMessage(null);
     try {
       const days = daysBetween(startDate, endDate);
       if (days <= 0) throw new Error("Pick a valid range.");
@@ -137,7 +179,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   }
 
   async function createGoal() {
-    setBusy(true);
+    setBusy(true); setMessage(null);
     try {
       const { data, error } = await supabase.from("personal_goals").insert({
         org_id: me.org_id,
@@ -154,7 +196,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   }
 
   async function createReminder() {
-    setBusy(true);
+    setBusy(true); setMessage(null);
     try {
       if (!remindAt) throw new Error("Pick when to be reminded.");
       const { error } = await supabase.from("personal_reminders").insert({
@@ -173,12 +215,16 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
   async function markReminderSeen(id) {
     setMessage(null);
     const { error } = await supabase.from("personal_reminders").update({ seen_at: new Date().toISOString() }).eq("id", id);
-    if (error) { setMessage(error.message); return; }
+    if (error) { setMessage(humanError(error, "That reminder could not be updated.")); return; }
     await load();
   }
 
   function openProfile() {
     setMessage(null);
+    if (hasProfileReadError) {
+      setMessage("Your personal details are not editable until the current profile data has loaded successfully.");
+      return;
+    }
     setProfileForm({
       preferred_name: profile.preferred_name || "",
       phone: profile.phone || "",
@@ -210,109 +256,100 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
         },
       });
       if (error) throw error;
-      setMessage("Saved. This change is recorded in your profile history.");
       await load();
+      setMessage("Saved. This change is recorded in your profile history.");
     } catch (error) { setMessage(humanError(error, "Your details could not be saved.")); }
     finally { setBusy(false); }
   }
 
-  function InfoRow({ label, value }) {
-    return <div className="info-row"><span>{label}</span><strong>{value}</strong></div>;
-  }
+  const profileItems = [
+    profile.preferred_name ? { label: "Preferred name", value: profile.preferred_name } : null,
+    { label: "Official name", value: profile.full_name },
+    { label: "Email", value: profile.email },
+    { label: "Phone", value: profile.phone || "Not added" },
+    { label: "Unit", value: me.unit_name || "Not recorded" },
+    { label: "Position", value: me.is_exec ? "Group Pastor" : me.is_admin ? "Administration & HR" : me.role === "manager" ? "Unit head" : "Staff" },
+    profile.joined_at ? { label: "Joined", value: dateOnly(profile.joined_at) } : null,
+    profile.birthday ? { label: "Birthday", value: new Date(profile.birthday + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" }) } : null,
+  ];
 
-  return <div className="body staff-me">
-    {message && !sheet && <ProductNotice tone={message.startsWith("Saved") ? "success" : "error"} title={message.startsWith("Saved") ? "Saved" : "Could not complete that"}>{message}</ProductNotice>}
-    <div className="staff-page-intro">
-      <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1">My Hub</h1>
-      <p className="screen-note">{profile.preferred_name || profile.full_name} · {profile.job_title || "Staff"} · your development, time away, equipment, policies and personal record.</p>
-    </div>
+  return <div className="body ev2-personal-page ev2-personal-hub">
+    <PersonalPageHeader
+      eyebrow={me.unit_name || "CEAC OS"}
+      title="My Hub"
+      description={`${profile.preferred_name || profile.full_name} · ${profile.job_title || (me.is_exec ? "Group Pastor" : me.is_admin ? "Administration & HR" : "Staff")} · your personal workspace for development, time away, equipment, policies and ordinary profile information.`}
+    />
 
-    <div className="personal-entry-stack hub-entry-grid">
-      <button className="personal-history-entry" aria-label="My work history" type="button" onClick={() => openRecord?.()}>
-        <span><strong>Work history</strong><small>Completed work, feedback and recorded activity by month.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="Reviews & development" type="button" onClick={() => openPerformance?.()}>
-        <span><strong>Development</strong><small>Your review evidence, reflection, feedback and development plan.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My workforce context" type="button" onClick={() => openWorkforce?.()}>
-        <span><strong>Time & leave</strong><small>Your schedule, recorded work-session context, leave and corrections.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="Learning" type="button" onClick={() => openLearning?.()}>
-        <span><strong>Learning</strong><small>Assigned learning, resources and factual completion history.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My assets" type="button" onClick={() => openAssets?.()}>
-        <span><strong>Equipment</strong><small>CEAC equipment currently in your custody and your recorded custody history.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-      {!me.is_admin && !me.is_exec && <button className="personal-history-entry" aria-label="My compliance" type="button" onClick={() => openCompliance?.()}>
-        <span><strong>Policies & requirements</strong><small>Policies that apply to you, acknowledgements, evidence and exceptions.</small></span>
-        <b aria-hidden="true">→</b>
-      </button>}
-    </div>
+    {message && !sheet ? <ProductNotice tone={message.startsWith("Saved") ? "success" : "error"} title={message.startsWith("Saved") ? "Saved" : "Could not complete that"}>{message}</ProductNotice> : null}
 
-    <div className="staff-segment" role="tablist" aria-label="Personal area">
-      <button role="tab" aria-selected={area === "goals"} className={area === "goals" ? "on" : ""} onClick={() => setArea("goals")}>Goals</button>
-      <button role="tab" aria-selected={area === "leave"} className={area === "leave" ? "on" : ""} onClick={() => setArea("leave")}>Leave</button>
-      <button role="tab" aria-selected={area === "personal"} className={area === "personal" ? "on" : ""} onClick={() => setArea("personal")}>Personal</button>
-    </div>
+    <PersonalDestinationGrid>
+      <PersonalDestinationCard title="Work history" description="Completed work, feedback and recorded activity by month." ariaLabel="My work history" onClick={() => openRecord?.()} />
+      {!me.is_admin && !me.is_exec ? <PersonalDestinationCard title="Development" description="Your review evidence, reflection, feedback and development plan." ariaLabel="Reviews & development" onClick={() => openPerformance?.()} /> : null}
+      {!me.is_admin && !me.is_exec ? <PersonalDestinationCard title="Time & leave" description="Your schedule, recorded work-session context, leave and corrections." ariaLabel="My workforce context" onClick={() => openWorkforce?.()} /> : null}
+      {!me.is_admin && !me.is_exec ? <PersonalDestinationCard title="Learning" description="Assigned learning, resources and factual completion history." ariaLabel="Learning" onClick={() => openLearning?.()} /> : null}
+      {!me.is_admin && !me.is_exec ? <PersonalDestinationCard title="Equipment" description="CEAC equipment currently in your custody and your recorded custody history." ariaLabel="My assets" onClick={() => openAssets?.()} /> : null}
+      {!me.is_admin && !me.is_exec ? <PersonalDestinationCard title="Policies & requirements" description="Policies that apply to you, acknowledgements, evidence and exceptions." ariaLabel="My compliance" onClick={() => openCompliance?.()} /> : null}
+    </PersonalDestinationGrid>
 
-    {area === "goals" && <div className="personal-area">
-      <div className="area-heading">
-        <div><span className="eyebrow">Private to you</span><h2>Goals & development</h2></div>
-        <button className="btn btn-sm" onClick={() => setSheet("goal")}>Add goal</button>
-      </div>
-      <p className="context-note">Your personal goals are not counted in CEAC reports. Use them to plan your own development.</p>
+    <PersonalTabs value={area} onChange={setArea} />
 
-      {activeGoals.length > 0 ? <div className="goal-list">
-        {activeGoals.map((goal) => <button key={goal.id} className="goal-card" onClick={() => openGoal?.(goal.id)}>
-          <strong>{goal.title}</strong>
-          <span>{goal.target_date ? `By ${dateOnly(goal.target_date)}` : "No target date"}</span>
-          <b aria-hidden="true">→</b>
-        </button>)}
-      </div> : <div className="quiet-empty compact">
-        <strong>No active personal goals</strong>
-        <span>Add something you want to develop or accomplish for yourself.</span>
-      </div>}
+    {loading ? <div className="ev2pf-loading" aria-label="Loading My Hub" aria-busy="true">
+      <Skeleton variant="block" height="8rem" />
+      <Skeleton variant="block" height="12rem" />
+    </div> : null}
 
-      {achievedGoals.length > 0 && <div className="development-summary">
-        <strong>{achievedGoals.length}</strong>
-        <span>{achievedGoals.length === 1 ? "goal marked achieved" : "goals marked achieved"}</span>
-      </div>}
+    {!loading && area === "goals" ? <>
+      <PersonalSection
+        eyebrow="Private to you"
+        title="Goals & development"
+        description="Your personal goals are not counted in CEAC reports. They remain private planning records."
+        action={<Button size="sm" onClick={() => setSheet("goal")} disabled={Boolean(datasetErrors.goals)}>Add goal</Button>}
+      >
+        {datasetErrors.goals ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Personal goals could not be loaded" description={datasetErrors.goals} actionLabel="Try again" onAction={load} icon="error" /></div>
+          : activeGoals.length ? activeGoals.map((goal) => <PersonalRecordRow
+              key={goal.id}
+              title={goal.title}
+              meta={goal.target_date ? `Target ${dateOnly(goal.target_date)}` : "No target date"}
+              onClick={() => openGoal?.(goal.id)}
+            />)
+          : <PersonalEmpty title="No active personal goals" description="Add something you want to develop or accomplish for yourself." />}
+        {achievedGoals.length > 0 && !datasetErrors.goals ? <div className="ev2pf-facts"><PersonalFact value={String(achievedGoals.length)} label={achievedGoals.length === 1 ? "goal marked achieved" : "goals marked achieved"} /></div> : null}
+      </PersonalSection>
 
-      <div className="area-heading secondary">
-        <div><span className="eyebrow">For yourself</span><h2>Reminders</h2></div>
-        <button className="btn btn-ghost btn-sm" onClick={() => setSheet("remind")}>Add reminder</button>
-      </div>
-      {reminders.length > 0 ? reminders.map((reminder) => <div key={reminder.id} className="reminder-row">
-        <div>
-          <strong>{reminder.title}</strong>
-          <span>{new Date(reminder.remind_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>
-        </div>
-        <button className="text-action" onClick={() => markReminderSeen(reminder.id)}>Done</button>
-      </div>) : <div className="context-note">No reminders are waiting.</div>}
-    </div>}
+      <PersonalSection
+        eyebrow="For yourself"
+        title="Reminders"
+        description="Private prompts that belong to you and are not organisational performance evidence."
+        action={<Button variant="secondary" size="sm" onClick={() => setSheet("remind")} disabled={Boolean(datasetErrors.reminders)}>Add reminder</Button>}
+      >
+        {datasetErrors.reminders ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Reminders could not be loaded" description={datasetErrors.reminders} actionLabel="Try again" onAction={load} icon="error" /></div>
+          : reminders.length ? reminders.map((reminder) => <PersonalRecordRow
+              key={reminder.id}
+              title={reminder.title}
+              meta={new Date(reminder.remind_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+              action={<Button variant="quiet" size="sm" onClick={(event) => { event.stopPropagation(); markReminderSeen(reminder.id); }}>Done</Button>}
+            />)
+          : <PersonalEmpty title="No reminders are waiting" description="Add a private reminder when you want CEAC OS to keep something visible for you." />}
+      </PersonalSection>
+    </> : null}
 
-    {area === "leave" && <div className="personal-area">
-      <div className="area-heading">
-        <div><span className="eyebrow">Time away</span><h2>Leave</h2></div>
-        <button className="btn btn-sm" onClick={() => setSheet("leave")}>Ask for leave</button>
-      </div>
-
-      {!policyConfigured && <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>}
-      {policyConfigured && (annualLeft === null || sickLeft === null) && <ProductNotice tone="info" title="Some balances are unavailable">A confirmed policy exists, but CEAC OS only calculates a remaining balance when the relevant rule has explicit day entitlement, a supported accrual method, no carry-over, and no unresolved opening-balance requirement.</ProductNotice>}
-      <div className="leave-summary">
+    {!loading && area === "leave" ? <PersonalSection
+      eyebrow="Time away"
+      title="Leave"
+      description="Your own request and balance context. Manager and Administration decisions remain in Time & Leave."
+      action={<Button size="sm" onClick={() => setSheet("leave")} disabled={Boolean(datasetErrors.leaveRequests)}>Ask for leave</Button>}
+    >
+      {datasetErrors.leavePolicy || datasetErrors.leaveRules ? <ProductNotice tone="attention" title="Leave policy unavailable">{datasetErrors.leavePolicy || datasetErrors.leaveRules}</ProductNotice>
+        : !policyConfigured ? <ProductNotice tone="attention" title="Leave policy not configured">Your requests remain available, but CEAC OS will not invent leave entitlement or remaining-day figures.</ProductNotice>
+        : (annualLeft === null || sickLeft === null) ? <ProductNotice tone="info" title="Some balances are unavailable">A confirmed policy exists, but CEAC OS only calculates a remaining balance when the relevant rule has explicit day entitlement, a supported accrual method, no carry-over, and no unresolved opening-balance requirement.</ProductNotice>
+        : null}
+      {!datasetErrors.leavePolicy && !datasetErrors.leaveRules ? <div className="leave-summary">
         <div><strong>{annualLeft === null ? "—" : annualLeft}</strong><span>{annualLeft === null ? "annual balance unavailable" : "annual days left"}</span></div>
         <div><strong>{sickLeft === null ? "—" : sickLeft}</strong><span>{sickLeft === null ? "sick balance unavailable" : "sick days left"}</span></div>
-      </div>
+      </div> : null}
 
-      {myRequests.length > 0 && <>
-        <div className="area-heading secondary"><div><h2>Your requests</h2></div></div>
-        {myRequests.map((request) => <div key={request.id} className="leave-request-row">
+      {datasetErrors.leaveRequests ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Leave requests could not be loaded" description={datasetErrors.leaveRequests} actionLabel="Try again" onAction={load} icon="error" /></div>
+        : myRequests.length ? myRequests.map((request) => <div key={request.id} className="leave-request-row">
           <div>
             <strong>{request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
             <span>{dateOnly(request.start_date)} — {dateOnly(request.end_date)}</span>
@@ -321,38 +358,98 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
             <span className={`pill ${request.status === "approved" ? "p-green" : request.status === "declined" || request.status === "cancelled" ? "p-brick" : "p-amber"}`}>
               {request.status === "approved" ? "Approved" : request.status === "declined" ? "Declined" : request.status === "cancelled" ? "Cancelled" : request.status === "escalated" ? "With admin" : "Waiting"}
             </span>
-            {(request.status === "pending" || request.status === "escalated") && <button className="text-action" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</button>}
+            {(request.status === "pending" || request.status === "escalated") ? <button className="text-action" disabled={busy} onClick={() => cancelLeave(request.id)}>Cancel</button> : null}
           </div>
-        </div>)}
+        </div>)
+        : <PersonalEmpty title="No leave requests recorded" description="Your own requests will remain visible here after they are submitted." />}
+    </PersonalSection> : null}
+
+    {!loading && area === "personal" ? <PersonalSection
+      eyebrow="Your information"
+      title="Personal & employment"
+      description="Ordinary profile information only. Official employment/access records remain Administration-owned."
+      action={<Button variant="secondary" size="sm" onClick={openProfile} disabled={hasProfileReadError}>Edit personal details</Button>}
+    >
+      {datasetErrors.profile ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Ordinary profile could not be loaded" description={datasetErrors.profile} actionLabel="Try again" onAction={load} icon="error" /></div>
+        : <PersonalDetailGrid items={profileItems} />}
+      {datasetErrors.details ? <div className="ev2pf-partial-error"><StatePanel state="error" title="Private contact details could not be loaded" description="Editing is disabled so unseen emergency-contact or address information cannot be overwritten with blanks." actionLabel="Try again" onAction={load} icon="error" /></div> : null}
+      <PersonalBoundary title="Protected HR records">
+        Ghana Card, SSNIT, tax, banking, contracts, payslips and private documents use a separate protected HR system and are not stored in these ordinary profile details.
+      </PersonalBoundary>
+      <div className="ev2pf-signout"><Button variant="quiet" onClick={() => supabase.auth.signOut()}>Sign out</Button></div>
+    </PersonalSection> : null}
+
+    <ModalDialog
+      open={sheet === "goal"}
+      onClose={() => !busy && setSheet(null)}
+      title="Add a personal goal"
+      description="Only you see this. Goal steps remain inside the existing private goal record."
+      footer={<>
+        <Button variant="secondary" onClick={() => setSheet(null)} disabled={busy}>Cancel</Button>
+        <Button busy={busy} onClick={createGoal} disabled={!goalTitle.trim()}>Add goal</Button>
       </>}
-    </div>}
-
-    {area === "personal" && <div className="personal-area">
-      <div className="area-heading">
-        <div><span className="eyebrow">Your information</span><h2>Personal & employment</h2></div>
-        <button className="btn btn-ghost btn-sm" onClick={openProfile}>Edit</button>
+    >
+      <div className="ev2pf-form-stack">
+        <InputField label="Goal" placeholder="What are you aiming for?" value={goalTitle} onChange={(event) => setGoalTitle(event.target.value)} />
+        <InputField label="Target date" help="Optional." type="date" value={goalDate} onChange={(event) => setGoalDate(event.target.value)} />
       </div>
+    </ModalDialog>
 
-      <div className="info-list">
-        {profile.preferred_name && <InfoRow label="Preferred name" value={profile.preferred_name} />}
-        <InfoRow label="Official name" value={profile.full_name} />
-        <InfoRow label="Email" value={profile.email} />
-        <InfoRow label="Phone" value={profile.phone || "Not added"} />
-        <InfoRow label="Unit" value={me.unit_name || "—"} />
-        <InfoRow label="Position" value={me.is_exec ? "Group Pastor" : me.is_admin ? "Administration & HR" : me.role === "manager" ? "Unit head" : "Staff"} />
-        {profile.joined_at && <InfoRow label="Joined" value={dateOnly(profile.joined_at)} />}
-        {profile.birthday && <InfoRow label="Birthday" value={new Date(profile.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
+    <ModalDialog
+      open={sheet === "remind"}
+      onClose={() => !busy && setSheet(null)}
+      title="Add a reminder"
+      description="Only you see this reminder."
+      footer={<>
+        <Button variant="secondary" onClick={() => setSheet(null)} disabled={busy}>Cancel</Button>
+        <Button busy={busy} onClick={createReminder} disabled={!remindTitle.trim() || !remindAt}>Set reminder</Button>
+      </>}
+    >
+      <div className="ev2pf-form-stack">
+        <InputField label="Reminder" placeholder="What to remind you of" value={remindTitle} onChange={(event) => setRemindTitle(event.target.value)} />
+        <InputField label="When" type="datetime-local" value={remindAt} onChange={(event) => setRemindAt(event.target.value)} />
       </div>
+    </ModalDialog>
 
-      <div className="protected-boundary">
-        <strong>Protected HR records</strong>
-        <span>Ghana Card, SSNIT, tax, banking, contracts, payslips and private documents use a separate protected HR system and are not stored in these ordinary profile details.</span>
+    <Drawer
+      open={sheet === "profile"}
+      onClose={() => !busy && setSheet(null)}
+      title="Edit personal details"
+      description="Official employment details remain read-only. Emergency contact and address details are visible only to you and Administration."
+      footer={<>
+        <Button variant="secondary" onClick={() => setSheet(null)} disabled={busy}>Close</Button>
+        <Button busy={busy} onClick={saveProfile}>Save personal details</Button>
+      </>}
+    >
+      <div className="ev2pf-form-stack">
+        <div className="ev2pf-form-grid">
+          <InputField label="Preferred name" value={profileForm.preferred_name} onChange={(event) => setProfileForm((value) => ({ ...value, preferred_name: event.target.value }))} />
+          <InputField label="Phone" type="tel" value={profileForm.phone} onChange={(event) => setProfileForm((value) => ({ ...value, phone: event.target.value }))} />
+        </div>
+        <InputField label="Birthday" type="date" max={new Date().toISOString().slice(0, 10)} value={profileForm.birthday} onChange={(event) => setProfileForm((value) => ({ ...value, birthday: event.target.value }))} />
+
+        <div className="ev2pf-form-section">
+          <strong>Emergency contact</strong>
+          <InputField label="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
+          <div className="ev2pf-form-grid">
+            <InputField label="Contact phone" type="tel" value={profileForm.emergency_contact_phone} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_phone: event.target.value }))} />
+            <InputField label="Relationship" value={profileForm.emergency_contact_relationship} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_relationship: event.target.value }))} />
+          </div>
+        </div>
+
+        <TextareaField label="Address or ordinary contact information" rows={3} value={profileForm.address_text} onChange={(event) => setProfileForm((value) => ({ ...value, address_text: event.target.value }))} />
+
+        <div className="ev2pf-form-section">
+          <strong>Social handles</strong>
+          <InputField label="Instagram" placeholder="Username or profile link" value={profileForm.instagram} onChange={(event) => setProfileForm((value) => ({ ...value, instagram: event.target.value }))} />
+          <InputField label="LinkedIn" placeholder="Profile link" value={profileForm.linkedin} onChange={(event) => setProfileForm((value) => ({ ...value, linkedin: event.target.value }))} />
+        </div>
+
+        {message ? <ProductNotice tone={message.startsWith("Saved") ? "success" : "attention"} title={message.startsWith("Saved") ? "Saved" : "Could not save"}>{message}</ProductNotice> : null}
       </div>
+    </Drawer>
 
-      <button className="text-action signout-action" onClick={() => supabase.auth.signOut()}>Sign out</button>
-    </div>}
-
-    {sheet === "leave" && <Sheet onClose={() => setSheet(null)}>
+    {sheet === "leave" ? <Sheet onClose={() => setSheet(null)}>
       <div className="h2">Ask for leave</div>
       <p className="screen-note">Your manager will see this and approve it or send it on to Administration where required.</p>
       <div className="sec" style={{ marginTop: 12 }}><span>Kind of leave</span></div>
@@ -362,53 +459,8 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       <FieldGroup label="Leave starts"><input className="field" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></FieldGroup>
       <FieldGroup label="Leave ends"><input className="field" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></FieldGroup>
       <FieldGroup label="Reason" hint="Optional. Keep it brief."><textarea className="field" rows={2} placeholder="A short reason" value={reason} onChange={(event) => setReason(event.target.value)} /></FieldGroup>
-      {startDate && endDate && <div className="small" style={{ marginTop: 8 }}>That is {daysBetween(startDate, endDate)} day{daysBetween(startDate, endDate) === 1 ? "" : "s"}.</div>}
+      {startDate && endDate ? <div className="small" style={{ marginTop: 8 }}>That is {daysBetween(startDate, endDate)} day{daysBetween(startDate, endDate) === 1 ? "" : "s"}.</div> : null}
       <button className="btn" style={{ marginTop: 14 }} onClick={requestLeave} disabled={busy || !startDate || !endDate}>{busy ? "Sending..." : "Send request"}</button>
-    </Sheet>}
-
-    {sheet === "goal" && <Sheet onClose={() => setSheet(null)}>
-      <div className="h2">Add a personal goal</div>
-      <p className="screen-note">Only you see this. Add steps inside the goal after creating it.</p>
-      <FieldGroup label="Goal"><input className="field" placeholder="What are you aiming for?" value={goalTitle} onChange={(event) => setGoalTitle(event.target.value)} /></FieldGroup>
-      <FieldGroup label="Target date" hint="Optional."><input className="field" type="date" value={goalDate} onChange={(event) => setGoalDate(event.target.value)} /></FieldGroup>
-      <button className="btn" style={{ marginTop: 14 }} onClick={createGoal} disabled={busy || !goalTitle.trim()}>{busy ? "Saving..." : "Add goal"}</button>
-    </Sheet>}
-
-    {sheet === "remind" && <Sheet onClose={() => setSheet(null)}>
-      <div className="h2">Add a reminder</div>
-      <p className="screen-note">Only you see this reminder.</p>
-      <FieldGroup label="Reminder"><input className="field" placeholder="What to remind you of" value={remindTitle} onChange={(event) => setRemindTitle(event.target.value)} /></FieldGroup>
-      <FieldGroup label="When"><input className="field" type="datetime-local" value={remindAt} onChange={(event) => setRemindAt(event.target.value)} /></FieldGroup>
-      <button className="btn" style={{ marginTop: 14 }} onClick={createReminder} disabled={busy || !remindTitle.trim() || !remindAt}>{busy ? "Saving..." : "Set reminder"}</button>
-    </Sheet>}
-
-    {sheet === "profile" && <Sheet onClose={() => !busy && setSheet(null)}>
-      <div className="h2">Edit personal details</div>
-      <p className="screen-note">Official employment details remain read-only. Emergency contact and address details are visible only to you and Administration.</p>
-      <label className="field-label" htmlFor="profile-preferred-name">Preferred name</label>
-      <input id="profile-preferred-name" className="field" value={profileForm.preferred_name} onChange={(event) => setProfileForm((value) => ({ ...value, preferred_name: event.target.value }))} />
-      <label className="field-label" htmlFor="profile-phone">Phone</label>
-      <input id="profile-phone" className="field" type="tel" value={profileForm.phone} onChange={(event) => setProfileForm((value) => ({ ...value, phone: event.target.value }))} />
-      <label className="field-label" htmlFor="profile-birthday">Birthday</label>
-      <input id="profile-birthday" className="field" type="date" value={profileForm.birthday} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setProfileForm((value) => ({ ...value, birthday: event.target.value }))} />
-
-      <div className="sec"><span>Emergency contact</span></div>
-      <label className="field-label" htmlFor="profile-emergency-name">Contact name</label>
-      <input id="profile-emergency-name" className="field" placeholder="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
-      <label className="field-label" htmlFor="profile-emergency-phone">Contact phone</label>
-      <input id="profile-emergency-phone" className="field" type="tel" placeholder="Contact phone" value={profileForm.emergency_contact_phone} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_phone: event.target.value }))} />
-      <label className="field-label" htmlFor="profile-emergency-relationship">Relationship</label>
-      <input id="profile-emergency-relationship" className="field" placeholder="Relationship" value={profileForm.emergency_contact_relationship} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_relationship: event.target.value }))} />
-
-      <label className="field-label" htmlFor="profile-address">Address or ordinary contact information</label>
-      <textarea id="profile-address" className="field" rows="3" value={profileForm.address_text} onChange={(event) => setProfileForm((value) => ({ ...value, address_text: event.target.value }))} />
-
-      <div className="sec"><span>Social handles</span></div>
-      <FieldGroup label="Instagram"><input className="field" placeholder="Username or profile link" value={profileForm.instagram} onChange={(event) => setProfileForm((value) => ({ ...value, instagram: event.target.value }))} /></FieldGroup>
-      <FieldGroup label="LinkedIn"><input className="field" placeholder="Profile link" value={profileForm.linkedin} onChange={(event) => setProfileForm((value) => ({ ...value, linkedin: event.target.value }))} /></FieldGroup>
-
-      {message && <ProductNotice tone={message.startsWith("Saved") ? "success" : "attention"} title={message.startsWith("Saved") ? "Saved" : "Could not save"}>{message}</ProductNotice>}
-      <button className="btn" style={{ marginTop: 14 }} onClick={saveProfile} disabled={busy}>{busy ? "Saving..." : "Save personal details"}</button>
-    </Sheet>}
+    </Sheet> : null}
   </div>;
 }
