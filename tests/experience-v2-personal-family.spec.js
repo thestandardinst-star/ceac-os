@@ -180,3 +180,82 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("Stage 10 Family G3 keeps personal leave inside established workforce authority", async () => {
+  const me = readFileSync("src/screens/Me.jsx", "utf8");
+
+  expect(me).toContain('supabase.rpc("workforce_request_leave"');
+  expect(me).toContain('supabase.rpc("workforce_leave_action"');
+  expect(me).toContain('p_action: "cancelled_by_employee"');
+  expect(me).toContain("Manager and Administration decisions remain in Time & Leave.");
+  expect(me).toContain("Open Time & Leave");
+  expect(me).toContain("CEAC OS will not invent leave entitlement or remaining-day figures.");
+  expect(me).toContain("It does not guess working-day totals, entitlement or payroll consequences here.");
+  expect(me).not.toContain("manager_approved");
+  expect(me).not.toContain("admin_approved");
+  expect(me).not.toContain('className="leave-summary"');
+  expect(me).not.toContain('className="leave-request-row"');
+  expect(me).not.toContain("<Sheet");
+  expect(me).not.toContain("<FieldGroup");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G3 Staff personal leave composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+
+    await page.getByRole("tab", { name: "Leave", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Leave", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ask for leave", exact: true })).toBeVisible();
+    await expect(page.getByText(/Manager and Administration decisions remain in Time & Leave/i)).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Personal leave overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+
+    const actionHeights = await page.locator(".ev2pf-section-action .ev2c-button:visible, .ev2pf-row-action .ev2c-button:visible").evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().height)
+    );
+    if (actionHeights.length) expect(Math.min(...actionHeights)).toBeGreaterThanOrEqual(44);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10g3-staff-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
+
+test("Stage 10 Family G3 leave request uses the V2 guided modal without inventing day totals", async ({ browser }) => {
+  const { context, page } = await openHub(browser, roles[0], { width: 390, height: 844 });
+
+  await page.getByRole("tab", { name: "Leave", exact: true }).click();
+  await page.getByRole("button", { name: "Ask for leave", exact: true }).click();
+
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ask for leave", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Annual", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sick", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Leave starts", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Leave ends", { exact: true })).toBeVisible();
+  await expect(page.getByText(/does not guess working-day totals, entitlement or payroll consequences/i)).toBeVisible();
+  await expect(page.getByText(/That is .* day/i)).toHaveCount(0);
+
+  await page.screenshot({
+    path: "test-artifacts/redesign-r7-stage10g3-staff-phone-390-leave-modal.png",
+    fullPage: true,
+  });
+
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await context.close();
+});
