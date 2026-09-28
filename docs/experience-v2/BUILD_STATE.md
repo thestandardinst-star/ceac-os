@@ -1475,4 +1475,3 @@ Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_C_ACCEPTANCE_RECORD.md`.
 
 Family D has NOT started. Open Family D only after this documentation-only acceptance commit is itself exact-head green.
-
