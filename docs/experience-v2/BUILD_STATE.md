@@ -2168,38 +2168,60 @@ Acceptance record:
 - preserve truthful loading/error/empty/no-period states;
 - introduce no schema, migration, RLS, RPC, authentication or capability change.
 
-10F3 Level B application candidate:
-- exact application head `daed8eb2f0c215b96c909332828dc292d7c9b99a`;
+10F3 — Administration Reports is ACCEPTED AND COMPLETE.
+
+Exact accepted 10F3 application head:
+- `daed8eb2f0c215b96c909332828dc292d7c9b99a`.
+
+Exact-head Level B:
 - CI PASS — run `36426833610` (#1247);
 - Migration Replay PASS — run `36426833332` (#858);
 - Account Security PASS — run `36426833130` (#1030);
 - Complete Quality Gate PASS — run `36426833209` (#1056);
-- Level B SQL/RLS/authority contracts PASS;
+- complete SQL/RLS/authority contracts PASS;
 - all four browser shards PASS;
 - merged exact-head product evidence PASS;
 - role-and-RLS coordinator PASS.
 
-10F3 direct product inspection:
-- exact-head Administration Reports evidence inspected across the required 320/360/375/390/414/430/900/1366/1440 matrix;
-- no-period state remains explicit and does not fabricate zero coverage or an implicit report;
-- period opening remains the primary Administration action;
-- filed/draft/missing states remain filing status, not unit/staff performance;
-- outstanding units remain named when records exist;
-- the legacy donut was not carried into Family F; dedicated visualisation remains Stage 11 work;
-- loading/error states do not expose fabricated coverage figures;
-- no schema, migration, RLS, RPC, authentication or capability grant changed.
+Vercel reconciliation:
+- the application head initially received the external build-rate-limit status;
+- documentation-only checkpoint `59b791ceb4781935b653c345611130f7a97dd109` received Vercel PASS with identical application code;
+- no billing, environment, domain, Vercel project setting or application configuration changed.
+
+Accepted Administration Reports behaviour:
+- shared Experience V2 reporting-family presentation is active;
+- Administration remains the only period create/open/close/reopen authority;
+- organisation coverage keeps submitted, draft and missing states distinct;
+- named units remain visible for follow-up;
+- narratives and challenges remain factual report content;
+- no-period and failed-read states remain truthful;
+- reporting completeness is explicitly not a performance score;
+- the legacy donut was removed from Family F rather than expanded ahead of Stage 11;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Responsive proof directly inspected across the full 320/360/375/390/414/430/900/1366/1440 matrix.
 
 Quality Gate evidence:
 - `redesign-r7-product-inspection` artifact `10971782980`;
-- digest `sha256:541322ee0bb72eb651d36610021cadec5d6e0845c64ed558d4f03b86bddf82f4`;
-- exact application head `daed8eb2f0c215b96c909332828dc292d7c9b99a`.
+- digest `sha256:541322ee0bb72eb651d36610021cadec5d6e0845c64ed558d4f03b86bddf82f4`.
 
-10F3 external deployment status:
-- Vercel on the application head is blocked by the provider build-rate limit;
-- this is an external deployment-capacity status, not an application/build/security failure;
-- 10F3 remains ACTIVE and NOT YET ACCEPTED until the unchanged application code receives a valid Vercel deployment result.
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_F_10F3_ACCEPTANCE_RECORD.md`.
 
-10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
+10F4 — Executive Reports is ACTIVE.
+
+10F4 implementation boundary:
+- migrate Executive Reports into the shared Experience V2 reporting family;
+- preserve read-only latest-period organisation context;
+- preserve named filed/waiting unit status and latest-version selection;
+- expose no period create/open/close/reopen controls;
+- expose no report draft/save/submit/correct controls;
+- preserve factual coverage language and keep coverage distinct from performance;
+- use truthful loading/error/no-period states;
+- introduce no chart expansion before Stage 11;
+- introduce no schema, migration, RLS, RPC, authentication or capability change.
+
+10F5 Family F final acceptance has NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
