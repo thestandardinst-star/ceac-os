@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, EmptyState, SectionHeader, Sheet, FieldGroup, StatusDistribution, ProgressMeter, Avatar } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { StatusBadge } from "../experience-v2/components";
 
 function money(minor, currency = "GHS") {
   const value = Number(minor || 0) / 100;
@@ -197,8 +198,8 @@ export default function Units({ me, openItem }) {
 
     return <div className="body admin-unit-detail">
       <button className="back" onClick={() => setOpenUnitId(null)}>← All units</button>
-      <div className="eyebrow">{openUnit.code || "Unit"}</div>
-      <h1 className="h1">{openUnit.name}</h1>
+      <div className="admin-unit-identity"><div><div className="eyebrow">{openUnit.code || "Unit"}</div>
+      <h1 className="h1">{openUnit.name}</h1></div><StatusBadge tone={openUnit.head ? "success" : "warning"} icon={false}>{openUnit.head ? "Unit Head recorded" : "Unit Head needed"}</StatusBadge></div>
       <div className="admin-unit-title-row">
         <p className="screen-note">{openUnit.head ? `Led by ${openUnit.head.profiles?.full_name || "Unit Head"}` : "No Unit Head assigned"} · {openUnit.people.length} {openUnit.people.length === 1 ? "person" : "people"}.</p>
         <button className="btn btn-ghost btn-sm" onClick={() => openUnitSetup(openUnit)}>Edit setup</button>
