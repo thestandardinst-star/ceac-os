@@ -1890,7 +1890,52 @@ This implementation tranche:
 - subsequent heads retained the same role mismatch while adding valid currency-neutral validation copy and registered Finance semantic icons;
 - the correction restores button semantics with `aria-pressed` selected state. It does not change finance authority, weaken assertions, add retries/skips or increase timeouts.
 
-10E3 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration Finance viewport inspection are required.
+10E3 acceptance is NOT yet recorded.
+
+Latest 10E3 Level B application head:
+- `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0`;
+- CI PASS — run `36411225789` (#1222);
+- Migration Replay PASS — run `36411225724` (#833);
+- Account Security PASS — run `36411225764` (#1005). The first attempt was blocked before test execution by a GitHub-hosted runner port collision on local Supabase port 54322; the unchanged failed job was rerun and passed;
+- complete Quality Gate PASS — run `36411225661` (#1031);
+- Level B SQL/RLS/authority contracts PASS;
+- all four Playwright browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+10E3 acceptance corrections on the Level B application head:
+- finance read failures no longer collapse into a false empty/no-records state;
+- a failed finance read presents an explicit error state and retry action without displaying financial figures;
+- an absent recorded budget is shown as `Not recorded` rather than silently becoming zero;
+- Administration Finance section controls fully compose inside 320–430px phone widths instead of clipping the fourth section off-screen;
+- tests now prove the failed-read distinction and full tab-bound composition;
+- no schema, migration, RLS, RPC definition, authentication configuration, capability grant or finance-authority rule changed.
+
+Exact-head product evidence directly inspected:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900;
+- populated finance closure evidence retaining spend/source context.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10964284634`;
+- artifact exact head `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0`.
+
+Remaining 10E3 acceptance blocker:
+- Vercel exact-head deployment is NOT green;
+- GitHub combined status reports Vercel failure with the provider build-rate-limit target;
+- a safe retry of the same exact application SHA was attempted without changing billing, environment, project settings or deployment configuration;
+- the Vercel project redirects to authentication and the available connected browser has no saved Vercel credentials, so the retry cannot be completed autonomously;
+- this is an external access/service blocker, not evidence of an application, migration, security or finance-authority failure.
+
+10E3 remains ACTIVE and NOT ACCEPTED until the exact application head has a valid Vercel acceptance result. Do not create the 10E3 acceptance record and do not begin 10E4 writes before that boundary is resolved.
+
 10E4 Executive Finance and 10E5 Family E final acceptance have NOT started.
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
