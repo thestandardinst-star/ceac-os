@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D3 — Manager Workforce context (ACTIVE)
+Current substage: 10D3 — Manager Workforce context (ACCEPTED; 10D4 entry pending documentation-head verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1577,7 +1577,52 @@ Implementation on top of the accepted 10D2 documentation head:
 - changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant;
 - introduces no attendance score, ranking, payroll-time interpretation, automatic absence, lateness, no-show or productivity finding.
 
-10D3 acceptance is NOT yet recorded. It requires exact-head engineering/security gates and direct Manager viewport evidence inspection across the full required matrix.
-10D4 and 10D5 have NOT started.
+10D3 — Manager Workforce context is ACCEPTED AND COMPLETE.
+
+Exact accepted 10D3 head:
+- `b61824834c1374d13527f1157d48035572a22665`.
+
+Exact-head gates:
+- CI PASS — run `36383865432`;
+- Migration Replay PASS — run `36383865430`;
+- Account Security PASS — run `36383865428`;
+- Complete Quality Gate PASS — run `36383865439` (#1006);
+- 298 Playwright tests passed in 12.9 minutes;
+- Vercel PASS.
+
+Quality Gate #1005 on prior head `5b590e18d900bb73be0ce82ef0d04d449afff392` had one static source-contract mismatch and 297 passing tests. The product source already used the stronger factual wording “never converted into an automatic absence or performance judgement”; the stale test expected “not converted…”. Commit `b618248...` changed only that assertion wording. No product behaviour, authority, timeout, retry, skip or threshold was changed.
+
+Accepted Manager behaviour:
+- Manager Workforce uses the shared Experience V2 Workforce family for Today, Leave, Calendar, Sessions, Recorded differences and Corrections;
+- routed leave decisions precede team context;
+- managed-unit scope remains enforced by the existing Stage 9 RLS/domain rules;
+- the exact viewport acceptance verifies `Staff Fixture` is visible and `Other Unit Fixture` is absent;
+- Manager role alone exposes neither `Schedules & policy` nor `Record correction`;
+- explicit `workforce.manage` / `attendance.correct` capabilities remain authoritative if deliberately granted;
+- `workforce_leave_action` and existing correction/schedule/policy RPC paths are unchanged;
+- missing activity remains factual context and is never converted into automatic absence, lateness, no-show, underwork or performance judgement;
+- no schema, migration, RLS, RPC definition, authentication configuration, capability grant, payroll-time assumption, score, ranking or probability was introduced.
+
+Responsive proof directly inspected:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+The exact-head Manager screenshots retain the V2 12px operational text floor, 44px tab target floor and page-level no-horizontal-overflow gate. Long full-page phone captures show the fixed bottom navigation crossing the document, which is established screenshot-capture behaviour rather than page overflow.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family D / 10D3 / b61824834c1374d13527f1157d48035572a22665 / stage10d3-b618-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_D_10D3_ACCEPTANCE_RECORD.md`.
+
+10D4 — Administration Time & Leave has NOT started. It is the next substage after this documentation-only acceptance head is exact-head green.
+10D5 Family D final acceptance has NOT started.
 Family E has NOT started.
 Chat remains the sole active writer.
