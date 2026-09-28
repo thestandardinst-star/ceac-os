@@ -449,12 +449,18 @@ export default function Learning({ me }) {
 
   if (loading) return <div className="body"><LoadingState label="Loading learning…" /></div>;
 
-  return <div className="body learning-page">
-    <div style={{ paddingTop:26 }}>
+  const personalLearning = !learningAdmin && !me.is_admin;
+  return <div className={`body learning-page ${personalLearning ? "ev2-personal-page ev2-personal-learning" : ""}`.trim()}>
+    {personalLearning ? <PersonalPageHeader
+      eyebrow="My Hub"
+      title="Learning"
+      description="Your assigned learning, catalogue access and factual completion history. Learning activity is not converted into a skill, performance or potential score."
+      statusLabel="Personal learning"
+    /> : <div style={{ paddingTop:26 }}>
       <div className="eyebrow">Learning</div>
       <h1 className="h1">Learning</h1>
       <p className="screen-note">Structured courses, resources and factual completion. CEAC OS does not turn learning activity into a skill, performance or potential score.</p>
-    </div>
+    </div>}
 
     {error && <ProductNotice tone="error" title="Learning">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}
