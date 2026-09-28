@@ -1626,3 +1626,27 @@ Acceptance record:
 10D5 Family D final acceptance has NOT started.
 Family E has NOT started.
 Chat remains the sole active writer.
+
+
+## Stage 10 Family D — 10D4 Administration Time & Leave implementation
+
+10D4 — Administration Time & Leave is ACTIVE.
+
+Implementation on top of exact-head-green 10D3 acceptance documentation:
+- migrates Administration Workforce into the shared Experience V2 Workforce family;
+- presents Administration actions before organisation-wide Today context;
+- migrates Calendar, Sessions, Recorded differences, Leave, Corrections and Schedules & policy into the V2 family;
+- retains the established `Workforce` route heading and cumulative Stage 9 acceptance selectors;
+- preserves organisation-wide Administration scope through existing RLS/domain reads;
+- preserves `workforce.manage` and `attendance.correct` capability checks;
+- preserves existing leave, correction, schedule/day-type and policy RPCs;
+- preserves append-only correction/reversal, leave-event, schedule-version and policy-version history;
+- preserves original work-session evidence;
+- preserves truthful no-policy/no-balance behaviour;
+- introduces no attendance score, ranking, absence inference, payroll-time interpretation or salary logic;
+- changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
+
+10D4 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration viewport inspection are required.
+10D5 Family D final acceptance has NOT started.
+Family E has NOT started.
+Chat remains the sole active writer.

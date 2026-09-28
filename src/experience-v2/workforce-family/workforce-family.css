@@ -338,7 +338,8 @@
 }
 
 .ev2-workforce-staff .product-notice,
-.ev2-workforce-manager .product-notice {
+.ev2-workforce-manager .product-notice,
+.ev2-workforce-admin .product-notice {
   margin-top: var(--ev2-space-3);
 }
 

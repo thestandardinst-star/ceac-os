@@ -122,9 +122,10 @@ export function WorkforceRecordRow({
   note,
   statusLabel,
   statusTone: tone,
+  className = "",
 }) {
   return (
-    <article className="ev2wf-row">
+    <article className={`ev2wf-row ${className}`.trim()}>
       <span className="ev2wf-row-icon"><CeacIcon name={icon} size="row" decorative /></span>
       <div className="ev2wf-row-copy">
         {eyebrow ? <small>{eyebrow}</small> : null}

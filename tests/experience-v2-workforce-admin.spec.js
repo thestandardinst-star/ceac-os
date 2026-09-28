@@ -1,0 +1,93 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+
+const password = process.env.ROLE_FIXTURE_PASSWORD;
+
+async function openAdminWorkforce(browser, viewport) {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("admin@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".office-app")).toBeVisible({ timeout: 15000 });
+  await page.goto("/?tab=attendance");
+  await expect(page.locator(".ev2-workforce-admin")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("heading", { name: "Workforce", exact: true })).toBeVisible();
+  return { context, page };
+}
+
+test("Stage 10 Family D4 preserves Administration Workforce authority and factual contracts", async () => {
+  const family = readFileSync("src/experience-v2/workforce-family/WorkforceFamilyV2.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/workforce-family/workforce-family.css", "utf8");
+  const workforce = readFileSync("src/screens/Workforce.jsx", "utf8");
+
+  expect(family).toContain('className = ""');
+  expect(workforce).toContain("const isAdminView=Boolean(me.is_admin)");
+  expect(workforce).toContain('caps.includes("workforce.manage")');
+  expect(workforce).toContain('caps.includes("attendance.correct")');
+  expect(workforce).toContain("Original work-session rows are not rewritten");
+  expect(workforce).toContain("Only an explicitly complete confirmed policy may be activated.");
+  expect(workforce).toContain("will not calculate entitlement, accrual, carry-over or remaining balance");
+  expect(workforce).toContain('leaveAction(row.id,"approval_reversed")');
+  expect(css).toContain(".ev2-workforce-admin");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family D4 Administration Workforce composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openAdminWorkforce(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("tab", { name: "Today", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Leave", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Corrections", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Schedules & policy", exact: true })).toBeVisible();
+
+    await expect(page.locator(".ev2-workforce-admin")).toContainText("Staff Fixture");
+    await expect(page.locator(".ev2-workforce-admin")).toContainText("Other Unit Fixture");
+
+    await page.getByRole("tab", { name: "Corrections", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Record correction", exact: true })).toBeVisible();
+
+    await page.getByRole("tab", { name: "Schedules & policy", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Add day type", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Configure leave policy", exact: true })).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Administration Workforce overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+
+    const tabHeights = await page.locator(".ev2wf-tabs button").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+    expect(Math.min(...tabHeights)).toBeGreaterThanOrEqual(44);
+
+    const smallest = await page.locator(".ev2-workforce-admin").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    await page.getByRole("tab", { name: "Today", exact: true }).click();
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10d4-admin-workforce-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    await context.close();
+  });
+}
