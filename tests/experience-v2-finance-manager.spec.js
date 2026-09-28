@@ -11,7 +11,7 @@ async function openManagerFinance(browser, viewport, email = "manager@ceac.local
   await page.getByPlaceholder("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".manager-app")).toBeVisible({ timeout: 15000 });
-  await page.goto("/?tab=budget");
+  await page.goto("/?tab=manager-finance");
   await expect(page.locator(".ev2-finance-manager")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("heading", { name: "Finance", exact: true })).toBeVisible();
   return { context, page };
