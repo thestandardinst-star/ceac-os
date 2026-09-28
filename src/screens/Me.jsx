@@ -464,7 +464,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       open={sheet === "leave"}
       onClose={() => !busy && setSheet(null)}
       title="Ask for leave"
-      description="Your request follows CEAC's recorded leave process. Manager and Administration decision controls remain in Time & Leave."
+      description="Your request follows CEAC's existing workforce leave process. Manager and Administration decision controls remain in Time & Leave."
       footer={<>
         <Button variant="secondary" onClick={() => setSheet(null)} disabled={busy}>Cancel</Button>
         <Button busy={busy} onClick={requestLeave} disabled={busy || !startDate || !endDate || endDate < startDate}>Send request</Button>
