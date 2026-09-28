@@ -499,3 +499,15 @@ test("Stage 10 Family H3 keeps Executive Organisation read-only leadership conte
   expect(organisation).not.toContain(".delete(");
   expect(organisation).not.toContain("supabase.rpc(");
 });
+
+
+test("Stage 10 Family H4 keeps Units evidence-backed and Administration-owned", async () => {
+  const units = readFileSync("src/screens/Units.jsx", "utf8");
+  expect(units).toContain('supabase.from("units")');
+  expect(units).toContain('supabase.rpc("assign_unit_head"');
+  expect(units).toContain("Session and leave facts are context only. They do not measure output.");
+  expect(units).toContain("Currencies remain separate; CEAC OS does not invent exchange rates.");
+  expect(units).toContain("Administration can inspect the record but does not enter the Manager’s review queue.");
+  expect(units).toContain("Unit Head needed");
+  expect(units).toContain("StatusBadge");
+});
