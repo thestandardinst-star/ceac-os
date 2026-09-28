@@ -65,10 +65,10 @@
 .ev2fin-list{overflow:hidden;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface);box-shadow:var(--ev2-shadow-1)}
 .ev2fin-list>.ev2fin-row{border:0;border-bottom:1px solid var(--ev2-line);border-radius:0;box-shadow:none}
 .ev2fin-list>.ev2fin-row:last-child{border-bottom:0}
-.ev2-finance-admin .ev2fin-authority{overflow:hidden;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface);box-shadow:var(--ev2-shadow-1)}
-.ev2-finance-admin .ev2fin-authority .sec{margin:0;padding:var(--ev2-space-3) var(--ev2-space-4);border-bottom:1px solid var(--ev2-line)}
-.ev2-finance-admin .ev2fin-authority .card.small{border:0;border-radius:0;box-shadow:none}
-.ev2-finance-admin .ev2fin-authority .finance-decision-queue>.ev2c-state{border:0;border-radius:0}
+.ev2-finance-admin .ev2fin-authority,.ev2-finance-executive .ev2fin-authority{overflow:hidden;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface);box-shadow:var(--ev2-shadow-1)}
+.ev2-finance-admin .ev2fin-authority .sec,.ev2-finance-executive .ev2fin-authority .sec{margin:0;padding:var(--ev2-space-3) var(--ev2-space-4);border-bottom:1px solid var(--ev2-line)}
+.ev2-finance-admin .ev2fin-authority .card.small,.ev2-finance-executive .ev2fin-authority .card.small{border:0;border-radius:0;box-shadow:none}
+.ev2-finance-admin .ev2fin-authority .finance-decision-queue>.ev2c-state,.ev2-finance-executive .ev2fin-authority .finance-decision-queue>.ev2c-state{border:0;border-radius:0}
 .ev2-finance-admin .ev2fin-table-wrap{min-width:0;overflow-x:auto}
 .ev2-finance-admin .ev2fin-section .table-wrap,.ev2-finance-admin .ev2fin-section table{font-size:max(12px,var(--ev2-type-supporting))}
 .ev2-finance-admin .ev2fin-actions{margin-bottom:var(--ev2-space-4)}
