@@ -1844,6 +1844,7 @@ This implementation tranche:
 - preserves current expense/export integration;
 - preserves separate currencies, missing-budget truthfulness and explicit “not a bank balance” language;
 - preserves append-only/correction-led ledger semantics and does not add edit/delete capability;
+- aligns shared Finance row/empty-state and Manager action icons with the existing CEAC `finance` semantic instead of the unregistered `money` icon name;
 - changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
 
 10E3 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration Finance viewport inspection are required.

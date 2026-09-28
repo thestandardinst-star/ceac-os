@@ -54,7 +54,7 @@ export function FinanceCurrencyCard({ currency, contextLabel, facts = [], childr
   </article>;
 }
 
-export function FinanceRecordRow({ icon="money", eyebrow, title, meta, note, statusLabel, statusTone="neutral", onClick, children, className="" }) {
+export function FinanceRecordRow({ icon="finance", eyebrow, title, meta, note, statusLabel, statusTone="neutral", onClick, children, className="" }) {
   const Component=onClick?"button":"article";
   return <Component type={onClick?"button":undefined} onClick={onClick} className={`ev2fin-row row ${onClick?"is-interactive":""} ${className}`.trim()}>
     <span className="ev2fin-row-icon"><CeacIcon name={icon} size="row" decorative /></span>
@@ -65,7 +65,7 @@ export function FinanceRecordRow({ icon="money", eyebrow, title, meta, note, sta
 }
 
 export function FinanceEmpty({ title, description }) {
-  return <div className="ev2fin-empty"><span><CeacIcon name="money" size="feature" decorative /></span><div><strong>{title}</strong>{description?<p>{description}</p>:null}</div></div>;
+  return <div className="ev2fin-empty"><span><CeacIcon name="finance" size="feature" decorative /></span><div><strong>{title}</strong>{description?<p>{description}</p>:null}</div></div>;
 }
 
 export function FinanceFootnote({ children }) {

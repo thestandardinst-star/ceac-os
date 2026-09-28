@@ -104,7 +104,7 @@ export default function ManagerFinance({me,openProject}){
  if(loading)return <div className="body manager-finance ev2-finance-page ev2-finance-manager"><LoadingState label="Loading finance…" /></div>;
  return <div className="body manager-finance ev2-finance-page ev2-finance-manager">
   <FinancePageHeader eyebrow={me.unit_name} title="Finance" description="Your unit’s actual money in, spending, commitments, transfers and budget context. Managers can record their own unit spending; entries remain append-only." />
-  <div className="ev2fin-actions"><Button icon="create" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</Button><Button variant="secondary" icon="money" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</Button></div>
+  <div className="ev2fin-actions"><Button icon="create" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</Button><Button variant="secondary" icon="finance" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</Button></div>
   {error&&<ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
   {notice&&<ProductNotice tone="success" title="Finance request updated">{notice}</ProductNotice>}
   <FinanceSection eyebrow="Actual records" title="Unit operating position" description="Confirmed incoming transfers, recorded spend and approved commitments for your unit, kept separate by currency.">

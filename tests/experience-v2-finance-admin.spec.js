@@ -23,6 +23,8 @@ test("Stage 10 Family E3 preserves Administration finance authority and ledger s
   const finance = readFileSync("src/screens/Finance.jsx", "utf8");
 
   expect(family).toContain("export function FinanceTabs");
+  expect(family).not.toContain('name="money"');
+  expect(family).not.toContain('icon="money"');
   expect(finance).toContain('authority="admin" canFulfil');
   expect(finance).toContain('supabase.from("income_lines").insert');
   expect(finance).toContain('supabase.from("internal_transfers").insert');

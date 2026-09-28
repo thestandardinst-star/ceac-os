@@ -35,6 +35,7 @@ test("Stage 10 Family E2 preserves Manager finance authority while establishing 
   expect(manager).toContain("Managers can add spending only for their own unit");
   expect(manager).toContain("It is not a bank balance.");
   expect(manager).toContain("ev2-finance-manager");
+  expect(manager).not.toContain('icon="money"');
   expect(manager).not.toContain(".update(");
   expect(manager).not.toContain(".delete(");
   expect(css).toContain(".ev2-finance-page");
