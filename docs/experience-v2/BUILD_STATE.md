@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D4 — Administration Time & Leave (ACCEPTED; 10D5 Family D final acceptance pending documentation-head verification)
+Current substage: 10D5 — Family D final acceptance (ACCEPTED; Family E entry pending documentation-head verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1687,6 +1687,48 @@ Persistent evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_D_10D4_ACCEPTANCE_RECORD.md`.
 
-10D5 — Family D final acceptance has NOT started. It is the next substage after this documentation-only acceptance head is exact-head green.
-Family E has NOT started.
+10D5 — Stage 10 Family D final acceptance is ACCEPTED AND COMPLETE.
+
+Exact accepted Family D closure head:
+- `916760be2bcdcd69ea9cc32f4f587a375f2c78cd`.
+
+Exact-head gates:
+- CI PASS — run `36389994015`;
+- Migration Replay PASS — run `36389993992`;
+- Account Security PASS — run `36389993995`;
+- Complete Quality Gate PASS — run `36389993996` (#1011);
+- 308 Playwright tests passed in 10.9 minutes;
+- Vercel PASS.
+
+Family-level verification:
+- cumulative Stage 9 Workforce Management security/behaviour gate passed;
+- Staff self-only scope remains intact;
+- Manager managed-unit scope remains intact;
+- Administration organisation scope remains intact;
+- `workforce.manage` and `attendance.correct` remain explicit capability boundaries;
+- schedule/correction/leave/policy history remains append-only;
+- original work-session evidence remains unchanged;
+- leave remains usable without confirmed policy;
+- no automatic absence, lateness, no-show, underwork, productivity, payroll-time, salary, score or ranking logic was introduced;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Responsive proof directly inspected across Staff, Manager and Administration at:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Persistent final evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family D / Final / 916760be2bcdcd69ea9cc32f4f587a375f2c78cd / stage10-family-d-final-r7.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_D_ACCEPTANCE_RECORD.md`.
+
+Stage 10 Family D — Time & Leave / Workforce is ACCEPTED AND COMPLETE.
+Family E — Finance has NOT started. It is next only after this documentation-only acceptance head is exact-head green.
 Chat remains the sole active writer.
