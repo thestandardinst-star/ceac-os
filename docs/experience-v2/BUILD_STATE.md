@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 11 — Calendar and Data Visualisation (ACTIVE)
-Current substage: 11A — Calendar and data-visualisation audit and contract (ACTIVE)
+Current substage: 11B — Shared Calendar and Data Visualisation foundation (ACTIVE)
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
@@ -2469,6 +2469,27 @@ Stage 10 — Operational Screen Families is ACCEPTED AND COMPLETE.
 ## Stage 11 — Calendar and Data Visualisation
 
 Stage 11 is ACTIVE.
+
+11A — Calendar and data-visualisation audit and contract is ACCEPTED AND COMPLETE.
+
+Contract:
+- `docs/experience-v2/STAGE11_WORK_BRIEF.md`.
+
+Exact accepted 11A documentation head:
+- `838e92459bcaa836c90d03d21a2516cdfd37f731`.
+
+Documentation-head verification:
+- CI PASS — run `36489034288` (#1349);
+- Migration Replay PASS — run `36489034243` (#960);
+- Account Security PASS — run `36489034332` (#1132);
+- Quality Gate PASS — run `36489034314` (#1158);
+- documentation contract PASS;
+- role-and-RLS coordinator PASS.
+
+11A locked findings are persisted in the Stage 11 work brief. No product code changed in 11A.
+
+Current substage:
+- 11B — Shared Calendar and Data Visualisation foundation.
 
 Current substage:
 - 11A — Calendar and data-visualisation audit and contract.
