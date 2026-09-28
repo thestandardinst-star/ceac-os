@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10E2 — Manager Finance (ACTIVE)
+Current substage: 10E2 — Manager Finance (ACCEPTED; 10E3 entry pending documentation-head verification)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1795,8 +1795,46 @@ This implementation tranche:
 - preserves currency separation, missing-budget truthfulness and explicit “not a bank balance” semantics;
 - changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
 
-10E2 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Manager viewport inspection are required.
+10E2 — Manager Finance is ACCEPTED AND COMPLETE.
 
+Exact accepted 10E2 head:
+- `53e4cfe26507f1149c7a619468ff519afe4adbbc`.
+
+Exact-head gates:
+- CI PASS — run `36397434657`;
+- Migration Replay PASS — run `36397434645`;
+- Account Security PASS — run `36397434642`;
+- Complete Quality Gate PASS — run `36397434656` (#1017);
+- 319 Playwright tests passed in 11.2 minutes;
+- Vercel PASS.
+
+Accepted Manager behaviour:
+- the shared V2 Finance family now composes Manager Finance;
+- ordinary Manager scope remains own-unit and preserves Request funds plus append-only own-unit Record expense;
+- the explicit Finance-handler queue remains visible only to a Manager in a unit marked `handles_finance`;
+- `unit_operating_position`, `unit_budget_position`, finance request/fulfilment and spend paths are unchanged;
+- currency separation, missing-budget truthfulness and “not a bank balance” semantics remain explicit;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Responsive proof directly inspected across:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family E / 10E2 / 53e4cfe26507f1149c7a619468ff519afe4adbbc / stage10e2-53e-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_E_10E2_ACCEPTANCE_RECORD.md`.
+
+10E3 — Administration Finance has NOT started. It is next after this documentation acceptance head is exact-head green.
+10E4 Executive Finance and 10E5 Family E final acceptance have NOT started.
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
