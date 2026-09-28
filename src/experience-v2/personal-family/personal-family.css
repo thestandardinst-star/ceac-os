@@ -561,7 +561,7 @@
 }
 
 
-/* Family G6 — personal assets compatibility. */
+/* Family G6A — personal assets compatibility. */
 .ev2-personal-assets {
   width: min(100%, 78rem);
 }
@@ -577,7 +577,7 @@
 }
 
 
-/* Family G7 — personal compliance compatibility. */
+/* Family G6B — personal compliance compatibility. */
 .ev2-personal-compliance {
   width: min(100%, 78rem);
 }
@@ -593,7 +593,7 @@
 }
 
 
-/* Family G8 — My work history compatibility. */
+/* Family G supplemental — My work history compatibility. */
 .ev2-personal-record {
   width: min(100%, 78rem);
 }
@@ -700,5 +700,30 @@
 
   .admin-unit-identity > .ev2c-status {
     justify-self: start;
+  }
+}
+
+
+/* Family G7 — self-only account activity and session security. */
+.ev2-personal-account {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-account > .ev2pf-header {
+  margin-bottom: var(--ev2-space-4);
+}
+
+.ev2pf-account-warning {
+  margin: var(--ev2-space-4);
+}
+
+.ev2pf-account-actions {
+  padding: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+}
+
+@media (max-width: 760px) {
+  .ev2pf-account-actions > .btn {
+    width: 100%;
   }
 }
