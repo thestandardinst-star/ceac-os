@@ -100,7 +100,7 @@ export default function Finance({ me, openExpenses }) {
     try {
       if (!iDesc.trim()) throw new Error("Say what this money was.");
       const amount = toMinor(iAmount);
-      if (!amount) throw new Error("Enter an amount in cedis.");
+      if (!amount) throw new Error("Enter an amount.");
       const { error } = await supabase.from("income_lines").insert({
         org_id: me.org_id, received_on: iDate || new Date().toISOString().slice(0, 10),
         source_kind: iKind, description: iDesc.trim(), amount_minor: amount,
@@ -116,7 +116,7 @@ export default function Finance({ me, openExpenses }) {
       if (!tTo) throw new Error("Choose which department is receiving.");
       if (tFrom && tFrom === tTo) throw new Error("A department cannot send money to itself.");
       const amount = toMinor(tAmount);
-      if (!amount) throw new Error("Enter an amount in cedis.");
+      if (!amount) throw new Error("Enter an amount.");
       if (!tPurpose.trim()) throw new Error("Say what the money is for.");
       const { error } = await supabase.from("internal_transfers").insert({
         org_id: me.org_id, from_unit_id: tFrom || null, to_unit_id: tTo,
