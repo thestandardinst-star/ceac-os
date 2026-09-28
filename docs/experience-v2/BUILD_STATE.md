@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D5 — Family D final acceptance (ACCEPTED; Family E entry pending documentation-head verification)
+Current substage: 10E1 — Finance audit and contract (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1730,5 +1730,47 @@ Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_D_ACCEPTANCE_RECORD.md`.
 
 Stage 10 Family D — Time & Leave / Workforce is ACCEPTED AND COMPLETE.
-Family E — Finance has NOT started. It is next only after this documentation-only acceptance head is exact-head green.
+
+## Stage 10 Family E — Finance
+
+10E1 — Finance audit and contract is ACTIVE.
+
+Contract:
+- `docs/experience-v2/STAGE10_FAMILY_E_WORK_BRIEF.md`.
+
+Exact Family E entry head:
+- `f9cf9ddb3264d0b0c192cab3b1fc673575890db7`.
+
+Entry-head gates:
+- CI PASS — run `36391568514`;
+- Migration Replay PASS — run `36391568558`;
+- Account Security PASS — run `36391568593`;
+- Complete Quality Gate PASS — run `36391568547` (#1013);
+- Vercel PASS.
+
+10E1 audit outcomes:
+- current Manager, Administration and Executive Finance source and exact-head rendered evidence were inspected;
+- the accepted Experience Stage 6 finance SQL/browser contracts remain binding;
+- the Stage 10 outline phrase “Manager finance read-only” is reconciled with the already accepted product: it means no destructive or organisation-wide finance administration for ordinary Managers, not removal of accepted own-unit fund requests or append-only own-unit expense capture;
+- a Manager in a unit marked `handles_finance` retains the explicit Finance authority step and approved-request fulfilment path already enforced by the server;
+- currencies remain separate and are never converted;
+- recorded position is not a bank balance;
+- missing budget is not treated as zero;
+- request, approved commitment and actual spend remain distinct;
+- spend history remains append-only/reversal-based;
+- transfer confirmation remains two-sided;
+- no payroll, forecasting, finance score or new chart capability is introduced;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant change is authorised by this presentation family.
+
+Planned sequence:
+- 10E2 Manager Finance;
+- 10E3 Administration Finance;
+- 10E4 Executive Finance;
+- 10E5 Family E final acceptance.
+
+10E2 product-code work may begin only after the documentation head containing the 10E1 contract and this BUILD_STATE update is exact-head green.
+
+Family F — Reports has NOT started.
+PR #72 remains OPEN + DRAFT.
+PR #71 remains frozen.
 Chat remains the sole active writer.
