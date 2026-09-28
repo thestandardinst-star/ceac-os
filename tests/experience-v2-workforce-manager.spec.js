@@ -54,7 +54,7 @@ for (const viewport of [
     await expect(page.getByRole("tab", { name: "Schedules & policy", exact: true })).toHaveCount(0);
 
     await expect(page.locator(".ev2-workforce-manager")).toContainText("Staff Fixture");
-    await expect(page.locator(".ev2-workforce-manager")).not.toContainText("Admin Fixture");
+    await expect(page.locator(".ev2-workforce-manager")).not.toContainText("Other Unit Fixture");
 
     await page.getByRole("tab", { name: "Corrections", exact: true }).click();
     await expect(page.getByRole("button", { name: "Record correction", exact: true })).toHaveCount(0);
