@@ -21,6 +21,7 @@ async function openHub(browser, role, viewport) {
   await page.goto("/?tab=me");
   await expect(page.locator(".ev2-personal-hub")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("heading", { name: "My Hub", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Loading My Hub")).toHaveCount(0, { timeout: 15000 });
   return { context, page };
 }
 
