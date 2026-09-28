@@ -517,7 +517,11 @@ test("Stage 10 Family H4 keeps Units evidence-backed and Administration-owned", 
 
 for (const viewport of [
   { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
   { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
   { name: "intermediate-900", width: 900, height: 900 },
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
@@ -537,7 +541,12 @@ for (const viewport of [
 
 for (const viewport of [
   { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
   { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
@@ -556,7 +565,12 @@ for (const viewport of [
 
 for (const viewport of [
   { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
   { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
@@ -574,7 +588,12 @@ for (const viewport of [
 
 for (const viewport of [
   { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
   { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
