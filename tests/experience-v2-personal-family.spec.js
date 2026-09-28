@@ -192,6 +192,7 @@ test("Stage 10 Family G3 keeps personal leave inside established workforce autho
   expect(me).toContain("Open Time & Leave");
   expect(me).toContain("CEAC OS will not invent leave entitlement or remaining-day figures.");
   expect(me).toContain("It does not guess working-day totals, entitlement or payroll consequences here.");
+  expect(me).toContain('disabled={busy || !startDate || !endDate || endDate < startDate}');
   expect(me).not.toContain("manager_approved");
   expect(me).not.toContain("admin_approved");
   expect(me).not.toContain('className="leave-summary"');
