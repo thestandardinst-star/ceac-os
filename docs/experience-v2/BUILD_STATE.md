@@ -2407,9 +2407,16 @@ No schema, migration, RLS, RPC, authentication or capability change was introduc
 
 Acceptance is NOT yet claimed. The previous 10G3 Quality Gate failure was traced to legacy acceptance-selector compatibility plus a brittle new heading assertion; both were corrected without reverting the V2 presentation. Exact-head CI, Migration Replay, Account Security and complete Quality Gate must be green before Family G is accepted.
 
-Family H — Ministry / Organisation / Control Center is next and has NOT started.
+Family H — Ministry / Organisation / Control Center is ACTIVE.
 
-Family H planned authority boundary:
+Implemented so far:
+- 10H1 — Control Center aligned to shared V2 icon/status primitives while preserving capability-filtered navigation;
+- 10H2 — Organisation settings hierarchy clarified while preserving office-location, leave-policy, threshold and invitation persistence;
+- 10H3 — Executive Organisation explicitly presents read-only leadership context and retains query-only authority.
+
+Acceptance is not yet claimed; remaining Family H surfaces and exact-head gates are pending.
+
+Family H authority boundary:
 - Administration Control Center remains the configuration/governance entry point;
 - Organisation settings retain current office-location, confirmed leave-policy, deterministic attention-rule and invitation persistence;
 - Units retain their accepted organisation/work/project/objective/finance/report/workforce context and unit-head authority;
