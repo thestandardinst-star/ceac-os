@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C5 — Family C final acceptance (ACCEPTED; Family D entry pending documentation-head verification)
+Current substage: 10D1 — Family D Time & Leave / Workforce audit and contract (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1474,4 +1474,14 @@ The previously missing Drive persistence for the accepted 10C2 and 10C4 evidence
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_C_ACCEPTANCE_RECORD.md`.
 
-Family D has NOT started. Open Family D only after this documentation-only acceptance commit is itself exact-head green.
+Family C documentation/acceptance head `06b081d66c49b06aa6d78983069939e4fa4fbdc1` is exact-head green:
+- CI PASS — run `36377664199`;
+- Migration Replay PASS — run `36377664190`;
+- Account Security PASS — run `36377664191`;
+- Complete Quality Gate PASS — run `36377664171`;
+- 278 Playwright tests passed in 9.0 minutes;
+- Vercel PASS.
+
+Family D — Time & Leave / Workforce is now OPEN at 10D1 audit and contract.
+Family E has NOT started.
+Chat is the sole active writer.
