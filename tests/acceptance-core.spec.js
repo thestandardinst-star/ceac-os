@@ -299,14 +299,14 @@ test("Staff personal details persist and private work stays out of another staff
     await dialog.getByLabel("Address or ordinary contact information").fill("Fixture address");
     await dialog.getByRole("button", { name: "Save personal details" }).click();
     await expect(dialog.getByRole("button", { name: "Save personal details" })).toBeEnabled();
-    await dialog.getByRole("button", { name: "Close dialog" }).click();
+    await dialog.locator(".ev2c-overlay-head").getByRole("button", { name: "Close", exact: true }).click();
 
     await page.getByRole("button", { name: "Edit" }).click();
     const reopened = page.getByRole("dialog");
     await expect(reopened.getByLabel("Preferred name")).toHaveValue("Staff Preferred");
     await expect(reopened.getByPlaceholder("Contact name")).toHaveValue("Emergency Fixture");
     await expect(reopened.getByLabel("Address or ordinary contact information")).toHaveValue("Fixture address");
-    await reopened.getByRole("button", { name: "Close dialog" }).click();
+    await reopened.locator(".ev2c-overlay-head").getByRole("button", { name: "Close", exact: true }).click();
 
     await go(page, "Work");
     await page.getByRole("button", { name: "Add private work" }).click();
