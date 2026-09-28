@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { humanError } from "../lib/productLanguage";
 import {
   PersonalBoundary,
   PersonalEmpty,
@@ -33,29 +34,33 @@ export default function AccountActivity({ me }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState(null);
+  const [sessionError, setSessionError] = useState(null);
+  const [activityError, setActivityError] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
     setLoading(true);
-    setErr(null);
+    setSessionError(null);
+    setActivityError(null);
     const [s, a] = await Promise.all([
       supabase.rpc("my_sessions"),
       supabase.rpc("my_account_activity", { p_limit: 50 }),
     ]);
-    setErr(s.error?.message || a.error?.message || null);
-    setSessions(s.data || []);
-    setEvents(a.data || []);
+    setSessionError(s.error ? humanError(s.error, "Signed-in device records could not be loaded.") : null);
+    setActivityError(a.error ? humanError(a.error, "Recent account activity could not be loaded.") : null);
+    setSessions(s.error ? [] : (s.data || []));
+    setEvents(a.error ? [] : (a.data || []));
     setLoading(false);
   }
 
   async function signOutHere() {
     setBusy(true);
-    setErr(null);
+    setActionError(null);
     try {
       const { error } = await supabase.auth.signOut({ scope: "local" });
-      if (error) setErr(error.message);
+      if (error) setActionError(humanError(error, "This device could not be signed out."));
     } finally {
       setBusy(false);
     }
@@ -65,9 +70,10 @@ export default function AccountActivity({ me }) {
   async function signOutEverywhere() {
     if (!confirm("Sign out on every device, including this one? You will need to sign in again.")) return;
     setBusy(true);
+    setActionError(null);
     try {
       const { error } = await supabase.auth.signOut({ scope: "global" });
-      if (error) setErr(error.message);
+      if (error) setActionError(humanError(error, "Your other sessions could not be signed out."));
     } finally {
       setBusy(false);
     }
@@ -86,14 +92,15 @@ export default function AccountActivity({ me }) {
         statusLabel="Self-only security"
       />
 
-      {err && <div className="flag flag-brick ev2pf-partial-error"><h4>Account activity could not load completely</h4>{err}</div>}
+      {actionError && <div className="flag flag-brick ev2pf-partial-error"><h4>Account action was not completed</h4>{actionError}</div>}
 
       <PersonalSection
         eyebrow="Sessions"
         title="Signed in devices"
-        description={sessions.length === 1 ? "1 session is recorded for your account." : `${sessions.length} sessions are recorded for your account.`}
+        description={sessionError ? "Signed-in device records are temporarily unavailable." : sessions.length === 1 ? "1 session is recorded for your account." : `${sessions.length} sessions are recorded for your account.`}
       >
-        {sessions.length === 0 && <PersonalEmpty title="No signed-in device is recorded" description="No active session record is available for your account." />}
+        {sessionError && <div className="flag flag-brick ev2pf-partial-error"><h4>Signed-in devices could not load</h4>{sessionError}</div>}
+        {!sessionError && sessions.length === 0 && <PersonalEmpty title="No signed-in device is recorded" description="No active session record is available for your account." />}
         {sessions.map((s) => (
           <PersonalRecordRow
             key={s.session_id}
@@ -124,9 +131,10 @@ export default function AccountActivity({ me }) {
       <PersonalSection
         eyebrow="Audit trail"
         title="Recent activity"
-        description="Consequential activity recorded under your account. This is not a colleague-monitoring surface."
+        description={activityError ? "Recent attributable activity is temporarily unavailable. This is not a colleague-monitoring surface." : "Consequential activity recorded under your account. This is not a colleague-monitoring surface."}
       >
-        {events.length === 0 && <PersonalEmpty title="Nothing recorded yet" description="Recent attributable account activity will appear here when available." />}
+        {activityError && <div className="flag flag-brick ev2pf-partial-error"><h4>Recent account activity could not load</h4>{activityError}</div>}
+        {!activityError && events.length === 0 && <PersonalEmpty title="Nothing recorded yet" description="Recent attributable account activity will appear here when available." />}
         {events.map((e, i) => (
           <PersonalRecordRow
             key={i}
