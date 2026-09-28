@@ -60,6 +60,21 @@ test("Stage 10 Family E4 keeps missing Executive budget distinct from recorded z
       body: JSON.stringify([]),
     });
   });
+  await page.route("**/rest/v1/spend_lines*", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([{
+        id: "00000000-0000-4000-8000-000000000001",
+        amount_minor: 2500,
+        currency: "GHS",
+        unit_id: "00000000-0000-4000-8000-000000000002",
+        units: { name: "Fixture Unit" },
+        spent_on: "2026-09-28",
+        reverses_id: null,
+      }]),
+    });
+  });
 
   await page.goto("/?tab=exec-finance");
   await expect(page.locator(".ev2-finance-executive")).toBeVisible({ timeout: 15000 });
