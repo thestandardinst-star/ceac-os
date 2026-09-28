@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { PersonalPageHeader } from "../experience-v2/personal-family/PersonalFamilyV2";
 
 function day(value) {
   if (!value) return "No date";
