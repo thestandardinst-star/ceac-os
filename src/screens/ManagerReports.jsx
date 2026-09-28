@@ -1,9 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Pill, Sheet, ProductNotice, LoadingState, FieldGroup, StatusDistribution } from "../components/bits";
+import { Sheet, ProductNotice, FieldGroup, StatusDistribution } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import MinistryNumbers from "../components/MinistryNumbers";
+import { Skeleton } from "../experience-v2/components";
+import {
+  ReportingPageHeader,
+  ReportingTabs,
+  ReportingSection,
+  ReportingEvidenceGrid,
+  ReportingEvidenceCard,
+  ReportingRecordRow,
+  ReportingEmpty,
+  ReportingFootnote,
+} from "../experience-v2/reporting-family/ReportingFamilyV2";
 
 const pad = (value) => String(value).padStart(2, "0");
 const dateKey = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -42,7 +53,7 @@ function distinctAttendanceDays(rows) {
 }
 
 function EvidenceMetric({ value, label, onClick }) {
-  return <button className="metric" onClick={onClick}><b>{value}</b><span>{label}</span><span className="small" style={{ marginTop: 3 }}>Why?</span></button>;
+  return <ReportingEvidenceCard value={value} label={label} detail="Why?" onClick={onClick} />;
 }
 
 function Bars({ rows, onOpen }) {
@@ -466,156 +477,234 @@ export default function ManagerReports({ me, openItem }) {
 
   function printReport() { window.print(); }
 
-  if (loading) return <div className="body manager-reports"><LoadingState label="Preparing reports…" /></div>;
+  const reportStatusLabel = viewingFrozen
+    ? "Submitted · version " + frozenReport.version
+    : matchingPeriod?.status === "open"
+      ? "Drafting available"
+      : matchingPeriod?.status === "closed"
+        ? "Period closed"
+        : "Live preview";
 
-  return <div className="body manager-reports report-print">
+  if (loading) return <div className="body manager-reports ev2-reporting-page ev2-reporting-manager">
+    <ReportingPageHeader
+      eyebrow={me.unit_name}
+      title="Reports"
+      description="Built from work, submissions, projects and recorded work sessions already in CEAC OS. Submitted versions keep the evidence they were filed with."
+      statusLabel="Preparing report"
+    />
+    <div className="ev2rep-control-panel" aria-busy="true" aria-label="Preparing reports">
+      <Skeleton variant="block" height="5rem" />
+      <Skeleton variant="block" height="10rem" />
+    </div>
+  </div>;
+
+  return <div className="body manager-reports report-print ev2-reporting-page ev2-reporting-manager">
     <div className="print-only report-print-brand">
       <b>CEAC</b>
       <span>{me.unit_name} · Manager report</span>
     </div>
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>Reports</h1>
-      <p className="screen-note">Built from work, submissions, projects and attendance already recorded in CEAC OS. Submitted versions keep the figures they were filed with.</p>
-    </div>
+
+    <ReportingPageHeader
+      eyebrow={me.unit_name}
+      title="Reports"
+      description="Built from work, submissions, projects and recorded work sessions already in CEAC OS. Submitted versions keep the figures and evidence they were filed with."
+      statusLabel={reportStatusLabel}
+      statusTone={viewingFrozen ? "success" : matchingPeriod?.status === "closed" ? "warning" : "neutral"}
+    />
 
     {error && <ProductNotice tone="error" title="Could not complete reporting">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Report updated">{notice}</ProductNotice>}
 
-    <MinistryNumbers me={me} />
+    <ReportingTabs
+      items={[["week","Weekly"],["month","Monthly"],["project","Project"]]}
+      value={mode}
+      onChange={(key) => {
+        setMode(key);
+        setProjectId("");
+        setSelectedPeriodId("");
+        setSelectedReportId(null);
+        setDrill(null);
+        setShowAnalysis(false);
+      }}
+      label="Report scope"
+    />
 
-    <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
-      {[["week","Weekly"],["month","Monthly"],["project","Project"]].map(([key, label]) => <button key={key} className={"btn btn-sm " + (mode === key ? "" : "btn-ghost")} onClick={() => { setMode(key); setProjectId(""); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); setShowAnalysis(false); }}>{label}</button>)}
-    </div>
-
-    {mode !== "project" && kindPeriods.length > 0 && <select className="field" value={matchingPeriod?.id || ""} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
-      <option value="">Current {mode === "week" ? "week" : "month"} preview</option>
-      {kindPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
-    </select>}
-
-    {mode === "project" && <>
-      <select className="field" value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>
-        <option value="">Choose a project</option>
-        {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
-      </select>
-      {projectId && <select className="field" value={selectedPeriodId} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
-        <option value="">Choose a reporting period</option>
+    <div className="ev2rep-control-panel">
+      {mode !== "project" && kindPeriods.length > 0 && <select className="field" aria-label="Reporting period" value={matchingPeriod?.id || ""} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+        <option value="">Current {mode === "week" ? "week" : "month"} preview</option>
         {kindPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
       </select>}
-    </>}
 
-    {!range && <div className="card small" style={{ marginTop: 14 }}>Choose a project to prepare its report.</div>}
+      {mode !== "project" && kindPeriods.length === 0 && <div className="ev2rep-live-state">
+        <strong>Live preview only</strong>
+        Administration has not recorded a {mode} reporting period matching this view. You can inspect factual evidence, but saving and submission remain unavailable until a period exists.
+      </div>}
+
+      {mode === "project" && <div className="ev2rep-control-grid">
+        <select className="field" aria-label="Report project" value={projectId} onChange={(event) => { setProjectId(event.target.value); setSelectedPeriodId(""); setSelectedReportId(null); setDrill(null); }}>
+          <option value="">Choose a project</option>
+          {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+        </select>
+        {projectId && <select className="field" aria-label="Project reporting period" value={selectedPeriodId} onChange={(event) => { setSelectedPeriodId(event.target.value); setSelectedReportId(null); setDrill(null); }}>
+          <option value="">Choose a reporting period</option>
+          {kindPeriods.map((period) => <option key={period.id} value={period.id}>{period.label} · {period.starts_on} → {period.ends_on} · {period.status}</option>)}
+        </select>}
+      </div>}
+    </div>
+
+    {!range && <ReportingSection eyebrow="Project report" title="Choose a project" description="Project reporting starts with an existing project in your visible reporting scope.">
+      <ReportingEmpty title="No project selected" description="Choose a project above to prepare its factual report." />
+    </ReportingSection>}
 
     {range && evidence && <>
-      <div className="sec"><span>{viewingFrozen ? (frozen.range?.label || range.label) : range.label}</span><span>{viewingFrozen ? `${frozen.range?.start || range.start} → ${frozen.range?.end || range.end}` : `${range.start} → ${range.end}`}</span></div>
+      <ReportingSection
+        eyebrow={viewingFrozen ? "Submitted evidence" : "Live evidence"}
+        title={viewingFrozen ? "Frozen report evidence" : range.label}
+        description={viewingFrozen
+          ? "These are the figures and evidence links saved when this report version was submitted. Later activity does not rewrite them."
+          : "This is a factual preview from currently recorded CEAC OS evidence. It is not a submitted report until you explicitly submit it."}
+        meta={(viewingFrozen ? (frozen.range?.start || range.start) : range.start) + " → " + (viewingFrozen ? (frozen.range?.end || range.end) : range.end)}
+      >
+        {viewingFrozen && <div className="ev2rep-frozen-state">
+          <strong>Submitted report · version {frozenReport.version}</strong>
+          These figures were fixed when this version was submitted{frozenReport.submitted_at ? " on " + new Date(frozenReport.submitted_at).toLocaleString("en-GB") : ""}. Later activity remains separate.
+        </div>}
 
-      {viewingFrozen && <div className="flag flag-green">
-        <h4>Submitted report · version {frozenReport.version}</h4>
-        These are the figures saved when this version was submitted{frozenReport.submitted_at ? ` on ${new Date(frozenReport.submitted_at).toLocaleString("en-GB")}` : ""}. Later activity does not rewrite them.
-      </div>}
+        {!viewingFrozen && <div className="ev2rep-live-state">
+          <strong>Live preview</strong>
+          These counts are calculated from currently recorded work. They are not a filed report until submission freezes an evidence snapshot.
+        </div>}
 
-      <div className="metric-grid">
-        <EvidenceMetric value={displayCounts.completed || 0} label="completed in period" onClick={() => viewingFrozen ? openFrozenSection("completed", "Completed work") : openLive("completed", "Completed work", evidence.completed, "work")} />
-        <EvidenceMetric value={displayCounts.submissions || 0} label="submissions" onClick={() => viewingFrozen ? openFrozenSection("submissions", "Submissions") : openLive("submissions", "Submissions", evidence.periodSubmissions, "submission")} />
-        <EvidenceMetric value={displayCounts.overdue || 0} label="overdue from this period" onClick={() => viewingFrozen ? openFrozenSection("overdue", "Overdue work") : openLive("overdue", "Overdue work", evidence.overdue, "work")} />
-        <EvidenceMetric value={displayCounts.attendance_days || 0} label={mode === "project" ? "project work-session days" : "recorded attendance days"} onClick={() => viewingFrozen ? openFrozenSection("attendance_days", "Attendance days") : openLive("attendance_days", "Attendance days", evidence.attendanceDays, "session")} />
-      </div>
+        <ReportingEvidenceGrid>
+          <EvidenceMetric value={displayCounts.completed || 0} label="completed in period" onClick={() => viewingFrozen ? openFrozenSection("completed", "Completed work") : openLive("completed", "Completed work", evidence.completed, "work")} />
+          <EvidenceMetric value={displayCounts.submissions || 0} label="submissions" onClick={() => viewingFrozen ? openFrozenSection("submissions", "Submissions") : openLive("submissions", "Submissions", evidence.periodSubmissions, "submission")} />
+          <EvidenceMetric value={displayCounts.overdue || 0} label="overdue from this period" onClick={() => viewingFrozen ? openFrozenSection("overdue", "Overdue work") : openLive("overdue", "Overdue work", evidence.overdue, "work")} />
+          <EvidenceMetric value={displayCounts.attendance_days || 0} label={mode === "project" ? "project work-session days" : "recorded work-session days"} onClick={() => viewingFrozen ? openFrozenSection("attendance_days", "Recorded work-session days") : openLive("attendance_days", "Recorded work-session days", evidence.attendanceDays, "session")} />
+        </ReportingEvidenceGrid>
 
-      {drill && <div style={{ marginTop: 12 }}>
-        <div className="sec"><span>{drill.title}</span><span>{drill.rows.length}</span></div>
-        {drill.rows.map((row) => drill.kind === "work"
-          ? <button className="row" key={row.id} onClick={() => openItem(row.id)}><div className="row-t">{row.title}</div><div className="row-m">{row.ref} · {row.profiles?.full_name || "Unassigned"}</div></button>
-          : drill.kind === "submission"
-            ? <button className="row" key={row.id} onClick={() => openItem(row.work_item_id)}><div className="row-t">{row.profiles?.full_name || "Team member"} submitted work</div><div className="row-m">{new Date(row.submitted_at).toLocaleString("en-GB")}</div>{row.note && <div className="row-note">{row.note}</div>}</button>
-            : drill.kind === "session"
-              ? <div className="row" key={row.id}><div className="row-t">{row.profiles?.full_name || "Team member"}</div><div className="row-m">{new Date(row.started_at).toLocaleString("en-GB")}</div></div>
-              : <button className="row" key={row.id} onClick={() => {
-                  if (row.object_type === "work_item") openItem(row.object_id);
-                  if (row.object_type === "submission") {
-                    const submission = submissions.find((item) => item.id === row.object_id);
-                    if (submission) openItem(submission.work_item_id);
-                  }
-                }}><div className="row-t">{row.label || "Recorded evidence"}</div><div className="row-m">{row.object_type.replaceAll("_", " ")}</div></button>)}
-        {drill.rows.length === 0 && <div className="card small">No supporting rows are attached to this figure.</div>}
-      </div>}
+        {drill && <div className="ev2rep-list" style={{ marginTop: 12 }}>
+          {drill.rows.map((row) => drill.kind === "work"
+            ? <ReportingRecordRow key={row.id} title={row.title} meta={row.ref + " · " + (row.profiles?.full_name || "Unassigned")} onClick={() => openItem(row.id)} />
+            : drill.kind === "submission"
+              ? <ReportingRecordRow key={row.id} title={(row.profiles?.full_name || "Team member") + " submitted work"} meta={new Date(row.submitted_at).toLocaleString("en-GB")} note={row.note || null} onClick={() => openItem(row.work_item_id)} />
+              : drill.kind === "session"
+                ? <ReportingRecordRow key={row.id} title={row.profiles?.full_name || "Team member"} meta={new Date(row.started_at).toLocaleString("en-GB")} />
+                : <ReportingRecordRow key={row.id} title={row.label || "Recorded evidence"} meta={row.object_type.replaceAll("_", " ")} onClick={() => {
+                    if (row.object_type === "work_item") openItem(row.object_id);
+                    if (row.object_type === "submission") {
+                      const submission = submissions.find((item) => item.id === row.object_id);
+                      if (submission) openItem(submission.work_item_id);
+                    }
+                  }} />)}
+          {drill.rows.length === 0 && <ReportingEmpty title="No supporting rows attached" description="This figure currently has no traceable supporting rows in the selected report evidence." />}
+        </div>}
+      </ReportingSection>
 
-      <div className="report-analysis-toggle">
-        <div>
-          <strong>Patterns & activity</strong>
-          <span>Open only when a visual pattern helps explain the evidence above.</span>
+      <ReportingSection
+        eyebrow="Supporting context"
+        title="Patterns & activity"
+        description="Optional factual patterns that help explain the evidence above. Dedicated visualisation refinement remains in Stage 11."
+      >
+        <div className="report-analysis-toggle">
+          <div>
+            <strong>Supporting analysis</strong>
+            <span>Open this only when a pattern helps explain the report evidence.</span>
+          </div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</button>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</button>
-      </div>
 
-      {showAnalysis && <div className="report-analysis">
-        {displayDaily.some((point) => point.value > 0) && <>
-          <div className="sec"><span>Completed work trend</span></div>
-          <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, `Completed on ${point.date}`) : openLive(point.section, `Completed on ${point.date}`, point.rows, "work")} />
-        </>}
+        {showAnalysis && <div className="report-analysis">
+          {displayDaily.some((point) => point.value > 0) && <>
+            <div className="sec"><span>Completed work trend</span></div>
+            <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, "Completed on " + point.date) : openLive(point.section, "Completed on " + point.date, point.rows, "work")} />
+          </>}
 
-        {displayProjects.length > 1 && <>
-          <div className="sec"><span>Completed by project</span></div>
-          <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-        </>}
+          {displayProjects.length > 1 && <>
+            <div className="sec"><span>Completed by project</span></div>
+            <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+          </>}
 
-        {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
-          <div className="sec"><span>Current work composition</span></div>
-          <WorkStatusDistribution rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-          <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
-        </>}
+          {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
+            <div className="sec"><span>Current work composition</span></div>
+            <WorkStatusDistribution rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
+            <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
+          </>}
 
-        {displayAttendance.some((day) => day.value > 0) && <>
-          <div className="sec"><span>Attendance activity</span></div>
-          <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, `Attendance · ${day.date}`) : openLive(day.section, `Attendance · ${day.date}`, day.rows, "session")} />
-          <p className="small" style={{ marginTop: 8 }}>Attendance is operational context, not a performance measure.</p>
-        </>}
-      </div>}
+          {displayAttendance.some((day) => day.value > 0) && <>
+            <div className="sec"><span>Recorded work-session activity</span></div>
+            <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, "Recorded work sessions · " + day.date) : openLive(day.section, "Recorded work sessions · " + day.date, day.rows, "session")} />
+            <p className="small" style={{ marginTop: 8 }}>Recorded work-session activity is operational context, not an attendance or performance score.</p>
+          </>}
+        </div>}
+      </ReportingSection>
 
-      <div className="sec"><span>Objectives</span><span>{displayObjectives.length}</span></div>
-      {displayObjectives.map((objective) => <div className="row" key={objective.id}>
-        <div className="row-t">{objective.ref} · {objective.name}</div>
-        <div style={{ marginTop: 6 }}><Pill tone={objective.status === "at_risk" || objective.status === "not_met" ? "brick" : objective.status === "partly_met" ? "amber" : "green"}>{String(objective.status).replaceAll("_", " ")}</Pill></div>
-        <div className="row-note">Work completion is shown separately; it does not determine whether this objective was met.</div>
-      </div>)}
-      {displayObjectives.length === 0 && <div className="card small">No objectives are recorded for this view.</div>}
+      <ReportingSection eyebrow="Objectives" title="Recorded objectives" description="Objective status stays separate from work completion and remains a factual recorded state." meta={String(displayObjectives.length)}>
+        {displayObjectives.length > 0 ? <div className="ev2rep-list">
+          {displayObjectives.map((objective) => <ReportingRecordRow
+            key={objective.id}
+            eyebrow={objective.ref}
+            title={objective.name}
+            meta={"Recorded status · " + String(objective.status).replaceAll("_", " ")}
+            note="Work completion is shown separately; it does not determine whether this objective was met."
+            statusLabel={String(objective.status).replaceAll("_", " ")}
+            statusTone={objective.status === "at_risk" || objective.status === "not_met" ? "danger" : objective.status === "partly_met" ? "warning" : "success"}
+          />)}
+        </div> : <ReportingEmpty title="No objectives recorded" description="No objectives are recorded for this report view." />}
+      </ReportingSection>
 
-      <div className="sec"><span>Manager's summary</span></div>
-      <FieldGroup label="What leadership should understand"><AssistiveTextarea className="field" rows={4} disabled={viewingFrozen} placeholder="Summarise the period in plain language" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} /></FieldGroup>
-      <FieldGroup label="Challenges or context" hint="Optional. Explain what the evidence alone would not show."><AssistiveTextarea className="field" rows={3} disabled={viewingFrozen} placeholder="Add useful context" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} /></FieldGroup>
+      <ReportingSection eyebrow="Narrative" title="Manager's summary" description={viewingFrozen ? "This submitted version is read-only." : "Add the context that recorded evidence alone cannot explain."}>
+        <div className="report-authoring">
+          <FieldGroup label="What leadership should understand"><AssistiveTextarea className="field" rows={4} disabled={viewingFrozen} placeholder="Summarise the period in plain language" value={viewingFrozen ? (frozenReport.narrative || "") : narrative} onChange={(event) => setNarrative(event.target.value)} /></FieldGroup>
+          <FieldGroup label="Challenges or context" hint="Optional. Explain what the evidence alone would not show."><AssistiveTextarea className="field" rows={3} disabled={viewingFrozen} placeholder="Add useful context" value={viewingFrozen ? (frozenReport.challenges || "") : challenges} onChange={(event) => setChallenges(event.target.value)} /></FieldGroup>
+        </div>
+      </ReportingSection>
 
-      <div className="sec"><span>Report record</span></div>
-      {!matchingPeriod && <div className="flag flag-amber"><h4>No matching reporting period is open</h4>Administration must open this {mode === "project" ? "project" : mode} period before you can save or submit. The factual preview above remains available.</div>}
-      {matchingPeriod && <div className="card">
-        <div className="row-t">{matchingPeriod.label}</div>
-        <div className="row-m">{matchingPeriod.starts_on} → {matchingPeriod.ends_on} · {matchingPeriod.status}</div>
-        {matchingPeriod.status === "closed" && <div className="hint">This period is closed. Existing versions remain visible, but a new draft cannot be filed until Administration reopens it.</div>}
-      </div>}
+      <ReportingSection eyebrow="Submission" title="Report record" description="Submitted is final for that version. Corrections create a new draft version and keep the prior submission unchanged.">
+        {!matchingPeriod && <div className="ev2rep-live-state">
+          <strong>No matching reporting period is open</strong>
+          Administration must open this {mode === "project" ? "project" : mode} period before you can save or submit. The factual preview remains available.
+        </div>}
 
-      {history.length > 0 && <>
-        <div className="sec"><span>Version history</span><span>{history.length}</span></div>
-        {history.map((row) => <button className="row" key={row.id} onClick={() => {
-          if (row.status === "draft") { setSelectedReportId(null); setNarrative(row.narrative || ""); setChallenges(row.challenges || ""); }
-          else setSelectedReportId(row.id);
-          setDrill(null);
-        }} style={{ width: "100%", textAlign: "left" }}>
-          <div className="row-t">Version {row.version} · {row.status === "draft" ? "Draft" : "Submitted"}</div>
-          <div className="row-m">{row.submitted_at ? new Date(row.submitted_at).toLocaleString("en-GB") : "Not submitted yet"}</div>
-          {row.correction_reason && <div className="row-note">Correction: {row.correction_reason}</div>}
-        </button>)}
-      </>}
+        {matchingPeriod && <div className="report-record-card">
+          <strong>{matchingPeriod.label}</strong>
+          <div className="small">{matchingPeriod.starts_on} → {matchingPeriod.ends_on} · {matchingPeriod.status}</div>
+          {matchingPeriod.status === "closed" && <div className="hint">This period is closed. Existing versions remain visible, but a new draft cannot be filed until Administration reopens it.</div>}
+        </div>}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-        <button className="btn btn-ghost" onClick={printReport}>Print / save PDF</button>
-        {!viewingFrozen && matchingPeriod?.status === "open" && <>
-          <button className="btn btn-ghost" disabled={busy} onClick={handleSave}>{busy ? "Saving..." : "Save draft"}</button>
-          <button className="btn" disabled={busy} onClick={submitReport}>{busy ? "Submitting..." : "Submit report"}</button>
-        </>}
-        {viewingFrozen && !draft && frozenReport?.status === "submitted" && frozenReport.id === latestSubmitted?.id && matchingPeriod?.status === "open" && <button className="btn btn-ghost" onClick={() => { setCorrectionReason(""); setSheet("correct"); }}>Correct this report</button>}
-        {viewingFrozen && draft && <button className="btn btn-ghost" onClick={() => { setSelectedReportId(null); setNarrative(draft.narrative || ""); setChallenges(draft.challenges || ""); }}>Return to draft</button>}
-      </div>
+        {history.length > 0 && <div className="ev2rep-list" style={{ marginTop: 12 }}>
+          {history.map((row) => <ReportingRecordRow
+            key={row.id}
+            eyebrow={"Version " + row.version}
+            title={row.status === "draft" ? "Draft" : "Submitted"}
+            meta={row.submitted_at ? new Date(row.submitted_at).toLocaleString("en-GB") : "Not submitted yet"}
+            note={row.correction_reason ? "Correction: " + row.correction_reason : null}
+            statusLabel={row.status === "draft" ? "Draft" : "Submitted"}
+            statusTone={row.status === "draft" ? "warning" : "success"}
+            onClick={() => {
+              if (row.status === "draft") { setSelectedReportId(null); setNarrative(row.narrative || ""); setChallenges(row.challenges || ""); }
+              else setSelectedReportId(row.id);
+              setDrill(null);
+            }}
+          />)}
+        </div>}
 
-      <div className="hint">Submitted reports use frozen figures and evidence links. Later activity does not rewrite them.</div>
+        <div className="ev2rep-actions">
+          <button className="btn btn-ghost" onClick={printReport}>Print / save PDF</button>
+          {!viewingFrozen && matchingPeriod?.status === "open" && <>
+            <button className="btn btn-ghost" disabled={busy} onClick={handleSave}>{busy ? "Saving..." : "Save draft"}</button>
+            <button className="btn" disabled={busy} onClick={submitReport}>{busy ? "Submitting..." : "Submit report"}</button>
+          </>}
+          {viewingFrozen && !draft && frozenReport?.status === "submitted" && frozenReport.id === latestSubmitted?.id && matchingPeriod?.status === "open" && <button className="btn btn-ghost" onClick={() => { setCorrectionReason(""); setSheet("correct"); }}>Correct this report</button>}
+          {viewingFrozen && draft && <button className="btn btn-ghost" onClick={() => { setSelectedReportId(null); setNarrative(draft.narrative || ""); setChallenges(draft.challenges || ""); }}>Return to draft</button>}
+        </div>
+
+        <ReportingFootnote>Submitted reports use frozen figures and evidence links. Later activity does not rewrite them. Reporting coverage and work-session context are factual records, not performance scores.</ReportingFootnote>
+      </ReportingSection>
     </>}
+
+    <div className="ev2rep-ministry-context">
+      <MinistryNumbers me={me} />
+    </div>
 
     {sheet === "correct" && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="h2">Open a correction</div>
