@@ -550,3 +550,40 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family H Administration Organisation settings composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[2], { width: viewport.width, height: viewport.height });
+    await page.goto("/?tab=office-settings");
+    await expect(page.getByRole("heading", { name: "Organisation settings", exact: true })).toBeVisible();
+    await expect(page.getByText(/Unconfirmed policy stays visibly unconfigured rather than being guessed/i)).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Organisation settings overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10h-org-settings-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family H Administration Units composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[2], { width: viewport.width, height: viewport.height });
+    await page.goto("/?tab=units");
+    await expect(page.getByRole("heading", { name: "Units", exact: true })).toBeVisible();
+    await expect(page.getByText(/without creating a second reporting system/i)).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Administration Units overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10h-units-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
