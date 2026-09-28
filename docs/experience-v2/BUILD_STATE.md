@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10E2 — Manager Finance (ACCEPTED; 10E3 entry pending documentation-head verification)
+Current substage: 10E3 — Administration Finance (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1833,7 +1833,20 @@ Persistent evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_E_10E2_ACCEPTANCE_RECORD.md`.
 
-10E3 — Administration Finance has NOT started. It is next after this documentation acceptance head is exact-head green.
+10E3 — Administration Finance is ACTIVE.
+
+This implementation tranche:
+- migrates organisation Finance into the shared Experience V2 Finance family;
+- places Administration request decisions and approved-request fulfilment before organisation financial context;
+- preserves income, spend, transfer and request workflows on their existing data/action paths;
+- preserves organisation-wide Administration scope and the existing Administration authority step;
+- preserves two-sided transfer confirmation/dispute semantics and does not count unconfirmed transfers as confirmed money in;
+- preserves current expense/export integration;
+- preserves separate currencies, missing-budget truthfulness and explicit “not a bank balance” language;
+- preserves append-only/correction-led ledger semantics and does not add edit/delete capability;
+- changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
+
+10E3 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Administration Finance viewport inspection are required.
 10E4 Executive Finance and 10E5 Family E final acceptance have NOT started.
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
