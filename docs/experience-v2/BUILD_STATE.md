@@ -2261,17 +2261,67 @@ Quality Gate evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_F_10F4_ACCEPTANCE_RECORD.md`.
 
-10F5 — Family F final acceptance is ACTIVE.
+10F5 — Family F final acceptance is ACCEPTED AND COMPLETE.
 
-10F5 final acceptance boundary:
-- use exact application head `c9f64c711bafd4bf71bbc4f7d7afd4f8abf4d7a3`;
-- verify complete Family F SQL/RLS/version/evidence contracts on Quality Gate #1061;
-- verify Manager authoring/correction scope, Administration period authority and Executive read-only boundary together;
-- inspect Manager, Administration and Executive exact-head evidence across all required widths;
-- preserve no Staff Reports route, no person-scope report implementation, no performance score/ranking inference and no Stage 11 chart expansion;
-- if all family evidence is complete, persist the Family F acceptance record and immediately begin Family G audit/contract.
+Stage 10 Family F — Reports is ACCEPTED AND COMPLETE.
 
-Family G — My Hub / Account has NOT started.
+Exact accepted Family F application head:
+- `c9f64c711bafd4bf71bbc4f7d7afd4f8abf4d7a3`.
+
+Complete Family F Level B:
+- CI PASS — run `36428946380` (#1252);
+- Migration Replay PASS — run `36428959232` (#863);
+- Account Security PASS — run `36428946448` (#1035);
+- Complete Quality Gate PASS — run `36428946400` (#1061);
+- complete SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+Family F final evidence:
+- Manager, Administration and Executive Reports all passed their complete required viewport matrices on the same exact application SHA;
+- Manager authoring/correction/frozen-evidence boundaries preserved;
+- Administration period authority preserved;
+- Executive read-only boundary preserved;
+- no Staff Reports route;
+- no person-scope report implementation;
+- no reporting score/ranking/performance inference;
+- no Stage 11 chart expansion;
+- no schema, migration, RLS, RPC definition, authentication or capability change.
+
+Deployment reconciliation:
+- exact application SHA was externally Vercel-rate-limited;
+- documentation-only checkpoint `6f13b4753bfc7453f4bde841ac4beff8095c103a` received Vercel PASS with identical application code;
+- no billing, environment, domain, Vercel project setting or application configuration changed.
+
+Final Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10973246247`;
+- digest `sha256:0c2b42002ac8b00d4078b555e227a33bc7573a5ba220aba06c5232be038cd344`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_F_ACCEPTANCE_RECORD.md`.
+
+## Stage 10 Family G — My Hub / Account
+
+10G1 — Family G audit and contract is ACTIVE.
+
+Binding scope from `IMPLEMENTATION_SEQUENCE.md`:
+- profile;
+- leave;
+- development;
+- learning;
+- assets/compliance;
+- account activity.
+
+10G1 requirements:
+- inspect actual My Hub/account routes and role variants before decomposition;
+- inspect data/RPC/capability/privacy/security boundaries for profile, leave, development, learning, asset/compliance and account-activity context;
+- inspect existing responsive states and current visual hierarchy;
+- identify what belongs inside My Hub versus linked role/domain workspaces;
+- preserve existing authority and privacy rather than duplicating management/admin controls into the personal hub;
+- persist the exact Family G numbered substages and work brief before product-code migration.
+
+No Family G product-code migration has started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
