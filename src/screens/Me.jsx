@@ -338,7 +338,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       title="Leave"
       description="Your own request and confirmed-policy context. Manager and Administration decisions remain in Time & Leave."
       action={<div className="ev2pf-inline-actions">
-        {openWorkforce ? <Button variant="secondary" size="sm" onClick={() => openWorkforce()}>Open Time & Leave</Button> : null}
+        {!me.is_admin && !me.is_exec && openWorkforce ? <Button variant="secondary" size="sm" onClick={() => openWorkforce()}>Open Time & Leave</Button> : null}
         <Button size="sm" onClick={() => setSheet("leave")} disabled={Boolean(datasetErrors.leaveRequests)}>Ask for leave</Button>
       </div>}
     >
