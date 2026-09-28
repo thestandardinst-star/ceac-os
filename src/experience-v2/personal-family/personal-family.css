@@ -474,7 +474,13 @@
   }
 
   .ev2pf-section-head {
-    align-items: flex-start;
+    display: grid;
+    align-items: start;
+  }
+
+  .ev2pf-section-action {
+    width: 100%;
+    justify-self: start;
   }
 
   .ev2pf-details {
