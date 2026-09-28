@@ -10,6 +10,7 @@ import {
   Surface,
 } from "../components";
 import { CeacIcon } from "../icons";
+import { DataVizChart } from "../data-viz/DataVizV2";
 
 function formatDate(value, options = {}) {
   if (!value) return "Not recorded";
@@ -45,30 +46,17 @@ function AttentionRow({ icon, title, meta, status, tone = "warning", onClick }) 
   />;
 }
 
-function MiniTrend({ rows = [], label }) {
+function ministryMovement(rows = []) {
   const values = rows.map((row) => Number(row.value) || 0);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const points = values.map((value, index) => {
-    const x = values.length === 1 ? 50 : (index / (values.length - 1)) * 100;
-    const y = 36 - ((value - min) / range) * 30;
-    return `${x},${y}`;
-  }).join(" ");
-  const first = values[0];
-  const latest = values[values.length - 1];
-  const movement = latest === first ? "No arithmetic change" : `${latest > first ? "+" : ""}${latest - first} across ${rows.length} records`;
-
-  return <div className="executivev2-trend">
-    <div className="executivev2-trend-copy">
-      <strong>{label}</strong>
-      <span>{movement}</span>
-    </div>
-    <svg viewBox="0 0 100 42" preserveAspectRatio="none" role="img" aria-label={`${label}: ${movement}`}>
-      <polyline points={points} vectorEffect="non-scaling-stroke" />
-    </svg>
-    <strong className="executivev2-trend-value">{latest.toLocaleString("en-GH")}</strong>
-  </div>;
+  const first = values[0] || 0;
+  const latest = values[values.length - 1] || 0;
+  const delta = latest - first;
+  return {
+    latest,
+    note: delta === 0
+      ? "No arithmetic change across the recorded values."
+      : `${delta > 0 ? "+" : ""}${delta.toLocaleString("en-GH")} across ${rows.length} recorded values. CEAC OS does not infer why it moved.`,
+  };
 }
 
 function MinistryRecord({ row }) {
@@ -204,11 +192,21 @@ export default function ExecutiveOverviewV2({
               <StatTile label="Records this week" value={occurrencesThisWeek.length} icon="record" />
               <StatTile label="Units recording" value={unitsThisWeek} icon="organisation" />
             </div> : <Quiet icon="info">No ministry numbers have been configured yet.</Quiet>}
-            {ministryCharts.slice(0, 2).map(({ operation, rows }) => <MiniTrend
-              key={operation.id}
-              rows={rows}
-              label={`${operation.units?.name || "Unit"} · ${operation.name}`}
-            />)}
+            {ministryCharts.slice(0, 2).map(({ operation, rows }) => {
+              const movement = ministryMovement(rows);
+              const label = `${operation.units?.name || "Unit"} · ${operation.name}`;
+              return <DataVizChart
+                key={operation.id}
+                kind="line"
+                compact
+                title={label}
+                note={movement.note}
+                summary={`${movement.latest.toLocaleString("en-GH")} ${operation.value_label || "recorded"}`}
+                ariaLabel={`${label} recorded ministry movement`}
+                data={rows}
+                series={[{ key: "value", label: operation.value_label || "Recorded value" }]}
+              />;
+            })}
           </DataPanel>
         </section>
 
