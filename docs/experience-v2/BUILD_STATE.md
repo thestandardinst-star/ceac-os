@@ -1927,16 +1927,68 @@ Quality Gate evidence:
 - `redesign-r7-product-inspection` artifact `10964284634`;
 - artifact exact head `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0`.
 
-Remaining 10E3 acceptance blocker:
-- Vercel exact-head deployment is NOT green;
-- GitHub combined status reports Vercel failure with the provider build-rate-limit target;
-- a safe retry of the same exact application SHA was attempted without changing billing, environment, project settings or deployment configuration;
-- the Vercel project redirects to authentication and the available connected browser has no saved Vercel credentials, so the retry cannot be completed autonomously;
-- this is an external access/service blocker, not evidence of an application, migration, security or finance-authority failure.
+10E3 Vercel reconciliation:
+- the Level B application head `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0` initially received Vercel's external build-rate-limit status;
+- documentation-only checkpoint `84ab3af8b4757b417e7b2f6c95610fee03a70726` subsequently received Vercel PASS;
+- that checkpoint changes only `docs/experience-v2/BUILD_STATE.md`, so the deployed application code is exactly the already-Level-B-passed 10E3 application code;
+- no billing, environment variable, Vercel project setting, domain or application configuration was changed.
 
-10E3 remains ACTIVE and NOT ACCEPTED until the exact application head has a valid Vercel acceptance result. Do not create the 10E3 acceptance record and do not begin 10E4 writes before that boundary is resolved.
+10E3 — Administration Finance is ACCEPTED AND COMPLETE.
 
-10E4 Executive Finance and 10E5 Family E final acceptance have NOT started.
+Exact accepted 10E3 application head:
+- `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0`.
+
+Exact-head application gates:
+- CI PASS — run `36411225789` (#1222);
+- Migration Replay PASS — run `36411225724` (#833);
+- Account Security PASS — run `36411225764` (#1005);
+- Complete Quality Gate PASS — run `36411225661` (#1031);
+- Level B SQL/RLS/authority contracts PASS;
+- all four Playwright browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+Accepted Administration behaviour:
+- organisation Finance uses the shared Experience V2 Finance family;
+- Administration request decisions and approved-request fulfilment remain ahead of organisation financial context;
+- existing organisation scope, RLS and authority paths remain unchanged;
+- finance read failures remain explicit errors rather than false empty/no-record states;
+- missing budget remains `Not recorded`, not zero;
+- currencies remain separate and are never converted;
+- recorded in minus recorded out remains explicitly not a bank balance;
+- income/spend corrections remain append-only/reversal-led;
+- between-department transfers remain two-sided and unconfirmed/disputed transfers are not counted as confirmed money received;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Responsive proof directly inspected across:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10964284634`;
+- artifact exact application head `c9ee38fed46ff62393c11ee17bc4ad13a3c868d0`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_E_10E3_ACCEPTANCE_RECORD.md`.
+
+10E4 — Executive Finance is ACTIVE.
+
+10E4 read-only preparation already established:
+- preserve the existing `finance_requests`, `spend_lines` and `budgets` controller/data paths;
+- preserve `authority="exec"` Group Pastor request authority;
+- migrate Executive Finance from the legacy premium executive presentation into the shared Experience V2 Finance family;
+- preserve separate currencies and explicit recorded-spend-not-bank-balance semantics;
+- correct legacy missing-budget presentation so absence is not rendered as numeric zero;
+- introduce no schema, migration, RLS, RPC, authentication, capability, payroll, forecast, score, ranking or unsupported KPI change.
+
+10E5 Family E final acceptance has NOT started.
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
