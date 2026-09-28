@@ -1,13 +1,13 @@
 # CEAC OS Experience V2 — Build State
 
-Last updated: 27 September 2026
+Last updated: 28 September 2026
 
 ## Current programme state
 
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10C3 — Administration Projects (ACTIVE)
+Current substage: 10C4 — Executive Portfolio / Delivery (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1322,7 +1322,48 @@ No unresolved high-severity 10C2 hierarchy, typography, overflow, touch-target o
 Persistent exact-head evidence:
 - `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C2 / e9353015a394fee9d762fc4659f032165fb5d8b1 / stage10c2-r7-exact-head-evidence.zip`.
 
-10C3 — Administration Projects is now ACTIVE.
-10C4 has NOT started.
+10C3 — Administration Projects is ACCEPTED AND COMPLETE.
+
+Accepted exact implementation head:
+- `90aba31498c24003751c5719e0d94a63b8da4324`.
+
+Exact-head gates:
+- CI PASS — run `36371055991`;
+- Migration Replay PASS — run `36371056001`;
+- Account Security PASS — run `36371055958`;
+- Complete Quality Gate PASS — run `36371055976`;
+- 268 Playwright tests passed;
+- Vercel PASS.
+
+10C3 outcomes:
+- Administration Projects now visibly belongs to the shared Experience V2 Project family;
+- organisation project identity, state, lead unit, participating-unit context and objective movement use one deliberate scan pattern;
+- project meeting scheduling remains available as the existing contextual action;
+- Administration remains read/context oriented and does not gain Manager project creation, proposal decision, objective editing, register, close/reopen or other Manager-only project controls;
+- no schema, migration, RLS, RPC definition, auth or capability change was introduced.
+
+Responsive proof covers:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+The first two Quality Gate attempts on parent head `7d1bd532628d84a1c0fc10842b6adc3484214c48` each exposed the same pre-existing asynchronous-readiness issue in the already accepted 10C2 Manager Projects viewport test: the test asserted project rows immediately after the page shell appeared, before the project list had necessarily finished loading. The application data path was not changed. The acceptance helper now waits for the existing loaded `Unit delivery` state before applying the unchanged non-empty-row assertion. No timeout, retry, skip or assertion weakening was introduced.
+
+Exact-head rendered evidence was directly inspected across the full 10C3 viewport matrix. No unresolved high-severity hierarchy, overflow, typography, touch-target or authority issue was found.
+
+Persistent exact-head evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family C / 10C3 / 90aba31498c24003751c5719e0d94a63b8da4324 / stage10c3-r7-exact-head-evidence.zip`.
+
+10C3 acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_C_10C3_ACCEPTANCE_RECORD.md`.
+
+10C4 — Executive Portfolio / Delivery is now ACTIVE.
+10C5 has NOT started.
 Family D has NOT started.
 Chat is the sole active writer.
