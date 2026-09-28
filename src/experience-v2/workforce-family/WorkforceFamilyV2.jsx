@@ -137,6 +137,31 @@ export function WorkforceRecordRow({
   );
 }
 
+export function WorkforceDecisionRow({
+  icon = "calendar",
+  eyebrow,
+  title,
+  meta,
+  note,
+  statusLabel,
+  statusTone: tone,
+  children,
+}) {
+  return (
+    <article className="ev2wf-decision-row row">
+      <span className="ev2wf-row-icon"><CeacIcon name={icon} size="row" decorative /></span>
+      <div className="ev2wf-row-copy">
+        {eyebrow ? <small>{eyebrow}</small> : null}
+        <strong>{title}</strong>
+        {meta ? <span>{meta}</span> : null}
+        {note ? <p>{note}</p> : null}
+      </div>
+      {statusLabel ? <div className="ev2wf-row-state"><WorkforceContextBadge label={statusLabel} tone={tone} /></div> : null}
+      {children ? <div className="ev2wf-decision-actions">{children}</div> : null}
+    </article>
+  );
+}
+
 export function WorkforceEmpty({ title, description, compact = false }) {
   return (
     <div className={`ev2wf-empty ${compact ? "is-compact" : ""}`}>

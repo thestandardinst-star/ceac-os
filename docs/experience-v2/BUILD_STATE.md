@@ -1559,3 +1559,25 @@ Acceptance record:
 10D4 Administration and 10D5 Family D final acceptance have NOT started.
 Family E has NOT started.
 Chat is the sole active writer.
+
+
+## Stage 10 Family D — 10D3 Manager Workforce implementation
+
+10D3 — Manager Workforce context is ACTIVE.
+
+Implementation on top of the accepted 10D2 documentation head:
+- extends the shared Workforce V2 family with an action-capable decision row and Manager-specific responsive composition;
+- migrates Manager Today, Leave, Calendar, Sessions, Recorded differences and Corrections into the V2 family;
+- places routed leave decisions before team context on the Manager first view;
+- keeps visible people and records inside existing managed-unit RLS/domain scope;
+- keeps attendance correction controls hidden unless `attendance.correct` is explicitly present;
+- keeps schedules/day types/policy controls hidden unless `workforce.manage` is explicitly present;
+- preserves explicit capability functionality if either capability is deliberately granted;
+- preserves existing `workforce_leave_action`, correction, schedule and policy RPC paths;
+- changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant;
+- introduces no attendance score, ranking, payroll-time interpretation, automatic absence, lateness, no-show or productivity finding.
+
+10D3 acceptance is NOT yet recorded. It requires exact-head engineering/security gates and direct Manager viewport evidence inspection across the full required matrix.
+10D4 and 10D5 have NOT started.
+Family E has NOT started.
+Chat remains the sole active writer.
