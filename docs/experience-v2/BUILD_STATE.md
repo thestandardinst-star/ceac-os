@@ -2168,6 +2168,37 @@ Acceptance record:
 - preserve truthful loading/error/empty/no-period states;
 - introduce no schema, migration, RLS, RPC, authentication or capability change.
 
+10F3 Level B application candidate:
+- exact application head `daed8eb2f0c215b96c909332828dc292d7c9b99a`;
+- CI PASS — run `36426833610` (#1247);
+- Migration Replay PASS — run `36426833332` (#858);
+- Account Security PASS — run `36426833130` (#1030);
+- Complete Quality Gate PASS — run `36426833209` (#1056);
+- Level B SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+10F3 direct product inspection:
+- exact-head Administration Reports evidence inspected across the required 320/360/375/390/414/430/900/1366/1440 matrix;
+- no-period state remains explicit and does not fabricate zero coverage or an implicit report;
+- period opening remains the primary Administration action;
+- filed/draft/missing states remain filing status, not unit/staff performance;
+- outstanding units remain named when records exist;
+- the legacy donut was not carried into Family F; dedicated visualisation remains Stage 11 work;
+- loading/error states do not expose fabricated coverage figures;
+- no schema, migration, RLS, RPC, authentication or capability grant changed.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10971782980`;
+- digest `sha256:541322ee0bb72eb651d36610021cadec5d6e0845c64ed558d4f03b86bddf82f4`;
+- exact application head `daed8eb2f0c215b96c909332828dc292d7c9b99a`.
+
+10F3 external deployment status:
+- Vercel on the application head is blocked by the provider build-rate limit;
+- this is an external deployment-capacity status, not an application/build/security failure;
+- 10F3 remains ACTIVE and NOT YET ACCEPTED until the unchanged application code receives a valid Vercel deployment result.
+
 10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
