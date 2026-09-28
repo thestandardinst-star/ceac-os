@@ -619,3 +619,35 @@
     width: 100%;
   }
 }
+
+
+/* Family H1 — Control Center compatibility. */
+.ev2-control-center {
+  width: min(100%, 82rem);
+  margin-inline: auto;
+}
+
+.ev2-control-center-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.ev2-control-card {
+  min-width: 0;
+}
+
+.ev2-control-card .ev2c-status {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .ev2-control-center-header {
+    display: grid;
+  }
+
+  .ev2-control-center-header > .ev2c-status {
+    justify-self: start;
+  }
+}
