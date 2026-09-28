@@ -591,3 +591,31 @@
 .ev2-personal-compliance .compliance-self-item {
   min-width: 0;
 }
+
+
+/* Family G8 — My work history compatibility. */
+.ev2-personal-record {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-record-period {
+  display: flex;
+  justify-content: flex-end;
+  margin: var(--ev2-space-4) 0;
+}
+
+.ev2-personal-record .record-area,
+.ev2-personal-record .record-summary-grid,
+.ev2-personal-record .record-period-control {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .ev2-personal-record-period {
+    justify-content: stretch;
+  }
+
+  .ev2-personal-record .record-period-control {
+    width: 100%;
+  }
+}
