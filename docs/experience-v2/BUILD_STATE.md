@@ -2415,7 +2415,7 @@ Implemented so far:
 - 10H3 — Executive Organisation explicitly presents read-only leadership context and retains query-only authority;
 - 10H4 — Administration Units retain the accepted workspace model while strengthening shared Unit identity and factual Unit Head state.
 
-Acceptance is not yet claimed; exact-head gates and final Family H responsive/product evidence are pending.
+Acceptance is not yet claimed; exact-head gates are pending. Responsive acceptance coverage now spans Control Center at 320/390/900/1366/1440 and Executive Organisation at 320/390/1366/1440, with page-level overflow checks and screenshots.
 
 Family H authority boundary:
 - Administration Control Center remains the configuration/governance entry point;
