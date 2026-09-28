@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D1 — Family D Time & Leave / Workforce audit and contract (ACTIVE)
+Current substage: 10D2 — Staff Time & Leave (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1483,5 +1483,38 @@ Family C documentation/acceptance head `06b081d66c49b06aa6d78983069939e4fa4fbdc1
 - Vercel PASS.
 
 Family D — Time & Leave / Workforce is now OPEN at 10D1 audit and contract.
+Family E has NOT started.
+Chat is the sole active writer.
+
+## Stage 10 Family D progress
+
+10D1 — Time & Leave / Workforce audit and contract is ACCEPTED AND COMPLETE.
+
+Contract:
+- `docs/experience-v2/STAGE10_FAMILY_D_WORK_BRIEF.md`.
+
+Exact D1 entry/contract head:
+- `597c7a5d8e0e0ff93ec8b8d5cc2684c77b68cd05`.
+
+10D1 exact-head status before product-code migration:
+- CI PASS — run `36378721096`;
+- Migration Replay PASS — run `36378721157`;
+- Account Security PASS — run `36378721003`;
+- Complete Quality Gate PASS — run `36378720988`;
+- Vercel PASS.
+
+10D2 — Staff Time & Leave is now ACTIVE.
+
+This implementation tranche:
+- introduces the shared V2 Workforce-family presentation layer under `src/experience-v2/workforce-family/`;
+- migrates only the Staff personal Workforce composition first;
+- preserves the existing `Workforce` heading required by the cumulative Stage 9 acceptance while making the page character explicitly “My time & leave”;
+- preserves Staff self-only data/RLS, existing My Hub leave request/cancel flow, Stage 9 tables and reviewed RPC paths;
+- presents Today, seven-day personal context, sessions, recorded differences, leave history and correction history without absence/performance inference;
+- raises Staff operational presentation to the V2 12px text floor and 44px tab target floor;
+- changes no schema, migration, RLS, RPC definition, auth or capability grant;
+- leaves Manager and Administration Workforce presentation on their current paths for 10D3 and 10D4.
+
+10D2 acceptance is NOT yet recorded. It requires exact-head engineering/security gates and direct viewport evidence inspection.
 Family E has NOT started.
 Chat is the sole active writer.

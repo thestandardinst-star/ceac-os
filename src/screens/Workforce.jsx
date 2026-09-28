@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import {
+  WorkforceEmpty,
+  WorkforceFactGrid,
+  WorkforceFootnote,
+  WorkforcePageHeader,
+  WorkforceRecordRow,
+  WorkforceSection,
+  WorkforceTabs,
+  WorkforceTodayCard,
+} from "../experience-v2/workforce-family/WorkforceFamilyV2";
 
 const DAY_KEYS=["sun","mon","tue","wed","thu","fri","sat"];
 const DAY_LABELS={sun:"Sun",mon:"Mon",tue:"Tue",wed:"Wed",thu:"Thu",fri:"Fri",sat:"Sat"};
@@ -26,6 +36,7 @@ export default function Workforce({ me }) {
   const canManage=caps.includes("workforce.manage");
   const canCorrect=caps.includes("attendance.correct");
   const isManager=me.role==="manager" || (me.managed_units||[]).length>0;
+  const isStaffView=!me.is_admin && !me.is_exec && !isManager;
   const [tab,setTab]=useState("today");
   const [people,setPeople]=useState([]);
   const [sessions,setSessions]=useState([]);
@@ -344,9 +355,198 @@ export default function Workforce({ me }) {
   }
 
   const flaggedSessions=sessions.map((session)=>({session,differences:recordedDifferences(session)})).filter((row)=>row.differences.length);
-  const tabs=[["today","Today"],["calendar","Calendar"],["sessions","Sessions"],["differences","Recorded differences"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
+  const staffTabs=[["today","Today"],["calendar","My week"],["leave","Leave"],["sessions","Sessions"],["differences","Recorded differences"],["corrections","Corrections"]];
+  const tabs=isStaffView?staffTabs:[["today","Today"],["calendar","Calendar"],["sessions","Sessions"],["differences","Recorded differences"],["leave","Leave"],["corrections","Corrections"],...(canManage?[["setup","Schedules & policy"]]:[])];
 
   if(loading) return <div className="body"><LoadingState label="Loading workforce…" /></div>;
+
+  if(isStaffView){
+    const person=people[0]||null;
+    const personId=person?.profile_id||me.id;
+    const personContext=person?contextFor(personId):{label:"No workforce record",tone:"grey",detail:"No active workforce record is visible for your account."};
+    const personSchedule=person?latestSchedule(personId):null;
+    const personDayType=person?currentDayType(personId):null;
+    const personFacts=person?sessionFacts(personId):{rows:[],first:null,last:null,lastEnd:null};
+    const personLeaveToday=person?approvedLeave(personId):null;
+    const personCorrections=corrections.filter((row)=>row.profile_id===personId);
+    const personSessions=sessions.filter((row)=>row.profile_id===personId);
+    const personLeave=leave.filter((row)=>row.profile_id===personId);
+    const personLeaveEvents=leaveEvents.filter((row)=>row.profile_id===personId);
+    const todayCorrections=effectiveCorrections(personId,today);
+    const configuredTime=personSchedule?.expected_start
+      ? String(personSchedule.expected_start).slice(0,5)+(personSchedule?.expected_end?"–"+String(personSchedule.expected_end).slice(0,5):"")
+      : "Not recorded";
+
+    return <div className="ev2-workforce-page ev2-workforce-staff workforce-page">
+      <WorkforcePageHeader
+        eyebrow="My time & leave"
+        title="Workforce"
+        description="Your schedule, recorded work-session context, leave and attributable corrections. Missing activity is context only, never an automatic absence or performance judgement."
+        statusLabel={personContext.label}
+        statusTone={personContext.tone}
+      />
+
+      {error&&<ProductNotice tone="error" title="Workforce">{error}</ProductNotice>}
+      {notice&&<ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}
+
+      <WorkforceTabs items={tabs} value={tab} onChange={setTab} ariaLabel="My workforce sections"/>
+
+      {!activePolicy&&<ProductNotice tone="attention" title="Leave policy not configured">Your leave requests remain available. CEAC OS will not invent entitlement, accrual, carry-over or remaining-day figures from old seeded defaults.</ProductNotice>}
+
+      {tab==="today"&&<>
+        {person?<WorkforceTodayCard
+          name={person.profiles?.full_name||"My workforce record"}
+          meta={[person.units?.name,person.profiles?.job_title].filter(Boolean).join(" · ")||"Employment context"}
+          statusLabel={personContext.label}
+          statusTone={personContext.tone}
+          detail={personContext.detail}
+        >
+          <WorkforceFactGrid items={[
+            {label:"Day type",value:personDayType?.name||"Not configured"},
+            {label:"Configured time",value:configuredTime},
+            {label:"First recorded session",value:personFacts.first?clock(personFacts.first.started_at):"None recorded"},
+            {label:"Final recorded end",value:personFacts.lastEnd?clock(personFacts.lastEnd):personFacts.rows.length?"No final end recorded":"None recorded"},
+            {label:"Approved leave",value:personLeaveToday?human(personLeaveToday.kind):"None recorded"},
+            {label:"Effective corrections",value:String(todayCorrections.length)},
+          ]}/>
+        </WorkforceTodayCard>:<WorkforceEmpty title="No workforce record is visible" description="Your active employment/workforce record will appear here when it is available in your authorised scope."/>}
+
+        <WorkforceSection title="What this means" description="The page separates configured expectations from recorded activity. A missing or different record is not converted into absence, lateness or a performance conclusion.">
+          <WorkforceRecordRow
+            icon="time"
+            eyebrow="Configured context"
+            title={personDayType?.name||"Schedule not configured"}
+            meta={personSchedule?("Configured clock context: "+configuredTime):"No workforce schedule is recorded for today."}
+          />
+          <WorkforceRecordRow
+            icon="record"
+            eyebrow="Recorded activity"
+            title={personFacts.first?"Session recorded":"No session recorded"}
+            meta={personFacts.first?(clock(personFacts.first.started_at)+(personFacts.lastEnd?" → "+clock(personFacts.lastEnd):" · no final end recorded")):"No work-session row is recorded for today."}
+            statusLabel={personContext.label}
+            statusTone={personContext.tone}
+          />
+        </WorkforceSection>
+      </>}
+
+      {tab==="calendar"&&<WorkforceSection title="My next seven days" description="Schedule, recorded activity, approved leave and shared calendar context are shown as separate facts.">
+        {Array.from({length:7},(_,i)=>{
+          const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
+          const ctx=contextFor(personId,date);
+          const facts=sessionFacts(personId,date);
+          const schedule=latestSchedule(personId,date);
+          const dayType=currentDayType(personId,date);
+          const events=calendarEventsOn(date);
+          const time=schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"No clock context";
+          const eventNote=events.length?events.map((event)=>event.label+": "+event.title).join(" · "):null;
+          return <WorkforceRecordRow
+            key={date}
+            icon="calendar"
+            eyebrow={niceDay(date)}
+            title={dayType?.name||"Schedule not configured"}
+            meta={time+(facts.first?" · first recorded "+clock(facts.first.started_at):" · no session recorded")}
+            note={eventNote}
+            statusLabel={ctx.label}
+            statusTone={ctx.tone}
+          />;
+        })}
+      </WorkforceSection>}
+
+      {tab==="sessions"&&<WorkforceSection title="Recorded sessions" description="Last 31 days of factual work-session activity. These records are not payroll time or a performance score.">
+        {personSessions.slice(0,120).map((session)=>{
+          const diff=recordedDifferences(session);
+          const sessionCorrections=effectiveCorrections(personId,isoDay(session.started_at)).filter((row)=>!row.work_session_id||row.work_session_id===session.id);
+          return <WorkforceRecordRow
+            key={session.id}
+            icon="time"
+            eyebrow={new Date(session.started_at).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}
+            title={clock(session.started_at)+" → "+(session.ended_at?clock(session.ended_at):"no recorded end")}
+            meta={session.place||"Place not recorded"}
+            note={(diff.length||sessionCorrections.length)?(diff.length+" recorded difference"+(diff.length===1?"":"s")+" · "+sessionCorrections.length+" effective correction"+(sessionCorrections.length===1?"":"s")):null}
+          />;
+        })}
+        {!personSessions.length&&<WorkforceEmpty compact title="No sessions recorded in this period" description="Nothing is inferred from the absence of session rows."/>}
+      </WorkforceSection>}
+
+      {tab==="differences"&&<>
+        <WorkforceSection title="Expected and recorded today" description="Configured schedule context and recorded activity are intentionally shown side by side.">
+          <WorkforceRecordRow
+            icon="calendar"
+            eyebrow="Scheduled"
+            title={personDayType?.name||"Schedule not configured"}
+            meta={personSchedule?configuredTime:"No configured clock context"}
+          />
+          <WorkforceRecordRow
+            icon="record"
+            eyebrow="Recorded"
+            title={personFacts.first?"Session recorded":"No session recorded"}
+            meta={personFacts.first?(clock(personFacts.first.started_at)+(personFacts.lastEnd?" → "+clock(personFacts.lastEnd):" · no final end recorded")):"No session row is recorded for today."}
+            statusLabel={personContext.label}
+            statusTone={personContext.tone}
+          />
+        </WorkforceSection>
+        <WorkforceSection title="Recorded session differences" description="These are descriptive records, not findings about honesty, effort or attendance.">
+          {personSessions.map((session)=>({session,differences:recordedDifferences(session)})).filter((row)=>row.differences.length).map(({session,differences})=><WorkforceRecordRow
+            key={session.id}
+            icon="warning"
+            eyebrow={new Date(session.started_at).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}
+            title={clock(session.started_at)}
+            meta={session.place||"Place not recorded"}
+            note={differences.join(" · ")}
+            statusLabel="Recorded difference"
+            statusTone="amber"
+          />)}
+          {!personSessions.some((session)=>recordedDifferences(session).length)&&<WorkforceEmpty compact title="No recorded session differences" description="Nothing in the last 31 days matches the factual difference checks."/>}
+        </WorkforceSection>
+      </>}
+
+      {tab==="leave"&&<>
+        <WorkforceSection title="My leave requests" description="Requests and cancellations remain in My Hub → Leave. This view keeps the recorded request state and decision context together.">
+          {personLeave.map((row)=><WorkforceRecordRow
+            key={row.id}
+            icon="calendar"
+            eyebrow={human(row.kind)+" leave"}
+            title={niceDay(row.start_date)+" → "+niceDay(row.end_date)}
+            meta={row.days+" day"+(Number(row.days)===1?"":"s")}
+            note={row.decision_note||null}
+            statusLabel={human(row.status)}
+            statusTone={row.status==="approved"?"green":row.status==="declined"?"amber":row.status==="cancelled"?"grey":"blue"}
+          />)}
+          {!personLeave.length&&<WorkforceEmpty compact title="No leave requests recorded" description="Your requests will appear here after they are submitted from My Hub."/>}
+        </WorkforceSection>
+        <WorkforceSection title="Decision history" description="Each recorded leave action remains attributable in the existing history.">
+          {personLeaveEvents.slice(0,80).map((event)=><WorkforceRecordRow
+            key={event.id}
+            icon="record"
+            eyebrow={new Date(event.created_at).toLocaleString("en-GB")}
+            title={human(event.action)}
+            meta={human(event.from_status||"new")+" → "+human(event.to_status)}
+            note={event.reason||null}
+          />)}
+          {!personLeaveEvents.length&&<WorkforceEmpty compact title="No leave decision history" description="Recorded decisions, reversals and cancellations will appear here."/>}
+        </WorkforceSection>
+      </>}
+
+      {tab==="corrections"&&<WorkforceSection title="Attendance correction history" description="Corrections overlay the factual record. Original work-session rows are not rewritten, and a reversal is another linked history row.">
+        {personCorrections.map((row)=>{
+          const reversed=row.correction_type!=="reversal"&&reversedCorrectionIds.has(row.id);
+          return <WorkforceRecordRow
+            key={row.id}
+            icon="record"
+            eyebrow={niceDay(row.work_date)}
+            title={human(row.correction_type)+(reversed?" · reversed":"")}
+            meta={row.reason}
+            note={row.after_context?.note||null}
+            statusLabel={row.correction_type==="reversal"?"Reversal recorded":reversed?"Reversed":"Recorded"}
+            statusTone={reversed||row.correction_type==="reversal"?"grey":"blue"}
+          />;
+        })}
+        {!personCorrections.length&&<WorkforceEmpty compact title="No attendance corrections recorded" description="Nothing has been corrected in your visible scope."/>}
+      </WorkforceSection>}
+
+      <WorkforceFootnote>Workforce records describe what CEAC OS has recorded. They do not score effort, honesty, productivity or performance.</WorkforceFootnote>
+    </div>;
+  }
 
   return <div className="body workforce-page">
     <div style={{paddingTop:26}}>

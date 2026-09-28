@@ -19,6 +19,7 @@ import "./experience-v2/executive-overview/executive-overview.css";
 import "./experience-v2/work-family/work-family.css";
 import "./experience-v2/project-family/project-family.css";
 import "./experience-v2/people-family/people-family.css";
+import "./experience-v2/workforce-family/workforce-family.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
