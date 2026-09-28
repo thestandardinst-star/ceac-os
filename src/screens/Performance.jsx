@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
+import { EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Avatar, Button, StatePanel, StatusBadge } from "../experience-v2/components";
+import { PersonalEmpty, PersonalPageHeader, PersonalSection } from "../experience-v2/personal-family/PersonalFamilyV2";
 
 const CATEGORY_LABELS = {
   work: "Work outcomes",
