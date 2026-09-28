@@ -559,3 +559,19 @@
 .ev2-personal-learning .learning-history-list {
   min-width: 0;
 }
+
+
+/* Family G6 — personal assets compatibility. */
+.ev2-personal-assets {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-assets > .ev2pf-header {
+  margin-bottom: var(--ev2-space-4);
+}
+
+.ev2-personal-assets .asset-grid,
+.ev2-personal-assets .asset-card,
+.ev2-personal-assets .asset-facts {
+  min-width: 0;
+}
