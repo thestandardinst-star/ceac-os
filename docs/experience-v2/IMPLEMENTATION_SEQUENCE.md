@@ -262,6 +262,12 @@ H. Ministry / Organisation / Control Center
 
 Each family gets its own acceptance checkpoint.
 
+All implementation and acceptance checkpoints follow `VERIFICATION_PROTOCOL.md`:
+- implementation commits use Level A affected-scope verification;
+- each substage and family acceptance candidate receives the complete Level B gate;
+- exact-head rendered evidence is inspected after Level B and before acceptance is recorded;
+- a documentation-only acceptance checkpoint may use the documentation fast path only when it cites the immediately preceding Level B application SHA.
+
 ## Stage 11 — Calendar and Data Visualisation
 
 Purpose:

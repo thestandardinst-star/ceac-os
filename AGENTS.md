@@ -14,6 +14,17 @@ Before ANY UI/product-experience change, read in this order:
 8. this AGENTS.md file in full
 9. the current domain/security contract for the capability being touched.
 
+Before ANY Experience V2 implementation or acceptance commit, also read:
+
+- `docs/experience-v2/VERIFICATION_PROTOCOL.md`
+
+Experience V2 uses a permanent two-level verification model:
+- Level A is the fast, affected-scope development gate and cannot accept a substage;
+- Level B is the complete engineering, security, migration, browser and evidence gate required at every acceptance boundary;
+- final application commits for an acceptance boundary use `[level-b]` in the commit subject unless the complete gate is manually dispatched;
+- documentation-only checkpoints use the documented integrity fast path only after the cited application SHA passed Level B;
+- while Level B runs, the sole writer may prepare the next substage read-only but must not commit it before current acceptance.
+
 Mandatory continuation rule:
 - GitHub is the build source of truth, not Chat/Work memory.
 - Chat and Work may alternate, but only ONE active writer may mutate the Experience V2 branch at a time.
@@ -21,6 +32,7 @@ Mandatory continuation rule:
 - If Work stops with unpushed changes, Chat MUST NOT overwrite/recreate them; recover and push that state first.
 - Every meaningful substage ends in a pushed commit, relevant tests, and an updated BUILD_STATE.md.
 - No important design decision, reference, defect, blocker or TODO may live only in a conversation.
+- Follow `docs/experience-v2/VERIFICATION_PROTOCOL.md`; a green Level A result is never sufficient evidence for acceptance.
 
 Active Experience V2 branch:
 chatgpt/experience-v2-2026-09-26

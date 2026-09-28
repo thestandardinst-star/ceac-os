@@ -4,26 +4,44 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: account-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   invited-account-flow:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify verification scope
+        id: classify
+        env:
+          VERIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          VERIFICATION_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/ci/classify-verification.mjs
 
       - uses: actions/setup-node@v4
+        if: steps.classify.outputs.run_account_security == 'true'
         with:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - if: steps.classify.outputs.run_account_security == 'true'
+        run: npm ci
 
       - name: Set up Supabase CLI
+        if: steps.classify.outputs.run_account_security == 'true'
         uses: supabase/setup-cli@v1
         with:
           version: 2.117.0
 
       - name: Initialise local Supabase
+        if: steps.classify.outputs.run_account_security == 'true'
         run: |
           if [ ! -f supabase/config.toml ]; then
             supabase init
@@ -36,6 +54,7 @@ jobs:
           supabase migration up --local
 
       - name: Seed local organisation and bootstrap invitation
+        if: steps.classify.outputs.run_account_security == 'true'
         run: |
           psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 <<'SQL'
           insert into public.organisations(id,name,short_code)
@@ -59,6 +78,7 @@ jobs:
           SQL
 
       - name: Export local Auth credentials
+        if: steps.classify.outputs.run_account_security == 'true'
         run: |
           supabase status -o env > /tmp/supabase.env
           set -a
@@ -69,4 +89,9 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
 
       - name: Test invited account lifecycle
+        if: steps.classify.outputs.run_account_security == 'true'
         run: node scripts/test-account-security.mjs
+
+      - name: Record unaffected account-security boundary
+        if: steps.classify.outputs.run_account_security != 'true'
+        run: echo "Account Security not required for this Level A or documentation-only change."

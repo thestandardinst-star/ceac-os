@@ -235,6 +235,18 @@ Do not say "the branch passes" if the tested commit is not the current branch he
 
 If a fix changes the SHA, rerun the checks affected by that fix.
 
+## 14A. Verification levels
+
+`VERIFICATION_PROTOCOL.md` is binding for all remaining Experience V2 work.
+
+- Level A is for rapid implementation feedback inside a substage. It cannot establish acceptance.
+- Level B is the complete acceptance gate and is mandatory for every substage, family, major stage, release candidate and final merge/reconciliation.
+- the acceptance record must cite the exact Level B application SHA, workflow run and rendered evidence;
+- documentation-only checkpoints may avoid browser/database reruns only after the cited application SHA has already passed Level B and direct evidence inspection.
+- while Level B runs, read-only preparation may overlap; next-substage implementation may not be committed.
+
+Failure classification and correction must follow the protocol. Assertions, security coverage, retries, timeouts and visual thresholds must not be weakened to manufacture a pass.
+
 ## 15. Keystone gate
 
 For Staff Today, Manager Overview, Administration Overview and Executive Overview:

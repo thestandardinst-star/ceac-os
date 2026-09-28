@@ -7,7 +7,22 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10E3 — Administration Finance (ACTIVE)
+Current substage: Verification acceleration protocol (ACTIVE before 10E3 acceptance)
+
+Permanent verification protocol:
+- `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
+- Level A provides affected-scope implementation feedback and cannot accept a substage;
+- Level B preserves the complete SQL/security, browser, migration, Account Security, deployment and exact-head evidence boundary;
+- documentation-only checkpoints use a deterministic integrity fast path only after the cited application head passed Level B;
+- one writer may overlap only read-only next-substage preparation while Level B runs.
+
+Pre-acceleration benchmark:
+- Quality Gate #1026, run `36405249475`, on `ea12263282939006629b46fdc1b2657b4d64076e`;
+- 329 Playwright tests passed in 14.2 minutes;
+- workflow wall clock was approximately 17 minutes;
+- CI, Migration Replay, Account Security and Vercel also passed on that exact head.
+
+The first successful sharded Level B run must be recorded here before the acceleration protocol is accepted. 10E3 visual inspection and acceptance then resume from the already-green application head; 10E4 remains unopened until 10E3 acceptance.
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883

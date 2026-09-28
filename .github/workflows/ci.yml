@@ -8,20 +8,48 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      documentation_only: ${{ steps.classify.outputs.documentation_only }}
+      level_b: ${{ steps.classify.outputs.level_b }}
+      scope: ${{ steps.classify.outputs.scope }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Classify verification scope
+        id: classify
+        env:
+          VERIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          VERIFICATION_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/ci/classify-verification.mjs
+
       - uses: actions/setup-node@v4
+        if: steps.classify.outputs.documentation_only != 'true'
         with:
           node-version: 22
           cache: npm
+
+      - name: Check documentation integrity
+        if: steps.classify.outputs.documentation_only == 'true'
+        env:
+          VERIFICATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/ci/check-documentation.mjs
+
       - name: Install dependencies
+        if: steps.classify.outputs.documentation_only != 'true'
         run: npm ci
       - name: Dependency security audit
+        if: steps.classify.outputs.documentation_only != 'true'
         run: npm audit --audit-level=high
       - name: Check changed lines
         shell: bash
@@ -32,4 +60,49 @@ jobs:
             git diff --check "HEAD^...HEAD"
           fi
       - name: Build
+        if: steps.classify.outputs.documentation_only != 'true'
         run: npm run build
+
+  targeted-browser:
+    name: Level A targeted browser
+    needs: build
+    if: needs.build.outputs.documentation_only != 'true' && needs.build.outputs.level_b != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ROLE_FIXTURE_PASSWORD: Local-role-fixture-2026!
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: ./.github/actions/setup-ceac-test-environment
+
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-1.55.0
+
+      - name: Install Playwright runner
+        run: |
+          npm install --no-save @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local app
+        run: |
+          npm run dev -- --host 127.0.0.1 > /tmp/ceac-vite.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:5173 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/ceac-vite.log
+          exit 1
+
+      - name: Run affected Level A browser contract
+        run: scripts/ci/run-level-a-browser.sh "${{ needs.build.outputs.scope }}"
