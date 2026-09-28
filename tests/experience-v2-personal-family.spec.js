@@ -282,10 +282,10 @@ test("Stage 10 Family G4 keeps Reviews & development evidence-first while aligni
   const css = readFileSync("src/experience-v2/personal-family/personal-family.css", "utf8");
 
   for (const contract of [
-    'supabase.rpc("record_appraisal_entry"',
-    'supabase.rpc("record_development_plan_version"',
-    'supabase.rpc("record_performance_feedback"',
-    'supabase.rpc("respond_to_performance_feedback"',
+    'rpc("record_appraisal_entry"',
+    'rpc("record_development_plan_version"',
+    'rpc("record_performance_feedback"',
+    'rpc("respond_to_performance_feedback"',
     "There is no employee score or ranking.",
     "Activity sessions are shown only as context.",
     "There are no private manager notes in this surface.",
