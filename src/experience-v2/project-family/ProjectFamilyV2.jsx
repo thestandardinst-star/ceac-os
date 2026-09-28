@@ -216,7 +216,7 @@ export function ProjectAttentionCard({
   );
 }
 
-export function ProjectSectionHeader({ eyebrow, title, count, actionLabel, onAction }) {
+export function ProjectSectionHeader({ eyebrow, title, count, actionLabel, onAction, action = null }) {
   return (
     <div className="ev2p-section-head">
       <div>
@@ -226,6 +226,7 @@ export function ProjectSectionHeader({ eyebrow, title, count, actionLabel, onAct
       <div className="ev2p-section-actions">
         {Number.isFinite(count) ? <b>{count}</b> : null}
         {actionLabel ? <Button variant="secondary" size="compact" onClick={onAction}>{actionLabel}</Button> : null}
+        {action}
       </div>
     </div>
   );

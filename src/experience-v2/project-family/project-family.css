@@ -872,3 +872,55 @@
 .ev2p-section-actions .ev2c-button {
   min-height: var(--ev2-control-min);
 }
+
+
+/* Family C project register uses the V2 responsive action pattern. */
+.ev2-project-page .project-register-actions {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ev2-space-2);
+}
+
+.ev2-project-page .project-register-actions .btn {
+  min-height: var(--ev2-control-min);
+  width: auto;
+}
+
+@media (max-width: 760px) {
+  .ev2-project-page .project-register .ev2p-section-actions {
+    align-items: flex-start;
+  }
+
+  .ev2-project-page .project-register-actions {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ev2-project-page .project-register-actions .btn {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .ev2-project-page .project-register-actions .btn:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-project-page .project-register .ev2p-section-actions {
+    flex-direction: column;
+  }
+
+  .ev2-project-page .project-register-actions {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .ev2-project-page .project-register-actions .btn:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+}

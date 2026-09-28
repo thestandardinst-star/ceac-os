@@ -289,6 +289,16 @@ for (const viewport of [
     const createBox = await createGroup.boundingBox();
     expect(createBox?.height || 0).toBeGreaterThanOrEqual(44);
 
+    await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
+    if (viewport.width <= 430) {
+      for (const label of ["Add participant", "Add slot type", "Record remittance"]) {
+        const action = page.getByRole("button", { name: label, exact: true });
+        await expect(action).toBeVisible();
+        const actionBox = await action.boundingBox();
+        expect(actionBox?.height || 0).toBeGreaterThanOrEqual(44);
+      }
+    }
+
     const smallest = await page.locator(".ev2-project-delivery").evaluate((root) => {
       const values = [...root.querySelectorAll("*")]
         .filter((node) => {

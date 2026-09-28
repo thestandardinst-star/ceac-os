@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { EmptyState, FieldGroup, ProductNotice, SectionHeader, Sheet } from "./bits";
+import { EmptyState, FieldGroup, ProductNotice, Sheet } from "./bits";
 import { Stat, StatRow, Table } from "./primitives";
+import { ProjectSectionHeader } from "../experience-v2/project-family/ProjectFamilyV2";
 
 const CURRENCIES = ["GHS","USD","GBP","EUR","NGN","ZAR","CAD"];
 
@@ -215,13 +216,16 @@ export default function ProjectParticipantRegister({ me, project }) {
   });
 
   return <section className="project-register">
-    <SectionHeader eyebrow="Project register" title="People, payments and custody"
+    <ProjectSectionHeader
+      eyebrow="Project register"
+      title="People, payments and custody"
       count={people.length}
-      action={<div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+      action={<div className="project-register-actions">
         {(canManageProject||managedUnits.length>0)&&<button className="btn btn-sm" onClick={()=>setSheet({type:"person"})}>Add participant</button>}
         {canManageProject&&<button className="btn btn-ghost btn-sm" onClick={()=>setSheet({type:"slot-type"})}>Add slot type</button>}
         {(canManageProject||managedUnits.length>0)&&<button className="btn btn-ghost btn-sm" onClick={()=>setSheet({type:"remittance"})}>Record remittance</button>}
-      </div>} />
+      </div>}
+    />
     <p className="screen-note">This register belongs to the project. Payments are append-only; remittance is confirmed by the receiving unit through the existing two-sided finance record.</p>
     {error&&<ProductNotice tone="error" title="Project register">{error}</ProductNotice>}
     {notice&&<ProductNotice tone="success" title="Project register">{notice}</ProductNotice>}
