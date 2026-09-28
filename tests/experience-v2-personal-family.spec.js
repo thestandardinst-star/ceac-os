@@ -525,7 +525,7 @@ for (const viewport of [
     await page.goto("/?tab=settings");
     await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toBeVisible();
     await expect(page.getByText("Governance workspace", { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Organisation/ })).toBeVisible();
+    await expect(page.locator(".ev2-control-card").filter({ hasText: "Organisation" }).first()).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `Control Center overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `test-artifacts/redesign-r7-stage10h-control-${viewport.name}.png`, fullPage: true });
