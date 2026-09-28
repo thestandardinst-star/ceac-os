@@ -2409,4 +2409,4 @@ Acceptance record:
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
-Codex/Work remains the sole active writer.
+Chat is the sole active writer. Codex/Work and the previous Chat writer are inactive.
