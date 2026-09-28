@@ -2065,20 +2065,32 @@ Stage 10 Family E — Finance is ACCEPTED AND COMPLETE.
 
 10F1 — Reports audit and contract is ACTIVE.
 
-Read-only audit already established:
-- there is no separate Staff Reports surface in the approved shell;
-- Manager Reports is the managed-unit authoring/evidence workspace and already owns period/project evidence, draft/submission/correction history and Ministry Numbers context;
-- Administration Reports owns reporting periods, coverage/filing operations and organisation-wide reporting context;
-- Executive Reports is read-only leadership coverage/context and must not gain period configuration or report-authoring authority;
-- Family F must preserve report evidence references, submitted/frozen report history, superseding/correction semantics, role scope and existing report authority;
-- current Reports surfaces contain legacy metric/card/chart geometries that should migrate into one shared Experience V2 reporting family;
-- Stage 11 remains responsible for the dedicated data-visualisation refinement pass, so Family F must not introduce new decorative chart capability;
-- no schema, migration, RLS, RPC, authentication or capability change is authorised unless a separately proven defect requires it.
+Contract:
+- `docs/experience-v2/STAGE10_FAMILY_F_WORK_BRIEF.md`.
 
-Immediate next action:
-- lock the Family F Reports work brief from the existing report domain and authority contracts;
-- verify the documentation head through the documentation fast path;
-- then begin Manager Reports as the first implementation substage.
+10F1 audit outcomes:
+- approved Reports family contains Manager, Administration and Executive surfaces only; no Staff Reports route is authorised;
+- Manager Reports remains the managed-unit/project authoring workspace;
+- Administration Reports remains the reporting-period and organisation coverage workspace;
+- Executive Reports remains read-only leadership context;
+- `report_periods` write authority remains Administration-only;
+- Manager report RPCs accept only unit/project scope inside managed-unit/project authority;
+- submitted reports are final and `confirm_report` must not be reintroduced;
+- corrections create a new draft version with `supersedes_report_id` and attributable correction reason;
+- submitted evidence snapshots remain frozen and non-zero claimed counts require matching `report_evidence_refs`;
+- person-scope reports remain deliberately unbuilt;
+- report coverage is factual operational context, not a performance score or ranking;
+- recurring Ministry Numbers remains existing Manager reporting context without becoming a report score;
+- Stage 11 owns dedicated chart/data-visualisation refinement, so Family F will not expand chart capability;
+- no schema, migration, RLS, RPC, authentication or capability change is authorised by this presentation family.
+
+Planned sequence:
+- 10F2 Manager Reports;
+- 10F3 Administration Reports;
+- 10F4 Executive Reports;
+- 10F5 Family F final acceptance.
+
+10F2 product-code work may begin only after the documentation head containing this contract and BUILD_STATE update is exact-head green.
 
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
