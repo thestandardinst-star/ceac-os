@@ -337,12 +337,22 @@ export default function Performance({ me }) {
 
   if (loading) return <div className="body"><LoadingState label="Loading reviews & development…" /></div>;
 
-  return <div className="body performance-page">
-    <div style={{ paddingTop:26 }}>
-      <div className="eyebrow">Evidence-first people development</div>
-      <h1 className="h1">Reviews & development</h1>
-      <p className="screen-note">CEAC OS assembles recorded evidence. People write the reflection, assessment, conversation record and development plan. There is no employee score or ranking.</p>
-    </div>
+  const personalReview = !orgPerformanceAdmin && !me.is_admin;
+  const reviewIntro = personalReview
+    ? <PersonalPageHeader
+        eyebrow="My Hub"
+        title="Reviews & development"
+        description="Your evidence, reflection, review conversation, development plan and visible feedback. CEAC OS does not score or rank you."
+        statusLabel="Evidence-first review"
+      />
+    : <div style={{ paddingTop:26 }}>
+        <div className="eyebrow">Evidence-first people development</div>
+        <h1 className="h1">Reviews & development</h1>
+        <p className="screen-note">CEAC OS assembles recorded evidence. People write the reflection, assessment, conversation record and development plan. There is no employee score or ranking.</p>
+      </div>;
+
+  return <div className={`body performance-page ${personalReview ? "ev2-personal-page ev2-personal-review" : ""}`.trim()}>
+    {reviewIntro}
 
     {error && <ProductNotice tone="error" title="Reviews & development">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}
