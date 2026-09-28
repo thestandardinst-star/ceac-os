@@ -471,6 +471,7 @@ test("Stage 10 Family H1 keeps Control Center capability-filtered while aligning
   expect(control).toContain("CeacIcon");
   expect(control).toContain('icon:"add"');
   expect(control).toContain("StatusBadge");
+  expect(control).not.toContain('../components/primitives/Icon');
   expect(control).toContain("ev2-control-center");
 });
 
