@@ -866,3 +866,9 @@
     flex: 1 1 8rem;
   }
 }
+
+
+/* Stage 10 Family C4 section actions are practical touch targets. */
+.ev2p-section-actions .ev2c-button {
+  min-height: var(--ev2-control-min);
+}
