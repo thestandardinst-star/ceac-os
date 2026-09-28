@@ -64,7 +64,7 @@ const scopeRules = [
   ["finance", /finance|cost|spend|budget|transfer|expense/i],
   ["workforce", /workforce|attendance|leave|session|calendar/i],
   ["project", /project|portfolio|delivery|objective/i],
-  ["people", /people|person|team|profile|employee/i],
+  ["people", /people|person(?!al)|team|profile|employee/i],
   ["work", /work-family|\/Work\.jsx$|\/Item\.jsx$|\/Assign\.jsx$|blocker|submission|review/i],
   ["reports", /report/i],
   ["shell", /App\.jsx$|bits\.jsx$|experience-v2\/(components|shell|tokens|icons)/i],

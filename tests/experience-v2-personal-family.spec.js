@@ -61,6 +61,7 @@ test("Stage 10 Family G2 preserves My Hub personal authority while establishing 
   expect(css).not.toContain("!important");
 
   expect(classifier).toContain('["personal", /personal-family');
+  expect(classifier).toContain("person(?!al)");
   expect(levelA).toContain("personal)");
   expect(levelA).toContain("tests/experience-v2-personal-*.spec.js");
 });
