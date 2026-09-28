@@ -430,7 +430,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
 
         <div className="ev2pf-form-section">
           <strong>Emergency contact</strong>
-          <InputField label="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
+          <InputField label="Contact name" placeholder="Contact name" value={profileForm.emergency_contact_name} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_name: event.target.value }))} />
           <div className="ev2pf-form-grid">
             <InputField label="Contact phone" type="tel" value={profileForm.emergency_contact_phone} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_phone: event.target.value }))} />
             <InputField label="Relationship" value={profileForm.emergency_contact_relationship} onChange={(event) => setProfileForm((value) => ({ ...value, emergency_contact_relationship: event.target.value }))} />
