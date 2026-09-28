@@ -364,7 +364,7 @@ for (const viewport of [
 }
 
 
-test("Stage 10 Family G6 keeps personal Assets custody factual while aligning it with My Hub", async () => {
+test("Stage 10 Family G6A keeps personal Assets custody factual while aligning it with My Hub", async () => {
   const assets = readFileSync("src/screens/Assets.jsx", "utf8");
   expect(assets).toContain('supabase.from("asset_items")');
   expect(assets).toContain('supabase.from("asset_assignment_events")');
@@ -381,7 +381,7 @@ for (const viewport of [
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
-  test(`Stage 10 Family G6 Staff Assets composes at ${viewport.name}`, async ({ browser }) => {
+  test(`Stage 10 Family G6A Staff Assets composes at ${viewport.name}`, async ({ browser }) => {
     const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
     await page.getByRole("button", { name: "My assets", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Assets & devices", exact: true })).toBeVisible();
@@ -395,7 +395,7 @@ for (const viewport of [
 }
 
 
-test("Stage 10 Family G7 keeps personal Compliance factual while aligning it with My Hub", async () => {
+test("Stage 10 Family G6B keeps personal Compliance factual while aligning it with My Hub", async () => {
   const compliance = readFileSync("src/screens/Compliance.jsx", "utf8");
   expect(compliance).toContain('rpc("compliance_acknowledge_policy"');
   expect(compliance).toContain('rpc("compliance_submit_evidence"');
@@ -412,7 +412,7 @@ for (const viewport of [
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
-  test(`Stage 10 Family G7 Staff Compliance composes at ${viewport.name}`, async ({ browser }) => {
+  test(`Stage 10 Family G6B Staff Compliance composes at ${viewport.name}`, async ({ browser }) => {
     const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
     await page.getByRole("button", { name: "My compliance", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Compliance", exact: true })).toBeVisible();
@@ -426,7 +426,7 @@ for (const viewport of [
 }
 
 
-test("Stage 10 Family G8 keeps My work history factual while aligning it with My Hub", async () => {
+test("Stage 10 Family G supplemental keeps My work history factual while aligning it with My Hub", async () => {
   const record = readFileSync("src/screens/Record.jsx", "utf8");
   expect(record).toContain('supabase.from("work_items")');
   expect(record).toContain('supabase.from("work_sessions")');
@@ -445,7 +445,7 @@ for (const viewport of [
   { name: "laptop-1366", width: 1366, height: 768 },
   { name: "desktop-1440", width: 1440, height: 900 },
 ]) {
-  test(`Stage 10 Family G8 My work history composes at ${viewport.name}`, async ({ browser }) => {
+  test(`Stage 10 Family G supplemental My work history composes at ${viewport.name}`, async ({ browser }) => {
     const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
     await page.getByRole("button", { name: "My work history", exact: true }).click();
     await expect(page.getByRole("heading", { name: "My work history", exact: true })).toBeVisible();
@@ -455,6 +455,55 @@ for (const viewport of [
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `My work history overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
     await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g8-record-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
+
+
+
+test("Stage 10 Family G7 keeps account activity self-only while aligning it with My Hub", async () => {
+  const account = readFileSync("src/screens/AccountActivity.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/personal-family/personal-family.css", "utf8");
+
+  expect(account).toContain('supabase.rpc("my_sessions")');
+  expect(account).toContain('supabase.rpc("my_account_activity", { p_limit: 50 })');
+  expect(account).toContain('supabase.auth.signOut({ scope: "local" })');
+  expect(account).toContain('supabase.auth.signOut({ scope: "global" })');
+  expect(account).toContain("Only you can see this.");
+  expect(account).toContain('statusLabel="Self-only security"');
+  expect(account).toContain("ev2-personal-account");
+  expect(account).toContain("This is not a colleague-monitoring surface.");
+  expect(account).not.toContain("profile_id");
+  expect(account).not.toContain("employee_id");
+  expect(css).toContain(".ev2-personal-account");
+  expect(css).not.toContain("!important");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family G7 Your account composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
+    await page.goto("/?tab=account-activity");
+
+    await expect(page.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
+    await expect(page.getByText("Self-only security", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Only you can see this/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign out on this device", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign out on every device", exact: true })).toBeVisible();
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Your account overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10g7-account-${viewport.name}.png`, fullPage: true });
     await context.close();
   });
 }
