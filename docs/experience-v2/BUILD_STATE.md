@@ -1978,17 +1978,61 @@ Quality Gate evidence:
 Acceptance record:
 - `docs/experience-v2/STAGE10_FAMILY_E_10E3_ACCEPTANCE_RECORD.md`.
 
-10E4 — Executive Finance is ACTIVE.
+10E4 — Executive Finance is ACCEPTED AND COMPLETE.
 
-10E4 read-only preparation already established:
-- preserve the existing `finance_requests`, `spend_lines` and `budgets` controller/data paths;
-- preserve `authority="exec"` Group Pastor request authority;
-- migrate Executive Finance from the legacy premium executive presentation into the shared Experience V2 Finance family;
-- preserve separate currencies and explicit recorded-spend-not-bank-balance semantics;
-- correct legacy missing-budget presentation so absence is not rendered as numeric zero;
-- introduce no schema, migration, RLS, RPC, authentication, capability, payroll, forecast, score, ranking or unsupported KPI change.
+Exact accepted 10E4 application head:
+- `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb`.
 
-10E5 Family E final acceptance has NOT started.
+Exact-head gates:
+- CI PASS — run `36416271591` (#1229);
+- Migration Replay PASS — run `36416271736` (#840);
+- Account Security PASS — run `36416271604` (#1012);
+- Complete Quality Gate PASS — run `36416271615` (#1038);
+- Vercel PASS;
+- Level B SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS.
+
+Accepted Executive behaviour:
+- Executive Finance uses the shared Experience V2 Finance family;
+- the Group Pastor sees only requests requiring Executive authority through the existing `authority="exec"` path;
+- Executive receives no fulfilment, income-entry, spend-entry, budget-edit or destructive ledger action;
+- currencies remain separate and are never converted;
+- missing budget remains `Not recorded`, not zero;
+- failed reads remain explicit error states and do not expose financial figures;
+- recorded spend is explicitly not a bank balance;
+- approved requests remain distinct from actual spend;
+- the prior basic spending-bar presentation was removed rather than expanded into Stage 11 chart work;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed;
+- no finance score, ranking, forecast, estimate, probability, payroll value or unsupported KPI was introduced.
+
+Responsive proof directly inspected across:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10967568018`;
+- digest `sha256:19ef5da5d3b3ab8b5a61cd33d6a40d1fc3fc0078d778684d2dad4c5bd706eca6`;
+- exact application head `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_E_10E4_ACCEPTANCE_RECORD.md`.
+
+10E5 — Family E final acceptance is ACTIVE.
+
+Family-level verification basis:
+- exact application SHA `94dfbbc439ea7fd6e536d88caaea3ec17bd6a4bb` already passed the complete Level B gate after the final 10E4 correction;
+- #1038 includes Family E2 Manager Finance across every required viewport, Finance-handler scoping, Family E3 Administration Finance across every required viewport, Family E4 Executive Finance across every required viewport, the Stage 6 Manager finance path and the closure finance request → authority → evidence → actual-spend journey;
+- no product code has changed after that Level B application SHA;
+- 10E5 must inspect the family-wide evidence, persist the final Family E acceptance record and pass the documentation fast path before Family F writes begin.
+
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
