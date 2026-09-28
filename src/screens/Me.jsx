@@ -449,17 +449,41 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
       </div>
     </Drawer>
 
-    {sheet === "leave" ? <Sheet onClose={() => setSheet(null)}>
-      <div className="h2">Ask for leave</div>
-      <p className="screen-note">Your manager will see this and approve it or send it on to Administration where required.</p>
-      <div className="sec" style={{ marginTop: 12 }}><span>Kind of leave</span></div>
-      {[["annual","Annual"],["sick","Sick"],["bereavement","Bereavement"],["maternity","Maternity"],["other","Other"]].map(([key, label]) => <button key={key} className="opt" onClick={() => setKind(key)}>
-        <span className={`rd ${kind === key ? "on" : ""}`} /> {label}
-      </button>)}
-      <FieldGroup label="Leave starts"><input className="field" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></FieldGroup>
-      <FieldGroup label="Leave ends"><input className="field" type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} /></FieldGroup>
-      <FieldGroup label="Reason" hint="Optional. Keep it brief."><textarea className="field" rows={2} placeholder="A short reason" value={reason} onChange={(event) => setReason(event.target.value)} /></FieldGroup>
-      <button className="btn" style={{ marginTop: 14 }} onClick={requestLeave} disabled={busy || !startDate || !endDate}>{busy ? "Sending..." : "Send request"}</button>
-    </Sheet> : null}
+    <ModalDialog
+      open={sheet === "leave"}
+      onClose={() => !busy && setSheet(null)}
+      title="Ask for leave"
+      description="Your request follows CEAC's recorded leave process. Manager and Administration decision controls remain in Time & Leave."
+      footer={<>
+        <Button variant="secondary" onClick={() => setSheet(null)} disabled={busy}>Cancel</Button>
+        <Button busy={busy} onClick={requestLeave} disabled={busy || !startDate || !endDate || endDate < startDate}>Send request</Button>
+      </>}
+    >
+      <div className="ev2pf-form-stack">
+        <div className="ev2pf-form-section">
+          <strong>Kind of leave</strong>
+          <div className="ev2pf-inline-actions">
+            {[["annual","Annual"],["sick","Sick"],["bereavement","Bereavement"],["maternity","Maternity"],["other","Other"]].map(([key, label]) => (
+              <Button key={key} variant={kind === key ? "primary" : "secondary"} size="sm" onClick={() => setKind(key)}>{label}</Button>
+            ))}
+          </div>
+        </div>
+        <div className="ev2pf-form-grid">
+          <InputField label="Leave starts" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+          <InputField
+            label="Leave ends"
+            type="date"
+            min={startDate || undefined}
+            value={endDate}
+            error={startDate && endDate && endDate < startDate ? "Leave end date cannot be before the start date." : undefined}
+            onChange={(event) => setEndDate(event.target.value)}
+          />
+        </div>
+        <TextareaField label="Reason" help="Optional. Keep it brief." rows={3} placeholder="A short reason" value={reason} onChange={(event) => setReason(event.target.value)} />
+        <ProductNotice tone="info" title="Dates only">
+          CEAC OS sends the dates you choose to the existing workforce leave process. It does not guess working-day totals, entitlement or payroll consequences here.
+        </ProductNotice>
+      </div>
+    </ModalDialog>
   </div>;
 }
