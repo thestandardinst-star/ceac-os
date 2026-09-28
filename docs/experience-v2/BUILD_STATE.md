@@ -2104,33 +2104,71 @@ Planned 10F2 implementation:
 - add full 320/360/375/390/414/430/900/1366/1440 acceptance coverage;
 - change no schema, migration, RLS, RPC, authentication or capability grant.
 
-10F2 Level B application candidate:
-- exact application head `067d138042e5a3c4c78678e997e32ef745c801c5`;
+10F2 — Manager Reports is ACCEPTED AND COMPLETE.
+
+Exact accepted 10F2 application head:
+- `067d138042e5a3c4c78678e997e32ef745c801c5`.
+
+Exact-head Level B:
 - CI PASS — run `36421502181` (#1242);
 - Migration Replay PASS — run `36421502210` (#853);
 - Account Security PASS — run `36421502179` (#1025);
 - Complete Quality Gate PASS — run `36421502186` (#1051);
-- Level B SQL/RLS/authority contracts PASS;
+- complete SQL/RLS/authority contracts PASS;
 - all four browser shards PASS;
 - merged exact-head product evidence PASS;
 - role-and-RLS coordinator PASS.
 
-10F2 direct product inspection:
-- exact-head Manager Reports evidence inspected at 320×844, 360×800, 375×812, approximately 390×844, 414×896, 430×932, 900×900, 1366×768 and 1440×900;
-- phone layouts recompose without page-level horizontal overflow;
-- laptop/desktop density remains deliberate rather than stretched;
-- live preview is visually and verbally distinct from a filed/frozen report;
-- no-period state remains truthful and disables save/submit rather than inventing a report;
-- factual evidence counts remain traceable and are not framed as scores, rankings or performance measures;
-- recurring Ministry Numbers remains separate factual ministry context;
-- no schema, migration, RLS, RPC, authentication or capability grant changed.
+Vercel reconciliation:
+- the Level B application head initially received the external Vercel build-rate-limit status;
+- documentation-only checkpoint `c6ffc20e8208f1010e18c7ffddb85d45891adfbb` received Vercel PASS while changing only `docs/experience-v2/BUILD_STATE.md`;
+- the successfully deployed application code is therefore identical to the Level-B-passed Manager Reports application code;
+- no billing, environment, domain, Vercel project setting or application configuration changed.
 
-10F2 external deployment status:
-- GitHub combined status on the application head reports Vercel build-rate-limit failure;
-- this is an external provider capacity status, not an application/build/test failure;
-- 10F2 acceptance is NOT YET recorded and 10F3 writes remain closed until the unchanged application code receives a valid Vercel acceptance result.
+Accepted Manager Reports behaviour:
+- shared Experience V2 reporting-family presentation is active;
+- Manager remains managed-unit/project scoped;
+- live preview remains distinct from submitted/frozen evidence;
+- no reporting period remains a truthful no-submit/no-save state;
+- submitted versions remain final and immutable;
+- corrections preserve prior submissions by creating a new attributable draft version;
+- evidence counts remain factual and traceable rather than scores/rankings/performance measures;
+- Ministry Numbers remains separate factual ministry context;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
 
-10F3 Administration Reports, 10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
+Responsive proof directly inspected at:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10969938061`;
+- digest `sha256:182f52592f9bf34f8c51f473482fad33c28ce650bd7ae67c3c2c1e1b7ee32ea2`;
+- exact application head `067d138042e5a3c4c78678e997e32ef745c801c5`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_F_10F2_ACCEPTANCE_RECORD.md`.
+
+10F3 — Administration Reports is ACTIVE.
+
+10F3 implementation boundary:
+- migrate Administration period operations and organisation coverage into the shared Experience V2 reporting family;
+- place period creation/open/close/reopen controls before coverage context;
+- preserve Administration-write authority for `report_periods`;
+- preserve organisation-visible unit reports, narratives and challenges;
+- keep filed, draft and missing units named explicitly rather than hiding follow-up behind a percentage;
+- retain reporting coverage only as factual operational context, not a performance score;
+- remove the legacy donut from the primary Family F presentation instead of expanding Stage 11 chart work early;
+- preserve truthful loading/error/empty/no-period states;
+- introduce no schema, migration, RLS, RPC, authentication or capability change.
+
+10F4 Executive Reports and 10F5 Family F final acceptance have NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
 PR #72 remains OPEN + DRAFT.
