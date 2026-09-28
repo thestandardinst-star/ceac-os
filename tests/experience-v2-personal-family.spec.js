@@ -473,11 +473,54 @@ test("Stage 10 Family G7 keeps account activity self-only while aligning it with
   expect(account).toContain('statusLabel="Self-only security"');
   expect(account).toContain("ev2-personal-account");
   expect(account).toContain("This is not a colleague-monitoring surface.");
+  expect(account).toContain("Signed-in devices could not load");
+  expect(account).toContain("Recent account activity could not load");
+  expect(account).toContain("!sessionError && sessions.length === 0");
+  expect(account).toContain("!activityError && events.length === 0");
+  expect(account).toContain("setSessionError(s.error ? humanError");
+  expect(account).toContain("setActivityError(a.error ? humanError");
   expect(account).not.toContain("profile_id");
   expect(account).not.toContain("employee_id");
   expect(css).toContain(".ev2-personal-account");
   expect(css).not.toContain("!important");
 });
+
+test("Stage 10 Family G7 keeps a sessions read failure distinct from a truthful empty account", async ({ browser }) => {
+  const { context, page } = await openHub(browser, roles[0], { width: 390, height: 844 });
+  await page.route("**/rest/v1/rpc/my_sessions", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "fixture sessions read failed" }),
+    });
+  });
+
+  await page.goto("/?tab=account");
+  await expect(page.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
+  await expect(page.getByText("Signed-in devices could not load", { exact: true })).toBeVisible();
+  await expect(page.getByText("No signed-in device is recorded", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Recent activity", exact: true })).toBeVisible();
+  await context.close();
+});
+
+test("Stage 10 Family G7 keeps an activity read failure distinct from a truthful empty audit trail", async ({ browser }) => {
+  const { context, page } = await openHub(browser, roles[0], { width: 390, height: 844 });
+  await page.route("**/rest/v1/rpc/my_account_activity", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "fixture account activity read failed" }),
+    });
+  });
+
+  await page.goto("/?tab=account");
+  await expect(page.getByRole("heading", { name: "Your account", exact: true })).toBeVisible();
+  await expect(page.getByText("Recent account activity could not load", { exact: true })).toBeVisible();
+  await expect(page.getByText("Nothing recorded yet", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Signed in devices", exact: true })).toBeVisible();
+  await context.close();
+});
+
 
 for (const viewport of [
   { name: "phone-320", width: 320, height: 844 },
