@@ -1,9 +1,9 @@
 # CEAC OS Experience V2 — Stage 10 Family C 10C3 Acceptance Record
 
-Date: 28 September 2026  
-Stage: 10 — Operational Screen Families  
-Family: C — Projects / Portfolio  
-Substage: 10C3 — Administration Projects  
+Date: 28 September 2026
+Stage: 10 — Operational Screen Families
+Family: C — Projects / Portfolio
+Substage: 10C3 — Administration Projects
 Status: ACCEPTED AND COMPLETE
 
 ## Accepted implementation
