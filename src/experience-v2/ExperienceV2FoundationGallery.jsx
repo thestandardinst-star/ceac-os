@@ -29,6 +29,13 @@ import {
   Toast,
   Tooltip,
 } from "./components";
+import {
+  CalendarAgenda,
+  CalendarMonthGrid,
+  CalendarPeriodControls,
+  calendarDateKey,
+} from "./calendar/CalendarFamilyV2";
+import { DataVizChart } from "./data-viz/DataVizV2";
 
 const ICON_PROOF = [
   "home", "work", "team", "projects", "calendar", "finance",
@@ -38,6 +45,24 @@ const ICON_PROOF = [
 
 const SIZE_PROOF = ["meta", "row", "nav", "feature"];
 
+const STAGE11_REFERENCE_START = new Date(2026, 7, 31);
+const STAGE11_REFERENCE_DAYS = Array.from({ length: 42 }, (_, index) => {
+  const value = new Date(STAGE11_REFERENCE_START);
+  value.setDate(value.getDate() + index);
+  return value;
+});
+const STAGE11_REFERENCE_EVENTS = [
+  { id: "meeting", kind: "meeting", date: "2026-09-08", title: "Reference meeting", meta: "09:00 · Meeting context", status: "Upcoming", statusTone: "action" },
+  { id: "work", kind: "work", date: "2026-09-08", title: "Reference deadline", meta: "Recorded work due", status: "Due" },
+  { id: "leave", kind: "leave", date: "2026-09-11", title: "Reference leave", meta: "Approved factual context", status: "Approved", statusTone: "success" },
+];
+const STAGE11_REFERENCE_DATA = [
+  { label: "01 Sep", value: 12 },
+  { label: "08 Sep", value: 16 },
+  { label: "15 Sep", value: 14 },
+  { label: "22 Sep", value: 19 },
+];
+
 export default function ExperienceV2FoundationGallery() {
   const [expanded, setExpanded] = useState(false);
   const [componentView, setComponentView] = useState("ready");
@@ -45,6 +70,7 @@ export default function ExperienceV2FoundationGallery() {
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
+  const [stage11Date, setStage11Date] = useState("2026-09-08");
 
   return (
     <section className="ev2-foundation ev2-gallery" aria-labelledby="ev2-foundation-title">
@@ -333,6 +359,52 @@ export default function ExperienceV2FoundationGallery() {
                 ]}
               />
             </DataPanel>
+          </div>
+        </section>
+
+        <section className="ev2-gallery-panel ev2-gallery-panel-wide" aria-labelledby="ev2-stage11-title">
+          <div className="ev2-gallery-panel-head">
+            <div>
+              <div className="ev2-type-label">Stage 11 foundation</div>
+              <h3 id="ev2-stage11-title" className="ev2-type-card">Calendar context and factual visualisation</h3>
+            </div>
+            <span className="ev2-type-supporting">Reference only</span>
+          </div>
+
+          <div className="ev2-stage11-proof">
+            <div className="ev2-stage11-calendar-proof">
+              <CalendarPeriodControls
+                label="September 2026"
+                onPrevious={() => setStage11Date("2026-09-01")}
+                onNext={() => setStage11Date("2026-09-22")}
+                onToday={() => setStage11Date("2026-09-08")}
+                todayLabel="Reference date"
+              />
+              <CalendarMonthGrid
+                days={STAGE11_REFERENCE_DAYS}
+                currentMonth={8}
+                selectedDateKey={stage11Date}
+                todayKey="2026-09-08"
+                onSelectDate={(key) => setStage11Date(key)}
+                getEvents={(key) => STAGE11_REFERENCE_EVENTS.filter((event) => event.date === key)}
+                ariaLabel="Reference September 2026 calendar"
+              />
+              <CalendarAgenda
+                title={new Date(`${stage11Date}T12:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+                description="Selected-date context stays beside the calendar rather than hiding inside the grid."
+                events={STAGE11_REFERENCE_EVENTS.filter((event) => event.date === stage11Date)}
+              />
+            </div>
+
+            <DataVizChart
+              kind="line"
+              title="Reference recorded movement"
+              note="The chart and table contain the same factual values."
+              summary="19 latest"
+              ariaLabel="Reference recorded movement"
+              data={STAGE11_REFERENCE_DATA}
+              series={[{ key: "value", label: "Recorded value" }]}
+            />
           </div>
         </section>
 
