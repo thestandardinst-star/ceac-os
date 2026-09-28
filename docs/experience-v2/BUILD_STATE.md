@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10E1 — Finance audit and contract (ACTIVE)
+Current substage: 10E2 — Manager Finance (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1769,6 +1769,33 @@ Planned sequence:
 - 10E5 Family E final acceptance.
 
 10E2 product-code work may begin only after the documentation head containing the 10E1 contract and this BUILD_STATE update is exact-head green.
+
+10E1 — Finance audit and contract is ACCEPTED AND COMPLETE.
+
+Exact 10E1 documentation head:
+- `fafc7dccb422839861d4b8405a48138787b064cc`.
+
+Exact-head gates:
+- CI PASS — run `36393522013`;
+- Migration Replay PASS — run `36393522136`;
+- Account Security PASS — run `36393521958`;
+- Complete Quality Gate PASS — run `36393521956` (#1015);
+- Vercel PASS.
+
+10E2 — Manager Finance is ACTIVE.
+
+This implementation tranche:
+- establishes the shared V2 Finance-family presentation layer under `src/experience-v2/finance-family/`;
+- migrates Manager Finance identity, primary actions, actual operating position and budget planning position into that family;
+- expands laptop/desktop composition so financial context no longer sits in a narrow legacy column;
+- retains project, transfer, request-history and Finance-handler workflows on their established data/action paths while bringing their scoped presentation under the Finance family;
+- preserves Manager `Request funds` and append-only own-unit `Record expense`;
+- preserves `unit_operating_position`, `unit_budget_position`, `finance_requests`, `spend_lines` and existing request/fulfilment paths;
+- keeps the Finance-handler queue visible only to an authorised `handles_finance` unit member;
+- preserves currency separation, missing-budget truthfulness and explicit “not a bank balance” semantics;
+- changes no schema, migration, RLS, RPC definition, authentication configuration or capability grant.
+
+10E2 acceptance is NOT yet recorded. Exact-head engineering/security gates and direct Manager viewport inspection are required.
 
 Family F — Reports has NOT started.
 PR #72 remains OPEN + DRAFT.
