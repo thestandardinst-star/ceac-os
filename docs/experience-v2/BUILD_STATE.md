@@ -2424,6 +2424,7 @@ Family H authority boundary:
 - Executive Organisation remains read-only leadership context;
 - no settings surface may imply policy or configuration that CEAC has not confirmed;
 - no schema, migration, RLS, RPC, authentication or capability change without a separately accepted authority need.
+- acceptance coverage also verifies Administration Control Center/Units/Organisation settings are not reachable as those surfaces from ordinary Staff/Manager roles, and Executive Organisation stays Executive-only.
 
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
