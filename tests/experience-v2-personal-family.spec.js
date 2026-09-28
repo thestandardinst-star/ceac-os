@@ -216,7 +216,7 @@ for (const viewport of [
     const { context, page } = await openHub(browser, roles[0], { width: viewport.width, height: viewport.height });
 
     await page.getByRole("tab", { name: "Leave", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "Leave", exact: true })).toBeVisible();
+    await expect(page.locator(".ev2pf-section").filter({ hasText: "Time away" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ask for leave", exact: true })).toBeVisible();
     await expect(page.getByText(/Manager and Administration decisions remain in Time & Leave/i)).toBeVisible();
 
