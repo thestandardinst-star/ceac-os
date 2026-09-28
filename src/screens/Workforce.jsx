@@ -377,7 +377,7 @@ export default function Workforce({ me }) {
       ? String(personSchedule.expected_start).slice(0,5)+(personSchedule?.expected_end?"–"+String(personSchedule.expected_end).slice(0,5):"")
       : "Not recorded";
 
-    return <div className="ev2-workforce-page ev2-workforce-staff workforce-page">
+    return <div className="body ev2-workforce-page ev2-workforce-staff workforce-page">
       <WorkforcePageHeader
         eyebrow="My time & leave"
         title="Workforce"
