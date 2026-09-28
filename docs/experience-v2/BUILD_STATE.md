@@ -2221,6 +2221,39 @@ Acceptance record:
 - introduce no chart expansion before Stage 11;
 - introduce no schema, migration, RLS, RPC, authentication or capability change.
 
+10F4 Level B application candidate:
+- exact application head `c9f64c711bafd4bf71bbc4f7d7afd4f8abf4d7a3`;
+- CI PASS — run `36428946380` (#1252);
+- Migration Replay PASS — run `36428959232` (#863);
+- Account Security PASS — run `36428946448` (#1035);
+- Complete Quality Gate PASS — run `36428946400` (#1061);
+- Level B SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS.
+
+10F4 direct product inspection:
+- exact-head Executive Reports evidence inspected across the required 320/360/375/390/414/430/900/1366/1440 matrix;
+- read-only reporting context remains visually distinct from Administration period operations and Manager authoring;
+- no period create/open/close/reopen control appears;
+- no report draft/save/submit/correct action appears;
+- no-period state remains explicit rather than being shown as zero coverage;
+- filing coverage is explicitly not a performance score or ranking;
+- no chart vocabulary was added ahead of Stage 11;
+- no page-level horizontal overflow or clipped reporting control was found;
+- no schema, migration, RLS, RPC, authentication or capability grant changed.
+
+Quality Gate evidence:
+- `redesign-r7-product-inspection` artifact `10973246247`;
+- digest `sha256:0c2b42002ac8b00d4078b555e227a33bc7573a5ba220aba06c5232be038cd344`;
+- exact application head `c9f64c711bafd4bf71bbc4f7d7afd4f8abf4d7a3`.
+
+10F4 external deployment status:
+- Vercel on the exact application head is blocked by the provider deployment-rate limit;
+- this is an external service-capacity status, not an application/build/security failure;
+- 10F4 remains ACTIVE and NOT YET ACCEPTED until the unchanged application code receives a valid Vercel deployment result;
+- 10F5 implementation writes remain closed until that boundary is resolved.
+
 10F5 Family F final acceptance has NOT started.
 Family G — My Hub / Account has NOT started.
 Family H — Ministry / Organisation / Control Center has NOT started.
