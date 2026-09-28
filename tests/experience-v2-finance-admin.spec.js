@@ -28,6 +28,7 @@ test("Stage 10 Family E3 preserves Administration finance authority and ledger s
   expect(finance).toContain('supabase.from("internal_transfers").insert');
   expect(finance).toContain('supabase.from("internal_transfers").update');
   expect(finance).toContain("Currencies are never converted");
+  expect(finance).not.toContain("Enter an amount in cedis.");
   expect(finance).toContain("not a bank balance");
   expect(finance).toContain("unconfirmed transfers are not counted as confirmed money in");
   expect(finance).toContain("ev2-finance-admin");
