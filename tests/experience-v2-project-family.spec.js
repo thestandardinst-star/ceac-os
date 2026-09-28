@@ -215,3 +215,97 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+async function openExecutivePortfolio(browser, viewport) {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+  await page.goto("/?tab=delivery");
+  await expect(page.locator(".ev2-project-delivery")).toBeVisible({ timeout: 15000 });
+  return { context, page };
+}
+
+test("Stage 10 Family C4 preserves Delivery authority while migrating Executive Portfolio presentation", async () => {
+  const shared = readFileSync("src/experience-v2/project-family/ProjectFamilyV2.jsx", "utf8");
+  const delivery = readFileSync("src/screens/Delivery.jsx", "utf8");
+
+  expect(shared).toContain("selected = false");
+  expect(delivery).toContain("ev2-project-delivery");
+  expect(delivery).toContain("ProjectPageHeader");
+  expect(delivery).toContain("ProjectSummary");
+  expect(delivery).toContain("ProjectContextRow");
+  expect(delivery).toContain("ProjectListRow");
+
+  for (const table of [
+    "delivery_groups",
+    "delivery_group_projects",
+    "project_milestones",
+    "project_dependencies",
+    "milestone_dependencies",
+    "work_dependencies",
+    "project_register_items",
+  ]) {
+    expect(delivery).toContain(`supabase.from("${table}")`);
+  }
+
+  expect(delivery).toContain('capabilities.includes("delivery.manage")');
+  expect(delivery).toContain("managedUnitIds.includes(selectedProject.lead_unit_id)");
+  expect(delivery).toContain("delivery_change_reason");
+  expect(delivery).toContain("change_reason");
+  expect(delivery).toContain("ProjectParticipantRegister");
+  expect(delivery).toContain("CEAC OS does not generate a hidden project score.");
+  expect(delivery).not.toContain("compositeProjectScore");
+  expect(delivery).not.toContain("riskProbability");
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family C4 Executive Portfolio composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openExecutivePortfolio(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByRole("heading", { name: "Portfolio", exact: true })).toBeVisible();
+    await expect(page.getByText(/does not generate a hidden project score/i)).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    const rows = page.locator(".ev2p-row:visible");
+    expect(await rows.count()).toBeGreaterThan(0);
+
+    const createGroup = page.getByRole("button", { name: "New Programme / Portfolio", exact: true });
+    await expect(createGroup).toBeVisible();
+    const createBox = await createGroup.boundingBox();
+    expect(createBox?.height || 0).toBeGreaterThanOrEqual(44);
+
+    const smallest = await page.locator(".ev2-project-delivery").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({
+      path: `test-artifacts/redesign-r7-stage10c4-executive-portfolio-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  });
+}
