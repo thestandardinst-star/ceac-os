@@ -575,3 +575,19 @@
 .ev2-personal-assets .asset-facts {
   min-width: 0;
 }
+
+
+/* Family G7 — personal compliance compatibility. */
+.ev2-personal-compliance {
+  width: min(100%, 78rem);
+}
+
+.ev2-personal-compliance > .ev2pf-header {
+  margin-bottom: var(--ev2-space-4);
+}
+
+.ev2-personal-compliance .compliance-policy-grid,
+.ev2-personal-compliance .compliance-policy-card,
+.ev2-personal-compliance .compliance-self-item {
+  min-width: 0;
+}
