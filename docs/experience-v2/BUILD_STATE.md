@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 10 — Operational Screen Families (ACTIVE)
-Current substage: 10D2 — Staff Time & Leave (ACTIVE)
+Current substage: 10D3 — Manager Workforce context (ACTIVE)
 
 Active branch: chatgpt/experience-v2-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
@@ -1515,6 +1515,47 @@ This implementation tranche:
 - changes no schema, migration, RLS, RPC definition, auth or capability grant;
 - leaves Manager and Administration Workforce presentation on their current paths for 10D3 and 10D4.
 
-10D2 acceptance is NOT yet recorded. It requires exact-head engineering/security gates and direct viewport evidence inspection.
+10D2 — Staff Time & Leave is ACCEPTED AND COMPLETE.
+
+Exact accepted D2 head:
+- `4be9866e77593065d709c284dd05278be2018f70`.
+
+Exact-head gates:
+- CI PASS — run `36380977271`;
+- Migration Replay PASS — run `36380977226`;
+- Account Security PASS — run `36380977225`;
+- Complete Quality Gate PASS — run `36380977272`;
+- 288 Playwright tests passed in 9.3 minutes;
+- Vercel PASS.
+
+Accepted Staff behaviour:
+- Staff remains self-scoped through the existing Stage 9 RLS/domain rules;
+- My Hub remains the leave request/cancel entry; Workforce does not duplicate mutation authority;
+- Today, My week, Sessions, Recorded differences, Leave and Corrections present factual personal context;
+- “No session recorded” remains descriptive context and is not converted to absence, lateness, underwork or performance judgement;
+- unconfigured leave policy continues to suppress invented entitlement/accrual/carry-over/balance figures;
+- no schema, migration, RLS, RPC definition, authentication or capability change was introduced.
+
+Responsive proof directly inspected:
+- 320×844;
+- 360×800;
+- 375×812;
+- approximately 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
+
+The V2 Staff page meets the 12px operational text floor, 44px tab target floor and page-level no-horizontal-overflow gate. The full-page phone captures show the fixed bottom navigation crossing the long captured document; this is the established screenshot-capture behaviour, not page overflow.
+
+Persistent evidence:
+- `CEAC OS / Experience V2 / Evidence / Stage 10 / Family D / 10D2 / 4be9866e77593065d709c284dd05278be2018f70 / stage10d2-4be-r7-exact-head-evidence.zip`.
+
+Acceptance record:
+- `docs/experience-v2/STAGE10_FAMILY_D_10D2_ACCEPTANCE_RECORD.md`.
+
+10D3 — Manager Workforce context is now ACTIVE.
+10D4 Administration and 10D5 Family D final acceptance have NOT started.
 Family E has NOT started.
 Chat is the sole active writer.
