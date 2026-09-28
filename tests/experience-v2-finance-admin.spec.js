@@ -53,20 +53,21 @@ for (const viewport of [
   test(`Stage 10 Family E3 Administration Finance composes at ${viewport.name}`, async ({ browser }) => {
     const { context, page } = await openAdminFinance(browser, { width: viewport.width, height: viewport.height });
 
+    const financeTabs = page.locator(".ev2fin-tabs");
     for (const tab of ["Overview", "Money in", "Money out", "Between departments"]) {
-      await expect(page.getByRole("button", { name: tab, exact: true })).toBeVisible();
+      await expect(financeTabs.getByRole("button", { name: tab, exact: true })).toBeVisible();
     }
-    await expect(page.getByRole("button", { name: "Overview", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(financeTabs.getByRole("button", { name: "Overview", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByText("Requests needing Administration", { exact: true })).toBeVisible();
     await expect(page.getByText(/not a bank balance/i).first()).toBeVisible();
 
-    await page.getByRole("button", { name: "Money in", exact: true }).click();
+    await financeTabs.getByRole("button", { name: "Money in", exact: true }).click();
     await expect(page.getByRole("button", { name: "Record money received", exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: "Money out", exact: true }).click();
+    await financeTabs.getByRole("button", { name: "Money out", exact: true }).click();
     await expect(page.getByText("Money spent", { exact: true })).toBeVisible();
 
-    await page.getByRole("button", { name: "Between departments", exact: true }).click();
+    await financeTabs.getByRole("button", { name: "Between departments", exact: true }).click();
     await expect(page.getByRole("button", { name: "Record money sent", exact: true })).toBeVisible();
     await expect(page.getByText(/two-sided/i).first()).toBeVisible();
 
@@ -89,7 +90,7 @@ for (const viewport of [
     });
     expect(smallest).toBeGreaterThanOrEqual(12);
 
-    await page.getByRole("button", { name: "Overview", exact: true }).click();
+    await financeTabs.getByRole("button", { name: "Overview", exact: true }).click();
     await page.screenshot({ path: `test-artifacts/redesign-r7-stage10e3-admin-finance-${viewport.name}.png`, fullPage: true });
     await context.close();
   });
