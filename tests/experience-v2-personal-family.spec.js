@@ -511,3 +511,42 @@ test("Stage 10 Family H4 keeps Units evidence-backed and Administration-owned", 
   expect(units).toContain("Unit Head needed");
   expect(units).toContain("StatusBadge");
 });
+
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family H Administration Control Center composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[2], { width: viewport.width, height: viewport.height });
+    await page.goto("/?tab=settings");
+    await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toBeVisible();
+    await expect(page.getByText("Governance workspace", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Organisation/ })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Control Center overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10h-control-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family H Executive Organisation composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openHub(browser, roles[3], { width: viewport.width, height: viewport.height });
+    await page.goto("/?tab=exec-organisation");
+    await expect(page.getByRole("heading", { name: "Organisation", exact: true })).toBeVisible();
+    await expect(page.getByText("Read-only leadership context", { exact: true })).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Executive Organisation overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10h-exec-org-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}
