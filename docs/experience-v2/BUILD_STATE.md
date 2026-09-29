@@ -7,7 +7,7 @@ Last updated: 29 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
-Current substage: 14A — Whole-system route/state audit and contract (ACTIVE)
+Current substage: 14B — Whole-system route matrix (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical implementation HEAD at this reconciliation: `f5295d080d0f36efd822c70a004f61440f017c76`;
@@ -2593,30 +2593,51 @@ Stage 13 acceptance records:
 
 Stage 14 is ACTIVE.
 
+14A — Whole-system route/state audit and contract is ACCEPTED AND COMPLETE.
+
+Contract:
+- `docs/experience-v2/STAGE14_WORK_BRIEF.md`.
+
+Exact accepted 14A documentation head:
+- `260dc4b0c4321596148dd01f17f1bd92a00f680c`.
+
+Documentation integrity verification:
+- CI PASS — run `36572455657` (#1438);
+- Migration Replay PASS — run `36572455918` (#1049);
+- Account Security PASS — run `36572455962` (#1221);
+- Quality Gate documentation contract PASS — run `36572455646` (#1247);
+- Vercel PASS.
+
+14A locked findings:
+- shell-visible Staff route inventory is 7 destinations;
+- Manager is 10 destinations;
+- Administration is 10 destinations subject to capability filtering;
+- Executive is 10 destinations;
+- accepted family tests already cover deep Work/People/Project/Calendar/Finance/contextual surfaces at phone/intermediate/laptop/desktop widths;
+- Stage 14 will add the missing cumulative shell-route sweep rather than duplicate every family workflow;
+- loading, empty, partial/unconfigured, populated, error, permission-limited, success/completed, confirmation and long-content semantics must remain distinct;
+- contextual capability routes remain governed by existing App guards and accepted family/security tests.
+
 Current substage:
-- 14A — Whole-system route/state audit and contract.
+- 14B — Whole-system route matrix.
 
-Canonical scope:
-- inspect every authorised role route at 320, 360, 375, approximately 390×844, 414, 430, representative tablet/intermediate width, approximately 1366×768 and 1440px+;
-- inspect loading, empty, partial/unconfigured, populated, error, permission-limited, completed/success, destructive/action confirmation and long-content states;
-- verify keyboard and touch behaviour;
-- preserve role/capability authority and truthful state semantics;
-- do not add presentation-only schema/RLS/RPC/auth changes.
+14B exact next action:
+- add one cumulative route-level browser contract for all shell-visible role destinations;
+- cover 320/360/375/390/414/430/900/1366/1440;
+- navigate through the accepted shell/router;
+- assert active route state, intended role shell, rendered route body and no page-level horizontal overflow;
+- preserve intentional bounded inner scrolling;
+- add representative phone/intermediate/laptop/desktop evidence;
+- run Level A, fix deterministic defects, then complete exact-head Level B before 14C.
 
-14A exact next action:
-- inventory the authorised Staff, Manager, Administration and Executive route matrix from canonical navigation;
-- map existing state coverage and responsive evidence to the Stage 14 width/state matrix;
-- identify deterministic gaps rather than re-testing already proven contracts blindly;
-- persist `docs/experience-v2/STAGE14_WORK_BRIEF.md` before application changes;
-- update BUILD_STATE before each accepted Stage 14 substage transition.
-
-Protected boundaries:
-- no fabricated records to make a state look populated;
+Stage 14 protected boundaries:
+- no fabricated records;
+- no route-authority broadening;
 - no hidden permission-limited state;
-- no route exposed outside its capability contract;
-- no horizontal-page overflow accepted merely because an inner control intentionally scrolls;
+- no error-to-empty collapse;
+- no confirmation removal;
 - no new global parity/override stylesheet;
-- no weakening of existing role/RLS/security tests;
+- no security/RLS weakening;
 - frozen enterprise PR #71 remains untouched;
 - Payroll remains blocked.
 
