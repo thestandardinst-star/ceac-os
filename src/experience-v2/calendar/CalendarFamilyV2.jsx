@@ -1,5 +1,8 @@
+import { useId } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Button, IconButton, QueueRow, SegmentedControl, StatusBadge } from "../components";
 import { CeacIcon } from "../icons";
+import { EV2_TRANSITIONS } from "../motion";
 
 export function calendarDateKey(date) {
   const value = date instanceof Date ? date : new Date(date);
@@ -43,10 +46,25 @@ export function CalendarPeriodControls({
   nextLabel = "Next period",
   todayLabel = "Today",
 }) {
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.fast;
+
   return (
     <div className="ev2cal-period" aria-label="Calendar period controls">
       <IconButton icon="chevronLeft" label={previousLabel} variant="secondary" onClick={onPrevious} />
-      <strong aria-live="polite">{label}</strong>
+      <span className="ev2cal-period-label" aria-live="polite">
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.strong
+            key={label}
+            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+            transition={transition}
+          >
+            {label}
+          </motion.strong>
+        </AnimatePresence>
+      </span>
       <IconButton icon="chevronRight" label={nextLabel} variant="secondary" onClick={onNext} />
       {onToday ? <Button variant="quiet" size="compact" icon="calendar" onClick={onToday}>{todayLabel}</Button> : null}
     </div>
@@ -106,6 +124,9 @@ export function CalendarMonthGrid({
   maxEventsPerDay = 3,
   ariaLabel = "Calendar month",
 }) {
+  const instanceId = useId().replace(/:/g, "");
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className="ev2cal-month" role="grid" aria-label={ariaLabel}>
       <div className="ev2cal-weekdays" role="row">
@@ -145,7 +166,15 @@ export function CalendarMonthGrid({
                 aria-current={today ? "date" : undefined}
                 onClick={() => onSelectDate?.(key, date)}
               >
-                <span>{date.getDate()}</span>
+                {selected ? (
+                  <motion.span
+                    className="ev2cal-selection-indicator"
+                    layoutId={`ev2cal-selection-${instanceId}`}
+                    transition={reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.reflow}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <span className="ev2cal-day-number">{date.getDate()}</span>
                 {today ? <small>Today</small> : null}
               </button>
               <div className="ev2cal-day-events">
