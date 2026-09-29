@@ -7,7 +7,7 @@ Last updated: 28 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 11 — Calendar and Data Visualisation (ACTIVE)
-Current substage: 11B — Shared Calendar and Data Visualisation foundation (ACTIVE)
+Current substage: 11C — Calendar Family Migration (ACTIVE)
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
@@ -2478,50 +2478,74 @@ Contract:
 Exact accepted 11A documentation head:
 - `838e92459bcaa836c90d03d21a2516cdfd37f731`.
 
-Documentation-head verification:
-- CI PASS — run `36489034288` (#1349);
-- Migration Replay PASS — run `36489034243` (#960);
-- Account Security PASS — run `36489034332` (#1132);
-- Quality Gate PASS — run `36489034314` (#1158);
-- documentation contract PASS;
-- role-and-RLS coordinator PASS.
+11B — Shared Calendar and Data Visualisation Foundation is ACCEPTED AND COMPLETE.
 
-11A locked findings are persisted in the Stage 11 work brief. No product code changed in 11A.
+Exact accepted 11B application head:
+- `b023394eead1d4c575c1fce88be8e36ed7d586b6`.
+
+Exact-head Level B:
+- CI PASS — run `36524380135` (#1362);
+- Migration Replay PASS — run `36524380098` (#973);
+- Account Security PASS — run `36524380191` (#1145);
+- Complete Quality Gate PASS — run `36524380117` (#1171);
+- complete SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+11B evidence:
+- `redesign-r7-product-inspection` artifact `11014092258`;
+- digest `sha256:6e8952168076e00ce66a63fa24f228420db22fddf66c767ba56b7f6ba1a518f2`;
+- dedicated `stage11-product-inspection` artifact `11014596827`;
+- digest `sha256:2d9601867a81ca876a8208232baa1bd7dec1a79710f47293082b07293a9aa15b`;
+- direct exact-head product inspection covered the 320px and 1366px Stage 11 foundation proof and the 1366px Executive Overview;
+- chart/table equivalence and selected-date context passed;
+- no page-level horizontal overflow was observed in the inspected proof;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Acceptance record:
+- `docs/experience-v2/STAGE11_11B_ACCEPTANCE_RECORD.md`.
 
 Current substage:
-- 11B — Shared Calendar and Data Visualisation foundation.
+- 11C — Calendar Family Migration.
 
-Current substage:
-- 11A — Calendar and data-visualisation audit and contract.
+11C canonical scope:
+- Staff Calendar: preserve existing own work/meetings/ministry/approved-leave data, keep month view, add selected-date detail and retain upcoming context;
+- Manager Calendar: preserve month/week, existing layer filter, project/work/meeting/leave/ministry drill-ins, meeting scheduling and the explicit manual Google Calendar/no-automatic-sync truth; add selected-date context and shared V2 controls;
+- Administration Calendar: preserve the existing chronological 14/30/90-day organisation timeline and meeting scheduling/drill-in; do not invent month/week/day modes;
+- no dedicated Executive Calendar route may be introduced;
+- preserve all current queries, actions, RLS/RPC authority and role boundaries;
+- no schema change is authorised for presentation work.
 
-Binding scope from `IMPLEMENTATION_SEQUENCE.md`:
-- calendar month/week/day behaviour only where supported;
-- selected-date state;
-- schedule detail;
-- event/meeting relationship;
-- responsive layout;
-- keyboard/touch states;
-- transitions;
-- coherent CEAC chart language;
-- tooltips/focus states;
-- chart/table parity where required;
-- finance/workload/reporting visualisations;
-- no decorative or invented data.
+Required 11C responsive matrix:
+- 320×844;
+- 360×800;
+- 375×812;
+- 390×844;
+- 414×896;
+- 430×932;
+- 900×900;
+- 1366×768;
+- 1440×900.
 
-Stage 11 protected boundaries:
-- preserve existing Calendar data/RLS/RPC/meeting/work/leave/project/ministry authority;
-- preserve chart/table traceability and authoritative row access;
-- do not invent unsupported calendar views or trend data;
-- do not introduce decorative charts;
-- do not begin Experience V2 Stage 12 motion work early except motion required for truthful Stage 11 calendar/data interaction;
+11C exit:
+- Staff, Manager and Administration calendars use the shared V2 calendar family;
+- selected-date/event-detail relationships are deliberate where supported;
+- Manager Google Calendar wording and manual links remain truthful;
+- Administration remains a timeline, not an invented grid calendar;
+- keyboard/touch/overflow and route coverage pass;
+- exact-head Level B passes before 11D.
+
+Stage 11 protected boundaries remain:
+- no invented calendar events or unsupported views;
+- no inferred attendance, effort, productivity, competence or performance score;
+- no decorative chart requirement;
+- chart/table traceability remains mandatory;
+- no different-currency aggregation;
 - frozen enterprise PR #71 remains untouched;
+- Payroll remains blocked;
 - no schema, migration, RLS, RPC, auth or capability change without a separately proven need.
-
-Exact next action:
-- read the Calendar/collaboration and data-visualisation domain contracts;
-- audit Staff, Manager and Administration calendars plus every active Chart consumer and current Chart primitive;
-- persist the Stage 11 work brief before product-code changes;
-- then begin the first bounded Stage 11 implementation under the Level A/Level B protocol.
 
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
