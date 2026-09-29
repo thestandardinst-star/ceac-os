@@ -10,16 +10,20 @@ Current stage: Stage 13 — Visual Assets and Media (ACTIVE)
 Current substage: 13B — CEAC application-mark integration (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
-- latest implementation commit: `EV2 12B: add motion foundation acceptance coverage`;
+- live canonical implementation HEAD at this reconciliation: `f5295d080d0f36efd822c70a004f61440f017c76`;
+- latest implementation commit: `EV2 13B: add CEAC identity asset acceptance coverage`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 11 application SHA: `b1867b91fda28722bd8ae8f3555b6212f3180256`;
 - final Stage 11 Level B evidence remains the persisted CI/Migration Replay/Account Security/Quality Gate/Vercel evidence recorded later in this document and in the Stage 11 acceptance record;
-- Stage 12A is accepted/documented;
-- the original reconciliation observed 12B as active and unaccepted at `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
-- that historical exact-head state was Migration Replay PASS (#1011), Account Security PASS (#1183), Quality Gate PASS (#1209 with Level B jobs skipped because it was not yet an acceptance boundary), CI #1400 in progress, and Vercel temporarily blocked by the external free-plan build-rate limit;
-- 12B subsequently completed and is formally accepted at `105ec059f1dc8d7f1995b4b469edea67b45620cc` with complete Level B and Vercel PASS;
-- current work is 12C; the earlier reconciliation checkpoint remains recorded only as historical recovery evidence.
+- Stage 12 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE12_ACCEPTANCE_RECORD.md`;
+- final accepted Stage 12 application SHA: `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
+- 12B is formally accepted at `105ec059f1dc8d7f1995b4b469edea67b45620cc`;
+- 12C is formally accepted at `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
+- Stage 13A is accepted/documented at `aff6d84e24ba31dc079d16028802ede59b89f918`;
+- Stage 13B is ACTIVE and is not yet accepted;
+- exact-head state for `f5295d080d0f36efd822c70a004f61440f017c76` at reconciliation time: Migration Replay PASS (#1040), Account Security PASS (#1212), Quality Gate PASS (#1238), CI #1429 CANCELLED, and Vercel blocked by the external free-plan build-rate limit;
+- the Quality Gate on this non-boundary head does not by itself accept 13B, and no Stage 13B acceptance SHA/evidence is recorded yet;
+- no canonical Stage 12 or Stage 13 work is rolled backward to match earlier stale summary text.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
