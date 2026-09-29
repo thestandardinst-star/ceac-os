@@ -19,6 +19,30 @@ function markLabel(row, series) {
   return `${row.label} · ${series.label}: ${formatNumber(row[series.key])}`;
 }
 
+function markInteraction(row, series, onOpen) {
+  const label = markLabel(row, series);
+  if (!onOpen) return { tabIndex: 0, role: "img", "aria-label": label };
+  return {
+    tabIndex: 0,
+    role: "button",
+    "aria-label": `Open ${label}`,
+    onClick: () => onOpen(row, series),
+    onKeyDown: (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onOpen(row, series);
+      }
+    },
+  };
+}
+
+function showAxisLabel(index, length) {
+  if (length <= 10) return true;
+  if (index === 0 || index === length - 1) return true;
+  const every = Math.max(2, Math.ceil(length / 8));
+  return index % every === 0;
+}
+
 function ChartAxis({ width, height, pad, max, ticks = 4 }) {
   const rows = [];
   for (let index = 0; index <= ticks; index += 1) {
@@ -35,7 +59,7 @@ function ChartAxis({ width, height, pad, max, ticks = 4 }) {
   return <g>{rows}</g>;
 }
 
-function LineChart({ data, series, width, height, pad, max }) {
+function LineChart({ data, series, width, height, pad, max, onOpen }) {
   const step = (width - pad.left - pad.right) / Math.max(1, data.length - 1);
 
   return (
@@ -57,11 +81,9 @@ function LineChart({ data, series, width, height, pad, max }) {
             />
             {points.map((point) => (
               <g
-                className="ev2dv-mark"
+                className={`ev2dv-mark ${onOpen ? "is-actionable" : ""}`.trim()}
                 key={`${item.key}-${point.row.label}`}
-                tabIndex={0}
-                role="img"
-                aria-label={markLabel(point.row, item)}
+                {...markInteraction(point.row, item, onOpen)}
               >
                 <circle
                   cx={point.x}
@@ -75,7 +97,7 @@ function LineChart({ data, series, width, height, pad, max }) {
           </g>
         );
       })}
-      {data.map((row, index) => (
+      {data.map((row, index) => showAxisLabel(index, data.length) ? (
         <text
           aria-hidden="true"
           className="ev2dv-axis-label"
@@ -86,12 +108,12 @@ function LineChart({ data, series, width, height, pad, max }) {
         >
           {row.label}
         </text>
-      ))}
+      ) : null)}
     </g>
   );
 }
 
-function BarChart({ data, series, width, height, pad, max, paired }) {
+function BarChart({ data, series, width, height, pad, max, paired, onOpen }) {
   const band = (width - pad.left - pad.right) / Math.max(1, data.length);
   const visibleSeries = paired ? series : series.slice(0, 1);
   const count = Math.max(1, visibleSeries.length);
@@ -110,11 +132,9 @@ function BarChart({ data, series, width, height, pad, max, paired }) {
               const y = height - pad.bottom - barHeight;
               return (
                 <g
-                  className="ev2dv-mark"
+                  className={`ev2dv-mark ${onOpen ? "is-actionable" : ""}`.trim()}
                   key={item.key}
-                  tabIndex={0}
-                  role="img"
-                  aria-label={markLabel(row, item)}
+                  {...markInteraction(row, item, onOpen)}
                 >
                   <rect
                     x={x}
@@ -128,7 +148,7 @@ function BarChart({ data, series, width, height, pad, max, paired }) {
                 </g>
               );
             })}
-            <text
+            {showAxisLabel(rowIndex, data.length) ? <text
               aria-hidden="true"
               className="ev2dv-axis-label"
               x={pad.left + band * rowIndex + band / 2}
@@ -136,7 +156,7 @@ function BarChart({ data, series, width, height, pad, max, paired }) {
               textAnchor="middle"
             >
               {row.label}
-            </text>
+            </text> : null}
           </g>
         );
       })}
@@ -144,7 +164,7 @@ function BarChart({ data, series, width, height, pad, max, paired }) {
   );
 }
 
-function DonutChart({ data, series, size = 190 }) {
+function DonutChart({ data, series, onOpen, size = 190 }) {
   const item = series[0];
   if (!item) return null;
   const total = data.reduce((sum, row) => sum + (Number(row[item.key]) || 0), 0) || 1;
@@ -162,11 +182,9 @@ function DonutChart({ data, series, size = 190 }) {
         offset += length;
         return (
           <g
-            className="ev2dv-mark"
+            className={`ev2dv-mark ${onOpen ? "is-actionable" : ""}`.trim()}
             key={row.label}
-            tabIndex={0}
-            role="img"
-            aria-label={markLabel(row, item)}
+            {...markInteraction(row, item, onOpen)}
           >
             <circle
               cx={center}
@@ -200,6 +218,7 @@ export function DataVizChart({
   defaultView = "chart",
   compact = false,
   className = "",
+  onOpen,
 }) {
   const [view, setView] = useState(defaultView === "table" ? "table" : "chart");
   const max = Math.max(
@@ -207,14 +226,20 @@ export function DataVizChart({
     0,
   ) || 1;
   const columns = useMemo(() => [
-    { key: "label", label: "Record" },
+    {
+      key: "label",
+      label: "Record",
+      render: (row) => onOpen
+        ? <button type="button" className="ev2dv-record-button" onClick={() => onOpen(row, null)}>{row.label}</button>
+        : row.label,
+    },
     ...series.map((item) => ({
       key: item.key,
       label: item.label,
       align: "right",
       render: (row) => formatNumber(row[item.key]),
     })),
-  ], [series]);
+  ], [series, onOpen]);
 
   if (!data.length || !series.length) return null;
 
@@ -259,7 +284,7 @@ export function DataVizChart({
       {view === "table" ? (
         <TableShell caption={title ? `${title} — recorded values` : "Recorded values"} columns={columns} rows={data} />
       ) : kind === "donut" ? (
-        <div className="ev2dv-donut-wrap"><DonutChart data={data} series={series} /></div>
+        <div className="ev2dv-donut-wrap"><DonutChart data={data} series={series} onOpen={onOpen} /></div>
       ) : (
         <div className="ev2dv-svg-wrap">
           <svg
@@ -271,7 +296,7 @@ export function DataVizChart({
           >
             <ChartAxis width={width} height={height} pad={pad} max={max} />
             {kind === "line" ? (
-              <LineChart data={data} series={series} width={width} height={height} pad={pad} max={max} />
+              <LineChart data={data} series={series} width={width} height={height} pad={pad} max={max} onOpen={onOpen} />
             ) : (
               <BarChart
                 data={data}
@@ -281,6 +306,7 @@ export function DataVizChart({
                 pad={pad}
                 max={max}
                 paired={kind === "pairedBar"}
+                onOpen={onOpen}
               />
             )}
           </svg>
