@@ -604,12 +604,12 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
     await go(page, "Calendar");
 
-    await expect(page.getByRole("button", { name: "Month", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Week", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Month", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Week", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /View All/ })).toBeVisible();
     await page.getByRole("button", { name: /View All/ }).click();
     const filterDialog = page.getByRole("dialog");
-    await filterDialog.getByRole("button", { name: "Meetings", exact: true }).click();
+    await filterDialog.getByRole("tab", { name: "Meetings", exact: true }).click();
 
     await page.getByRole("button", { name: "Schedule meeting" }).click();
     const dialog = page.getByRole("dialog");
