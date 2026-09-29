@@ -69,6 +69,7 @@ test("Stage 13B uses the existing lightweight CEAC application mark as one ident
   expect(brand).toContain("width={pixels}");
   expect(brand).toContain("height={pixels}");
   expect(brand).toContain('decoding="async"');
+  expect(brand).toContain('fetchPriority="high"');
   expect(brand).not.toContain('loading="lazy"');
 
   expect(auth).toContain('BrandMark size="lg"');
