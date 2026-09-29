@@ -46,7 +46,7 @@ test("Stage 11B establishes isolated V2 calendar and data visualisation families
   expect(dataViz).toContain('kind === "pairedBar"');
   expect(dataViz).toContain("<TableShell");
   expect(dataViz).toContain('view === "chart" ? "Table" : "Chart"');
-  expect(dataViz).toContain("tabIndex={0}");
+  expect(dataViz).toContain("tabIndex: 0");
   expect(dataViz).not.toContain("lucide-react");
   expect(dataViz).not.toContain("components/primitives");
   expect(dataVizCss).not.toContain("!important");
