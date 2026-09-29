@@ -10,22 +10,20 @@ Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
 Current substage: 14B — Whole-system route matrix (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical implementation HEAD at this reconciliation: `f5295d080d0f36efd822c70a004f61440f017c76`;
-- latest implementation commit: `EV2 13B: add CEAC identity asset acceptance coverage`;
+- live canonical implementation HEAD at this reconciliation: `4581fd2dc5da6114653821f850d5fdb7bf3a8235`;
+- latest implementation commit: `EV2 14B: align route sweep with shell breakpoint`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 11 application SHA: `b1867b91fda28722bd8ae8f3555b6212f3180256`;
 - final Stage 11 Level B evidence remains the persisted CI/Migration Replay/Account Security/Quality Gate/Vercel evidence recorded later in this document and in the Stage 11 acceptance record;
 - Stage 12 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE12_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 12 application SHA: `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
-- 12B is formally accepted at `105ec059f1dc8d7f1995b4b469edea67b45620cc`;
-- 12C is formally accepted at `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
-- Stage 13A is accepted/documented at `aff6d84e24ba31dc079d16028802ede59b89f918`;
-- Stage 13B is ACCEPTED AND COMPLETE at application SHA `668d9ef0c29d5d64770b0d565121a2272f6a9023`;
-- exact-head Stage 13B verification: CI PASS (#1433), Migration Replay PASS (#1044), Account Security PASS (#1216), Complete Quality Gate PASS (#1242), all four Level B browser shards PASS, SQL/authority PASS, evidence merge PASS, role-and-RLS PASS and Vercel PASS;
-- Stage 13B merged evidence: `redesign-r7-product-inspection` artifact `11029654969`, digest `sha256:566298941050a5f6378f2f84a534ee0a414ea5aa37c1bfc1870235d04d33ed84`;
-- Stage 13B supporting foundation artifact: `experience-v2-foundation` artifact `11030358561`, digest `sha256:8643c0642a3ecb4f02dc26c4e31f83af70e6cc14bfe3b6b5fe347c1086a455f6`;
-- Stage 13B acceptance record: `docs/experience-v2/STAGE13_13B_ACCEPTANCE_RECORD.md`;
-- no canonical Stage 12 or Stage 13 work is rolled backward to match earlier stale summary text.
+- Stage 13 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE13_ACCEPTANCE_RECORD.md`;
+- final accepted Stage 13 application SHA: `668d9ef0c29d5d64770b0d565121a2272f6a9023`;
+- Stage 14A is ACCEPTED AND COMPLETE at documentation head `260dc4b0c4321596148dd01f17f1bd92a00f680c`;
+- Stage 14B — Whole-system route matrix is ACTIVE and is not accepted;
+- at the pre-reconciliation inspection of application HEAD `4581fd2dc5da6114653821f850d5fdb7bf3a8235`, GitHub had not yet returned CI, Migration Replay, Account Security or Quality Gate runs for that SHA; Vercel reported PASS;
+- absence of completed 14B Level B evidence means 14B must remain ACTIVE regardless of implementation progress;
+- no accepted Stage 11, Stage 12 or Stage 13 work is rolled backward to match earlier stale summary text.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
