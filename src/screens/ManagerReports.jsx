@@ -639,7 +639,8 @@ export default function ManagerReports({ me, openItem }) {
             />
             <p className="small" style={{ marginTop: 8 }}>Recorded work-session activity is operational context, not an attendance or performance score.</p>
           </>}
-        </div>}
+          </div>
+        </MotionDisclosure>
       </ReportingSection>
 
       <ReportingSection eyebrow="Objectives" title="Recorded objectives" description="Objective status stays separate from work completion and remains a factual recorded state." meta={String(displayObjectives.length)}>
