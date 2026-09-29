@@ -4,6 +4,9 @@ set -euo pipefail
 scope="${1:-full}"
 
 case "$scope" in
+  stage14)
+    tests=(tests/experience-v2-stage14-*.spec.js tests/role-routing.spec.js)
+    ;;
   finance)
     tests=(tests/experience-v2-finance-*.spec.js tests/role-routing.spec.js)
     ;;
