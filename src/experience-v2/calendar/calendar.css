@@ -485,3 +485,177 @@ button.ev2cal-event:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Stage 11C — production calendar family */
+.ev2cal-role-page {
+  width: min(100%, 76rem);
+  min-width: 0;
+  margin-inline: auto;
+  display: grid;
+  gap: var(--ev2-space-4);
+  padding-top: var(--ev2-space-2);
+  padding-bottom: var(--ev2-space-10);
+  font-family: var(--ev2-font-sans);
+  color: var(--ev2-text);
+}
+
+.ev2cal-role-page > .ev2cal-filters {
+  margin-top: calc(-1 * var(--ev2-space-1));
+}
+
+.ev2cal-role-layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, .65fr);
+  gap: var(--ev2-space-4);
+  align-items: start;
+}
+
+.ev2cal-side-stack {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-4);
+}
+
+@media (min-width: 961px) {
+  .ev2cal-side-stack {
+    position: sticky;
+    top: calc(var(--ceac-topbar, 59px) + var(--ev2-space-4));
+  }
+}
+
+.ev2cal-toolbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-3);
+}
+
+.ev2cal-google {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ev2-space-4);
+  align-items: center;
+}
+
+.ev2cal-integration-copy {
+  min-width: 0;
+}
+
+.ev2cal-integration-copy strong {
+  display: block;
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.35;
+}
+
+.ev2cal-integration-copy p {
+  max-width: 72ch;
+  margin: var(--ev2-space-1) 0 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+.ev2cal-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ev2-space-2);
+}
+
+.ev2cal-external-link {
+  min-height: var(--ev2-control-compact);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--ev2-space-3);
+  border: 1px solid var(--ev2-line-strong);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface);
+  color: var(--ev2-action);
+  font-size: var(--ev2-type-supporting);
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.ev2cal-external-link:hover {
+  background: var(--ev2-action-soft);
+}
+
+.ev2cal-external-link:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+}
+
+.ev2cal-admin-range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.ev2cal-admin-range > span {
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+  text-align: right;
+}
+
+.ev2cal-admin-page .ev2cal-timeline {
+  margin-top: var(--ev2-space-1);
+}
+
+@media (max-width: 960px) {
+  .ev2cal-role-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2cal-side-stack {
+    position: static;
+  }
+
+  .ev2cal-google {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2cal-link-row {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2cal-role-page {
+    gap: var(--ev2-space-3);
+    padding-top: 0;
+    padding-bottom: calc(var(--ev2-space-10) + env(safe-area-inset-bottom));
+  }
+
+  .ev2cal-toolbar,
+  .ev2cal-admin-range {
+    display: grid;
+  }
+
+  .ev2cal-toolbar > .ev2c-button,
+  .ev2cal-external-link {
+    min-height: 44px;
+  }
+
+  .ev2cal-toolbar > .ev2c-button {
+    width: 100%;
+  }
+
+  .ev2cal-admin-range > span {
+    text-align: left;
+  }
+
+  .ev2cal-link-row {
+    display: grid;
+  }
+
+  .ev2cal-external-link {
+    width: 100%;
+  }
+}
