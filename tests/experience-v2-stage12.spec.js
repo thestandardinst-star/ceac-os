@@ -77,10 +77,11 @@ test("Stage 12B shared selection and disclosure motion work in the protected pro
 
   const trigger = page.getByRole("button", { name:/Reference state compact/ });
   await trigger.click();
-  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  const expandedTrigger = page.getByRole("button", { name:/Reference state expanded/ });
+  await expect(expandedTrigger).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByLabel("Reference motion detail")).toBeVisible();
 
-  await page.getByRole("button", { name:/Reference state expanded/ }).click();
+  await expandedTrigger.click();
   await expect(page.getByLabel("Reference motion detail")).toHaveCount(0);
 
   await expectNoPageOverflow(page, "Stage 12B phone proof");
