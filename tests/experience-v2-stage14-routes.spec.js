@@ -142,7 +142,7 @@ async function navigateMobile(page, route) {
 }
 
 async function navigate(page, role, route, viewport) {
-  if (viewport.width >= 981) await navigateDesktop(page, route);
+  if (viewport.width >= 900) await navigateDesktop(page, route);
   else await navigateMobile(page, route);
 
   await expect.poll(() => routeKey(page)).toBe(route.key);
