@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Sheet, ProductNotice, FieldGroup, StatusDistribution } from "../components/bits";
+import { Sheet, ProductNotice, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import MinistryNumbers from "../components/MinistryNumbers";
 import { Skeleton, StatePanel } from "../experience-v2/components";
+import { DataVizChart } from "../experience-v2/data-viz/DataVizV2";
 import {
   ReportingPageHeader,
   ReportingTabs,
@@ -54,61 +55,6 @@ function distinctAttendanceDays(rows) {
 
 function EvidenceMetric({ value, label, onClick }) {
   return <ReportingEvidenceCard value={value} label={label} detail="Why?" onClick={onClick} />;
-}
-
-function Bars({ rows, onOpen }) {
-  const max = Math.max(1, ...rows.map((row) => row.value));
-  return <div className="card">
-    {rows.map((row) => <button key={row.label} onClick={() => onOpen(row)} style={{ display: "grid", gridTemplateColumns: "120px 1fr 34px", gap: 8, width: "100%", alignItems: "center", margin: "8px 0", textAlign: "left" }}>
-      <span className="small">{row.label}</span>
-      <span style={{ height: 8, background: "var(--line)", borderRadius: 99, overflow: "hidden" }}><span style={{ display: "block", height: "100%", width: `${(row.value / max) * 100}%`, background: "var(--ink)" }} /></span>
-      <b className="small">{row.value}</b>
-    </button>)}
-  </div>;
-}
-
-function WorkStatusDistribution({ rows, onOpen }) {
-  const tones = ["info","attention","neutral","success","danger"];
-  return <div className="card report-status-composition">
-    <StatusDistribution label="Current work status composition" segments={rows.map((row,index)=>({
-      key:row.label,label:row.label,value:row.value,tone:tones[index%tones.length],
-    }))} />
-    <div className="report-status-links">
-      {rows.map((row) => <button key={row.label} onClick={() => onOpen(row)}><span>{row.label}</span><b>{row.value}</b></button>)}
-    </div>
-  </div>;
-}
-
-function Trend({ points, onOpen }) {
-  const max = Math.max(1, ...points.map((point) => point.value));
-  const width = 560, height = 120, padX = 8, padY = 10;
-  const denom = Math.max(1, points.length - 1);
-  const path = points.map((point, index) => {
-    const x = padX + (index / denom) * (width - padX * 2);
-    const y = height - padY - (point.value / max) * (height - padY * 2);
-    return `${index === 0 ? "M" : "L"} ${x} ${y}`;
-  }).join(" ");
-  return <div className="card" style={{ overflowX: "auto" }}>
-    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", minWidth: 420, display: "block" }} role="img" aria-label="Completed work trend">
-      <path d={path} fill="none" stroke="currentColor" strokeWidth="3" />
-      {points.map((point, index) => {
-        const x = padX + (index / denom) * (width - padX * 2);
-        const y = height - padY - (point.value / max) * (height - padY * 2);
-        return <circle key={point.date} cx={x} cy={y} r="4" fill="currentColor" onClick={() => onOpen(point)} style={{ cursor: "pointer" }} />;
-      })}
-    </svg>
-    <div className="small">Each point opens the work behind that day.</div>
-  </div>;
-}
-
-function ActivityHeat({ days, onOpen }) {
-  const max = Math.max(1, ...days.map((day) => day.value));
-  return <div className="card">
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(28px,1fr))", gap: 5 }}>
-      {days.map((day) => <button key={day.date} title={`${day.date}: ${day.value} team attendance day${day.value === 1 ? "" : "s"}`} onClick={() => onOpen(day)} style={{ minHeight: 34, borderRadius: 5, opacity: 0.25 + 0.75 * (day.value / max), background: "var(--ink)", color: "var(--paper)", fontSize: 10 }}>{parseDateOnly(day.date).getDate()}</button>)}
-    </div>
-    <div className="small" style={{ marginTop: 8 }}>Darker days have more team members with a recorded work session. Tap a day for the underlying sessions.</div>
-  </div>;
 }
 
 export default function ManagerReports({ me, openItem }) {
@@ -624,7 +570,7 @@ export default function ManagerReports({ me, openItem }) {
       <ReportingSection
         eyebrow="Supporting context"
         title="Patterns & activity"
-        description="Optional factual patterns that help explain the evidence above. Dedicated visualisation refinement remains in Stage 11."
+        description="Optional factual patterns from the same recorded evidence. Every visual has an equivalent factual table and preserves drill-down."
       >
         <div className="report-analysis-toggle">
           <div>
@@ -635,25 +581,53 @@ export default function ManagerReports({ me, openItem }) {
         </div>
 
         {showAnalysis && <div className="report-analysis">
-          {displayDaily.some((point) => point.value > 0) && <>
-            <div className="sec"><span>Completed work trend</span></div>
-            <Trend points={displayDaily} onOpen={(point) => viewingFrozen ? openFrozenSection(point.section, "Completed on " + point.date) : openLive(point.section, "Completed on " + point.date, point.rows, "work")} />
-          </>}
+          {displayDaily.some((point) => point.value > 0) && <DataVizChart
+            kind="line"
+            title="Completed work trend"
+            note="Recorded completed work by date. Open a point or table record for the supporting work."
+            data={displayDaily}
+            series={[{ key:"value", label:"Completed work" }]}
+            onOpen={(point) => viewingFrozen
+              ? openFrozenSection(point.section, "Completed on " + point.date)
+              : openLive(point.section, "Completed on " + point.date, point.rows || [], "work")}
+          />}
 
-          {displayProjects.length > 1 && <>
-            <div className="sec"><span>Completed by project</span></div>
-            <Bars rows={displayProjects} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-          </>}
+          {displayProjects.length > 1 && <DataVizChart
+            kind="bar"
+            title="Completed by project"
+            note="Recorded completed work grouped by project. The values remain linked to their supporting work."
+            data={displayProjects}
+            series={[{ key:"value", label:"Completed work" }]}
+            onOpen={(row) => viewingFrozen
+              ? openFrozenSection(row.section, row.label)
+              : openLive(row.section, row.label, row.rows || [], "work")}
+          />}
 
           {displayStatus.reduce((sum,row) => sum + Number(row.value || 0),0) >= 5 && <>
-            <div className="sec"><span>Current work composition</span></div>
-            <WorkStatusDistribution rows={displayStatus} onOpen={(row) => viewingFrozen ? openFrozenSection(row.section, row.label) : openLive(row.section, row.label, row.rows, "work")} />
-            <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is separate from completed outcomes for the selected period.</p>
+            <DataVizChart
+              kind="donut"
+              title="Current work composition"
+              note="Current recorded work status is contextual only. It is separate from completed outcomes for the selected period."
+              data={displayStatus}
+              series={[{ key:"value", label:"Recorded work items" }]}
+              onOpen={(row) => viewingFrozen
+                ? openFrozenSection(row.section, row.label)
+                : openLive(row.section, row.label, row.rows || [], "work")}
+            />
+            <p className="small" style={{ marginTop: 8 }}>Current work status is contextual only. It is not a performance, productivity or ranking score.</p>
           </>}
 
           {displayAttendance.some((day) => day.value > 0) && <>
-            <div className="sec"><span>Recorded work-session activity</span></div>
-            <ActivityHeat days={displayAttendance} onOpen={(day) => viewingFrozen ? openFrozenSection(day.section, "Recorded work sessions · " + day.date) : openLive(day.section, "Recorded work sessions · " + day.date, day.rows, "session")} />
+            <DataVizChart
+              kind="line"
+              title="Recorded work-session activity"
+              note="Unique team-member work-session days by date. Open a point or table record for the underlying sessions."
+              data={displayAttendance}
+              series={[{ key:"value", label:"Recorded team-member session days" }]}
+              onOpen={(day) => viewingFrozen
+                ? openFrozenSection(day.section, "Recorded work sessions · " + day.date)
+                : openLive(day.section, "Recorded work sessions · " + day.date, day.rows || [], "session")}
+            />
             <p className="small" style={{ marginTop: 8 }}>Recorded work-session activity is operational context, not an attendance or performance score.</p>
           </>}
         </div>}
