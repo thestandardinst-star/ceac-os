@@ -46,7 +46,7 @@ test.describe("Premium redesign R1 Staff",()=>{
     const {context,page}=await openStaff(browser);
     await side(page,"Calendar");
     await expect(page.getByRole("heading",{name:"Calendar",exact:true})).toBeVisible();
-    await expect(page.locator(".staff-calendar-grid")).toBeVisible();
+    await expect(page.getByLabel("Personal month calendar")).toBeVisible();
     for(const label of ["All","Meetings","Work","Ministry","Leave"]) await expect(page.getByRole("tab",{name:label,exact:true})).toBeVisible();
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-calendar.png",fullPage:true});
     await context.close();
