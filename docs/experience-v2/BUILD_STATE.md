@@ -2507,35 +2507,56 @@ Exact-head Level B:
 Acceptance record:
 - `docs/experience-v2/STAGE11_11B_ACCEPTANCE_RECORD.md`.
 
+11C — Calendar Family Migration is ACCEPTED AND COMPLETE.
+
+Exact accepted 11C application head:
+- `5cfc6997b4f161be6165e450c04a9dda514ec27b`.
+
+Exact-head Level B:
+- CI PASS — run `36533302019` (#1375);
+- Migration Replay PASS — run `36533302155` (#986);
+- Account Security PASS — run `36533302067` (#1158);
+- Complete Quality Gate PASS — run `36533302125` (#1184);
+- complete SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+11C evidence:
+- `redesign-r7-product-inspection` artifact `11017594419`;
+- digest `sha256:6ea92d4d9296b9af0818e695a615bad5e3f0005efd06d1045c20dfa4b39c3432`;
+- dedicated `stage11-product-inspection` artifact `11017992930`;
+- digest `sha256:4da40423de28282e5475391bef2f71634c635affff26f7bb736d18373ef22c91`;
+- direct exact-head inspection covered Staff Calendar at 320/1366, Manager Calendar at 390/1366 and Administration Calendar at 320/390/1366;
+- the complete 320/360/375/390/414/430/900/1366/1440 calendar matrix passed;
+- Administration remains a 14/30/90-day operating timeline;
+- the explicit Manager Google Calendar/no-automatic-sync truth remains intact;
+- no Executive Calendar route was introduced;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Acceptance record:
+- `docs/experience-v2/STAGE11_11C_ACCEPTANCE_RECORD.md`.
+
 Current substage:
-- 11C — Calendar Family Migration.
+- 11D — Factual Visualisation Migration.
 
-11C canonical scope:
-- Staff Calendar: preserve existing own work/meetings/ministry/approved-leave data, keep month view, add selected-date detail and retain upcoming context;
-- Manager Calendar: preserve month/week, existing layer filter, project/work/meeting/leave/ministry drill-ins, meeting scheduling and the explicit manual Google Calendar/no-automatic-sync truth; add selected-date context and shared V2 controls;
-- Administration Calendar: preserve the existing chronological 14/30/90-day organisation timeline and meeting scheduling/drill-in; do not invent month/week/day modes;
-- no dedicated Executive Calendar route may be introduced;
-- preserve all current queries, actions, RLS/RPC authority and role boundaries;
-- no schema change is authorised for presentation work.
+11D canonical scope:
+- preserve the already accepted Executive ministry-movement shared V2 chart;
+- migrate Manager Reports supporting analysis away from local one-off chart implementations into the shared V2 factual chart language;
+- preserve live and frozen report evidence, row-level drill-down and report-evidence references;
+- chart/table equivalence is mandatory;
+- chart marks and table records must remain keyboard reachable when drill-down is available;
+- current-work status and work-session activity remain contextual facts, never performance, productivity or attendance scores;
+- no optional Finance/Workload chart is required unless it materially improves comprehension without weakening row traceability;
+- different currencies must remain separate;
+- no schema, migration, RLS, RPC, auth or capability change is authorised for this visualisation work.
 
-Required 11C responsive matrix:
-- 320×844;
-- 360×800;
-- 375×812;
-- 390×844;
-- 414×896;
-- 430×932;
-- 900×900;
-- 1366×768;
-- 1440×900.
-
-11C exit:
-- Staff, Manager and Administration calendars use the shared V2 calendar family;
-- selected-date/event-detail relationships are deliberate where supported;
-- Manager Google Calendar wording and manual links remain truthful;
-- Administration remains a timeline, not an invented grid calendar;
-- keyboard/touch/overflow and route coverage pass;
-- exact-head Level B passes before 11D.
+11D exit:
+- Stage 11-targeted Manager Reports one-off visuals are replaced by shared V2 data-visualisation primitives;
+- authoritative values remain drillable in chart and table views;
+- responsive/focus/keyboard coverage passes;
+- exact-head Level B passes before 11E.
 
 Stage 11 protected boundaries remain:
 - no invented calendar events or unsupported views;
