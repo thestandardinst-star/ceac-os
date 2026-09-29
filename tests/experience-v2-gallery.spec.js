@@ -23,14 +23,18 @@ test("Stage 2 gallery uses the CEAC registry rather than direct Lucide imports",
 
 test("Stage 2 gallery proves layout motion without autoplay decoration", async () => {
   const source = fs.readFileSync(galleryPath, "utf8");
+  const disclosure = fs.readFileSync("src/experience-v2/components/MotionDisclosure.jsx", "utf8");
 
   expect(source).toContain('from "motion/react"');
-  expect(source).toContain("AnimatePresence");
+  expect(source).toContain("MotionDisclosure");
+  expect(disclosure).toContain("AnimatePresence");
   expect(source).toContain("layout");
   expect(source).toContain("EV2_TRANSITIONS");
   expect(source).toContain("onClick");
   expect(source).not.toContain("repeat: Infinity");
   expect(source).not.toContain("autoPlay");
+  expect(disclosure).not.toContain("repeat: Infinity");
+  expect(disclosure).not.toContain("autoPlay");
 });
 
 test("Stage 2 gallery explicitly separates reference samples from live CEAC data", async () => {
