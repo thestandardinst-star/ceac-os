@@ -58,7 +58,6 @@ async function installFactualReportFixture(page) {
   await page.route("**/rest/v1/projects*", fulfill(projects));
   await page.route("**/rest/v1/report_periods*", fulfill([]));
   await page.route("**/rest/v1/work_items*", fulfill(work));
-  await page.route("**/rest/v1/unit_memberships*", fulfill([{ profile_id:staffId }]));
   await page.route("**/rest/v1/objectives*", fulfill([]));
   await page.route("**/rest/v1/work_sessions*", fulfill([
     {
