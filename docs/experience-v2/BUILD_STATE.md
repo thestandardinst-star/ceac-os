@@ -2468,82 +2468,12 @@ Stage 10 — Operational Screen Families is ACCEPTED AND COMPLETE.
 
 ## Stage 11 — Calendar and Data Visualisation
 
-Stage 11 is ACTIVE.
+Stage 11 is ACCEPTED AND COMPLETE.
 
-11A — Calendar and data-visualisation audit and contract is ACCEPTED AND COMPLETE.
-
-Contract:
-- `docs/experience-v2/STAGE11_WORK_BRIEF.md`.
-
-Exact accepted 11A documentation head:
-- `838e92459bcaa836c90d03d21a2516cdfd37f731`.
-
-11B — Shared Calendar and Data Visualisation Foundation is ACCEPTED AND COMPLETE.
-
-Exact accepted 11B application head:
-- `b023394eead1d4c575c1fce88be8e36ed7d586b6`.
-
-Exact-head Level B:
-- CI PASS — run `36524380135` (#1362);
-- Migration Replay PASS — run `36524380098` (#973);
-- Account Security PASS — run `36524380191` (#1145);
-- Complete Quality Gate PASS — run `36524380117` (#1171);
-- complete SQL/RLS/authority contracts PASS;
-- all four browser shards PASS;
-- merged exact-head product evidence PASS;
-- role-and-RLS coordinator PASS;
-- Vercel PASS.
-
-11B evidence:
-- `redesign-r7-product-inspection` artifact `11014092258`;
-- digest `sha256:6e8952168076e00ce66a63fa24f228420db22fddf66c767ba56b7f6ba1a518f2`;
-- dedicated `stage11-product-inspection` artifact `11014596827`;
-- digest `sha256:2d9601867a81ca876a8208232baa1bd7dec1a79710f47293082b07293a9aa15b`;
-- direct exact-head product inspection covered the 320px and 1366px Stage 11 foundation proof and the 1366px Executive Overview;
-- chart/table equivalence and selected-date context passed;
-- no page-level horizontal overflow was observed in the inspected proof;
-- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
-
-Acceptance record:
-- `docs/experience-v2/STAGE11_11B_ACCEPTANCE_RECORD.md`.
-
-11C — Calendar Family Migration is ACCEPTED AND COMPLETE.
-
-Exact accepted 11C application head:
-- `5cfc6997b4f161be6165e450c04a9dda514ec27b`.
-
-Exact-head Level B:
-- CI PASS — run `36533302019` (#1375);
-- Migration Replay PASS — run `36533302155` (#986);
-- Account Security PASS — run `36533302067` (#1158);
-- Complete Quality Gate PASS — run `36533302125` (#1184);
-- complete SQL/RLS/authority contracts PASS;
-- all four browser shards PASS;
-- merged exact-head product evidence PASS;
-- role-and-RLS coordinator PASS;
-- Vercel PASS.
-
-11C evidence:
-- `redesign-r7-product-inspection` artifact `11017594419`;
-- digest `sha256:6ea92d4d9296b9af0818e695a615bad5e3f0005efd06d1045c20dfa4b39c3432`;
-- dedicated `stage11-product-inspection` artifact `11017992930`;
-- digest `sha256:4da40423de28282e5475391bef2f71634c635affff26f7bb736d18373ef22c91`;
-- direct exact-head inspection covered Staff Calendar at 320/1366, Manager Calendar at 390/1366 and Administration Calendar at 320/390/1366;
-- the complete 320/360/375/390/414/430/900/1366/1440 calendar matrix passed;
-- Administration remains a 14/30/90-day operating timeline;
-- the explicit Manager Google Calendar/no-automatic-sync truth remains intact;
-- no Executive Calendar route was introduced;
-- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
-
-Acceptance record:
-- `docs/experience-v2/STAGE11_11C_ACCEPTANCE_RECORD.md`.
-
-11D — Factual Visualisation Migration is ACCEPTED AND COMPLETE.
-
-Exact accepted 11D application head:
+Final accepted Stage 11 application head:
 - `b1867b91fda28722bd8ae8f3555b6212f3180256`.
 
-Exact-head Level B:
+Final exact-head Level B:
 - CI PASS — run `36540064019` (#1385);
 - Migration Replay PASS — run `36540066084` (#996);
 - Account Security PASS — run `36540064127` (#1168);
@@ -2554,38 +2484,62 @@ Exact-head Level B:
 - role-and-RLS coordinator PASS;
 - Vercel PASS.
 
-11D evidence:
+Final Stage 11 evidence:
 - `redesign-r7-product-inspection` artifact `11020896046`;
 - digest `sha256:6c649a3a989d93331ef6a8a745f880f4a18e0a38af6eebabfdc940aecce3238e`;
-- dedicated `stage11-product-inspection` artifact `11020626704`;
+- `stage11-product-inspection` artifact `11020626704`;
 - digest `sha256:5d18e625da535cd280733e5f76639014a1fa1a44483b7e9b4800dff89b7942e`;
-- direct exact-head inspection covered Manager Reports at 390px and 1366px;
-- chart/table equivalence, keyboard drill-down and factual no-score language passed;
-- no optional Finance/Workload chart was added because existing factual rows remain clearer;
+- direct exact-head inspection covered Staff Calendar at 320px, Manager Calendar at 390px and 1440px, Administration Calendar at 390px, Executive Overview at 1366px and Manager Reports factual visualisations at 390px and 1366px;
+- the full 11C calendar matrix passed at 320/360/375/390/414/430/900/1366/1440;
+- chart/table equivalence, keyboard drill-down, truthful Google Calendar wording and no-score/no-ranking language passed;
 - no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
 
-Acceptance record:
-- `docs/experience-v2/STAGE11_11D_ACCEPTANCE_RECORD.md`.
+Stage 11 acceptance records:
+- `docs/experience-v2/STAGE11_11B_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE11_11C_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE11_11D_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`.
+
+## Stage 12 — Motion and Interaction Quality
+
+Stage 12 is ACTIVE.
 
 Current substage:
-- 11E — Stage 11 Final Acceptance.
+- 12A — Motion and interaction audit / contract.
 
-11E exact next action:
-- reconcile the complete Stage 11 accepted application head and evidence across Staff Calendar, Manager Calendar, Administration Calendar, Executive ministry movement and Manager Reports;
-- run/confirm complete exact-head Level B on the final Stage 11 application head;
-- inspect representative phone/laptop/desktop exact-head evidence;
-- record final Stage 11 acceptance;
-- only then open Stage 12 — Motion and Interaction Quality.
+Binding references:
+- `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
+- `docs/experience-v2/REFERENCE_INDEX.md`;
+- Library motion reference `CEAC OS / Experience V2 / References / Original Quality References / motion_reference_original.mp4`;
+- Library storyboard `motion_reference_storyboard.jpg`.
 
-Stage 11 protected boundaries remain:
-- no invented calendar events or unsupported views;
-- no inferred attendance, effort, productivity, competence or performance score;
-- no decorative chart requirement;
-- chart/table traceability remains mandatory;
-- no different-currency aggregation;
+Stage 12 canonical scope:
+- motion must explain spatial continuity, state change, expansion/collapse and attention movement;
+- layout reflow, drawers/sheets, tab/segment movement, calendar selection/period changes and enter/exit behaviour are in scope where they improve comprehension;
+- shared-element treatment is optional and only where continuity is genuinely clearer;
+- normal work must never wait on decorative animation;
+- motion must remain interruptible;
+- `prefers-reduced-motion` alternatives are mandatory;
+- existing V2 timing/easing tokens are the starting contract and must be rationalised rather than replaced with a competing motion system;
+- product geometry, role authority, RLS/RPC boundaries and existing functional contracts must not change merely to obtain motion.
+
+12A exact next action:
+- inventory existing V2 timing/easing tokens and transition behaviour;
+- map sheets/drawers, segmented controls, calendar selection/period controls, expandable sections and state-change feedback;
+- compare the stored motion reference for interaction principles rather than branding/content;
+- persist a Stage 12 work brief with an exact shared-motion implementation sequence;
+- do not add application motion until the audit/contract is accepted.
+
+Protected boundaries:
+- no decorative motion that delays routine work;
+- no scroll hijacking;
+- no animation that conceals authority, loading or error state;
+- no dependence on heavy animation libraries unless repository evidence proves native CSS/React is insufficient;
+- no new global override/parity stylesheet;
+- no increase in `!important` debt;
+- reduced-motion support is mandatory;
 - frozen enterprise PR #71 remains untouched;
-- Payroll remains blocked;
-- no schema, migration, RLS, RPC, auth or capability change without a separately proven need.
+- Payroll remains blocked.
 
 PR #72 remains OPEN + DRAFT.
 PR #71 remains frozen.
