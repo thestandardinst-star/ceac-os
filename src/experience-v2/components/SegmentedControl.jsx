@@ -1,4 +1,7 @@
+import { useId } from "react";
+import { motion } from "motion/react";
 import { CeacIcon } from "../icons";
+import { EV2_TRANSITIONS } from "../motion";
 
 export function SegmentedControl({
   items = [],
@@ -7,6 +10,8 @@ export function SegmentedControl({
   ariaLabel = "View",
   className = "",
 }) {
+  const instanceId = useId().replace(/:/g, "");
+
   return (
     <div className={`ev2c-segmented ${className}`.trim()} role="tablist" aria-label={ariaLabel}>
       {items.map((item) => {
@@ -21,8 +26,18 @@ export function SegmentedControl({
             className={`ev2c-segmented-item ${selected ? "is-selected" : ""}`}
             onClick={() => onChange?.(item.value)}
           >
-            {item.icon ? <CeacIcon name={item.icon} size="meta" decorative /> : null}
-            <span>{item.label}</span>
+            {selected ? (
+              <motion.span
+                className="ev2c-segmented-indicator"
+                layoutId={`ev2c-segmented-${instanceId}`}
+                transition={EV2_TRANSITIONS.reflow}
+                aria-hidden="true"
+              />
+            ) : null}
+            <span className="ev2c-segmented-content">
+              {item.icon ? <CeacIcon name={item.icon} size="meta" decorative /> : null}
+              <span>{item.label}</span>
+            </span>
           </button>
         );
       })}
