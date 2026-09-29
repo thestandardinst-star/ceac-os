@@ -564,8 +564,7 @@ export default function ManagerReports({ me, openItem }) {
                     }
                   }} />)}
           {drill.rows.length === 0 && <ReportingEmpty title="No supporting rows attached" description="This figure currently has no traceable supporting rows in the selected report evidence." />}
-          </div>
-        </MotionDisclosure>
+        </div>}
       </ReportingSection>
 
       <ReportingSection
