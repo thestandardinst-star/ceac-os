@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Avatar, Drawer, PopoverMenu } from "../components";
+import { Avatar, BrandMark, Drawer, PopoverMenu } from "../components";
 import { CeacIcon } from "../icons";
 import {
   getMobilePrimaryNavigation,
@@ -25,15 +25,6 @@ const ACCRA_TIME = new Intl.DateTimeFormat("en-GB", {
   hourCycle: "h23",
   timeZone: "Africa/Accra",
 });
-
-function ShellMark() {
-  return (
-    <span className="ev2s-brand-mark" aria-hidden="true">
-      <span>C</span>
-      <i />
-    </span>
-  );
-}
 
 function UnitSwitch({ me, onUnitChange, compact = false }) {
   if (!me?.memberships?.length) return null;
@@ -79,7 +70,7 @@ export function SideNav({
     <aside className="ev2s-sidebar" aria-label="CEAC workspace navigation">
       <div className="ev2s-sidebar-identity">
         <div className="ev2s-brand">
-          <ShellMark />
+          <BrandMark size="md" className="ev2s-brand-mark" />
           <div className="ev2s-brand-copy">
             <strong>CEAC OS</strong>
             <span>People. Work. Ministry. Impact.</span>
@@ -302,7 +293,7 @@ export function MobileTopBar({
     <header className={canSwitchUnit ? "ev2s-mobile-topbar has-unit-switch" : "ev2s-mobile-topbar"}>
       <div className="ev2s-mobile-toprow">
         <div className="ev2s-mobile-identity">
-          <ShellMark />
+          <BrandMark size="sm" className="ev2s-brand-mark" />
           <span>
             <strong>CEAC OS</strong>
             <small>{me?.unit_name || roleLabel} · {roleLabel}</small>
