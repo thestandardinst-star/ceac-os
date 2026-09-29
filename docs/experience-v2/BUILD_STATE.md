@@ -2538,25 +2538,44 @@ Exact-head Level B:
 Acceptance record:
 - `docs/experience-v2/STAGE11_11C_ACCEPTANCE_RECORD.md`.
 
+11D — Factual Visualisation Migration is ACCEPTED AND COMPLETE.
+
+Exact accepted 11D application head:
+- `b1867b91fda28722bd8ae8f3555b6212f3180256`.
+
+Exact-head Level B:
+- CI PASS — run `36540064019` (#1385);
+- Migration Replay PASS — run `36540066084` (#996);
+- Account Security PASS — run `36540064127` (#1168);
+- Complete Quality Gate PASS — run `36540064139` (#1194);
+- complete SQL/RLS/authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+11D evidence:
+- `redesign-r7-product-inspection` artifact `11020896046`;
+- digest `sha256:6c649a3a989d93331ef6a8a745f880f4a18e0a38af6eebabfdc940aecce3238e`;
+- dedicated `stage11-product-inspection` artifact `11020626704`;
+- digest `sha256:5d18e625da535cd280733e5f76639014a1fa1a44483b7e9b4800dff89b7942e`;
+- direct exact-head inspection covered Manager Reports at 390px and 1366px;
+- chart/table equivalence, keyboard drill-down and factual no-score language passed;
+- no optional Finance/Workload chart was added because existing factual rows remain clearer;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
+
+Acceptance record:
+- `docs/experience-v2/STAGE11_11D_ACCEPTANCE_RECORD.md`.
+
 Current substage:
-- 11D — Factual Visualisation Migration.
+- 11E — Stage 11 Final Acceptance.
 
-11D canonical scope:
-- preserve the already accepted Executive ministry-movement shared V2 chart;
-- migrate Manager Reports supporting analysis away from local one-off chart implementations into the shared V2 factual chart language;
-- preserve live and frozen report evidence, row-level drill-down and report-evidence references;
-- chart/table equivalence is mandatory;
-- chart marks and table records must remain keyboard reachable when drill-down is available;
-- current-work status and work-session activity remain contextual facts, never performance, productivity or attendance scores;
-- no optional Finance/Workload chart is required unless it materially improves comprehension without weakening row traceability;
-- different currencies must remain separate;
-- no schema, migration, RLS, RPC, auth or capability change is authorised for this visualisation work.
-
-11D exit:
-- Stage 11-targeted Manager Reports one-off visuals are replaced by shared V2 data-visualisation primitives;
-- authoritative values remain drillable in chart and table views;
-- responsive/focus/keyboard coverage passes;
-- exact-head Level B passes before 11E.
+11E exact next action:
+- reconcile the complete Stage 11 accepted application head and evidence across Staff Calendar, Manager Calendar, Administration Calendar, Executive ministry movement and Manager Reports;
+- run/confirm complete exact-head Level B on the final Stage 11 application head;
+- inspect representative phone/laptop/desktop exact-head evidence;
+- record final Stage 11 acceptance;
+- only then open Stage 12 — Motion and Interaction Quality.
 
 Stage 11 protected boundaries remain:
 - no invented calendar events or unsupported views;
