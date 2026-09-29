@@ -7,7 +7,7 @@ Last updated: 29 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 13 — Visual Assets and Media (ACTIVE)
-Current substage: 13B — CEAC application-mark integration (ACTIVE)
+Current substage: 13C — Stage 13 final acceptance (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical implementation HEAD at this reconciliation: `f5295d080d0f36efd822c70a004f61440f017c76`;
@@ -20,9 +20,11 @@ Canonical reconciliation checkpoint:
 - 12B is formally accepted at `105ec059f1dc8d7f1995b4b469edea67b45620cc`;
 - 12C is formally accepted at `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
 - Stage 13A is accepted/documented at `aff6d84e24ba31dc079d16028802ede59b89f918`;
-- Stage 13B is ACTIVE and is not yet accepted;
-- exact-head state for `f5295d080d0f36efd822c70a004f61440f017c76` at reconciliation time: Migration Replay PASS (#1040), Account Security PASS (#1212), Quality Gate PASS (#1238), CI #1429 CANCELLED, and Vercel blocked by the external free-plan build-rate limit;
-- the Quality Gate on this non-boundary head does not by itself accept 13B, and no Stage 13B acceptance SHA/evidence is recorded yet;
+- Stage 13B is ACCEPTED AND COMPLETE at application SHA `668d9ef0c29d5d64770b0d565121a2272f6a9023`;
+- exact-head Stage 13B verification: CI PASS (#1433), Migration Replay PASS (#1044), Account Security PASS (#1216), Complete Quality Gate PASS (#1242), all four Level B browser shards PASS, SQL/authority PASS, evidence merge PASS, role-and-RLS PASS and Vercel PASS;
+- Stage 13B merged evidence: `redesign-r7-product-inspection` artifact `11029654969`, digest `sha256:566298941050a5f6378f2f84a534ee0a414ea5aa37c1bfc1870235d04d33ed84`;
+- Stage 13B supporting foundation artifact: `experience-v2-foundation` artifact `11030358561`, digest `sha256:8643c0642a3ecb4f02dc26c4e31f83af70e6cc14bfe3b6b5fe347c1086a455f6`;
+- Stage 13B acceptance record: `docs/experience-v2/STAGE13_13B_ACCEPTANCE_RECORD.md`;
 - no canonical Stage 12 or Stage 13 work is rolled backward to match earlier stale summary text.
 
 Reconciliation precedence:
@@ -2583,16 +2585,39 @@ Documentation integrity verification:
 - the motion reference remains a behaviour reference, not product media.
 
 Current substage:
-- 13B — CEAC application-mark integration.
+- 13C — Stage 13 final acceptance.
 
-13B exact next action:
-- add one shared lightweight brand-mark component that uses the existing 192px CEAC application asset;
-- migrate desktop/mobile AuthFrame and desktop/mobile V2 shell identity surfaces to that shared mark;
-- add browser favicon metadata using the existing mark;
-- preserve the PWA manifest/touch icons;
-- remove only redundant local surrogate-mark code/selectors proven unused;
-- add source and responsive browser proof;
-- complete exact-head Level B before Stage 13 final acceptance.
+13B — CEAC application-mark integration is ACCEPTED AND COMPLETE.
+
+Accepted application SHA:
+- `668d9ef0c29d5d64770b0d565121a2272f6a9023`.
+
+Exact-head Level B:
+- CI PASS — run `36561584774` (#1433);
+- Migration Replay PASS — run `36561584688` (#1044);
+- Account Security PASS — run `36561584704` (#1216);
+- Complete Quality Gate PASS — run `36561584843` (#1242);
+- all four browser shards PASS;
+- Level B SQL/authority contracts PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+13B evidence:
+- `redesign-r7-product-inspection` artifact `11029654969`;
+- digest `sha256:566298941050a5f6378f2f84a534ee0a414ea5aa37c1bfc1870235d04d33ed84`;
+- `experience-v2-foundation` artifact `11030358561`;
+- digest `sha256:8643c0642a3ecb4f02dc26c4e31f83af70e6cc14bfe3b6b5fe347c1086a455f6`;
+- direct exact-head inspection passed sign-in at 390/1366 and shell identity at 390/1366 with no broken asset or page-level overflow.
+
+Acceptance record:
+- `docs/experience-v2/STAGE13_13B_ACCEPTANCE_RECORD.md`.
+
+13C exact next action:
+- perform final Stage 13 reconciliation against the accepted 13B application head;
+- confirm browser/PWA/touch identity coherence, stable dimensions, no heavyweight or misleading media, no profile/media authority invention and negligible shell/auth media impact;
+- persist the Stage 13 final acceptance record;
+- update BUILD_STATE before Stage 14 begins.
 
 Binding references:
 - `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
