@@ -1,13 +1,30 @@
 # CEAC OS Experience V2 — Build State
 
-Last updated: 28 September 2026
+Last updated: 29 September 2026
 
 ## Current programme state
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 11 — Calendar and Data Visualisation (ACTIVE)
-Current substage: 11C — Calendar Family Migration (ACTIVE)
+Current stage: Stage 12 — Motion and Interaction Quality (ACTIVE)
+Current substage: 12B — Shared motion primitives (ACTIVE)
+
+Canonical reconciliation checkpoint:
+- live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
+- latest implementation commit: `EV2 12B: add motion foundation acceptance coverage`;
+- Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
+- final accepted Stage 11 application SHA: `b1867b91fda28722bd8ae8f3555b6212f3180256`;
+- final Stage 11 Level B evidence remains the persisted CI/Migration Replay/Account Security/Quality Gate/Vercel evidence recorded later in this document and in the Stage 11 acceptance record;
+- Stage 12A is accepted/documented;
+- Stage 12B is ACTIVE and is NOT accepted yet;
+- exact-head state for `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df` at reconciliation time: Migration Replay PASS (#1011), Account Security PASS (#1183), Quality Gate PASS (#1209, Level B jobs skipped because this is not yet an acceptance boundary), CI #1400 still in progress, and Vercel blocked by the external free-plan build-rate limit;
+- no 12B acceptance SHA or Level B evidence exists yet, so BUILD_STATE must not imply 12B completion.
+
+Reconciliation precedence:
+- canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
+- BUILD_STATE must be reconciled forward to canonical reality;
+- accepted canonical product work must never be rolled backward merely to match stale documentation;
+- at every accepted substage/stage transition, BUILD_STATE must be updated before the next substage progresses materially.
 
 Permanent verification protocol:
 - `docs/experience-v2/VERIFICATION_PROTOCOL.md`;
