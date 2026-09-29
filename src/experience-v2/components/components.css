@@ -358,6 +358,15 @@
   gap: var(--ev2-space-2);
 }
 
+.ev2c-disclosure {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ev2c-disclosure-inner {
+  min-width: 0;
+}
+
 .ev2c-avatar {
   flex: 0 0 auto;
   display: inline-grid;
