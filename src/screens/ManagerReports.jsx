@@ -309,6 +309,10 @@ export default function ManagerReports({ me, openItem }) {
   const displayStatus = viewingFrozen ? (frozen.status_mix || []) : statusRows;
   const displayAttendance = viewingFrozen ? (frozen.attendance || []) : attendanceHeat;
   const displayObjectives = viewingFrozen ? (frozen.objectives || []) : (evidence?.relevantObjectives || []);
+  const hasSupportingAnalysis = displayDaily.some((point) => point.value > 0)
+    || displayProjects.length > 1
+    || displayStatus.reduce((sum, row) => sum + Number(row.value || 0), 0) >= 5
+    || displayAttendance.some((day) => day.value > 0);
 
   function rowsForSection(section) {
     return reportRefs.filter((row) => row.section === section);
@@ -589,6 +593,10 @@ export default function ManagerReports({ me, openItem }) {
 
         <MotionDisclosure open={showAnalysis} ariaLabel="Supporting analysis">
           <div id="manager-report-supporting-analysis" className="report-analysis">
+          {!hasSupportingAnalysis && <ReportingEmpty
+            title="No supporting pattern is available for this view"
+            description="The recorded evidence remains above. CEAC OS does not invent a chart when there is not enough comparable data to show a factual pattern."
+          />}
           {displayDaily.some((point) => point.value > 0) && <DataVizChart
             kind="line"
             title="Completed work trend"
