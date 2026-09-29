@@ -1,3 +1,4 @@
+export { BrandMark } from "./BrandMark";
 export { Avatar } from "./Avatar";
 export { Button, IconButton } from "./Button";
 export { InputField, SelectField, TextareaField } from "./Fields";
