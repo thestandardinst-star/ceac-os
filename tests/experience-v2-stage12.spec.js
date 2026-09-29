@@ -195,7 +195,9 @@ for (const viewport of [
 
     const hide = page.getByRole("button", { name:"Hide analysis", exact:true });
     await expect(hide).toHaveAttribute("aria-expanded", "true");
+    await expect(hide).toHaveAttribute("aria-controls", "manager-report-supporting-analysis");
     await expect(page.getByLabel("Supporting analysis")).toBeVisible();
+    await expect(page.locator("#manager-report-supporting-analysis")).toBeVisible();
 
     await expectNoPageOverflow(page, `Stage 12C Manager Reports ${viewport.name}`);
     await page.screenshot({
