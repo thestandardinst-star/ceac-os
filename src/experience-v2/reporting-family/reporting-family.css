@@ -54,10 +54,7 @@
 .ev2rep-frozen-state strong,.ev2rep-live-state strong{display:block;margin-bottom:var(--ev2-space-1);color:var(--ev2-text);font-size:var(--ev2-type-row-mobile)}
 .ev2-reporting-manager .report-analysis-toggle{margin-top:var(--ev2-space-4);padding:var(--ev2-space-4);border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface-soft)}
 .ev2-reporting-manager .report-analysis{display:grid;gap:var(--ev2-space-3);margin-top:var(--ev2-space-3)}
-.ev2-reporting-manager .report-analysis>.sec{margin:0;color:var(--ev2-text);font-size:var(--ev2-type-row-mobile)}
-.ev2-reporting-manager .report-analysis>.card{margin:0;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface);box-shadow:var(--ev2-shadow-1)}
-.ev2-reporting-manager .report-status-composition{padding:var(--ev2-space-4)}
-.ev2-reporting-manager .report-status-links button{min-height:var(--ev2-control-min)}
+.ev2-reporting-manager .report-analysis>.ev2dv-chart{overflow:hidden;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);box-shadow:var(--ev2-shadow-1)}
 .ev2-reporting-manager .report-authoring{display:grid;gap:var(--ev2-space-3)}
 .ev2-reporting-manager .report-authoring .field{width:100%;margin:0}
 .ev2-reporting-manager .report-record-card{padding:var(--ev2-space-4);border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-card);background:var(--ev2-surface-soft)}
