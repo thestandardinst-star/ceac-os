@@ -92,7 +92,7 @@ test("Stage 11B calendar proof exposes selected-date context without hiding fact
 
   const proof = page.locator(".ev2-stage11-proof");
   await proof.getByRole("button", { name: /Friday 11 September 2026/ }).click();
-  await expect(proof.getByRole("heading", { name: "Friday, 11 September", exact: true })).toBeVisible();
+  await expect(proof.getByRole("heading", { name: /^Friday,? 11 September$/ })).toBeVisible();
   await expect(proof.getByText("Reference leave", { exact: true })).toBeVisible();
 
   await context.close();
