@@ -111,6 +111,33 @@
   outline: none;
 }
 
+.ev2dv-mark.is-actionable {
+  cursor: pointer;
+}
+
+.ev2dv-record-button {
+  width: 100%;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ev2-action);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ev2dv-record-button:hover {
+  text-decoration: underline;
+}
+
+.ev2dv-record-button:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+  border-radius: var(--ev2-radius-control);
+}
+
 .ev2dv-mark circle,
 .ev2dv-mark rect {
   transition:
