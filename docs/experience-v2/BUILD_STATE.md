@@ -6,8 +6,8 @@ Last updated: 29 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 12 — Motion and Interaction Quality (ACTIVE)
-Current substage: 12D — Stage 12 Final Acceptance (ACTIVE)
+Current stage: Stage 13 — Visual Assets and Media (ACTIVE)
+Current substage: 13A — Visual asset/media audit and contract (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
@@ -2520,79 +2520,12 @@ Stage 11 acceptance records:
 
 ## Stage 12 — Motion and Interaction Quality
 
-Stage 12 is ACTIVE.
+Stage 12 is ACCEPTED AND COMPLETE.
 
-12A — Motion and interaction audit / contract is ACCEPTED AND COMPLETE.
-
-Contract:
-- `docs/experience-v2/STAGE12_WORK_BRIEF.md`.
-
-Exact accepted 12A documentation head:
-- `a100f512b20f9ef0c0bab98e722d9d0dc391d74b`.
-
-Documentation integrity verification:
-- CI PASS — run `36541719469` (#1390);
-- Migration Replay PASS — run `36541719345` (#1001);
-- Account Security PASS — run `36541719437` (#1173);
-- Quality Gate documentation contract PASS — run `36541719331` (#1199);
-- Vercel PASS.
-
-12B — Shared motion primitives is ACCEPTED AND COMPLETE.
-
-Exact accepted 12B application head:
-- `105ec059f1dc8d7f1995b4b469edea67b45620cc`.
-
-Exact-head Level B:
-- CI PASS — run `36549329310` (#1404);
-- Migration Replay PASS — run `36549329811` (#1015);
-- Account Security PASS — run `36549329755` (#1187);
-- Complete Quality Gate PASS — run `36549329067` (#1213);
-- Level B SQL and authority contracts PASS;
-- all four browser shards PASS;
-- merged exact-head product evidence PASS;
-- role-and-RLS coordinator PASS;
-- Vercel PASS.
-
-12B evidence:
-- `redesign-r7-product-inspection` artifact `11024490813`;
-- digest `sha256:98587c5d720a6033cc2f3424e9652d4dabbeb570106c9e7eb85f37c0dd470314`;
-- `experience-v2-foundation` artifact `11024485783`;
-- digest `sha256:5eb11f393f1a25866d0a313c4756acb6ef091cec695ad9d6a78fc63387af8196`;
-- exact-head inspection covered the 390px foundation proof, 390px reduced-motion Manager Calendar and 1366px foundation proof;
-- segment selection continuity, shared disclosure reflow, calendar selected-date continuity and period-label transition passed;
-- reduced-motion retained the same functional state without required movement;
-- no page-level horizontal overflow was found in the inspected proof;
-- no schema, migration, RLS, RPC, auth or capability authority changed.
-
-Acceptance record:
-- `docs/experience-v2/STAGE12_12B_ACCEPTANCE_RECORD.md`.
-
-Current substage:
-- 12C — Apply motion to accepted high-value flows.
-
-Binding references:
-- `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
-- `docs/experience-v2/REFERENCE_INDEX.md`;
-- `docs/experience-v2/STAGE12_WORK_BRIEF.md`;
-- Library motion reference `CEAC OS / Experience V2 / References / Original Quality References / motion_reference_original.mp4`;
-- Library storyboard `motion_reference_storyboard.jpg`.
-
-Stage 12 canonical scope:
-- motion must explain spatial continuity, state change, expansion/collapse and attention movement;
-- layout reflow, drawers/sheets, tab/segment movement, calendar selection/period changes and enter/exit behaviour are in scope where they improve comprehension;
-- shared-element treatment is optional and only where continuity is genuinely clearer;
-- normal work must never wait on decorative animation;
-- motion must remain interruptible;
-- `prefers-reduced-motion` alternatives are mandatory;
-- existing V2 timing/easing tokens remain the single motion contract;
-- product geometry, role authority, RLS/RPC boundaries and existing functional contracts must not change merely to obtain motion.
-
-12C — Apply motion to accepted high-value flows is ACCEPTED AND COMPLETE.
-
-Exact accepted 12C application head:
+Final accepted Stage 12 application head:
 - `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`.
 
-Exact-head Level B:
+Final exact-head Level B:
 - CI PASS — run `36554554333` (#1414);
 - Migration Replay PASS — run `36554554275` (#1025);
 - Account Security PASS — run `36554554272` (#1197);
@@ -2603,41 +2536,60 @@ Exact-head Level B:
 - role-and-RLS coordinator PASS;
 - Vercel PASS.
 
-12C evidence:
+Stage 12 evidence:
 - `redesign-r7-product-inspection` artifact `11027906332`;
 - digest `sha256:c787e3c66d5d496bd2bbae4405dbb3f96879bf3135f7552118ba6e2427935840`;
 - `experience-v2-foundation` artifact `11027976238`;
 - digest `sha256:5486319f16c320ec0edb4c4a5e639abee9e7b6af5cf7d9562839f74c3b1867bf`;
-- exact-head inspection covered Manager Reports at 390px and 1366px and the reduced-motion Manager Calendar Sheet at 390px;
-- empty Supporting analysis now remains factual instead of rendering blank space or inventing data;
-- legacy Sheet preserves Escape/focus/restoration semantics;
-- no schema, migration, RLS, RPC, auth or capability authority changed.
+- exact-head inspection covered shared segmented/disclosure motion, Manager Calendar reduced-motion behaviour, Manager Reports disclosure at phone/laptop widths and legacy Sheet focus/Escape/restoration behaviour;
+- no page-level overflow or fabricated state was found in the accepted Stage 12 evidence;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
 
-Acceptance record:
-- `docs/experience-v2/STAGE12_12C_ACCEPTANCE_RECORD.md`.
+Stage 12 acceptance records:
+- `docs/experience-v2/STAGE12_12B_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE12_12C_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE12_ACCEPTANCE_RECORD.md`.
 
-12C recovery history:
-- the earlier candidate `658f1e582ea6362132de4077d22ffd1aaa22e4a7` had an isolated infrastructure navigation timeout in one pre-existing Staff Workforce laptop test; the failed job reran unchanged and passed;
-- Vercel briefly hit the known free-plan build-rate limit, then recovered;
-- direct inspection found and corrected an empty Supporting analysis disclosure before acceptance;
-- the final accepted head `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab` passed the complete boundary including Vercel.
+## Stage 13 — Visual Assets and Media
+
+Stage 13 is ACTIVE.
 
 Current substage:
-- 12D — Stage 12 Final Acceptance.
+- 13A — Visual asset/media audit and contract.
 
-12D exact next action:
-- reconcile the complete Stage 12 contract across shared segmented/calendar continuity, disclosure reflow, V2 overlays, legacy Sheet behaviour and reduced motion;
-- cite the accepted 12C exact-head Level B and direct evidence;
-- write the Stage 12 final acceptance record only if no unresolved Stage 12 defect remains;
-- update BUILD_STATE to close Stage 12 and open Stage 13 before any Stage 13 work progresses materially.
+Binding references:
+- `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
+- `docs/experience-v2/IMPLEMENTATION_SEQUENCE.md`;
+- `docs/experience-v2/REFERENCE_INDEX.md`;
+- persistent Library quality references and source mockups.
+
+Stage 13 canonical scope:
+- complete only surfaces that genuinely need imagery, illustration or video;
+- prefer authentic CEAC-owned imagery where context matters;
+- original CEAC-specific generated visuals are allowed where appropriate;
+- licensed/free stock is only a fallback for generic context;
+- no decorative media bloat;
+- optimise responsive image/video delivery;
+- use fixed aspect-ratio containers to avoid layout shift;
+- use poster images before video;
+- do not make the main shell depend on heavy media;
+- if an authentic CEAC asset is required and unavailable, record the asset request rather than substitute misleading media;
+- the Stage 12 motion reference remains a behaviour reference and must not be embedded as product media.
+
+13A exact next action:
+- inventory every current visual-asset/media use and every candidate surface across Staff, Manager, Administration and Executive;
+- identify where authentic CEAC identity/context would materially improve comprehension or hierarchy;
+- inspect repository/public assets and Library references before proposing new media;
+- classify each candidate as keep/no-media/authentic-asset-needed/generated-asset-allowed/licensed-stock-allowed;
+- record any missing authentic CEAC asset as an explicit unresolved asset request;
+- persist `docs/experience-v2/STAGE13_WORK_BRIEF.md` before implementation work begins.
+
 Protected boundaries:
-- no decorative motion that delays routine work;
-- no scroll hijacking;
-- no animation that conceals authority, loading or error state;
-- no dependence on heavy animation libraries unless repository evidence proves native CSS/React is insufficient;
-- no new global override/parity stylesheet;
-- no increase in `!important` debt;
-- reduced-motion support is mandatory;
+- no random stock imagery as decoration;
+- no invented CEAC photos or misleading documentary imagery;
+- no heavy media in the shell;
+- no media that changes or implies role authority;
+- no schema, RLS, RPC or auth changes for presentation;
 - frozen enterprise PR #71 remains untouched;
 - Payroll remains blocked.
 
