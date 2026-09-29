@@ -1,0 +1,150 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+
+const password = process.env.ROLE_FIXTURE_PASSWORD;
+
+async function login(browser, email, app, viewport, reducedMotion = "no-preference") {
+  const context = await browser.newContext({ viewport, reducedMotion });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill(email);
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name:"Sign in" }).click();
+  await expect(page.locator(app)).toBeVisible({ timeout:15000 });
+  return { context, page };
+}
+
+async function expectNoPageOverflow(page, label) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow, `${label} has page-level horizontal overflow`).toBeLessThanOrEqual(1);
+}
+
+test("Stage 12B keeps one ratified motion system with reduced-motion support", async () => {
+  const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+  const main = readFileSync("src/main.jsx", "utf8");
+  const provider = readFileSync("src/experience-v2/ExperienceV2MotionProvider.jsx", "utf8");
+  const motionContract = readFileSync("src/experience-v2/motion.js", "utf8");
+  const foundation = readFileSync("src/experience-v2.css", "utf8");
+  const segmented = readFileSync("src/experience-v2/components/SegmentedControl.jsx", "utf8");
+  const disclosure = readFileSync("src/experience-v2/components/MotionDisclosure.jsx", "utf8");
+  const calendar = readFileSync("src/experience-v2/calendar/CalendarFamilyV2.jsx", "utf8");
+  const componentsCss = readFileSync("src/experience-v2/components/components.css", "utf8");
+  const calendarCss = readFileSync("src/experience-v2/calendar/calendar.css", "utf8");
+
+  expect(pkg.dependencies.motion).toBeTruthy();
+  expect(main).toContain("ExperienceV2MotionProvider");
+  expect(provider).toContain('reducedMotion="user"');
+  expect(motionContract).toContain("EV2_TRANSITIONS");
+  expect(motionContract).toContain("reflow");
+  expect(foundation).toContain("@media (prefers-reduced-motion: reduce)");
+  expect(foundation).toContain("--ev2-duration-complex: 0ms");
+
+  expect(segmented).toContain("layoutId");
+  expect(segmented).toContain("ev2c-segmented-indicator");
+  expect(segmented).toContain("EV2_TRANSITIONS.reflow");
+
+  expect(disclosure).toContain("useReducedMotion");
+  expect(disclosure).toContain('height: "auto"');
+  expect(disclosure).toContain("AnimatePresence");
+
+  expect(calendar).toContain("ev2cal-selection-indicator");
+  expect(calendar).toContain("ev2cal-period-label");
+  expect(calendar).toContain("useReducedMotion");
+
+  expect(componentsCss).not.toContain("!important");
+  expect(calendarCss).not.toContain("!important");
+});
+
+test("Stage 12B shared selection and disclosure motion work in the protected proof", async ({ browser }) => {
+  const { context, page } = await login(
+    browser,
+    "admin@ceac.local.test",
+    ".office-app",
+    { width:390, height:844 },
+  );
+  await page.goto("/?tab=primitives");
+
+  const segmented = page.getByRole("tablist", { name:"Reference component state" });
+  await expect(segmented).toBeVisible();
+  await expect(segmented.locator(".ev2c-segmented-indicator")).toHaveCount(1);
+
+  const waiting = segmented.getByRole("tab", { name:"Waiting", exact:true });
+  await waiting.click();
+  await expect(waiting).toHaveAttribute("aria-selected", "true");
+  await expect(waiting.locator(".ev2c-segmented-indicator")).toHaveCount(1);
+
+  const trigger = page.getByRole("button", { name:/Reference state compact/ });
+  await trigger.click();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByLabel("Reference motion detail")).toBeVisible();
+
+  await page.getByRole("button", { name:/Reference state expanded/ }).click();
+  await expect(page.getByLabel("Reference motion detail")).toHaveCount(0);
+
+  await expectNoPageOverflow(page, "Stage 12B phone proof");
+  await page.screenshot({
+    path:"test-artifacts/redesign-r7-stage12b-motion-proof-phone-390.png",
+    fullPage:true,
+  });
+  await context.close();
+});
+
+test("Stage 12B calendar continuity remains functional under reduced motion", async ({ browser }) => {
+  const { context, page } = await login(
+    browser,
+    "manager@ceac.local.test",
+    ".manager-app",
+    { width:390, height:844 },
+    "reduce",
+  );
+  await page.goto("/?tab=calendar");
+
+  expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBeTruthy();
+
+  const month = page.getByRole("tab", { name:"Month", exact:true });
+  const week = page.getByRole("tab", { name:"Week", exact:true });
+  await expect(month).toHaveAttribute("aria-selected", "true");
+  await expect(month.locator(".ev2c-segmented-indicator")).toHaveCount(1);
+
+  await week.click();
+  await expect(week).toHaveAttribute("aria-selected", "true");
+  await expect(week.locator(".ev2c-segmented-indicator")).toHaveCount(1);
+  await expect(page.locator(".ev2cal-day")).toHaveCount(7);
+
+  const selected = page.locator(".ev2cal-day-button[aria-pressed='true']");
+  await expect(selected).toHaveCount(1);
+  await expect(selected.locator(".ev2cal-selection-indicator")).toHaveCount(1);
+
+  const period = page.locator(".ev2cal-period-label strong");
+  const before = await period.textContent();
+  await page.getByRole("button", { name:"Next period", exact:true }).click();
+  await expect(period).not.toHaveText(before || "");
+
+  await expectNoPageOverflow(page, "Stage 12B reduced-motion calendar");
+  await page.screenshot({
+    path:"test-artifacts/redesign-r7-stage12b-calendar-reduced-phone-390.png",
+    fullPage:true,
+  });
+  await context.close();
+});
+
+test("Stage 12B shared motion proof remains composed on laptop", async ({ browser }) => {
+  const { context, page } = await login(
+    browser,
+    "admin@ceac.local.test",
+    ".office-app",
+    { width:1366, height:768 },
+  );
+  await page.goto("/?tab=primitives");
+
+  await expect(page.getByRole("heading", { name:"Foundation quality proof", exact:true })).toBeVisible();
+  await page.getByRole("button", { name:/Reference state compact/ }).click();
+  await expect(page.getByLabel("Reference motion detail")).toBeVisible();
+  await expectNoPageOverflow(page, "Stage 12B laptop proof");
+
+  await page.screenshot({
+    path:"test-artifacts/redesign-r7-stage12b-motion-proof-laptop-1366.png",
+    fullPage:true,
+  });
+  await context.close();
+});
