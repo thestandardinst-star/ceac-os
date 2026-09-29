@@ -2504,8 +2504,23 @@ Stage 11 acceptance records:
 
 Stage 12 is ACTIVE.
 
+12A — Motion and interaction audit / contract is ACCEPTED AND COMPLETE.
+
+Contract:
+- `docs/experience-v2/STAGE12_WORK_BRIEF.md`.
+
+Exact accepted 12A documentation head:
+- `a100f512b20f9ef0c0bab98e722d9d0dc391d74b`.
+
+Documentation integrity verification:
+- CI PASS — run `36541719469` (#1390);
+- Migration Replay PASS — run `36541719345` (#1001);
+- Account Security PASS — run `36541719437` (#1173);
+- Quality Gate documentation contract PASS — run `36541719331` (#1199);
+- Vercel PASS.
+
 Current substage:
-- 12A — Motion and interaction audit / contract.
+- 12B — Shared motion primitives.
 
 Binding references:
 - `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
@@ -2523,12 +2538,13 @@ Stage 12 canonical scope:
 - existing V2 timing/easing tokens are the starting contract and must be rationalised rather than replaced with a competing motion system;
 - product geometry, role authority, RLS/RPC boundaries and existing functional contracts must not change merely to obtain motion.
 
-12A exact next action:
-- inventory existing V2 timing/easing tokens and transition behaviour;
-- map sheets/drawers, segmented controls, calendar selection/period controls, expandable sections and state-change feedback;
-- compare the stored motion reference for interaction principles rather than branding/content;
-- persist a Stage 12 work brief with an exact shared-motion implementation sequence;
-- do not add application motion until the audit/contract is accepted.
+12B exact next action:
+- add a shared moving selected-state indicator to `SegmentedControl`;
+- add reusable disclosure/reflow primitives using the ratified V2 motion tokens;
+- add selected-date and period continuity to the shared Stage 11 calendar family;
+- add reduced-motion and keyboard/focus acceptance coverage;
+- preserve the already correct V2 overlay/toast/popover motion contract;
+- complete exact-head Level B before 12C application.
 
 Protected boundaries:
 - no decorative motion that delays routine work;
