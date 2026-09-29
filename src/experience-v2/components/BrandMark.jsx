@@ -21,6 +21,7 @@ export function BrandMark({
       alt={decorative ? "" : label}
       aria-hidden={decorative ? "true" : undefined}
       decoding="async"
+      fetchPriority="high"
       draggable="false"
     />
   );
