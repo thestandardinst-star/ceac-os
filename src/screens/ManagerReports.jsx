@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { Sheet, ProductNotice, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import MinistryNumbers from "../components/MinistryNumbers";
-import { Button, Skeleton, StatePanel } from "../experience-v2/components";
+import { Button, MotionDisclosure, Skeleton, StatePanel } from "../experience-v2/components";
 import { DataVizChart } from "../experience-v2/data-viz/DataVizV2";
 import {
   ReportingPageHeader,
@@ -564,7 +564,8 @@ export default function ManagerReports({ me, openItem }) {
                     }
                   }} />)}
           {drill.rows.length === 0 && <ReportingEmpty title="No supporting rows attached" description="This figure currently has no traceable supporting rows in the selected report evidence." />}
-        </div>}
+          </div>
+        </MotionDisclosure>
       </ReportingSection>
 
       <ReportingSection
@@ -577,10 +578,18 @@ export default function ManagerReports({ me, openItem }) {
             <strong>Supporting analysis</strong>
             <span>Open this only when a pattern helps explain the report evidence.</span>
           </div>
-          <Button variant="quiet" size="compact" icon="chart" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</Button>
+          <Button
+            variant="quiet"
+            size="compact"
+            icon="chart"
+            aria-expanded={showAnalysis}
+            aria-controls="manager-report-supporting-analysis"
+            onClick={() => setShowAnalysis((value) => !value)}
+          >{showAnalysis ? "Hide analysis" : "Show analysis"}</Button>
         </div>
 
-        {showAnalysis && <div className="report-analysis">
+        <MotionDisclosure open={showAnalysis} ariaLabel="Supporting analysis">
+          <div id="manager-report-supporting-analysis" className="report-analysis">
           {displayDaily.some((point) => point.value > 0) && <DataVizChart
             kind="line"
             title="Completed work trend"
