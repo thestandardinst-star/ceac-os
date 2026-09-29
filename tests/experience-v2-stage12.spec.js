@@ -69,7 +69,9 @@ test("Stage 12B shared selection and disclosure motion work in the protected pro
   await expect(segmented.locator(".ev2c-segmented-indicator")).toHaveCount(1);
 
   const waiting = segmented.getByRole("tab", { name:"Waiting", exact:true });
-  await waiting.click();
+  await waiting.focus();
+  await expect(waiting).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect(waiting).toHaveAttribute("aria-selected", "true");
   await expect(waiting.locator(".ev2c-segmented-indicator")).toHaveCount(1);
 
@@ -115,7 +117,7 @@ test("Stage 12B calendar continuity remains functional under reduced motion", as
   await expect(selected).toHaveCount(1);
   await expect(selected.locator(".ev2cal-selection-indicator")).toHaveCount(1);
 
-  const period = page.locator(".ev2cal-period-label strong");
+  const period = page.locator(".ev2cal-period-label");
   const before = await period.textContent();
   await page.getByRole("button", { name:"Next period", exact:true }).click();
   await expect(period).not.toHaveText(before || "");
