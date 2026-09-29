@@ -140,6 +140,7 @@ test("Stage 11C Administration Calendar remains a 14/30/90 day operating timelin
 
   const calendar = page.locator(".ev2cal-admin-page");
   await expect(calendar).toBeVisible();
+  await expect(calendar.getByText("Calendar could not finish loading", { exact: true })).toHaveCount(0);
   await expect(calendar.getByRole("tab", { name: "Next 14 days", exact: true })).toBeVisible();
   await expect(calendar.getByRole("tab", { name: "Next 30 days", exact: true })).toBeVisible();
   await expect(calendar.getByRole("tab", { name: "Next 90 days", exact: true })).toBeVisible();
