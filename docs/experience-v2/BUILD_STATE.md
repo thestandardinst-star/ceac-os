@@ -6,8 +6,8 @@ Last updated: 29 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 13 — Visual Assets and Media (ACTIVE)
-Current substage: 13C — Stage 13 final acceptance (ACTIVE)
+Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
+Current substage: 14A — Whole-system route/state audit and contract (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical implementation HEAD at this reconciliation: `f5295d080d0f36efd822c70a004f61440f017c76`;
@@ -2558,100 +2558,65 @@ Stage 12 acceptance records:
 
 ## Stage 13 — Visual Assets and Media
 
-Stage 13 is ACTIVE.
+Stage 13 is ACCEPTED AND COMPLETE.
 
-13A — Visual asset/media audit and contract is ACCEPTED AND COMPLETE.
-
-Contract:
-- `docs/experience-v2/STAGE13_WORK_BRIEF.md`.
-
-Exact accepted 13A documentation head:
-- `aff6d84e24ba31dc079d16028802ede59b89f918`.
-
-Documentation integrity verification:
-- CI PASS — run `36556569198` (#1419);
-- Migration Replay PASS — run `36556569172` (#1030);
-- Account Security PASS — run `36556569185` (#1202);
-- Quality Gate documentation contract PASS — run `36556569141` (#1228);
-- exact-head Vercel reported the external free-plan build-rate limit on this documentation-only commit; no application code changed, and the immediately preceding accepted Stage 12 application head already passed complete Level B and Vercel as required by the documentation fast path.
-
-13A locked findings:
-- the repository already contains the CEAC application mark in `public/ceac-icon-192.png`, `public/ceac-icon-512.png` and `public/apple-touch-icon.png`;
-- `public/manifest.webmanifest` already uses the application mark for install identity;
-- AuthFrame and the V2 shell currently duplicate the same mark with CSS surrogate geometry;
-- current operational surfaces do not require photography/video to remain clear and authoritative;
-- no profile-photo data/storage/authority contract is introduced;
-- no authentic CEAC photo/video asset is required to complete current Experience V2 scope;
-- the motion reference remains a behaviour reference, not product media.
-
-Current substage:
-- 13C — Stage 13 final acceptance.
-
-13B — CEAC application-mark integration is ACCEPTED AND COMPLETE.
-
-Accepted application SHA:
+Final accepted Stage 13 application head:
 - `668d9ef0c29d5d64770b0d565121a2272f6a9023`.
 
-Exact-head Level B:
+Final exact-head Level B:
 - CI PASS — run `36561584774` (#1433);
 - Migration Replay PASS — run `36561584688` (#1044);
 - Account Security PASS — run `36561584704` (#1216);
 - Complete Quality Gate PASS — run `36561584843` (#1242);
+- Level B SQL and authority contracts PASS;
 - all four browser shards PASS;
-- Level B SQL/authority contracts PASS;
 - merged exact-head product evidence PASS;
 - role-and-RLS coordinator PASS;
 - Vercel PASS.
 
-13B evidence:
+Stage 13 evidence:
 - `redesign-r7-product-inspection` artifact `11029654969`;
 - digest `sha256:566298941050a5f6378f2f84a534ee0a414ea5aa37c1bfc1870235d04d33ed84`;
 - `experience-v2-foundation` artifact `11030358561`;
 - digest `sha256:8643c0642a3ecb4f02dc26c4e31f83af70e6cc14bfe3b6b5fe347c1086a455f6`;
-- direct exact-head inspection passed sign-in at 390/1366 and shell identity at 390/1366 with no broken asset or page-level overflow.
+- exact-head inspection covered sign-in at 390/1366 and shell identity at 390/1366;
+- browser/PWA/touch identity remains coherent;
+- no heavyweight, stock, generated documentary or misleading CEAC media was introduced;
+- no profile/media authority was invented;
+- no schema, migration, RLS, RPC definition, authentication configuration or capability grant changed.
 
-Acceptance record:
-- `docs/experience-v2/STAGE13_13B_ACCEPTANCE_RECORD.md`.
+Stage 13 acceptance records:
+- `docs/experience-v2/STAGE13_13B_ACCEPTANCE_RECORD.md`;
+- `docs/experience-v2/STAGE13_ACCEPTANCE_RECORD.md`.
 
-13C exact next action:
-- perform final Stage 13 reconciliation against the accepted 13B application head;
-- confirm browser/PWA/touch identity coherence, stable dimensions, no heavyweight or misleading media, no profile/media authority invention and negligible shell/auth media impact;
-- persist the Stage 13 final acceptance record;
-- update BUILD_STATE before Stage 14 begins.
+## Stage 14 — Whole-System Responsive and State Pass
 
-Binding references:
-- `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
-- `docs/experience-v2/IMPLEMENTATION_SEQUENCE.md`;
-- `docs/experience-v2/REFERENCE_INDEX.md`;
-- persistent Library quality references and source mockups.
+Stage 14 is ACTIVE.
 
-Stage 13 canonical scope:
-- complete only surfaces that genuinely need imagery, illustration or video;
-- prefer authentic CEAC-owned imagery where context matters;
-- original CEAC-specific generated visuals are allowed where appropriate;
-- licensed/free stock is only a fallback for generic context;
-- no decorative media bloat;
-- optimise responsive image/video delivery;
-- use fixed aspect-ratio containers to avoid layout shift;
-- use poster images before video;
-- do not make the main shell depend on heavy media;
-- if an authentic CEAC asset is required and unavailable, record the asset request rather than substitute misleading media;
-- the Stage 12 motion reference remains a behaviour reference and must not be embedded as product media.
+Current substage:
+- 14A — Whole-system route/state audit and contract.
 
-13A exact next action:
-- inventory every current visual-asset/media use and every candidate surface across Staff, Manager, Administration and Executive;
-- identify where authentic CEAC identity/context would materially improve comprehension or hierarchy;
-- inspect repository/public assets and Library references before proposing new media;
-- classify each candidate as keep/no-media/authentic-asset-needed/generated-asset-allowed/licensed-stock-allowed;
-- record any missing authentic CEAC asset as an explicit unresolved asset request;
-- persist `docs/experience-v2/STAGE13_WORK_BRIEF.md` before implementation work begins.
+Canonical scope:
+- inspect every authorised role route at 320, 360, 375, approximately 390×844, 414, 430, representative tablet/intermediate width, approximately 1366×768 and 1440px+;
+- inspect loading, empty, partial/unconfigured, populated, error, permission-limited, completed/success, destructive/action confirmation and long-content states;
+- verify keyboard and touch behaviour;
+- preserve role/capability authority and truthful state semantics;
+- do not add presentation-only schema/RLS/RPC/auth changes.
+
+14A exact next action:
+- inventory the authorised Staff, Manager, Administration and Executive route matrix from canonical navigation;
+- map existing state coverage and responsive evidence to the Stage 14 width/state matrix;
+- identify deterministic gaps rather than re-testing already proven contracts blindly;
+- persist `docs/experience-v2/STAGE14_WORK_BRIEF.md` before application changes;
+- update BUILD_STATE before each accepted Stage 14 substage transition.
 
 Protected boundaries:
-- no random stock imagery as decoration;
-- no invented CEAC photos or misleading documentary imagery;
-- no heavy media in the shell;
-- no media that changes or implies role authority;
-- no schema, RLS, RPC or auth changes for presentation;
+- no fabricated records to make a state look populated;
+- no hidden permission-limited state;
+- no route exposed outside its capability contract;
+- no horizontal-page overflow accepted merely because an inner control intentionally scrolls;
+- no new global parity/override stylesheet;
+- no weakening of existing role/RLS/security tests;
 - frozen enterprise PR #71 remains untouched;
 - Payroll remains blocked.
 
