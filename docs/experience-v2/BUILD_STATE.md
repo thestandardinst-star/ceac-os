@@ -7,7 +7,7 @@ Last updated: 29 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 12 — Motion and Interaction Quality (ACTIVE)
-Current substage: 12C — Apply motion to accepted high-value flows (ACTIVE)
+Current substage: 12D — Stage 12 Final Acceptance (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
@@ -2587,50 +2587,49 @@ Stage 12 canonical scope:
 - existing V2 timing/easing tokens remain the single motion contract;
 - product geometry, role authority, RLS/RPC boundaries and existing functional contracts must not change merely to obtain motion.
 
-12C implementation is complete and is at its acceptance boundary, but 12C is NOT yet accepted.
+12C — Apply motion to accepted high-value flows is ACCEPTED AND COMPLETE.
 
-Current exact application head:
-- `658f1e582ea6362132de4077d22ffd1aaa22e4a7`;
-- commit: `EV2 12C: verify operational motion relationships [level-b]`.
+Exact accepted 12C application head:
+- `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`.
 
-Verified on that exact head:
-- CI PASS — run `36551805500` (#1412);
-- Migration Replay PASS — run `36551805576` (#1023);
-- Account Security PASS — run `36551805571` (#1195);
-- Complete Quality Gate PASS after rerunning the failed infrastructure shard — run `36551805495` (#1221);
+Exact-head Level B:
+- CI PASS — run `36554554333` (#1414);
+- Migration Replay PASS — run `36554554275` (#1025);
+- Account Security PASS — run `36554554272` (#1197);
+- Complete Quality Gate PASS — run `36554554178` (#1223);
 - Level B SQL and authority contracts PASS;
 - all four browser shards PASS;
 - merged exact-head product evidence PASS;
-- role-and-RLS coordinator PASS.
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
 
-Quality Gate recovery note:
-- the first shard-4 attempt failed one pre-existing Stage 10 Staff Workforce laptop test at `page.goto("/")` after a 30-second navigation timeout;
-- 107 other shard-4 tests passed and the same application/server continued serving later tests;
-- the failure was classified as an isolated runner/navigation infrastructure failure, not a Stage 12 product or authority defect;
-- no assertion, timeout, retry policy, product code, RLS, security rule or authority boundary was weakened;
-- GitHub's failed-job rerun passed shard 4 unchanged and completed the full Level B Quality Gate.
+12C evidence:
+- `redesign-r7-product-inspection` artifact `11027906332`;
+- digest `sha256:c787e3c66d5d496bd2bbae4405dbb3f96879bf3135f7552118ba6e2427935840`;
+- `experience-v2-foundation` artifact `11027976238`;
+- digest `sha256:5486319f16c320ec0edb4c4a5e639abee9e7b6af5cf7d9562839f74c3b1867bf`;
+- exact-head inspection covered Manager Reports at 390px and 1366px and the reduced-motion Manager Calendar Sheet at 390px;
+- empty Supporting analysis now remains factual instead of rendering blank space or inventing data;
+- legacy Sheet preserves Escape/focus/restoration semantics;
+- no schema, migration, RLS, RPC, auth or capability authority changed.
 
-12C exact-head evidence:
-- `redesign-r7-product-inspection` artifact `11026260447`;
-- digest `sha256:138caced6c2e46b07bc09217535527780ebaa4b9628047e8a8c2073f651af42e`;
-- direct exact-head inspection covered Manager Reports at 390px and 1366px and the reduced-motion Manager Calendar Sheet at 390px;
-- Manager Reports disclosure remains factual, traceable, interruptible and keyboard/touch compatible;
-- legacy Sheet retains the accepted focus/Escape/restoration contract and reduced-motion collapses animation duration rather than changing function;
-- no page-level overflow or new authority behaviour was found in the inspected Stage 12C evidence.
+Acceptance record:
+- `docs/experience-v2/STAGE12_12C_ACCEPTANCE_RECORD.md`.
 
-Outstanding acceptance blocker:
-- Vercel exact-head deployment status is FAILURE because the connected Vercel free-plan deployment quota/rate limit is exhausted;
-- the reported target is the Vercel build-rate-limit/upgrade page;
-- an authenticated redeploy of exact SHA `658f1e582ea6362132de4077d22ffd1aaa22e4a7` was attempted through the available browser automation path, but no saved Vercel credentials/browser profile are available in the connected environment;
-- 12C MUST NOT be marked accepted until that exact application SHA has a successful Vercel deployment status.
+12C recovery history:
+- the earlier candidate `658f1e582ea6362132de4077d22ffd1aaa22e4a7` had an isolated infrastructure navigation timeout in one pre-existing Staff Workforce laptop test; the failed job reran unchanged and passed;
+- Vercel briefly hit the known free-plan build-rate limit, then recovered;
+- direct inspection found and corrected an empty Supporting analysis disclosure before acceptance;
+- the final accepted head `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab` passed the complete boundary including Vercel.
 
-12C exact next action:
-- authenticate the available Vercel browser/profile or otherwise restore Vercel deployment access;
-- redeploy exact SHA `658f1e582ea6362132de4077d22ffd1aaa22e4a7` without changing settings/environment/domain configuration;
-- confirm exact-head Vercel PASS;
-- only then write the 12C acceptance record, reconcile BUILD_STATE and proceed to Stage 12 final acceptance;
-- do not begin or commit Stage 13 while this acceptance boundary remains incomplete.
+Current substage:
+- 12D — Stage 12 Final Acceptance.
 
+12D exact next action:
+- reconcile the complete Stage 12 contract across shared segmented/calendar continuity, disclosure reflow, V2 overlays, legacy Sheet behaviour and reduced motion;
+- cite the accepted 12C exact-head Level B and direct evidence;
+- write the Stage 12 final acceptance record only if no unresolved Stage 12 defect remains;
+- update BUILD_STATE to close Stage 12 and open Stage 13 before any Stage 13 work progresses materially.
 Protected boundaries:
 - no decorative motion that delays routine work;
 - no scroll hijacking;
