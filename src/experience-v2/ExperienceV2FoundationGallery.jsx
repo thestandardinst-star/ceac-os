@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { CEAC_ICON_SIZES, CeacIcon } from "./icons";
 import { EV2_TRANSITIONS } from "./motion";
 import {
@@ -23,6 +23,7 @@ import {
   ConfirmDialog,
   Drawer,
   ModalDialog,
+  MotionDisclosure,
   PopoverMenu,
   Skeleton,
   StatePanel,
@@ -541,20 +542,12 @@ export default function ExperienceV2FoundationGallery() {
               <CeacIcon name={expanded ? "chevronUp" : "chevronDown"} size="meta" decorative />
             </motion.button>
 
-            <AnimatePresence initial={false}>
-              {expanded && (
-                <motion.div
-                  className="ev2-motion-detail"
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={EV2_TRANSITIONS.standard}
-                >
-                  <span className="ev2-type-body">Reference detail</span>
-                  <span className="ev2-type-supporting">The surrounding content moves instead of abruptly jumping.</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <MotionDisclosure open={expanded} ariaLabel="Reference motion detail">
+              <div className="ev2-motion-detail">
+                <span className="ev2-type-body">Reference detail</span>
+                <span className="ev2-type-supporting">The surrounding content moves instead of abruptly jumping.</span>
+              </div>
+            </MotionDisclosure>
 
             <motion.div className="ev2-motion-footer" layout transition={EV2_TRANSITIONS.reflow}>
               <CeacIcon name="info" size="meta" decorative />
