@@ -107,6 +107,34 @@ async function expectNoPageOverflow(page, role, viewport, route) {
   ).toBeLessThanOrEqual(1);
 }
 
+async function expectBoundedInnerScrolling(page, role, viewport, route) {
+  const offenders = await page.evaluate(() => {
+    const width = document.documentElement.clientWidth;
+    return [...document.querySelectorAll("*")]
+      .filter((element) => {
+        const style = getComputedStyle(element);
+        const canScrollX = /(auto|scroll)/.test(style.overflowX);
+        return canScrollX && element.scrollWidth > element.clientWidth + 1;
+      })
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName,
+          className: typeof element.className === "string" ? element.className : "",
+          left: rect.left,
+          right: rect.right,
+          width,
+        };
+      })
+      .filter((item) => item.left < -1 || item.right > item.width + 1);
+  });
+
+  expect(
+    offenders,
+    `${role.key} ${route.key} has an intentionally scrollable control escaping the viewport at ${viewport.name}`
+  ).toEqual([]);
+}
+
 async function navigateDesktop(page, route) {
   const nav = page.locator(".ev2s-sidebar-nav");
   const button = nav.getByRole("button", { name:route.label, exact:true });
@@ -149,8 +177,17 @@ async function navigate(page, role, route, viewport) {
   await expect(page.locator(role.app)).toBeVisible();
   await expect(page.locator(".app-content .body").first()).toBeVisible();
   await expect(page.locator(".auth-shell")).toHaveCount(0);
+
+  if (viewport.width >= 900) {
+    await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeHidden();
+  } else {
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+  }
+
   await page.waitForTimeout(80);
   await expectNoPageOverflow(page, role, viewport, route);
+  await expectBoundedInnerScrolling(page, role, viewport, route);
 }
 
 test("Stage 14B route matrix mirrors the accepted shell destination contract", async () => {
@@ -178,7 +215,7 @@ for (const role of ROLES) {
         await navigate(page, role, route, viewport);
       }
 
-      if (["phone-390","intermediate-900","laptop-1366"].includes(viewport.name)) {
+      if (["phone-390","intermediate-900","laptop-1366","desktop-1440"].includes(viewport.name)) {
         await navigate(page, role, role.routes[0], viewport);
         await page.screenshot({
           path:`test-artifacts/redesign-r7-stage14b-${role.key}-${viewport.name}.png`,
