@@ -142,6 +142,7 @@ export function CalendarMonthGrid({
                 className="ev2cal-day-button"
                 aria-label={`${dateLabel}${events.length ? `, ${events.length} recorded item${events.length === 1 ? "" : "s"}` : ""}`}
                 aria-pressed={selected}
+                aria-current={today ? "date" : undefined}
                 onClick={() => onSelectDate?.(key, date)}
               >
                 <span>{date.getDate()}</span>
