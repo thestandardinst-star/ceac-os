@@ -7,7 +7,7 @@ Last updated: 29 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 13 — Visual Assets and Media (ACTIVE)
-Current substage: 13A — Visual asset/media audit and contract (ACTIVE)
+Current substage: 13B — CEAC application-mark integration (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
@@ -2554,8 +2554,41 @@ Stage 12 acceptance records:
 
 Stage 13 is ACTIVE.
 
+13A — Visual asset/media audit and contract is ACCEPTED AND COMPLETE.
+
+Contract:
+- `docs/experience-v2/STAGE13_WORK_BRIEF.md`.
+
+Exact accepted 13A documentation head:
+- `aff6d84e24ba31dc079d16028802ede59b89f918`.
+
+Documentation integrity verification:
+- CI PASS — run `36556569198` (#1419);
+- Migration Replay PASS — run `36556569172` (#1030);
+- Account Security PASS — run `36556569185` (#1202);
+- Quality Gate documentation contract PASS — run `36556569141` (#1228);
+- exact-head Vercel reported the external free-plan build-rate limit on this documentation-only commit; no application code changed, and the immediately preceding accepted Stage 12 application head already passed complete Level B and Vercel as required by the documentation fast path.
+
+13A locked findings:
+- the repository already contains the CEAC application mark in `public/ceac-icon-192.png`, `public/ceac-icon-512.png` and `public/apple-touch-icon.png`;
+- `public/manifest.webmanifest` already uses the application mark for install identity;
+- AuthFrame and the V2 shell currently duplicate the same mark with CSS surrogate geometry;
+- current operational surfaces do not require photography/video to remain clear and authoritative;
+- no profile-photo data/storage/authority contract is introduced;
+- no authentic CEAC photo/video asset is required to complete current Experience V2 scope;
+- the motion reference remains a behaviour reference, not product media.
+
 Current substage:
-- 13A — Visual asset/media audit and contract.
+- 13B — CEAC application-mark integration.
+
+13B exact next action:
+- add one shared lightweight brand-mark component that uses the existing 192px CEAC application asset;
+- migrate desktop/mobile AuthFrame and desktop/mobile V2 shell identity surfaces to that shared mark;
+- add browser favicon metadata using the existing mark;
+- preserve the PWA manifest/touch icons;
+- remove only redundant local surrogate-mark code/selectors proven unused;
+- add source and responsive browser proof;
+- complete exact-head Level B before Stage 13 final acceptance.
 
 Binding references:
 - `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
