@@ -367,6 +367,27 @@
   min-width: 0;
 }
 
+.ev2c-brand-mark {
+  display: block;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.ev2c-brand-mark-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ev2c-brand-mark-md {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.ev2c-brand-mark-lg {
+  width: 2.625rem;
+  height: 2.625rem;
+}
+
 .ev2c-avatar {
   flex: 0 0 auto;
   display: inline-grid;
