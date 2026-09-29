@@ -104,16 +104,16 @@ test("Stage 11C Manager Calendar preserves month/week, filters, selected date, s
 
   const calendar = page.locator(".ev2cal-manager-page");
   await expect(calendar).toBeVisible();
-  await expect(calendar.getByRole("button", { name: "Month", exact: true })).toBeVisible();
-  await expect(calendar.getByRole("button", { name: "Week", exact: true })).toBeVisible();
-  await calendar.getByRole("button", { name: "Week", exact: true }).click();
+  await expect(calendar.getByRole("tab", { name: "Month", exact: true })).toBeVisible();
+  await expect(calendar.getByRole("tab", { name: "Week", exact: true })).toBeVisible();
+  await calendar.getByRole("tab", { name: "Week", exact: true }).click();
   await expect(calendar.locator(".ev2cal-day")).toHaveCount(7);
 
   await expect(calendar.getByRole("button", { name: "View All", exact: true })).toBeVisible();
   await calendar.getByRole("button", { name: "View All", exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("button", { name: "Meetings", exact: true })).toBeVisible();
-  await dialog.getByRole("button", { name: "Meetings", exact: true }).click();
+  await expect(dialog.getByRole("tab", { name: "Meetings", exact: true })).toBeVisible();
+  await dialog.getByRole("tab", { name: "Meetings", exact: true }).click();
   await expect(calendar.getByRole("button", { name: "View Meetings", exact: true })).toBeVisible();
 
   const day = calendar.locator(".ev2cal-day-button").nth(2);
@@ -140,12 +140,12 @@ test("Stage 11C Administration Calendar remains a 14/30/90 day operating timelin
 
   const calendar = page.locator(".ev2cal-admin-page");
   await expect(calendar).toBeVisible();
-  await expect(calendar.getByRole("button", { name: "Next 14 days", exact: true })).toBeVisible();
-  await expect(calendar.getByRole("button", { name: "Next 30 days", exact: true })).toBeVisible();
-  await expect(calendar.getByRole("button", { name: "Next 90 days", exact: true })).toBeVisible();
-  await calendar.getByRole("button", { name: "Next 14 days", exact: true }).click();
-  await expect(calendar.getByRole("button", { name: "Month", exact: true })).toHaveCount(0);
-  await expect(calendar.getByRole("button", { name: "Week", exact: true })).toHaveCount(0);
+  await expect(calendar.getByRole("tab", { name: "Next 14 days", exact: true })).toBeVisible();
+  await expect(calendar.getByRole("tab", { name: "Next 30 days", exact: true })).toBeVisible();
+  await expect(calendar.getByRole("tab", { name: "Next 90 days", exact: true })).toBeVisible();
+  await calendar.getByRole("tab", { name: "Next 14 days", exact: true }).click();
+  await expect(calendar.getByRole("tab", { name: "Month", exact: true })).toHaveCount(0);
+  await expect(calendar.getByRole("tab", { name: "Week", exact: true })).toHaveCount(0);
   await expect(calendar.getByRole("button", { name: "Schedule meeting", exact: true })).toBeVisible();
 
   await expectNoPageOverflow(page, 390, "Administration Calendar");
@@ -190,7 +190,7 @@ for (const viewport of calendarViewports) {
 
     const admin = await openAs(browser, "admin@ceac.local.test", ".office-app", "/?tab=admin-calendar", viewport);
     await expect(admin.page.locator(".ev2cal-admin-page")).toBeVisible();
-    await expect(admin.page.getByRole("button", { name: "Next 30 days", exact: true })).toBeVisible();
+    await expect(admin.page.getByRole("tab", { name: "Next 30 days", exact: true })).toBeVisible();
     await expectNoPageOverflow(admin.page, viewport.width, "Administration Calendar");
     await admin.page.screenshot({
       path: `test-artifacts/redesign-r7-stage11c-admin-${viewport.name}.png`,
