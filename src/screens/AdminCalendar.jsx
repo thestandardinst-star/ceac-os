@@ -39,7 +39,7 @@ export default function AdminCalendar({ me, openMeeting, scheduleMeeting }) {
         supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,provider").gte("starts_at",now.toISOString()).lte("starts_at",end.toISOString()).neq("status","cancelled"),
         supabase.from("projects").select("id,name,starts_on,ends_on,status").eq("org_id",me.org_id),
         supabase.from("ministry_events").select("id,title,starts_at,ends_at,location,cancelled").gte("starts_at",now.toISOString()).lte("starts_at",end.toISOString()),
-        supabase.from("leave_requests").select("id,profile_id,start_date,end_date,status,profiles(full_name)").eq("status","approved").gte("end_date",now.toISOString().slice(0,10)).lte("start_date",end.toISOString().slice(0,10)),
+        supabase.from("leave_requests").select("id,profile_id,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").eq("status","approved").gte("end_date",now.toISOString().slice(0,10)).lte("start_date",end.toISOString().slice(0,10)),
       ]);
       const failed=[meetings,projects,ministry,leave].find((row)=>row.error);
       if(failed) throw failed.error;
