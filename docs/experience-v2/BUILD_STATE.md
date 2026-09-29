@@ -7,7 +7,7 @@ Last updated: 29 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 12 — Motion and Interaction Quality (ACTIVE)
-Current substage: 12B — Shared motion primitives (ACTIVE)
+Current substage: 12C — Apply motion to accepted high-value flows (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live implementation HEAD observed before this documentation correction: `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
@@ -16,9 +16,10 @@ Canonical reconciliation checkpoint:
 - final accepted Stage 11 application SHA: `b1867b91fda28722bd8ae8f3555b6212f3180256`;
 - final Stage 11 Level B evidence remains the persisted CI/Migration Replay/Account Security/Quality Gate/Vercel evidence recorded later in this document and in the Stage 11 acceptance record;
 - Stage 12A is accepted/documented;
-- Stage 12B is ACTIVE and is NOT accepted yet;
-- exact-head state for `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df` at reconciliation time: Migration Replay PASS (#1011), Account Security PASS (#1183), Quality Gate PASS (#1209, Level B jobs skipped because this is not yet an acceptance boundary), CI #1400 still in progress, and Vercel blocked by the external free-plan build-rate limit;
-- no 12B acceptance SHA or Level B evidence exists yet, so BUILD_STATE must not imply 12B completion.
+- the original reconciliation observed 12B as active and unaccepted at `cf1bf8d7cb0c55d59bd889aa9bbbf13ee2ae38df`;
+- that historical exact-head state was Migration Replay PASS (#1011), Account Security PASS (#1183), Quality Gate PASS (#1209 with Level B jobs skipped because it was not yet an acceptance boundary), CI #1400 in progress, and Vercel temporarily blocked by the external free-plan build-rate limit;
+- 12B subsequently completed and is formally accepted at `105ec059f1dc8d7f1995b4b469edea67b45620cc` with complete Level B and Vercel PASS;
+- current work is 12C; the earlier reconciliation checkpoint remains recorded only as historical recovery evidence.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
@@ -2536,12 +2537,43 @@ Documentation integrity verification:
 - Quality Gate documentation contract PASS — run `36541719331` (#1199);
 - Vercel PASS.
 
+12B — Shared motion primitives is ACCEPTED AND COMPLETE.
+
+Exact accepted 12B application head:
+- `105ec059f1dc8d7f1995b4b469edea67b45620cc`.
+
+Exact-head Level B:
+- CI PASS — run `36549329310` (#1404);
+- Migration Replay PASS — run `36549329811` (#1015);
+- Account Security PASS — run `36549329755` (#1187);
+- Complete Quality Gate PASS — run `36549329067` (#1213);
+- Level B SQL and authority contracts PASS;
+- all four browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+12B evidence:
+- `redesign-r7-product-inspection` artifact `11024490813`;
+- digest `sha256:98587c5d720a6033cc2f3424e9652d4dabbeb570106c9e7eb85f37c0dd470314`;
+- `experience-v2-foundation` artifact `11024485783`;
+- digest `sha256:5eb11f393f1a25866d0a313c4756acb6ef091cec695ad9d6a78fc63387af8196`;
+- exact-head inspection covered the 390px foundation proof, 390px reduced-motion Manager Calendar and 1366px foundation proof;
+- segment selection continuity, shared disclosure reflow, calendar selected-date continuity and period-label transition passed;
+- reduced-motion retained the same functional state without required movement;
+- no page-level horizontal overflow was found in the inspected proof;
+- no schema, migration, RLS, RPC, auth or capability authority changed.
+
+Acceptance record:
+- `docs/experience-v2/STAGE12_12B_ACCEPTANCE_RECORD.md`.
+
 Current substage:
-- 12B — Shared motion primitives.
+- 12C — Apply motion to accepted high-value flows.
 
 Binding references:
 - `docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md`;
 - `docs/experience-v2/REFERENCE_INDEX.md`;
+- `docs/experience-v2/STAGE12_WORK_BRIEF.md`;
 - Library motion reference `CEAC OS / Experience V2 / References / Original Quality References / motion_reference_original.mp4`;
 - Library storyboard `motion_reference_storyboard.jpg`.
 
@@ -2552,16 +2584,16 @@ Stage 12 canonical scope:
 - normal work must never wait on decorative animation;
 - motion must remain interruptible;
 - `prefers-reduced-motion` alternatives are mandatory;
-- existing V2 timing/easing tokens are the starting contract and must be rationalised rather than replaced with a competing motion system;
+- existing V2 timing/easing tokens remain the single motion contract;
 - product geometry, role authority, RLS/RPC boundaries and existing functional contracts must not change merely to obtain motion.
 
-12B exact next action:
-- add a shared moving selected-state indicator to `SegmentedControl`;
-- add reusable disclosure/reflow primitives using the ratified V2 motion tokens;
-- add selected-date and period continuity to the shared Stage 11 calendar family;
-- add reduced-motion and keyboard/focus acceptance coverage;
-- preserve the already correct V2 overlay/toast/popover motion contract;
-- complete exact-head Level B before 12C application.
+12C exact next action:
+- apply `MotionDisclosure` to Manager Reports Supporting analysis without changing factual report evidence;
+- preserve the already accepted global segmented/calendar continuity now inherited by role screens;
+- validate representative Drawer/Modal/Popover/Toast behaviour remains coherent;
+- align the legacy shared Sheet entrance/backdrop only if this can be done without changing focus trapping, Escape, restoration or action timing;
+- add phone/laptop and reduced-motion acceptance coverage;
+- complete exact-head Level B before Stage 12 final acceptance.
 
 Protected boundaries:
 - no decorative motion that delays routine work;
