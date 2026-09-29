@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 import { Sheet, ProductNotice, FieldGroup } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import MinistryNumbers from "../components/MinistryNumbers";
-import { Skeleton, StatePanel } from "../experience-v2/components";
+import { Button, Skeleton, StatePanel } from "../experience-v2/components";
 import { DataVizChart } from "../experience-v2/data-viz/DataVizV2";
 import {
   ReportingPageHeader,
@@ -577,7 +577,7 @@ export default function ManagerReports({ me, openItem }) {
             <strong>Supporting analysis</strong>
             <span>Open this only when a pattern helps explain the report evidence.</span>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</button>
+          <Button variant="quiet" size="compact" icon="chart" onClick={() => setShowAnalysis((value) => !value)}>{showAnalysis ? "Hide analysis" : "Show analysis"}</Button>
         </div>
 
         {showAnalysis && <div className="report-analysis">
