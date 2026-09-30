@@ -24,6 +24,7 @@ import "./experience-v2/finance-family/finance-family.css";
 import "./experience-v2/personal-family/personal-family.css";
 import "./experience-v2/calendar/calendar.css";
 import "./experience-v2/data-viz/data-viz.css";
+import "./experience-v2/integrations/integrations.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
