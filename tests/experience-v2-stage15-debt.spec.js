@@ -136,3 +136,9 @@ test("Stage 15C retires the unused bits shell icon implementation", () => {
   expect(bits, "src/components/bits.jsx").not.toContain("function desktopGroups(");
   expect(bits, "src/components/bits.jsx").not.toContain("function MobileMenuGroup(");
 });
+
+test("Stage 15C removes visual components proven unused by the production import graph", () => {
+  expect(fs.existsSync("src/components/PremiumShell.jsx")).toBe(false);
+  expect(fs.existsSync("src/components/ReferenceDashboard.jsx")).toBe(false);
+});
+
