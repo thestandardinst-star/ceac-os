@@ -105,7 +105,24 @@ test("Stage 15B keeps superseded overview override layers retired", () => {
     ".manager-command-surface",
     ".admin-command-surface",
     ".executive-command-surface",
+    ".staff-home-dashboard",
+    ".home-dashboard",
+    ".admin-home-grid",
+    ".admin-pulse-grid",
+    ".admin-home-section",
+    ".executive-intelligence-grid",
+    ".executive-change-card",
+    ".home-panel-priority",
+    ".home-panel-projects",
+    ".home-panel-waiting",
+    ".home-panel-coming",
+    ".home-panel-movement",
+    ".home-panel-pulse",
+    ".home-panel-week",
   ]) {
     expect(parity, "src/premium-parity.css").not.toContain(selector);
   }
+
+  expect(fs.readFileSync("src/premium-staff.css", "utf8"), "src/premium-staff.css")
+    .not.toContain(".staff-home-dashboard");
 });
