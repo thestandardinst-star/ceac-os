@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { dueLabel, isOverdue } from "../lib/time";
-import { Sheet, statusPill, ProductNotice, LoadingState } from "../components/bits";
+import { isOverdue } from "../lib/time";
+import { Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceFocusPanel, ReferenceModuleStrip } from "../components/ReferenceDashboard";
-import { Stat, StatRow, QueueRow, Chart } from "../components/primitives";
+import ManagerOverviewV2 from "../experience-v2/manager-overview/ManagerOverviewV2";
 
 function startOfDay(date = new Date()) {
   const value = new Date(date);
@@ -41,16 +40,6 @@ function moneyMinor(minor, currency) {
 function requireResult(result, label) {
   if (result.error) throw new Error(`${label}: ${result.error.message}`);
   return result.data || [];
-}
-
-function ActionRow({ item, openItem, tone = "neutral" }) {
-  return (
-    <button className={`row home-work-row home-tone-${tone}`} onClick={() => openItem(item.id)}>
-      <div className="row-t">{item.title}</div>
-      <div className="row-m">{item.ref} · {dueLabel(item.due_at)}</div>
-      <div style={{ marginTop: 7 }}>{statusPill(item.status)}</div>
-    </button>
-  );
 }
 
 export default function ManagerHome({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson, goAssign, go }) {
@@ -407,281 +396,63 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
   const waitingCount = decisionRows.length;
   const incomingBlockers = blockers.filter((blocker) => blocker.direction === "incoming");
   const outgoingBlockers = blockers.filter((blocker) => blocker.direction === "outgoing");
-  const budgetPositions = financePositions.filter((row) => Number(row.budget_minor || 0) > 0);
-  const budgetStatValue = budgetPositions.length === 1
-    ? moneyMinor(budgetPositions[0].remaining_minor, budgetPositions[0].currency)
-    : budgetPositions.length > 1 ? `${budgetPositions.length} currencies` : null;
-  const serviceDayHasData = serviceDayData.some((row) => Number(row.sunday) > 0 || Number(row.midweek) > 0);
   const drillRows = drill?.rows || [];
-  const ownTone = (item) => item.status === "returned" || isOverdue(item.due_at)
-    ? "danger"
-    : item.status === "waiting_on" ? "attention" : "info";
-  const managerHour = new Date().getHours();
+  const managerHour = Number(new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Accra",
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date()));
   const managerGreeting = managerHour < 12 ? "Good morning" : managerHour < 17 ? "Good afternoon" : "Good evening";
-  const managerDate = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const managerDate = new Date().toLocaleDateString("en-GB", {
+    timeZone: "Africa/Accra",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
-  return (
-    <div className="body manager-home">
-      <section className="manager-command-surface">
-        <div className="manager-command-head">
-          <div>
-            <div className="manager-command-context"><span>{me.unit_name}</span><time>{managerDate}</time></div>
-            <div className="eyebrow">Unit command</div>
-            <h1 className="h1">{managerGreeting}, {me.full_name.split(" ")[0]}</h1>
-            <p className="screen-note">Decisions first. {waitingCount ? `${waitingCount} thing${waitingCount === 1 ? "" : "s"} need you. Oldest first.` : "Nothing needs your decision right now."}</p>
-          </div>
-          <button className="btn manager-command-action" onClick={goAssign}>Give out work</button>
-        </div>
-        <StatRow>
-          {waitingCount > 0 && <Stat icon="gavel" label="Needs decision" value={waitingCount}
-                tone="late"
-                onOpen={() => document.getElementById("manager-waiting-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
-          {blockers.length > 0 && <Stat icon="hand" label="Stuck on others" value={blockers.length}
-                tone="slow"
-                onOpen={() => document.getElementById("manager-stuck-heading")?.scrollIntoView({ behavior: "smooth", block: "start" })} />}
-          {team.working.length > 0 && <Stat icon="people" label="Working now" value={team.working.length} sub={`of ${team.present.length + team.leave.length + team.notStarted.length}`}
-                onOpen={() => { setDrill({ zone: "team", title: "Working now", people: true, rows: team.working }); document.getElementById("manager-team-heading")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} />}
-          {budgetStatValue && <Stat icon="money" label="Budget left" value={budgetStatValue}
-                onOpen={() => go?.("manager-finance")} />}
-        </StatRow>
-      </section>
-      <DashboardCalendar meetings={upcomingMeetings} />
+  return <>
+    <ManagerOverviewV2
+      me={me}
+      greeting={managerGreeting}
+      dateLabel={managerDate}
+      loading={loading}
+      loadFailed={loadFailed}
+      error={error}
+      busy={busy}
+      decisionRows={decisionRows}
+      reviewFollowupByWork={reviewFollowupByWork}
+      blockers={blockers}
+      leaveLimit={leaveLimit}
+      team={team}
+      projects={projects}
+      incomingRequests={incomingRequests}
+      financePositions={financePositions}
+      serviceDayData={serviceDayData}
+      mine={mine}
+      week={week}
+      upcomingMeetings={upcomingMeetings}
+      upcomingProjects={upcomingProjects}
+      routines={routines}
+      recentMovement={recentMovement}
+      drill={drill}
+      drillRows={drillRows}
+      onRetry={load}
+      onGiveOutWork={goAssign}
+      onOpenItem={openItem}
+      onOpenProject={openProject}
+      onOpenMeeting={openMeeting}
+      onScheduleMeeting={scheduleMeeting}
+      onOpenPerson={openPerson}
+      onOpenReview={openReview}
+      onLeaveDecision={(request, decision) => setSheet({ type: "leave", item: request, decision })}
+      onBlockerDisagree={(blocker) => setSheet({ type: "blocker", item: blocker })}
+      onBlockerAcknowledge={(blocker) => answerBlocker(blocker, "acknowledged")}
+      onResolveBlocker={resolveBlocker}
+      onOpenFinance={() => go?.("manager-finance")}
+      onDrill={setDrill}
+    />
 
-      <ReferenceFocusPanel item={submissions[0]?.work_items || mine[0] || null} meetings={upcomingMeetings} openItem={openItem} openMeeting={openMeeting} />
-
-      {error && <ProductNotice tone="error" title="Could not complete that" action={loadFailed ? <button className="btn btn-ghost btn-sm" onClick={load}>Try again</button> : null}>{error}</ProductNotice>}
-      {loading && <LoadingState label="Loading Manager Home…" />}
-
-      {!loading && !loadFailed && <div className="home-dashboard">
-      <section className="home-panel home-panel-priority" aria-labelledby="manager-waiting-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Decisions first</div><h2 id="manager-waiting-heading">Waiting on you</h2></div>
-        <span className="home-count home-count-attention">{waitingCount}</span>
-      </div>
-      {waitingCount === 0 && <div className="home-quiet home-quiet-success">Nothing needs your decision right now.</div>}
-      {decisionRows.map((decision) => {
-        if (decision.type === "submission") {
-          const submission = decision.item;
-          return <div key={`submission-${submission.id}`} className="row home-action-row">
-            <QueueRow since={submission.submitted_at}
-              title={submission.work_items.title}
-              meta={(submission.work_items.ref || "") + " · " + (submission.profiles?.full_name || "—")}
-              onOpen={() => openItem(submission.work_items.id)}
-              actions={<>
-                <button className="btn btn-ghost btn-sm" onClick={() => openReview(submission)}>Review</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => openReview(submission, "returned")}>Send back</button>
-                <button className="btn btn-sm" onClick={() => openReview(submission, "completed")}>Approve</button>
-              </>} />
-            {reviewFollowupByWork.has(submission.work_items.id) && <div className="followup-note">Follow-up received · {new Date(reviewFollowupByWork.get(submission.work_items.id).last_seen_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</div>}
-            {submission.note && <div className="row-note">&ldquo;{submission.note}&rdquo;</div>}
-            {submission.submission_files?.map((file) => <a key={file.url} className="row-note" href={file.url} target="_blank" rel="noreferrer">Open submitted link</a>)}
-          </div>;
-        }
-        if (decision.type === "leave") {
-          const request = decision.item;
-          return <div key={`leave-${request.id}`} className="row home-action-row">
-            <QueueRow since={request.requested_at}
-              title={(request.profiles?.full_name || "—") + " · " + request.days + " day" + (Number(request.days) === 1 ? "" : "s") + " " + request.kind + " leave"}
-              meta={request.start_date + " → " + request.end_date}
-              actions={<>
-                <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "declined" })}>Decline</button>
-                <button className="btn btn-sm" onClick={() => setSheet({ type: "leave", item: request, decision: "approved" })}>{Number(request.days) > leaveLimit ? "Escalate" : "Approve"}</button>
-              </>} />
-            {request.reason && <div className="row-note">&ldquo;{request.reason}&rdquo;</div>}
-            {Number(request.days) > leaveLimit && <div className="row-note" style={{ color: "var(--amber)" }}>Over {leaveLimit} days — approval escalates to Administration.</div>}
-          </div>;
-        }
-        const alert = decision.item;
-        const blocker = blockers.find((row) => row.id === alert.subject_id);
-        return <div key={`followup-${alert.id}`} className="row home-action-row">
-          <QueueRow since={alert.last_seen_at}
-            title={alert.message}
-            meta="Dependency follow-up"
-            onOpen={blocker ? () => openItem(blocker.work_item_id) : undefined}
-            actions={blocker ? <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button> : null} />
-        </div>;
-      })}
-      </section>
-
-      {serviceDayHasData && <section className="home-panel" aria-labelledby="manager-service-day-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Recorded movement</div><h2 id="manager-service-day-heading">Sunday vs midweek</h2></div>
-        </div>
-        <p className="home-context-note">The latest Sunday and Wednesday are compared as factual work movement, not as a performance score.</p>
-        <Chart
-          kind="pairedBar"
-          title="Recorded movement"
-          data={serviceDayData}
-          series={[{ key: "sunday", label: "Sunday" }, { key: "midweek", label: "Midweek" }]}
-          ariaLabel="Sunday versus midweek recorded work movement"
-        />
-      </section>}
-
-      <section className="home-panel home-panel-projects" aria-labelledby="manager-projects-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Delivery risk</div><h2 id="manager-projects-heading">Projects needing attention</h2></div>
-        <span className="home-count home-count-attention">{projects.length}</span>
-      </div>
-      {projects.length ? projects.map((project) => (
-        <div key={project.id} className="row home-project-row">
-          <button className="row-t" style={{ textDecoration: "underline", textAlign: "left" }} onClick={() => openProject(project.id)}>{project.name}</button>
-          <div className="home-chip-row">
-            {project.atRisk.length > 0 && <button className="home-chip home-chip-attention" onClick={() => openProject(project.id)}>{project.atRisk.length} objective{project.atRisk.length === 1 ? "" : "s"} need attention</button>}
-            {project.objectivesWithoutActiveWork.length > 0 && <button className="home-chip home-chip-attention" onClick={() => openProject(project.id)}>{project.objectivesWithoutActiveWork.length} active objective{project.objectivesWithoutActiveWork.length === 1 ? "" : "s"} with no active work</button>}
-            {project.closesThisWeek && <button className="home-chip home-chip-info" onClick={() => openProject(project.id)}>Ends this week</button>}
-            {project.openDeliverables.length > 0 && <button className="home-chip" onClick={() => setDrill({ zone: "project", title: `${project.name} open deliverables`, rows: project.openDeliverables })}>{project.openDeliverables.length} open deliverable{project.openDeliverables.length === 1 ? "" : "s"}</button>}
-          </div>
-          {project.atRisk.map((objective) => <div key={objective.id} className="row-note">{objective.status === "not_met" ? "Not met" : "At risk"}: {objective.name}</div>)}
-          {project.objectivesWithoutActiveWork.map((objective) => <div key={`no-work-${objective.id}`} className="row-note">No active work attached: {objective.name}</div>)}
-          {project.atRisk.length > 0 && project.closesThisWeek && <div className="row-note">Closes {new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" })}</div>}
-          {project.taskCount > 0 && <button className="home-progress-link" onClick={() => setDrill({ zone: "project", title: `${project.name} tasks`, rows: project.tasks })}>
-            <span>{project.completedTasks} of {project.taskCount} tasks completed</span>
-            <span className="home-progress" aria-hidden="true"><span style={{ width: `${Math.round((project.completedTasks / project.taskCount) * 100)}%` }} /></span>
-          </button>}
-          {project.openDeliverables.length > 0 && <button className="row-note" style={{ textDecoration: "underline" }} onClick={() => setDrill({ zone: "project", title: `${project.name} open deliverables`, rows: project.openDeliverables })}>Open deliverables</button>}
-          <div><button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={() => openProject(project.id)}>Open project</button></div>
-        </div>
-      )) : <div className="home-quiet home-quiet-success">No active project has an at-risk or not-met objective, an open deliverable, or an end date this week.</div>}
-      {drill?.zone === "project" && <div className="home-drill">
-        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-        {drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="attention" />)}
-      </div>}
-      </section>
-
-      <section className="home-panel home-panel-waiting" aria-labelledby="manager-stuck-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Delivery risk</div><h2 id="manager-stuck-heading">Dependencies needing attention</h2></div>
-          <span className="home-count">{blockers.length}</span>
-        </div>
-        {blockers.length === 0 && <div className="home-quiet">No acknowledged or unanswered blockers are open.</div>}
-        {[{ label: "Waiting on us", rows: incomingBlockers }, { label: "Waiting on others", rows: outgoingBlockers }].map((group) => group.rows.length > 0 && <div key={group.label}>
-          <div className="home-subhead">{group.label}</div>
-          {group.rows.map((blocker) => <div key={blocker.id} className={`row home-blocker-row ${blocker.direction === "incoming" ? "home-tone-attention" : "home-tone-info"}`}>
-              <div className="home-direction">{blocker.state === "claimed" ? "Unanswered claim" : "Acknowledged blocker"}</div>
-              <div className="row-t">{blocker.work_items.title}</div>
-              <div className="row-m">{blocker.direction === "incoming"
-                ? blocker.state === "acknowledged"
-                  ? `${blocker.profiles?.full_name || "Someone"} is waiting on your unit · acknowledged`
-                  : `${blocker.profiles?.full_name || "Someone"} says they are waiting on your unit · waiting for your reply`
-                : blocker.state === "acknowledged"
-                  ? `Your unit is waiting on ${blocker.units?.name || blocker.party_text} · acknowledged`
-                  : `Your unit says it is waiting on ${blocker.units?.name || blocker.party_text} · waiting for their reply`}</div>
-              <div className="row-note">{blocker.party_text}{blocker.note ? ` — ${blocker.note}` : ""}</div>
-              <div style={{ display: "flex", gap: 7, marginTop: 11, flexWrap: "wrap" }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => openItem(blocker.work_item_id)}>Open</button>
-                {blocker.direction === "incoming" && blocker.state === "claimed" && <>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setSheet({ type: "blocker", item: blocker })}>Disagree</button>
-                  <button className="btn btn-sm" onClick={() => answerBlocker(blocker, "acknowledged")}>Acknowledge</button>
-                </>}
-                <button className="btn btn-ghost btn-sm" onClick={() => resolveBlocker(blocker)} disabled={busy}>Mark resolved</button>
-              </div>
-            </div>)}
-        </div>)}
-      </section>
-
-      <section className="home-panel home-panel-pulse" aria-labelledby="manager-team-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Today</div><h2 id="manager-team-heading">Team context</h2></div>
-      </div>
-      <p className="home-context-note">Availability is context, not a performance measure.</p>
-      <div className="home-subhead">Availability</div>
-      <div className="home-stat-grid home-stat-grid-two">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Present today", people: true, rows: team.present })}><b>{team.present.length}</b><span>Present</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })}><b>{team.leave.length}</b><span>Approved leave</span></button>
-      </div>
-      <div className="home-subhead home-subhead-spaced">Work movement today</div>
-      <div className="home-stat-grid">
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "team", title: "Work completed today", rows: team.completed })}><b>{team.completed.length}</b><span>Completed</span></button>
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "team", title: "Work submitted today", rows: team.submitted })}><b>{team.submitted.length}</b><span>Work submitted</span></button>
-        <button className="home-stat home-tone-attention" onClick={() => setDrill({ zone: "team", title: "Awaiting your review", rows: submissions.map((submission) => submission.work_items) })}><b>{submissions.length}</b><span>Awaiting review</span></button>
-      </div>
-      {drill?.zone === "team" && <div className="home-drill">
-        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-        {drill.people && (drillRows.length ? drillRows.map((person) => <button key={person.id} className="row" onClick={() => openPerson(person.id, "current")}>
-          <div className="row-t">{person.name}</div>
-          <div className="row-m">{person.completed} completed today · {person.submitted} submitted today</div>
-        </button>) : <div className="home-quiet">No people in this group.</div>)}
-        {!drill.people && (drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone="info" />) : <div className="home-quiet">No work in this group.</div>)}
-      </div>}
-      </section>
-
-      <section className="home-panel home-panel-week" aria-labelledby="manager-week-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Today & next</div><h2 id="manager-week-heading">Coming up</h2></div>
-      </div>
-      <div className="home-stat-grid">
-        <button className="home-stat home-tone-info" onClick={() => setDrill({ zone: "week", title: "Tasks due this week", rows: week.due })}><b>{week.due.length}</b><span>Due this week</span></button>
-        <button className="home-stat home-tone-success" onClick={() => setDrill({ zone: "week", title: "Tasks completed this week", rows: week.completed })}><b>{week.completed.length}</b><span>Completed</span></button>
-        <button className="home-stat home-tone-danger" onClick={() => setDrill({ zone: "week", title: "Tasks overdue", rows: week.overdue })}><b>{week.overdue.length}</b><span>Overdue</span></button>
-      </div>
-      <div className="home-upcoming">
-        <div className="home-subhead">Meetings in the next 14 days</div>
-        {upcomingMeetings.length > 0 ? upcomingMeetings.map((meeting) => <button key={meeting.id} className="home-date-row home-meeting-row" onClick={() => openMeeting?.(meeting.id)}>
-          <span><strong>{meeting.title}</strong><small>{meeting.scope === "project" && meeting.projects?.name ? meeting.projects.name : meeting.scope === "unit" ? me.unit_name : "CEAC"}</small></span>
-          <time dateTime={meeting.starts_at}>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</time>
-        </button>) : <div className="home-quiet">No meeting invitations are recorded in the next 14 days.</div>}
-        {scheduleMeeting && <button className="text-action" style={{marginTop:10}} onClick={() => scheduleMeeting({scope:"unit",unitId:me.unit_id,unitName:me.unit_name})}>Schedule meeting</button>}
-      </div>
-      {upcomingProjects.length > 0 && <div className="home-upcoming">
-        <div className="home-subhead">Project dates in the next 14 days</div>
-        {upcomingProjects.map((project) => <button key={project.id} className="home-date-row" onClick={() => openProject(project.id)}>
-          <span>{project.name}</span><time dateTime={project.ends_on}>{new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</time>
-        </button>)}
-      </div>}
-      {upcomingProjects.length === 0 && <div className="home-quiet" style={{ marginTop: 14 }}>No project end dates are recorded in the next 14 days.</div>}
-      {drill?.zone === "week" && <div className="home-drill">
-        <div className="home-drill-head"><strong>{drill.title}</strong><span>{drillRows.length}</span></div>
-        {drillRows.length ? drillRows.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} />) : <div className="home-quiet">No tasks in this group.</div>}
-      </div>}
-      </section>
-
-      <section className="home-panel" aria-labelledby="manager-own-heading">
-      <div className="home-section-head">
-        <div><div className="home-kicker">Personal focus</div><h2 id="manager-own-heading">Your own work</h2></div>
-        <span className="home-count">{mine.length}</span>
-      </div>
-      {mine.length ? mine.map((item) => <ActionRow key={item.id} item={item} openItem={openItem} tone={ownTone(item)} />) : <div className="home-quiet">No due, overdue, returned or waiting work.</div>}
-      </section>
-
-      {incomingRequests.length > 0 && <section className="home-panel home-panel-waiting" aria-labelledby="manager-requests-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Other units are waiting</div><h2 id="manager-requests-heading">Requests to your unit</h2></div>
-          <span className="home-count home-count-attention">{incomingRequests.length}</span>
-        </div>
-        {incomingRequests.map((request) => <button className="row" key={request.work_item_id} onClick={() => openItem(request.work_item_id)}>
-          <div className="row-t">{request.work_items.title}</div>
-          <div className="row-m">{request.work_items.ref}{request.work_items.due_at ? ` · due ${new Date(request.work_items.due_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}</div>
-          <div className="row-note">{request.request_state === "clarification" ? "Waiting for clarification" : "Waiting for your unit"}</div>
-        </button>)}
-      </section>}
-
-      {routines.length > 0 && <section className="home-panel" aria-labelledby="manager-routines-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Recurring operations</div><h2 id="manager-routines-heading">Routines</h2></div>
-          <span>{routines.length}</span>
-        </div>
-        {routines.map((routine) => <button className="row" key={routine.id} onClick={() => openItem(routine.work_item_id)}>
-          <div className="row-t">{routine.name}</div>
-          <div className="row-m">{!routine.schedule_kind
-            ? "Schedule needs to be set"
-            : routine.schedule_kind === "daily" ? "Daily"
-              : routine.schedule_kind === "monthly" ? `Monthly · day ${routine.day_of_month}`
-                : `${routine.schedule_kind === "weekly" ? "Weekly" : "Selected weekdays"} · ${(routine.weekdays || []).map((day) => ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][day - 1]).join(", ")}`}</div>
-          <div className="row-note">{routine.active ? "Active" : "Paused"}{routine.records_value ? ` · records ${routine.value_label}` : ""}</div>
-        </button>)}
-      </section>}
-
-      {recentMovement.length > 0 && <section className="home-panel home-panel-week" aria-labelledby="manager-recent-heading">
-        <div className="home-section-head">
-          <div><div className="home-kicker">Last seven days</div><h2 id="manager-recent-heading">Recent movement</h2></div>
-        </div>
-        {recentMovement.map((movement) => <button key={movement.key} className="row" onClick={() => openItem(movement.itemId)}>
-          <div className="row-t">{movement.title}</div>
-          <div className="row-m">{movement.detail}</div>
-          <div className="row-note">{new Date(movement.at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
-        </button>)}
-      </section>}
-
+    {!loading && !loadFailed ? <>
       {sheet?.type === "work-review" && <Sheet onClose={() => { setSheet(null); setComment(""); setReturnItems([]); setSelectedReturnItems([]); }}>
         <div className="eyebrow">Evidence-first review</div>
         <div className="h2" style={{ marginTop: 5 }}>{sheet.item.work_items.title}</div>
@@ -729,15 +500,6 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         <AssistiveTextarea className="field" rows={3} placeholder="What is actually needed" value={comment} onChange={(event) => setComment(event.target.value)} />
         <button className="btn" style={{ marginTop: 14 }} disabled={busy || !comment.trim()} onClick={() => answerBlocker(sheet.item, "disputed")}>{busy ? "Saving..." : "Send response"}</button>
       </Sheet>}
-      </div>}
-
-      <ReferenceModuleStrip items={[
-        {label:"Work",icon:"work",note:"Assigned and delegated work.",onClick:()=>go?.("work")},
-        {label:"Team",icon:"team",note:"People, workload and context.",onClick:()=>go?.("team")},
-        {label:"Projects",icon:"projects",note:"Delivery and milestones.",onClick:()=>go?.("projects")},
-        {label:"Budget",icon:"finance",note:"Requests and unit position.",onClick:()=>go?.("manager-finance")},
-        {label:"Reports",icon:"reports",note:"Evidence and reporting.",onClick:()=>go?.("manager-reports")},
-      ]}/>
-    </div>
-  );
+    </> : null}
+  </>;
 }

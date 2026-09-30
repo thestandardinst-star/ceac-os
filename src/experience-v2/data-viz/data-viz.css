@@ -1,0 +1,223 @@
+/* CEAC OS Experience V2 — Stage 11 data visualisation */
+
+.ev2dv-chart {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-3);
+  margin: 0;
+  padding: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+  background: var(--ev2-surface);
+  color: var(--ev2-text);
+  font-family: var(--ev2-font-sans);
+}
+
+.ev2dv-chart:first-child {
+  border-top: 0;
+}
+
+.ev2dv-chart-head {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.ev2dv-chart-copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+}
+
+.ev2dv-chart-copy strong {
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ev2dv-chart-copy span {
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+}
+
+.ev2dv-chart-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ev2-space-2);
+}
+
+.ev2dv-summary {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ev2dv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ev2-space-2) var(--ev2-space-4);
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-label);
+  line-height: 1.3;
+}
+
+.ev2dv-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ev2-space-2);
+}
+
+.ev2dv-legend i {
+  width: .625rem;
+  height: .625rem;
+  border-radius: 50%;
+}
+
+.ev2dv-svg-wrap {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ev2dv-svg-wrap svg {
+  display: block;
+  max-width: 100%;
+}
+
+.ev2dv-grid-line {
+  stroke: var(--ev2-line);
+  stroke-width: 1;
+}
+
+.ev2dv-axis-label {
+  fill: var(--ev2-text-tertiary);
+  font-family: var(--ev2-font-sans);
+  font-size: 11px;
+}
+
+.ev2dv-line {
+  fill: none;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ev2dv-mark {
+  outline: none;
+}
+
+.ev2dv-mark.is-actionable {
+  cursor: pointer;
+}
+
+.ev2dv-record-button {
+  width: 100%;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ev2-action);
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ev2dv-record-button:hover {
+  text-decoration: underline;
+}
+
+.ev2dv-record-button:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+  border-radius: var(--ev2-radius-control);
+}
+
+.ev2dv-mark circle,
+.ev2dv-mark rect {
+  transition:
+    opacity var(--ev2-duration-fast) var(--ev2-ease-standard),
+    stroke-width var(--ev2-duration-fast) var(--ev2-ease-standard);
+}
+
+.ev2dv-mark:hover circle,
+.ev2dv-mark:hover rect,
+.ev2dv-mark:focus circle,
+.ev2dv-mark:focus rect {
+  stroke: var(--ev2-text);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.ev2dv-mark:focus-visible {
+  outline: none;
+}
+
+.ev2dv-donut-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 13rem;
+}
+
+.ev2dv-donut {
+  width: min(13rem, 100%);
+  height: auto;
+  overflow: visible;
+}
+
+.ev2dv-donut-total {
+  fill: var(--ev2-text);
+  font-family: var(--ev2-font-sans);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ev2dv-donut-caption {
+  fill: var(--ev2-text-secondary);
+  font-family: var(--ev2-font-sans);
+  font-size: 10px;
+}
+
+.ev2dv-chart .ev2c-table-wrap {
+  border-radius: var(--ev2-radius-control);
+}
+
+.ev2dv-chart.is-compact {
+  padding: var(--ev2-space-3);
+}
+
+@media (max-width: 599px) {
+  .ev2dv-chart {
+    padding: var(--ev2-space-3);
+  }
+
+  .ev2dv-chart-head {
+    display: grid;
+    gap: var(--ev2-space-2);
+  }
+
+  .ev2dv-chart-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ev2dv-chart-actions .ev2c-button {
+    min-height: 44px;
+  }
+
+  .ev2dv-axis-label {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev2dv-mark circle,
+  .ev2dv-mark rect {
+    transition: none;
+  }
+}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { PersonalPageHeader } from "../experience-v2/personal-family/PersonalFamilyV2";
 
 function human(value=""){
   return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase());
@@ -212,12 +213,18 @@ export default function Assets({ me }) {
 
   if(loading) return <div className="body"><LoadingState label="Loading assets & devices…" /></div>;
 
-  return <div className="body assets-page">
-    <div style={{paddingTop:26}}>
+  const personalAssets = !canManage && !me.is_admin;
+  return <div className={`body assets-page ${personalAssets ? "ev2-personal-page ev2-personal-assets" : ""}`.trim()}>
+    {personalAssets ? <PersonalPageHeader
+      eyebrow="My Hub"
+      title="Assets & devices"
+      description="CEAC equipment currently in your custody, with factual assignment and lifecycle history. This surface does not remotely manage your device."
+      statusLabel="My custody"
+    /> : <div style={{paddingTop:26}}>
       <div className="eyebrow">Enterprise asset register</div>
       <h1 className="h1">Assets & devices</h1>
       <p className="screen-note">CEAC inventory, custody and lifecycle history. This module records operational facts; it does not remotely wipe, lock, configure or monitor device operating systems.</p>
-    </div>
+    </div>}
 
     {error&&<ProductNotice tone="error" title="Assets & devices">{error}</ProductNotice>}
     {notice&&<ProductNotice tone="success" title="Recorded">{notice}</ProductNotice>}

@@ -2,7 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
 import { humanError } from "../lib/productLanguage";
-import { Sheet, statusPill, FieldGroup, ProductNotice, LoadingState } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice, LoadingState } from "../components/bits";
+import {
+  WorkActionStrip,
+  WorkEmpty,
+  WorkGroup,
+  WorkPageHeader,
+  WorkRow,
+  WorkTabs,
+  WorkToolbar,
+} from "../experience-v2/work-family/WorkFamilyV2";
 
 const MODES = [
   ["assigned", "Assigned"],
@@ -216,32 +225,29 @@ export default function Work({ me, isManager = false, openItem }) {
       ? "Work you already agreed to carry and recorded yourself."
       : "Personal work visible only to you. It is not counted in formal CEAC reports.";
 
-  return <div className="body staff-work">
-    <div className="staff-page-intro">
-      <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1">My work</h1>
-      <p className="screen-note">Everything you are carrying, organised by where it came from and what needs to happen next.</p>
-    </div>
+  return <div className="body staff-work ev2-work-page ev2-work-staff">
+    <WorkPageHeader
+      eyebrow={me.unit_name}
+      title="My work"
+      description="Everything you are carrying, organised by where it came from and what needs to happen next."
+    />
 
-    <div className="staff-segment" role="tablist" aria-label="Work source">
-      {MODES.map(([key, label]) => <button
-        key={key}
-        role="tab"
-        aria-selected={mode === key}
-        className={mode === key ? "on" : ""}
-        onClick={() => { setMode(key); setStatusFilter("active"); }}
-      >{label}</button>)}
-    </div>
-    <p className="context-note">{modeNote}</p>
+    <WorkTabs
+      items={MODES}
+      value={mode}
+      onChange={(nextMode) => { setMode(nextMode); setStatusFilter("active"); }}
+      ariaLabel="Work source"
+    />
+    <p className="ev2w-context-note">{modeNote}</p>
 
-    <div className="work-actions">
-      <button className="btn btn-sm" onClick={() => openCreate("unit")}>Add agreed work</button>
-      <button className="btn btn-ghost btn-sm" onClick={() => openCreate("private")}>Add private work</button>
-      <button className="btn btn-ghost btn-sm" onClick={openProjectProposal}>Propose project</button>
-    </div>
+    <WorkActionStrip actions={[
+      { label: "Add agreed work", icon: "create", onClick: () => openCreate("unit") },
+      { label: "Add private work", icon: "lock", onClick: () => openCreate("private") },
+      { label: "Propose project", icon: "projects", onClick: openProjectProposal },
+    ]} />
 
     {notice && <ProductNotice tone="success" title="Work updated">{notice}</ProductNotice>}
-    {proposals.length > 0 && <details className="finance-section" style={{ marginTop: 12 }}>
+    {proposals.length > 0 && <details className="finance-section ev2w-inline-panel">
       <summary><span>My project proposals</span><b>{proposals.length}</b></summary>
       <div className="finance-section-body">
         {proposals.map((proposal) => <div className="row" key={proposal.id}>
@@ -252,47 +258,51 @@ export default function Work({ me, isManager = false, openItem }) {
       </div>
     </details>}
 
-    <div className="status-filter" aria-label="Work status">
-      {STATUS_FILTERS.map(([key, label]) => <button
-        key={key}
-        className={statusFilter === key ? "on" : ""}
-        onClick={() => setStatusFilter(key)}
-      >{label}</button>)}
-    </div>
+    <WorkTabs
+      items={STATUS_FILTERS}
+      value={statusFilter}
+      onChange={setStatusFilter}
+      ariaLabel="Work status"
+      compact
+    />
 
-    {items.length > 10 && <div className="work-scale-tools">
+    {items.length > 10 && <WorkToolbar>
       <FieldGroup label="Find work"><input className="field" type="search" placeholder="Search title, reference or project" value={queryText} onChange={(event) => setQueryText(event.target.value)} /></FieldGroup>
       <FieldGroup label="Sort by"><select className="field" value={sortMode} onChange={(event) => setSortMode(event.target.value)}><option value="due">Due date</option><option value="title">Title</option><option value="status">Status</option></select></FieldGroup>
-    </div>}
+    </WorkToolbar>}
+
     {loadError && <ProductNotice tone="error" title="Could not load your work">{loadError}</ProductNotice>}
     {loading && <LoadingState label="Loading your work…" />}
 
-    {!loading && Object.keys(grouped).map((project) => <section key={project} className="work-group">
-      <div className="work-group-head"><strong>{project}</strong><span>{grouped[project].length}</span></div>
-      <div className="work-list">
-        {grouped[project].map((item) => <button key={item.id} className="work-list-row" onClick={() => openItem(item.id)}>
-          <div className="work-list-main">
-            <strong>{item.title}</strong>
-            <span>{item.ref} · {item.kind.replaceAll("_", " ")}</span>
-            {item.expected_outcome && <small>{item.expected_outcome}</small>}
-          </div>
-          <div className="work-list-side">
-            {statusPill(item.status)}
-            <span>{dueLabel(item.due_at)}</span>
-          </div>
-        </button>)}
-      </div>
-    </section>)}
+    {!loading && Object.keys(grouped).map((project) => <WorkGroup key={project} title={project} count={grouped[project].length}>
+      {grouped[project].map((item) => <WorkRow
+        key={item.id}
+        title={item.title}
+        refCode={item.ref}
+        kind={item.kind}
+        context={item.projects?.name}
+        due={dueLabel(item.due_at)}
+        status={item.status}
+        note={item.expected_outcome}
+        onClick={() => openItem(item.id)}
+      />)}
+    </WorkGroup>)}
 
-    {!loading && !loadError && items.length > 0 && visibleItems.length === 0 && <div className="quiet-empty"><strong>No matching work</strong><span>Try a different search.</span></div>}
-    {!loading && !loadError && items.length === 0 && <div className="quiet-empty">
-      <strong>Nothing here right now</strong>
-      <span>{mode === "private"
+    {!loading && !loadError && items.length > 0 && visibleItems.length === 0 && <WorkEmpty
+      title="No matching work"
+      description="Try a different search or sort order."
+    />}
+
+    {!loading && !loadError && items.length === 0 && <WorkEmpty
+      title="Nothing here right now"
+      description={mode === "private"
         ? "Private work you add will stay here and remain visible only to you."
         : statusFilter === "active"
           ? "There is no active work in this view."
-          : "There is no work in this status."}</span>
-    </div>}
+          : "There is no work in this status."}
+      actionLabel={mode === "private" ? "Add private work" : mode === "agreed" ? "Add agreed work" : undefined}
+      onAction={mode === "private" ? () => openCreate("private") : mode === "agreed" ? () => openCreate("unit") : undefined}
+    />}
 
     {sheet === "proposal" && <Sheet onClose={() => !busy && setSheet(null)}>
       <div className="eyebrow">Project proposal</div>

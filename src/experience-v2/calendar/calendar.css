@@ -1,0 +1,687 @@
+/* CEAC OS Experience V2 — Stage 11 calendar family */
+
+.ev2cal-page-head,
+.ev2cal-month,
+.ev2cal-agenda,
+.ev2cal-timeline {
+  font-family: var(--ev2-font-sans);
+  color: var(--ev2-text);
+}
+
+.ev2cal-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-5);
+  padding: var(--ev2-space-5) 0;
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2cal-page-copy {
+  min-width: 0;
+  max-width: 50rem;
+}
+
+.ev2cal-eyebrow {
+  display: block;
+  margin-bottom: var(--ev2-space-1);
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-label);
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.ev2cal-page-head h1,
+.ev2cal-agenda-head h2 {
+  margin: 0;
+  color: var(--ev2-text);
+}
+
+.ev2cal-page-head h1 {
+  font-size: var(--ev2-type-page-desktop);
+  line-height: 1.1;
+  letter-spacing: -.025em;
+}
+
+.ev2cal-page-head p,
+.ev2cal-agenda-head p {
+  max-width: 68ch;
+  margin: var(--ev2-space-2) 0 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+.ev2cal-page-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ev2-space-2);
+}
+
+.ev2cal-period {
+  display: grid;
+  grid-template-columns: auto minmax(10rem, 1fr) auto auto;
+  align-items: center;
+  gap: var(--ev2-space-2);
+  padding: var(--ev2-space-3);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+}
+
+.ev2cal-period-label {
+  position: relative;
+  min-width: 0;
+  min-height: 1.35em;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  text-align: center;
+}
+
+.ev2cal-period-label > strong {
+  grid-area: 1 / 1;
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.ev2cal-filters {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ev2cal-month {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+}
+
+.ev2cal-weekdays,
+.ev2cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.ev2cal-weekdays {
+  min-height: 2.25rem;
+  align-items: center;
+  border-bottom: 1px solid var(--ev2-line);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2cal-weekdays span {
+  padding: 0 var(--ev2-space-2);
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-label);
+  line-height: 1;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ev2cal-day {
+  min-width: 0;
+  min-height: 8rem;
+  display: grid;
+  align-content: start;
+  border-right: 1px solid var(--ev2-line);
+  border-bottom: 1px solid var(--ev2-line);
+  background: var(--ev2-surface);
+}
+
+.ev2cal-day:nth-child(7n) {
+  border-right: 0;
+}
+
+.ev2cal-day.is-muted {
+  background: var(--ev2-surface-soft);
+}
+
+
+.ev2cal-day-button {
+  position: relative;
+  isolation: isolate;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-1);
+  padding: var(--ev2-space-2) var(--ev2-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--ev2-text);
+  font: 650 var(--ev2-type-supporting)/1 var(--ev2-font-sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ev2cal-day.is-muted .ev2cal-day-button {
+  color: var(--ev2-text-tertiary);
+}
+
+.ev2cal-selection-indicator {
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border: 2px solid var(--ev2-action);
+  border-radius: var(--ev2-radius-xs);
+  background: color-mix(in srgb, var(--ev2-action-soft) 28%, transparent);
+  pointer-events: none;
+}
+
+.ev2cal-day-number,
+.ev2cal-day-button small {
+  position: relative;
+  z-index: 1;
+}
+
+.ev2cal-day.is-today .ev2cal-day-button > span:first-child {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ev2-identity-soft);
+  color: var(--ev2-identity-strong);
+}
+
+.ev2cal-day-button small {
+  color: var(--ev2-identity-strong);
+  font-size: var(--ev2-type-label);
+}
+
+.ev2cal-day-button:focus-visible,
+.ev2cal-event:focus-visible,
+.ev2cal-more:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .22);
+  outline-offset: -3px;
+}
+
+.ev2cal-day-events {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+  padding: 0 var(--ev2-space-2) var(--ev2-space-2);
+}
+
+.ev2cal-event,
+.ev2cal-more {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--ev2-radius-sm);
+  font-family: var(--ev2-font-sans);
+}
+
+.ev2cal-event {
+  min-height: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: var(--ev2-space-1);
+  padding: var(--ev2-space-1) var(--ev2-space-2);
+  background: var(--ev2-surface-muted);
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-label);
+  line-height: 1.25;
+  text-align: left;
+  overflow: hidden;
+}
+
+button.ev2cal-event {
+  cursor: pointer;
+}
+
+button.ev2cal-event:hover {
+  background: var(--ev2-action-soft);
+  color: var(--ev2-action);
+}
+
+.ev2cal-event > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev2cal-event-dot {
+  width: .4rem;
+  height: .4rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--ev2-text-tertiary);
+}
+
+.ev2cal-event.is-meeting .ev2cal-event-dot {
+  background: var(--ev2-action);
+}
+
+.ev2cal-event.is-work .ev2cal-event-dot,
+.ev2cal-event.is-projects .ev2cal-event-dot,
+.ev2cal-event.is-tasks .ev2cal-event-dot {
+  background: var(--ev2-identity);
+}
+
+.ev2cal-event.is-leave .ev2cal-event-dot {
+  background: var(--ev2-warning);
+}
+
+.ev2cal-event.is-ministry .ev2cal-event-dot,
+.ev2cal-event.is-activities .ev2cal-event-dot {
+  background: var(--ev2-violet);
+}
+
+.ev2cal-more {
+  min-height: 1.75rem;
+  padding: var(--ev2-space-1) var(--ev2-space-2);
+  background: transparent;
+  color: var(--ev2-action);
+  font-size: var(--ev2-type-label);
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ev2cal-agenda {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2cal-agenda-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+  padding: var(--ev2-space-4);
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2cal-agenda-head > div {
+  min-width: 0;
+}
+
+.ev2cal-agenda-head h2 {
+  font-size: var(--ev2-type-card-desktop);
+  line-height: 1.3;
+}
+
+.ev2cal-agenda-body .ev2c-queue-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2cal-empty {
+  min-height: 8rem;
+  display: flex;
+  align-items: center;
+  gap: var(--ev2-space-3);
+  padding: var(--ev2-space-4);
+  color: var(--ev2-text-secondary);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2cal-empty > div {
+  display: grid;
+  gap: var(--ev2-space-1);
+}
+
+.ev2cal-empty strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-row-desktop);
+}
+
+.ev2cal-empty span {
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+}
+
+.ev2cal-timeline {
+  display: grid;
+  gap: var(--ev2-space-5);
+}
+
+.ev2cal-timeline-day {
+  display: grid;
+  grid-template-columns: minmax(9rem, .25fr) minmax(0, 1fr);
+  gap: var(--ev2-space-4);
+  align-items: start;
+}
+
+.ev2cal-timeline-day > time {
+  position: sticky;
+  top: var(--ev2-space-3);
+  padding: var(--ev2-space-3) 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  font-weight: 650;
+}
+
+.ev2cal-timeline-list {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+}
+
+.ev2cal-timeline-list .ev2c-queue-row:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 899px) {
+  .ev2cal-day {
+    min-height: 6.75rem;
+  }
+
+  .ev2cal-event {
+    padding-inline: var(--ev2-space-1);
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2cal-page-head {
+    display: grid;
+    gap: var(--ev2-space-3);
+    padding-top: var(--ev2-space-3);
+  }
+
+  .ev2cal-page-head h1 {
+    font-size: var(--ev2-type-page-mobile);
+  }
+
+  .ev2cal-page-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ev2cal-page-actions .ev2c-button {
+    width: 100%;
+  }
+
+  .ev2cal-period {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .ev2cal-period > .ev2c-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .ev2cal-period > .ev2c-icon-button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ev2cal-period > strong {
+    min-width: 0;
+    font-size: var(--ev2-type-supporting);
+    overflow-wrap: anywhere;
+  }
+
+  .ev2cal-weekdays span {
+    padding-inline: 0;
+  }
+
+  .ev2cal-day {
+    min-height: 4.75rem;
+  }
+
+  .ev2cal-day-button {
+    min-height: 2.75rem;
+    justify-content: center;
+    padding-inline: var(--ev2-space-1);
+  }
+
+  .ev2cal-day-button small,
+  .ev2cal-day-events {
+    display: none;
+  }
+
+  .ev2cal-day::after {
+    content: "";
+    width: .4rem;
+    height: .4rem;
+    justify-self: center;
+    margin-top: -.35rem;
+    border-radius: 50%;
+    background: transparent;
+  }
+
+  .ev2cal-day:has(.ev2cal-event)::after {
+    background: var(--ev2-action);
+  }
+
+  .ev2cal-agenda-head {
+    display: grid;
+  }
+
+  .ev2cal-agenda-head .ev2c-status {
+    justify-self: start;
+  }
+
+  .ev2cal-timeline-day {
+    grid-template-columns: 1fr;
+    gap: var(--ev2-space-2);
+  }
+
+  .ev2cal-timeline-day > time {
+    position: static;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev2cal-day,
+  .ev2cal-event {
+    scroll-behavior: auto;
+  }
+}
+
+
+/* Protected Stage 11 foundation proof only. */
+.ev2-stage11-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, .65fr);
+  gap: var(--ev2-space-4);
+  min-width: 0;
+}
+
+.ev2-stage11-calendar-proof {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-3);
+}
+
+.ev2-stage11-proof > .ev2dv-chart {
+  align-self: start;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+@media (max-width: 899px) {
+  .ev2-stage11-proof {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Stage 11C — production calendar family */
+.ev2cal-role-page {
+  width: min(100%, 76rem);
+  min-width: 0;
+  margin-inline: auto;
+  display: grid;
+  gap: var(--ev2-space-4);
+  padding-top: var(--ev2-space-2);
+  padding-bottom: var(--ev2-space-10);
+  font-family: var(--ev2-font-sans);
+  color: var(--ev2-text);
+}
+
+.ev2cal-role-page > .ev2cal-filters {
+  margin-top: calc(-1 * var(--ev2-space-1));
+}
+
+.ev2cal-role-layout {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, .65fr);
+  gap: var(--ev2-space-4);
+  align-items: start;
+}
+
+.ev2cal-side-stack {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-4);
+}
+
+@media (min-width: 961px) {
+  .ev2cal-side-stack {
+    position: sticky;
+    top: calc(var(--ceac-topbar, 59px) + var(--ev2-space-4));
+  }
+}
+
+.ev2cal-toolbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-3);
+}
+
+.ev2cal-google {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ev2-space-4);
+  align-items: center;
+}
+
+.ev2cal-integration-copy {
+  min-width: 0;
+}
+
+.ev2cal-integration-copy strong {
+  display: block;
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.35;
+}
+
+.ev2cal-integration-copy p {
+  max-width: 72ch;
+  margin: var(--ev2-space-1) 0 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+.ev2cal-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ev2-space-2);
+}
+
+.ev2cal-external-link {
+  min-height: var(--ev2-control-compact);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--ev2-space-3);
+  border: 1px solid var(--ev2-line-strong);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface);
+  color: var(--ev2-action);
+  font-size: var(--ev2-type-supporting);
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.ev2cal-external-link:hover {
+  background: var(--ev2-action-soft);
+}
+
+.ev2cal-external-link:focus-visible {
+  outline: 3px solid rgba(12, 93, 249, .20);
+  outline-offset: 2px;
+}
+
+.ev2cal-admin-range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-4);
+}
+
+.ev2cal-admin-range > span {
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+  text-align: right;
+}
+
+.ev2cal-admin-page .ev2cal-timeline {
+  margin-top: var(--ev2-space-1);
+}
+
+@media (max-width: 960px) {
+  .ev2cal-role-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2cal-side-stack {
+    position: static;
+  }
+
+  .ev2cal-google {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2cal-link-row {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2cal-role-page {
+    gap: var(--ev2-space-3);
+    padding-top: 0;
+    padding-bottom: calc(var(--ev2-space-10) + env(safe-area-inset-bottom));
+  }
+
+  .ev2cal-toolbar,
+  .ev2cal-admin-range {
+    display: grid;
+  }
+
+  .ev2cal-toolbar > .ev2c-button,
+  .ev2cal-external-link {
+    min-height: 44px;
+  }
+
+  .ev2cal-toolbar > .ev2c-button {
+    width: 100%;
+  }
+
+  .ev2cal-admin-range > span {
+    text-align: left;
+  }
+
+  .ev2cal-link-row {
+    display: grid;
+  }
+
+  .ev2cal-external-link {
+    width: 100%;
+  }
+}

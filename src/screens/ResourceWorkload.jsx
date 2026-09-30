@@ -89,8 +89,8 @@ export default function ResourceWorkload({ me }) {
     const [p,e,c,pc,pr,w,r,l,u]=rows.map((row)=>row.data||[]);
     setProfiles(p); setEmployment(e); setCapacityVersions(c); setCommitmentVersions(pc); setProjects(pr);
     setWork(w); setRoutines(r); setLeave(l); setUnits(u);
-    if(!selectedProfileId && p.length) setSelectedProfileId(p[0].id);
-    if(!commitmentProjectId && pr.length) setCommitmentProjectId(pr[0].id);
+    // Scope-aware effects below own selection initialization. Async reloads must not
+    // overwrite a person or project that the manager has already selected.
     setLoading(false);
   }
 
@@ -108,17 +108,19 @@ export default function ResourceWorkload({ me }) {
   }),[profiles,employmentByProfile,orgAuthority,managedUnitIds.join("|")]);
 
   useEffect(()=>{
-    if(visiblePeople.length && !visiblePeople.some((row)=>row.id===selectedProfileId)){
-      setSelectedProfileId(visiblePeople[0].id);
-    }
+    if(!visiblePeople.length) return;
+    setSelectedProfileId((current)=>
+      visiblePeople.some((row)=>row.id===current) ? current : visiblePeople[0].id
+    );
   },[visiblePeople.map((row)=>row.id).join("|")]);
 
   const manageableProjects=projects.filter((project)=>project.status!=="closed" && (orgAuthority||managedUnitIds.includes(project.lead_unit_id)));
 
   useEffect(()=>{
-    if(manageableProjects.length && !manageableProjects.some((row)=>row.id===commitmentProjectId)){
-      setCommitmentProjectId(manageableProjects[0].id);
-    }
+    if(!manageableProjects.length) return;
+    setCommitmentProjectId((current)=>
+      manageableProjects.some((row)=>row.id===current) ? current : manageableProjects[0].id
+    );
   },[manageableProjects.map((row)=>row.id).join("|")]);
 
   function latestCapacity(profileId){

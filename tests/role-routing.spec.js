@@ -9,13 +9,13 @@ async function openAs(browser, email) {
   await page.getByPlaceholder("Work email").fill(email);
   await page.getByPlaceholder("Password").fill(rolePassword);
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page.locator(".premium-side")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".ev2s-sidebar")).toBeVisible({ timeout: 15000 });
   return { context, page };
 }
 
 test("Staff navigation stays focused on the employee workspace", async ({ browser }) => {
   const { context, page } = await openAs(browser, "staff@ceac.local.test");
-  const nav = page.locator(".premium-side nav");
+  const nav = page.locator(".ev2s-sidebar-nav");
   for (const label of ["Today","Work","Team","Calendar","Messages","My Hub"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }
@@ -27,7 +27,7 @@ test("Staff navigation stays focused on the employee workspace", async ({ browse
 
 test("Manager gets a team command centre, not Administration authoring", async ({ browser }) => {
   const { context, page } = await openAs(browser, "manager@ceac.local.test");
-  const nav = page.locator(".premium-side nav");
+  const nav = page.locator(".ev2s-sidebar-nav");
   for (const label of ["Overview","Work","Team","Projects","Calendar","Finance","Reports","Messages","My Hub"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }
@@ -39,7 +39,7 @@ test("Manager gets a team command centre, not Administration authoring", async (
 
 test("Administration exposes operations, not internal architecture modules", async ({ browser }) => {
   const { context, page } = await openAs(browser, "admin@ceac.local.test");
-  const nav = page.locator(".premium-side nav");
+  const nav = page.locator(".ev2s-sidebar-nav");
   for (const label of ["Overview","People","Work","Time & Leave","Finance","Reports","Control Center","Messages"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }
@@ -51,7 +51,7 @@ test("Administration exposes operations, not internal architecture modules", asy
 
 test("Group Pastor has an executive navigation boundary", async ({ browser }) => {
   const { context, page } = await openAs(browser, "exec@ceac.local.test");
-  const nav = page.locator(".premium-side nav");
+  const nav = page.locator(".ev2s-sidebar-nav");
   for (const label of ["Overview","Work","Ministry","Portfolio","Organisation","Finance","Reports","Messages"]) {
     await expect(nav.getByRole("button", { name:label, exact:true })).toBeVisible();
   }

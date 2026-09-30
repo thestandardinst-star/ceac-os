@@ -1,3 +1,20 @@
+# Legacy compatibility notice
+
+The active CEAC OS product-experience programme is Experience V2. The product owner's current workflow is Chat + Work, not a separate Claude implementation lane.
+
+Any tool or agent that reads this legacy file MUST ignore conflicting continuation instructions below and instead follow:
+1. docs/experience-v2/START_HERE.md
+2. docs/experience-v2/BUILD_STATE.md
+3. docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md
+4. docs/experience-v2/IMPLEMENTATION_SEQUENCE.md
+5. docs/experience-v2/REFERENCE_INDEX.md
+6. docs/experience-v2/ACCEPTANCE_AND_HANDOFF.md
+7. AGENTS.md
+
+GitHub HEAD is authoritative. One active writer at a time.
+
+---
+
 # CEAC OS — Claude continuation instructions
 
 ## Premium redesign is the active UI programme

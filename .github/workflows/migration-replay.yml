@@ -4,25 +4,42 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: migration-replay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   replay:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify verification scope
+        id: classify
+        env:
+          VERIFICATION_BASE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
+          VERIFICATION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          VERIFICATION_EVENT_NAME: ${{ github.event_name }}
+        run: node scripts/ci/classify-verification.mjs
 
       - name: Set up Supabase CLI
+        if: steps.classify.outputs.run_migration == 'true'
         uses: supabase/setup-cli@v1
         with:
           version: 2.117.0
 
       - name: Initialise local Supabase config
+        if: steps.classify.outputs.run_migration == 'true'
         run: |
           if [ ! -f supabase/config.toml ]; then
             supabase init
           fi
 
       - name: Start clean Supabase base without application migrations
+        if: steps.classify.outputs.run_migration == 'true'
         run: |
           mkdir -p /tmp/ceac-migrations
           find supabase/migrations -maxdepth 1 -name '*.sql' -exec mv {} /tmp/ceac-migrations/ \;
@@ -30,13 +47,20 @@ jobs:
           mv /tmp/ceac-migrations/*.sql supabase/migrations/
 
       - name: Restore documented legacy live-only artifact
+        if: steps.classify.outputs.run_migration == 'true'
         run: |
           psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
             -v ON_ERROR_STOP=1 \
             -f supabase/replay/legacy-live-artifacts.sql
 
       - name: Replay immutable migrations 001 through current
+        if: steps.classify.outputs.run_migration == 'true'
         run: supabase migration up --local
 
       - name: Show local migration state
+        if: steps.classify.outputs.run_migration == 'true'
         run: supabase migration list --local
+
+      - name: Record unaffected migration boundary
+        if: steps.classify.outputs.run_migration != 'true'
+        run: echo "Migration Replay not required for this Level A or documentation-only change."

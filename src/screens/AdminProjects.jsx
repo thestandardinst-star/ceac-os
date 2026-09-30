@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
-import { EmptyState, LoadingState, ProductNotice, SectionHeader, StatusDistribution } from "../components/bits";
+import { LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import {
+  ProjectContextRow,
+  ProjectEmpty,
+  ProjectPageHeader,
+  ProjectSectionHeader,
+  ProjectSummary,
+} from "../experience-v2/project-family/ProjectFamilyV2";
 
 export default function AdminProjects({ me, scheduleMeeting }) {
   const [projects,setProjects]=useState([]);
@@ -32,45 +39,64 @@ export default function AdminProjects({ me, scheduleMeeting }) {
     finally{setLoading(false);}
   }
 
-  if(loading) return <div className="body"><LoadingState label="Loading organisation projects…" /></div>;
+  if(loading) return <div className="body admin-projects ev2-project-page ev2-project-admin"><LoadingState label="Loading organisation projects…" /></div>;
 
   const active=projects.filter((project)=>project.status==="active");
   const planned=projects.filter((project)=>project.status==="planned");
   const attention=projects.filter((project)=>project.objectives.some((row)=>["at_risk","not_met"].includes(row.status)));
 
-  return <div className="body admin-projects">
-    <div className="office-page-intro">
-      <div className="eyebrow">Organisation delivery</div>
-      <h1 className="h1">Projects</h1>
-      <p className="screen-note">Organisation-wide project movement, objective status and participating units. Detailed unit execution remains in the unit workspace.</p>
-    </div>
+  return <div className="body admin-projects ev2-project-page ev2-project-admin">
+    <ProjectPageHeader
+      eyebrow="Organisation delivery"
+      title="Projects"
+      description="Organisation-wide project movement, objective status and participating units. Detailed unit execution remains in the unit workspace."
+    />
+
     {error&&<ProductNotice tone="error" title="Projects could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
-    <section className="admin-project-summary">
-      <div><b>{active.length}</b><span>active</span></div>
-      <div><b>{planned.length}</b><span>planned</span></div>
-      <div><b>{attention.length}</b><span>with objective attention</span></div>
-      <div><b>{projects.length}</b><span>projects on record</span></div>
-    </section>
-    <SectionHeader eyebrow="Delivery" title="Project portfolio" count={projects.length} />
-    {projects.length===0&&<EmptyState title="No projects recorded">Projects created by authorised managers will appear here.</EmptyState>}
-    <div className="admin-project-grid">
+
+    <ProjectSummary items={[
+      {label:"Active projects",value:active.length,detail:"Recorded as active"},
+      {label:"Planned projects",value:planned.length,detail:"Recorded as planned"},
+      {label:"Need objective attention",value:attention.length,detail:"At risk or not met objective state"},
+    ]} />
+
+    <ProjectSectionHeader eyebrow="Delivery" title="Organisation projects" count={projects.length} />
+
+    {projects.length===0&&<ProjectEmpty title="No projects recorded" description="Projects created by authorised managers will appear here." />}
+
+    <div className="ev2p-context-list">
       {projects.map((project)=>{
         const onTrack=project.objectives.filter((row)=>["on_track","met"].includes(row.status)).length;
         const atRisk=project.objectives.filter((row)=>row.status==="at_risk").length;
         const notMet=project.objectives.filter((row)=>row.status==="not_met").length;
         const other=Math.max(0,project.objectives.length-onTrack-atRisk-notMet);
-        return <article className="admin-project-card" key={project.id}>
-          <div className="admin-project-card-head"><div><span>{project.status}</span><strong>{project.name}</strong></div>{project.ends_on&&<small>Ends {dateOnly(project.ends_on)}</small>}</div>
-          {project.purpose&&<p>{project.purpose}</p>}
-          <div className="admin-project-meta"><span>Lead: {project.leadUnit}</span>{project.participating.length>0&&<span>Also: {project.participating.join(", ")}</span>}</div>
-          {project.objectives.length>0?<StatusDistribution label={project.name+" objective status"} segments={[
-            {key:"track",label:"On track / met",value:onTrack,tone:"success"},
-            {key:"risk",label:"At risk",value:atRisk,tone:"attention"},
-            {key:"not-met",label:"Not met",value:notMet,tone:"danger"},
-            {key:"other",label:"Other",value:other,tone:"neutral"},
-          ]}/>:<small className="admin-project-no-objectives">No objectives recorded for this project.</small>}
-          <button className="btn btn-ghost btn-sm" onClick={()=>scheduleMeeting?.({scope:"project",projectId:project.id,title:project.name+" meeting"})}>Schedule project meeting</button>
-        </article>;
+        const dateContext=project.starts_on||project.ends_on
+          ? `${project.starts_on?dateOnly(project.starts_on):"No start date"} → ${project.ends_on?dateOnly(project.ends_on):"No end date"}`
+          : "No project dates recorded";
+        const projectUnits=project.participating.length?project.participating.join(", "):"No participating units recorded";
+        const facts=project.objectives.length
+          ? [
+              {label:"Objectives",value:project.objectives.length},
+              {label:"On track / met",value:onTrack},
+              {label:"At risk",value:atRisk},
+              {label:"Not met",value:notMet},
+              ...(other?[{label:"Other states",value:other}]:[]),
+            ]
+          : [{label:"Objectives",value:"None recorded"}];
+
+        return <ProjectContextRow
+          key={project.id}
+          eyebrow="Organisation project"
+          title={project.name}
+          meta={`Lead: ${project.leadUnit} · ${dateContext}`}
+          note={`Project units: ${projectUnits} · ${project.purpose||"No purpose recorded."}`}
+          status={project.status}
+          facts={facts}
+          actions={[{
+            label:"Schedule project meeting",
+            onClick:()=>scheduleMeeting?.({scope:"project",projectId:project.id,title:project.name+" meeting"}),
+          }]}
+        />;
       })}
     </div>
   </div>;

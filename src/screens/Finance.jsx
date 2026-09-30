@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
-import { Sheet, ProgressMeter, ProductNotice, EmptyState, SectionHeader } from "../components/bits";
+import { Sheet, ProgressMeter, ProductNotice } from "../components/bits";
 import FinanceRequestQueue from "../components/FinanceRequestQueue";
-import { Stat, Table } from "../components/primitives";
+import { Table } from "../components/primitives";
+import { Button, Skeleton, StatePanel } from "../experience-v2/components";
+import { FinanceCurrencyCard, FinanceEmpty, FinanceFootnote, FinancePageHeader, FinanceRecordRow, FinanceSection, FinanceTabs } from "../experience-v2/finance-family/FinanceFamilyV2";
 
 // Finance — the whole church in one place. In, out, and what is moving
 // between departments.
@@ -47,6 +49,7 @@ export default function Finance({ me, openExpenses }) {
   const [myUnits, setMyUnits] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const year = new Date().getFullYear();
@@ -69,20 +72,30 @@ export default function Finance({ me, openExpenses }) {
 
   async function load() {
     setLoading(true);
-    const [us, inc, sp, tr, bg, mem] = await Promise.all([
-      supabase.from("units").select("id, name, code, handles_finance").eq("active", true).order("name"),
-      supabase.from("income_lines").select("id, received_on, source_kind, description, amount_minor, source_note, reverses_id, entered_at, currency"),
-      supabase.from("spend_lines").select("id, unit_id, spent_on, description, amount_minor, source_note, reverses_id, currency"),
-      supabase.from("internal_transfers").select("id, from_unit_id, to_unit_id, amount_minor, sent_on, purpose, state, response_note, sent_at, currency"),
-      supabase.from("budgets").select("unit_id, project_id, year, amount_minor, currency").eq("year", year),
-      supabase.from("unit_memberships").select("unit_id, role, units(name, handles_finance)").eq("profile_id", me.id),
-    ]);
-    setUnits(us.data || []); setIncome(inc.data || []); setSpend(sp.data || []);
-    setTransfers(tr.data || []); setBudgets(bg.data || []);
-    const mine = (mem.data || []);
-    setMyUnits(mine.filter((m) => m.role === "manager").map((m) => m.unit_id));
-    setCanEnter(me.is_admin || mine.some((m) => m.units && m.units.handles_finance));
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const results = await Promise.all([
+        supabase.from("units").select("id, name, code, handles_finance").eq("active", true).order("name"),
+        supabase.from("income_lines").select("id, received_on, source_kind, description, amount_minor, source_note, reverses_id, entered_at, currency"),
+        supabase.from("spend_lines").select("id, unit_id, spent_on, description, amount_minor, source_note, reverses_id, currency"),
+        supabase.from("internal_transfers").select("id, from_unit_id, to_unit_id, amount_minor, sent_on, purpose, state, response_note, sent_at, currency"),
+        supabase.from("budgets").select("unit_id, project_id, year, amount_minor, currency").eq("year", year),
+        supabase.from("unit_memberships").select("unit_id, role, units(name, handles_finance)").eq("profile_id", me.id),
+      ]);
+      const failed = results.find((result) => result.error);
+      if (failed?.error) throw failed.error;
+
+      const [us, inc, sp, tr, bg, mem] = results;
+      setUnits(us.data || []); setIncome(inc.data || []); setSpend(sp.data || []);
+      setTransfers(tr.data || []); setBudgets(bg.data || []);
+      const mine = (mem.data || []);
+      setMyUnits(mine.filter((m) => m.role === "manager").map((m) => m.unit_id));
+      setCanEnter(me.is_admin || mine.some((m) => m.units && m.units.handles_finance));
+    } catch (error) {
+      setLoadError(error?.message || "Finance records could not be loaded.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const nameOf = (id) => { const u = units.find((x) => x.id === id); return u ? u.name : "Central church funds"; };
@@ -98,7 +111,7 @@ export default function Finance({ me, openExpenses }) {
     try {
       if (!iDesc.trim()) throw new Error("Say what this money was.");
       const amount = toMinor(iAmount);
-      if (!amount) throw new Error("Enter an amount in cedis.");
+      if (!amount) throw new Error("Enter an amount.");
       const { error } = await supabase.from("income_lines").insert({
         org_id: me.org_id, received_on: iDate || new Date().toISOString().slice(0, 10),
         source_kind: iKind, description: iDesc.trim(), amount_minor: amount,
@@ -114,7 +127,7 @@ export default function Finance({ me, openExpenses }) {
       if (!tTo) throw new Error("Choose which department is receiving.");
       if (tFrom && tFrom === tTo) throw new Error("A department cannot send money to itself.");
       const amount = toMinor(tAmount);
-      if (!amount) throw new Error("Enter an amount in cedis.");
+      if (!amount) throw new Error("Enter an amount.");
       if (!tPurpose.trim()) throw new Error("Say what the money is for.");
       const { error } = await supabase.from("internal_transfers").insert({
         org_id: me.org_id, from_unit_id: tFrom || null, to_unit_id: tTo,
@@ -136,145 +149,173 @@ export default function Finance({ me, openExpenses }) {
     await load();
   }
 
-  if (loading) return <div className="body"><div className="spin">Loading finance...</div></div>;
+  if (loading) return (
+    <div className="body ev2-finance-page ev2-finance-admin" aria-busy="true">
+      <FinancePageHeader
+        eyebrow="Organisation finance"
+        title="Finance"
+        description="Administration view of requests, recorded income, spend, budgets and two-sided transfers. Currencies stay separate and recorded position is not a bank balance."
+        statusLabel="Loading records"
+        statusTone="neutral"
+      />
+      <div className="ev2fin-loading" aria-label="Loading finance">
+        <Skeleton variant="block" height="5rem" />
+        <Skeleton variant="block" height="10rem" />
+        <Skeleton variant="block" height="8rem" />
+      </div>
+    </div>
+  );
+
+  if (loadError) return (
+    <div className="body ev2-finance-page ev2-finance-admin">
+      <FinancePageHeader
+        eyebrow="Organisation finance"
+        title="Finance"
+        description="Administration view of requests, recorded income, spend, budgets and two-sided transfers. Currencies stay separate and recorded position is not a bank balance."
+        statusLabel="Records unavailable"
+        statusTone="danger"
+      />
+      <div className="ev2fin-state">
+        <StatePanel
+          state="error"
+          title="Finance records could not be loaded"
+          description="No finance figures are being shown because the current records could not be retrieved."
+          actionLabel="Try again"
+          onAction={load}
+          icon="finance"
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="body">
-      <div className="finance-page-intro">
-        <div className="eyebrow">Organisation finance</div>
-        <h1 className="h1">Finance</h1>
-        <p className="screen-note">See recorded income, spend, budgets and unresolved transfers without combining currencies or pretending the ledger is a bank balance.</p>
-      </div>
-
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 16 }}>
-        {TABS.map(([k, label]) => (
-          <button key={k} onClick={() => setTab(k)} style={{
-            fontSize: 12.5, padding: "6px 12px", borderRadius: 20, border: "1px solid var(--line)",
-            background: tab === k ? "var(--ink)" : "var(--card)",
-            color: tab === k ? "#fff" : "var(--ink-soft)", fontWeight: tab === k ? 600 : 400,
-          }}>{label}</button>))}
-      </div>
-
-      {(unconfirmed.length > 0 || disputed.length > 0) && tab === "overview" && (
-        <div className={"flag " + (disputed.length ? "flag-brick" : "flag-amber")}>
-          <h4>{unconfirmed.length} transfer{unconfirmed.length === 1 ? "" : "s"} not yet confirmed{disputed.length ? ", " + disputed.length + " disputed" : ""}</h4>
-          Money is only properly recorded once the receiving department confirms it. Open Between departments.
-        </div>)}
+    <div className="body ev2-finance-page ev2-finance-admin">
+      <FinancePageHeader
+        eyebrow="Organisation finance"
+        title="Finance"
+        description="Administration view of requests, recorded income, spend, budgets and two-sided transfers. Currencies stay separate and recorded position is not a bank balance."
+        statusLabel={financeCurrencies.length ? financeCurrencies.length+" currencies recorded" : "No position recorded"}
+        statusTone="neutral"
+      />
+      <FinanceTabs items={TABS} value={tab} onChange={setTab} label="Administration finance sections" />
 
       {tab === "overview" && (<>
-        <FinanceRequestQueue me={me} authority="admin" canFulfil title="Requests needing Administration" />
-        <SectionHeader eyebrow={String(year)} title="Financial position by currency" />
-        <div className="finance-currency-grid">
-          {financeCurrencies.length === 0 && <EmptyState compact title="No finance records yet">Income, spend and budget records will build this view automatically.</EmptyState>}
+        <div className="ev2fin-authority"><FinanceRequestQueue me={me} authority="admin" canFulfil title="Requests needing Administration" /></div>
+        {(unconfirmed.length > 0 || disputed.length > 0) && <ProductNotice tone="attention" title={disputed.length ? "Transfers need review" : "Transfers awaiting confirmation"}>
+          {unconfirmed.length} transfer{unconfirmed.length === 1 ? "" : "s"} not yet confirmed{disputed.length ? " · "+disputed.length+" disputed" : ""}. Money is only treated as confirmed once the receiving department confirms it.
+        </ProductNotice>}
+        <FinanceSection eyebrow={String(year)} title="Financial position by currency" description="Confirmed income, recorded spend and recorded budgets remain separated by currency.">
+        <div className="ev2fin-card-grid">
+          {financeCurrencies.length === 0 && <FinanceEmpty title="No finance records yet" description="Income, spend and budget records will build this view automatically." />}
           {financeCurrencies.map((currency) => {
             const received = Number(inBy[currency] || 0);
             const spent = Number(outBy[currency] || 0);
+            const hasBudget = budgets.some((budget) => (budget.currency || "GHS") === currency);
             const budgeted = Number(budBy[currency] || 0);
             const difference = received - spent;
-            return <article className="finance-currency-card" key={currency}>
-              <div className="finance-currency-card-head"><div><span>Currency</span><strong>{currency}</strong></div><small>{year}</small></div>
-              <div className="finance-currency-facts">
-                <Stat icon="money" label="Received" value={money(received,currency)} onOpen={() => setTab("in")} />
-                <Stat icon="money" label="Spent" value={money(spent,currency)} onOpen={() => setTab("out")} />
-                <Stat icon="chart" label="Budgeted" value={money(budgeted,currency)} onOpen={() => setTab("overview")} />
-                <Stat icon="chart" label="Recorded in minus out" value={money(difference,currency)}
-                      tone={difference < 0 ? "late" : "ink"} onOpen={() => setTab("overview")} />
-              </div>
+            return <FinanceCurrencyCard key={currency} currency={currency} contextLabel={String(year)} facts={[
+              {label:"Received",value:money(received,currency),onClick:()=>setTab("in")},
+              {label:"Spent",value:money(spent,currency),onClick:()=>setTab("out")},
+              {label:"Budgeted",value:hasBudget ? money(budgeted,currency) : "Not recorded",detail:hasBudget ? null : "No budget recorded for this currency"},
+              {label:"Recorded in minus out",value:money(difference,currency)},
+            ]}>
               {budgeted > 0 && <ProgressMeter value={spent} max={budgeted} label="Spend against recorded budget" detail={money(spent,currency) + " of " + money(budgeted,currency)} />}
-              {budgeted > 0 && spent > budgeted && <ProductNotice tone="attention" title="Recorded spend is above recorded budget">Open the department rows below before drawing a conclusion.</ProductNotice>}
-            </article>;
+              {budgeted > 0 && spent > budgeted && <ProductNotice tone="attention" title="Recorded spend is above recorded budget">Open the department movement below before drawing a conclusion.</ProductNotice>}
+            </FinanceCurrencyCard>;
           })}
         </div>
-        <p className="screen-note">Recorded in minus recorded out is not a bank balance and does not include opening balances or unrecorded activity. Currencies are never converted into one another.</p>
+        <FinanceFootnote>Recorded in minus recorded out is not a bank balance and does not include opening balances or unrecorded activity. Currencies are never converted into one another.</FinanceFootnote>
+        </FinanceSection>
 
-        <SectionHeader eyebrow="Departments" title="Where money is moving" />
-        <div className="finance-unit-grid">
+        <FinanceSection eyebrow="Departments" title="Where money is moving" description="Recorded spend, recorded budget and confirmed internal receipts by department.">
+        <div className="ev2fin-list">
         {units.map((u) => {
           const outB = sumByCurrency(spend.filter((s) => s.unit_id === u.id), { reversals: true });
           const gotB = sumByCurrency(transfers.filter((x) => x.to_unit_id === u.id && x.state === "confirmed"));
           const budB = sumByCurrency(budgets.filter((b) => b.unit_id === u.id));
           const out = Object.keys(outB).length, got = Object.keys(gotB).length, bud = Object.keys(budB).length;
           if (!out && !got && !bud) return null;
-          return (
-            <article key={u.id} className="finance-unit-card">
-              <div className="finance-unit-card-head"><strong>{u.name}</strong><span>{showTotals(outB)} spent</span></div>
-              <div className="finance-unit-card-meta">
-                <span>{bud ? showTotals(budB) + " budget recorded" : "No budget recorded"}</span>
-                {got ? <span>{showTotals(gotB)} confirmed transfers received</span> : <span>No confirmed transfers received</span>}
-              </div>
-            </article>);
+          return <FinanceRecordRow
+            key={u.id}
+            eyebrow="Department"
+            title={u.name}
+            meta={showTotals(outB)+" spent"}
+            note={(bud ? showTotals(budB)+" budget recorded" : "No budget recorded")+" · "+(got ? showTotals(gotB)+" confirmed transfers received" : "No confirmed transfers received")}
+          />;
         })}
         </div>
-        {units.every((u) => !spend.some((s) => s.unit_id === u.id)) &&
-          <EmptyState compact title="No department spend recorded">Expense entries will appear here once they are recorded against a department.</EmptyState>}
+        {units.every((u) => !spend.some((s) => s.unit_id === u.id)) && <FinanceEmpty title="No department spend recorded" description="Expense entries will appear here once they are recorded against a department." />}
+        </FinanceSection>
       </>)}
 
       {tab === "in" && (<>
-        {canEnter && <button className="btn wide-auto" style={{ marginTop: 14 }} onClick={() => { setSheet("income"); setMsg(null); }}>Record money received</button>}
-        <div className="sec"><span>Money received</span><span>{showTotals(inBy)}</span></div>
-        {income.length === 0 && <div className="card small">Nothing recorded yet. Finance records offerings, partnerships, donations and event income here.</div>}
-        {income.sort((a, b) => b.received_on.localeCompare(a.received_on)).map((r) => (
-          <div key={r.id} className="row">
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-              <div className="row-t">{r.description}</div>
-              <div className="row-t">{money(r.amount_minor, r.currency)}</div>
-            </div>
-            <div className="row-m">
-              {dateOnly(r.received_on)} · {(SOURCES.find((s) => s[0] === r.source_kind) || ["", r.source_kind])[1]}
-              {r.source_note ? " · from " + r.source_note : ""}
-              {r.reverses_id ? " · correction" : ""}
-            </div>
-          </div>))}
+        {canEnter && <div className="ev2fin-actions"><Button icon="create" onClick={() => { setSheet("income"); setMsg(null); }}>Record money received</Button></div>}
+        <FinanceSection eyebrow="Ledger" title="Money received" meta={showTotals(inBy)} description="External income records stay attributable and append-only; corrections remain visible as separate records.">
+          <div className="ev2fin-list">
+          {income.sort((a, b) => b.received_on.localeCompare(a.received_on)).map((r) => (
+            <FinanceRecordRow
+              key={r.id}
+              eyebrow={(SOURCES.find((s) => s[0] === r.source_kind) || ["", r.source_kind])[1]}
+              title={r.description}
+              meta={money(r.amount_minor, r.currency)}
+              note={dateOnly(r.received_on)+(r.source_note ? " · from "+r.source_note : "")}
+              statusLabel={r.reverses_id ? "Correction" : null}
+              statusTone={r.reverses_id ? "warning" : "neutral"}
+            />
+          ))}
+          </div>
+          {income.length === 0 && <FinanceEmpty title="No money received recorded" description="Offerings, partnerships, donations and event income will appear here once recorded." />}
+        </FinanceSection>
       </>)}
 
       {tab === "out" && (<>
-        <div className="sec"><span>Money spent</span><span>{showTotals(outBy)}</span></div>
-        <div className="finance-expense-intro"><p className="small">Actual spend stays separate from requests and transfers. Record an expense against the department and source record it belongs to.</p>{openExpenses&&<button className="btn btn-ghost btn-sm" onClick={openExpenses}>Open Expenses</button>}</div>
-        <Table exportName="ceac-spending" rows={spend} empty="Nothing recorded yet."
-          columns={[
-            { key: "spent_on", label: "Date", width: 104, render: (r) => dateOnly(r.spent_on) },
-            { key: "description", label: "What for" },
-            { key: "unit_id", label: "Department", render: (r) => nameOf(r.unit_id) },
-            { key: "source_note", label: "From", render: (r) => r.source_note || "—" },
-            { key: "amount_minor", label: "Amount", align: "right",
-              render: (r) => money(r.amount_minor, r.currency),
-              sortValue: (r) => Number(r.amount_minor) || 0,
-              csv: (r) => (Number(r.amount_minor) / 100).toFixed(2) },
-          ]} />
+        <FinanceSection eyebrow="Ledger" title="Money spent" meta={showTotals(outBy)} description="Actual spend remains separate from requests, approved commitments and transfers.">
+          {openExpenses && <div className="ev2fin-actions"><Button variant="secondary" onClick={openExpenses}>Open Expenses</Button></div>}
+          <div className="ev2fin-table-wrap">
+          <Table exportName="ceac-spending" rows={spend} empty="Nothing recorded yet."
+            columns={[
+              { key: "spent_on", label: "Date", width: 104, render: (r) => dateOnly(r.spent_on) },
+              { key: "description", label: "What for" },
+              { key: "unit_id", label: "Department", render: (r) => nameOf(r.unit_id) },
+              { key: "source_note", label: "From", render: (r) => r.source_note || "—" },
+              { key: "amount_minor", label: "Amount", align: "right",
+                render: (r) => money(r.amount_minor, r.currency),
+                sortValue: (r) => Number(r.amount_minor) || 0,
+                csv: (r) => (Number(r.amount_minor) / 100).toFixed(2) },
+            ]} />
+          </div>
+        </FinanceSection>
       </>)}
 
       {tab === "moving" && (<>
-        {(canEnter || myUnits.length > 0) &&
-          <button className="btn wide-auto" style={{ marginTop: 14 }} onClick={() => { setSheet("transfer"); setMsg(null); }}>Record money sent</button>}
-        <div className="flag flag-green">
-          <h4>Why this has two sides</h4>
-          The department sending records it. Only the department receiving can confirm it. Until both agree it stands as unconfirmed, and both can see it. One person's word is not a record where money is concerned.
-        </div>
-        <div className="sec"><span>Between departments</span><span>{transfers.length}</span></div>
-        {transfers.length === 0 && <div className="card small">Nothing recorded yet.</div>}
-        {transfers.sort((a, b) => b.sent_on.localeCompare(a.sent_on)).map((t) => {
-          const mineToConfirm = t.state === "sent" && (me.is_admin || myUnits.includes(t.to_unit_id));
-          return (
-            <div key={t.id} className="row">
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <div className="row-t">{nameOf(t.from_unit_id)} → {nameOf(t.to_unit_id)}</div>
-                <div className="row-t">{money(t.amount_minor, t.currency)}</div>
-              </div>
-              <div className="row-m">{dateOnly(t.sent_on)} · {t.purpose}</div>
-              {t.response_note && <div className="row-note">They said: {t.response_note}</div>}
-              <div style={{ marginTop: 7 }}>
-                <span className={"pill " + (t.state === "confirmed" ? "p-green" : t.state === "disputed" ? "p-brick" : "p-amber")}>
-                  {t.state === "confirmed" ? "Confirmed by them" : t.state === "disputed" ? "They disagree" : "Waiting for them to confirm"}
-                </span>
-              </div>
-              {mineToConfirm && (
-                <div style={{ display: "flex", gap: 7, marginTop: 10 }}>
-                  <button className="btn btn-ghost btn-sm" onClick={() => { const n = prompt("What is different? Both accounts stay visible."); if (n) respond(t, "disputed", n); }}>That is not right</button>
-                  <button className="btn btn-sm" onClick={() => respond(t, "confirmed")}>We received this</button>
-                </div>)}
-            </div>);
-        })}
+        {(canEnter || myUnits.length > 0) && <div className="ev2fin-actions"><Button icon="create" onClick={() => { setSheet("transfer"); setMsg(null); }}>Record money sent</Button></div>}
+        <ProductNotice tone="success" title="Two-sided transfer confirmation">The sending department records the transfer. Only the receiving department can confirm it. Until both sides agree it remains unconfirmed and both records stay visible.</ProductNotice>
+        <FinanceSection eyebrow="Transfers" title="Between departments" meta={transfers.length+" records"} description="Sent, confirmed and disputed states stay explicit; unconfirmed transfers are not counted as confirmed money in.">
+          <div className="ev2fin-list">
+          {transfers.sort((a, b) => b.sent_on.localeCompare(a.sent_on)).map((t) => {
+            const mineToConfirm = t.state === "sent" && (me.is_admin || myUnits.includes(t.to_unit_id));
+            return <FinanceRecordRow
+              key={t.id}
+              eyebrow={dateOnly(t.sent_on)}
+              title={nameOf(t.from_unit_id)+" → "+nameOf(t.to_unit_id)}
+              meta={money(t.amount_minor, t.currency)+" · "+t.purpose}
+              note={t.response_note ? "Response: "+t.response_note : null}
+              statusLabel={t.state === "confirmed" ? "Confirmed by them" : t.state === "disputed" ? "They disagree" : "Waiting for them to confirm"}
+              statusTone={t.state === "confirmed" ? "success" : t.state === "disputed" ? "danger" : "warning"}
+            >
+              {mineToConfirm && <>
+                <Button variant="quiet" onClick={() => { const n = prompt("What is different? Both accounts stay visible."); if (n) respond(t, "disputed", n); }}>That is not right</Button>
+                <Button onClick={() => respond(t, "confirmed")}>We received this</Button>
+              </>}
+            </FinanceRecordRow>;
+          })}
+          </div>
+          {transfers.length === 0 && <FinanceEmpty title="No department transfers recorded" description="Internal transfers will appear here when recorded." />}
+        </FinanceSection>
+        <FinanceFootnote>Confirmation is two-sided. A sent or disputed transfer is not treated as confirmed money received.</FinanceFootnote>
       </>)}
+
+      <FinanceFootnote>Finance records are factual ledger context. Income, spend, commitments and transfers remain traceable, currencies are never converted, and corrections do not erase original entries.</FinanceFootnote>
 
       {sheet === "income" && (
         <Sheet onClose={() => setSheet(null)}>

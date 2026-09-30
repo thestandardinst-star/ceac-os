@@ -1,12 +1,194 @@
-import { useEffect,useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { LoadingState,ProductNotice,ProgressMeter } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-export default function ExecutiveReports({me}){
- const [period,setPeriod]=useState(null),[reports,setReports]=useState([]),[units,setUnits]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(null);
- useEffect(()=>{load();},[me.org_id]);
- async function load(){setLoading(true);setError(null);try{const [p,u]=await Promise.all([supabase.from("report_periods").select("id,label,status,starts_on,ends_on").eq("org_id",me.org_id).order("starts_on",{ascending:false}).limit(1).maybeSingle(),supabase.from("units").select("id,name").eq("org_id",me.org_id).eq("active",true).order("name")]);if(p.error||u.error)throw p.error||u.error;setPeriod(p.data||null);setUnits(u.data||[]);if(p.data){const r=await supabase.from("reports").select("unit_id,status,version,submitted_at").eq("period_id",p.data.id).eq("scope","unit");if(r.error)throw r.error;const latest={};(r.data||[]).forEach(x=>{if(!latest[x.unit_id]||Number(x.version)>Number(latest[x.unit_id].version))latest[x.unit_id]=x});setReports(Object.values(latest));}}catch(e){setError(humanError(e,"Reports could not be loaded."));}finally{setLoading(false);}}
- const filed=reports.filter(x=>x.status!=="draft").length;
- return <div className="body premium-exec-page"><header className="exec-page-head"><div><span className="eyebrow">Leadership reporting</span><h1 className="h1">Reports</h1><p className="screen-note">Reporting coverage and the units still outstanding. Administration controls periods and report configuration.</p></div></header>
- {error&&<ProductNotice tone="error" title="Could not load Reports">{error}</ProductNotice>}{loading?<LoadingState label="Loading reports…"/>:period?<><section className="exec-report-hero"><span>Current period</span><strong>{period.label}</strong><ProgressMeter value={filed} max={units.length} label="Reports filed" detail={filed+" of "+units.length+" units"}/></section><section className="exec-list">{units.map(u=>{const r=reports.find(x=>x.unit_id===u.id);return <div className="exec-report-row" key={u.id}><span><strong>{u.name}</strong><small>{r?.submitted_at?new Date(r.submitted_at).toLocaleDateString("en-GB"):"No submitted report recorded"}</small></span><b className={r&&r.status!=="draft"?"ok":""}>{r&&r.status!=="draft"?"Filed":"Waiting"}</b></div>})}</section></>:<div className="premium-empty">No reporting period is recorded.</div>}</div>;
+import { Skeleton, StatePanel } from "../experience-v2/components";
+import {
+  ReportingEvidenceCard,
+  ReportingEvidenceGrid,
+  ReportingEmpty,
+  ReportingFootnote,
+  ReportingPageHeader,
+  ReportingRecordRow,
+  ReportingSection,
+} from "../experience-v2/reporting-family/ReportingFamilyV2";
+
+export default function ExecutiveReports({ me }) {
+  const [period, setPeriod] = useState(null);
+  const [reports, setReports] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => { load(); }, [me.org_id]);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const [periodResult, unitResult] = await Promise.all([
+        supabase.from("report_periods")
+          .select("id,label,status,starts_on,ends_on")
+          .eq("org_id", me.org_id)
+          .order("starts_on", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase.from("units")
+          .select("id,name")
+          .eq("org_id", me.org_id)
+          .eq("active", true)
+          .order("name"),
+      ]);
+      if (periodResult.error || unitResult.error) throw periodResult.error || unitResult.error;
+
+      setPeriod(periodResult.data || null);
+      setUnits(unitResult.data || []);
+
+      if (!periodResult.data) {
+        setReports([]);
+        return;
+      }
+
+      const reportResult = await supabase.from("reports")
+        .select("unit_id,status,version,submitted_at")
+        .eq("period_id", periodResult.data.id)
+        .eq("scope", "unit");
+      if (reportResult.error) throw reportResult.error;
+
+      const latest = {};
+      (reportResult.data || []).forEach((report) => {
+        if (!latest[report.unit_id] || Number(report.version) > Number(latest[report.unit_id].version)) {
+          latest[report.unit_id] = report;
+        }
+      });
+      setReports(Object.values(latest));
+    } catch (loadError) {
+      setError(humanError(loadError, "Reports could not be loaded."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filed = useMemo(() => reports.filter((report) => report.status !== "draft"), [reports]);
+  const drafting = useMemo(() => reports.filter((report) => report.status === "draft"), [reports]);
+  const waiting = useMemo(
+    () => units.filter((unit) => !reports.some((report) => report.unit_id === unit.id && report.status !== "draft")),
+    [units, reports],
+  );
+
+  const statusLabel = loading
+    ? "Loading records"
+    : error
+      ? "Context unavailable"
+      : period
+        ? period.status === "open" ? "Latest period open" : "Latest period closed"
+        : "No period recorded";
+
+  return (
+    <div className="body ev2-reporting-page ev2-reporting-executive">
+      <ReportingPageHeader
+        eyebrow="Leadership reporting"
+        title="Reports"
+        description="Read-only reporting context for the latest recorded period. Administration controls periods and report configuration; coverage is filing status, not a performance score."
+        statusLabel={statusLabel}
+        statusTone={error ? "danger" : "neutral"}
+      />
+
+      {loading ? (
+        <div className="ev2rep-loading" aria-label="Loading reports" aria-busy="true">
+          <Skeleton variant="block" height="7rem" />
+          <Skeleton variant="block" height="12rem" />
+        </div>
+      ) : error ? (
+        <div className="ev2rep-state">
+          <StatePanel
+            state="error"
+            title="Reporting context could not be loaded"
+            description="No coverage or unit filing status is being shown because the current reporting records could not be retrieved."
+            actionLabel="Try again"
+            onAction={load}
+            icon="reports"
+          />
+        </div>
+      ) : !period ? (
+        <ReportingSection
+          eyebrow="Latest period"
+          title="No reporting period is recorded"
+          description="Executive reporting remains empty until Administration records a reporting period."
+        >
+          <ReportingEmpty
+            title="No leadership reporting context yet"
+            description="CEAC OS will show factual unit filing status when a reporting period exists."
+          />
+        </ReportingSection>
+      ) : (
+        <>
+          <ReportingSection
+            eyebrow="Latest period"
+            title={period.label}
+            description={`${period.starts_on} — ${period.ends_on}. Administration controls period configuration.`}
+            meta={period.status === "open" ? "Open" : "Closed"}
+          >
+            <ReportingEvidenceGrid>
+              <ReportingEvidenceCard
+                value={String(filed.length)}
+                label="submitted units"
+                detail={`${filed.length} of ${units.length} units`}
+                tone="success"
+              />
+              <ReportingEvidenceCard
+                value={String(drafting.length)}
+                label="drafts"
+                detail="Started, not submitted"
+                tone="warning"
+              />
+              <ReportingEvidenceCard
+                value={String(waiting.length)}
+                label="waiting"
+                detail="No submitted report recorded"
+              />
+            </ReportingEvidenceGrid>
+          </ReportingSection>
+
+          <ReportingSection
+            eyebrow="Named unit status"
+            title="Who has filed"
+            description="Named filing status remains visible for leadership context. It is not a ranking of units or people."
+          >
+            {units.length === 0 ? (
+              <ReportingEmpty
+                title="No active units are visible"
+                description="Unit reporting status will appear when active organisation units are available."
+              />
+            ) : (
+              <div className="ev2rep-list">
+                {units.map((unit) => {
+                  const report = reports.find((row) => row.unit_id === unit.id);
+                  const isFiled = report && report.status !== "draft";
+                  const isDraft = report?.status === "draft";
+                  return (
+                    <ReportingRecordRow
+                      key={unit.id}
+                      eyebrow={isFiled ? "Submitted" : isDraft ? "Draft" : "No submitted report"}
+                      title={unit.name}
+                      meta={isFiled && report.submitted_at
+                        ? `Submitted ${new Date(report.submitted_at).toLocaleDateString("en-GB")}`
+                        : isDraft
+                          ? "Draft exists but has not been submitted"
+                          : "No submitted report recorded"}
+                      statusLabel={isFiled ? "Filed" : isDraft ? "Started" : "Waiting"}
+                      statusTone={isFiled ? "success" : isDraft ? "warning" : "neutral"}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </ReportingSection>
+
+          <ReportingFootnote>
+            Executive Reports is read-only. Filing coverage describes reporting status only; CEAC OS does not infer unit performance, staff performance, achievement, score or ranking from it.
+          </ReportingFootnote>
+        </>
+      )}
+    </div>
+  );
 }

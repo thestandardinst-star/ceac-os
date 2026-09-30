@@ -10,14 +10,15 @@ async function openStaff(browser,viewport={width:1440,height:960}){
   await expect(page.locator(".staff-app")).toBeVisible({timeout:15000});
   return {context,page};
 }
-async function side(page,label){await page.locator(".premium-side").getByRole("button",{name:label,exact:true}).click();await expect(page.locator(".body")).toBeVisible();}
+async function side(page,label){await page.locator(".ev2s-sidebar").getByRole("button",{name:label,exact:true}).click();await expect(page.locator(".body")).toBeVisible();}
 
 test.describe("Premium redesign R1 Staff",()=>{
   test("Staff Today is calm, action-first and visually coherent",async({browser})=>{
     const {context,page}=await openStaff(browser);
     await expect(page.getByRole("heading",{name:/Good (morning|afternoon|evening), Staff/})).toBeVisible();
-    await expect(page.locator(".staff-command-surface")).toBeVisible();
-    await expect(page.locator(".reference-focus-grid")).toBeVisible();
+    await expect(page.locator(".staffv2")).toBeVisible();
+    await expect(page.locator(".staffv2-session")).toBeVisible();
+    await expect(page.locator(".staffv2-focus-grid")).toBeVisible();
     await expect(page.getByText("Next up",{exact:true}).first()).toBeVisible();
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-today.png",fullPage:true});
     await context.close();
@@ -33,8 +34,11 @@ test.describe("Premium redesign R1 Staff",()=>{
   test("Staff Team makes the Room obvious without DMs",async({browser})=>{
     const {context,page}=await openStaff(browser);
     await side(page,"Team");
-    for(const label of ["People","Room","Resources"]) await expect(page.locator(".team-primary-tabs").getByRole("button",{name:label,exact:true})).toBeVisible();
+    await expect(page.locator(".ev2-people-page.ev2-people-staff")).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Team",exact:true})).toBeVisible();
     await expect(page.getByRole("button",{name:/Unit Room/})).toBeVisible();
+    await expect(page.getByText("People",{exact:true}).first()).toBeVisible();
+    await expect(page.getByText(/Direct message/i)).toHaveCount(0);
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-team.png",fullPage:true});
     await context.close();
   });
@@ -42,7 +46,7 @@ test.describe("Premium redesign R1 Staff",()=>{
     const {context,page}=await openStaff(browser);
     await side(page,"Calendar");
     await expect(page.getByRole("heading",{name:"Calendar",exact:true})).toBeVisible();
-    await expect(page.locator(".staff-calendar-grid")).toBeVisible();
+    await expect(page.getByLabel("Personal month calendar")).toBeVisible();
     for(const label of ["All","Meetings","Work","Ministry","Leave"]) await expect(page.getByRole("tab",{name:label,exact:true})).toBeVisible();
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-calendar.png",fullPage:true});
     await context.close();
@@ -65,11 +69,13 @@ test.describe("Premium redesign R1 Staff",()=>{
   });
   test("Staff mobile keeps Today Work Team and My Hub primary with Messages in More",async({browser})=>{
     const {context,page}=await openStaff(browser,{width:390,height:844});
-    for(const label of ["Home","Work","Team","Me"]) await expect(page.locator(".premium-tabs").getByRole("button",{name:label,exact:true})).toBeVisible();
-    await page.locator(".premium-tabs").getByRole("button",{name:"More",exact:true}).click();
-    await expect(page.getByRole("menuitem",{name:"Messages",exact:true})).toBeVisible();
-    await page.getByRole("button",{name:"Close menu",exact:true}).click();
-    await page.locator(".premium-tabs").getByRole("button",{name:"Me",exact:true}).click();
+    for(const label of ["Home","Work","Team","Me"]) await expect(page.locator(".ev2s-mobile-nav").getByRole("button",{name:label,exact:true})).toBeVisible();
+    await page.locator(".ev2s-mobile-nav").getByRole("button",{name:"More",exact:true}).click();
+    const more=page.getByRole("dialog",{name:"More"});
+    await expect(more).toBeVisible();
+    await expect(more.getByRole("button",{name:"Messages",exact:true})).toBeVisible();
+    await more.getByRole("button",{name:"Close",exact:true}).click();
+    await page.locator(".ev2s-mobile-nav").getByRole("button",{name:"Me",exact:true}).click();
     await expect(page.getByRole("heading",{name:"My Hub",exact:true})).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.screenshot({path:"test-artifacts/redesign-r1-staff-mobile-hub.png",fullPage:true});

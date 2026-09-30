@@ -1,0 +1,103 @@
+import { readFileSync } from "node:fs";
+import { expect, test } from "@playwright/test";
+
+const password = process.env.ROLE_FIXTURE_PASSWORD;
+
+async function openExecutiveReports(browser, viewport) {
+  const context = await browser.newContext({ viewport });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+  await page.goto("/?tab=exec-reports");
+  await expect(page.locator(".ev2-reporting-executive")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("heading", { name: "Reports", exact: true })).toBeVisible();
+  return { context, page };
+}
+
+test("Stage 10 Family F4 keeps Executive Reports read-only and factual", async () => {
+  const css = readFileSync("src/experience-v2/reporting-family/reporting-family.css", "utf8");
+  const executive = readFileSync("src/screens/ExecutiveReports.jsx", "utf8");
+
+  expect(executive).toContain('supabase.from("report_periods")');
+  expect(executive).toContain('supabase.from("reports")');
+  expect(executive).toContain('supabase.from("units")');
+  expect(executive).toContain('.eq("scope", "unit")');
+  expect(executive).toContain("coverage is filing status, not a performance score");
+  expect(executive).toContain("Executive Reports is read-only");
+  expect(executive).toContain("ev2-reporting-executive");
+  expect(executive).not.toContain(".insert(");
+  expect(executive).not.toContain(".update(");
+  expect(executive).not.toContain(".delete(");
+  expect(executive).not.toContain("save_report");
+  expect(executive).not.toContain("correct_report");
+  expect(executive).not.toContain("Open reporting period");
+  expect(css).not.toContain("!important");
+});
+
+test("Stage 10 Family F4 keeps a failed Executive reporting read distinct from zero coverage", async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+
+  await page.route("**/rest/v1/report_periods*", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "fixture executive reporting read failed" }),
+    });
+  });
+
+  await page.goto("/?tab=exec-reports");
+  await expect(page.getByText("Reporting context could not be loaded", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Try again", exact: true })).toBeVisible();
+  await expect(page.getByText("0 of", { exact: false })).toHaveCount(0);
+  await context.close();
+});
+
+for (const viewport of [
+  { name: "phone-320", width: 320, height: 844 },
+  { name: "phone-360", width: 360, height: 800 },
+  { name: "phone-375", width: 375, height: 812 },
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "phone-414", width: 414, height: 896 },
+  { name: "phone-430", width: 430, height: 932 },
+  { name: "intermediate-900", width: 900, height: 900 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+  { name: "desktop-1440", width: 1440, height: 900 },
+]) {
+  test(`Stage 10 Family F4 Executive Reports composes at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openExecutiveReports(browser, { width: viewport.width, height: viewport.height });
+
+    await expect(page.getByText(/Administration controls periods and report configuration/i).first()).toBeVisible();
+    await expect(page.getByText(/not a performance score/i).first()).toBeVisible();
+
+    await expect(page.getByRole("button", { name: "Open reporting period", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Close period|Reopen period|Submit|Save|Correct/i })).toHaveCount(0);
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `Executive Reports overflowed ${viewport.width}px viewport`).toBeLessThanOrEqual(1);
+
+    const smallest = await page.locator(".ev2-reporting-executive").evaluate((root) => {
+      const values = [...root.querySelectorAll("*")]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0 && (node.textContent || "").trim();
+        })
+        .map((node) => parseFloat(getComputedStyle(node).fontSize))
+        .filter((value) => Number.isFinite(value));
+      return Math.min(...values);
+    });
+    expect(smallest).toBeGreaterThanOrEqual(12);
+
+    await page.screenshot({ path: `test-artifacts/redesign-r7-stage10f4-executive-reports-${viewport.name}.png`, fullPage: true });
+    await context.close();
+  });
+}

@@ -1,0 +1,121 @@
+import { execFileSync } from "node:child_process";
+import { appendFileSync } from "node:fs";
+
+const base = process.env.VERIFICATION_BASE_SHA || "HEAD^";
+const head = process.env.VERIFICATION_HEAD_SHA || "HEAD";
+const eventName = process.env.VERIFICATION_EVENT_NAME || "local";
+
+function git(...args) {
+  return execFileSync("git", args, { encoding: "utf8" }).trim();
+}
+
+function changedFiles() {
+  try {
+    return git("diff", "--name-only", `${base}...${head}`)
+      .split("\n")
+      .map((file) => file.trim())
+      .filter(Boolean);
+  } catch {
+    return git("diff", "--name-only", `${base}`, `${head}`)
+      .split("\n")
+      .map((file) => file.trim())
+      .filter(Boolean);
+  }
+}
+
+const files = changedFiles();
+const subject = git("log", "-1", "--format=%s", head);
+
+const documentationOnly =
+  files.length > 0 &&
+  files.every(
+    (file) =>
+      file === "AGENTS.md" ||
+      file === "README.md" ||
+      file.startsWith("docs/") ||
+      file.endsWith(".md"),
+  );
+
+const workflowOrHarnessChanged = files.some(
+  (file) =>
+    file.startsWith(".github/") ||
+    file.startsWith("scripts/ci/") ||
+    file === "playwright.config.js" ||
+    file === "package.json" ||
+    file === "package-lock.json",
+);
+const databaseOrSecurityChanged = files.some(
+  (file) =>
+    file.startsWith("supabase/") ||
+    file === "src/lib/supabase.js" ||
+    file === "scripts/test-account-security.mjs" ||
+    /auth|security|session/i.test(file),
+);
+const levelBRequested = /\[level-b\]/i.test(subject);
+const levelB =
+  !documentationOnly &&
+  (eventName === "workflow_dispatch" ||
+    levelBRequested ||
+    workflowOrHarnessChanged ||
+    databaseOrSecurityChanged);
+
+const scopeRules = [
+  ["stage15", /experience-v2-stage15-|premium(?:-(?:parity|staff|manager|admin|executive))?\.css$|\/styles\.css$|\/PremiumShell\.jsx$/i],
+  ["stage14", /experience-v2-stage14-/i],
+  ["personal", /personal-family|\/Me\.jsx$|\/AccountActivity\.jsx$|\/Performance\.jsx$|\/Learning\.jsx$|\/Assets\.jsx$|\/Compliance\.jsx$/i],
+  ["finance", /finance|cost|spend|budget|transfer|expense/i],
+  ["workforce", /workforce|attendance|leave|session|calendar/i],
+  ["project", /project|portfolio|delivery|objective/i],
+  ["people", /people|person(?!al)|team|profile|employee/i],
+  ["work", /work-family|\/Work\.jsx$|\/Item\.jsx$|\/Assign\.jsx$|blocker|submission|review/i],
+  ["reports", /report/i],
+  ["shell", /App\.jsx$|bits\.jsx$|experience-v2\/(components|shell|tokens|icons)/i],
+];
+
+const matchedScopes = scopeRules
+  .filter(([, pattern]) => files.some((file) => pattern.test(file)))
+  .map(([scope]) => scope);
+const scope =
+  documentationOnly
+    ? "docs"
+    : workflowOrHarnessChanged || databaseOrSecurityChanged || matchedScopes.length !== 1
+      ? "full"
+      : matchedScopes[0];
+
+const outputs = {
+  documentation_only: String(documentationOnly),
+  level_b: String(levelB),
+  scope,
+  run_migration: String(levelB || files.some((file) => file.startsWith("supabase/"))),
+  run_account_security: String(
+    levelB ||
+      files.some(
+        (file) =>
+          file === "scripts/test-account-security.mjs" ||
+          /auth|security|session/i.test(file),
+      ),
+  ),
+  changed_count: String(files.length),
+};
+
+const outputFile = process.env.GITHUB_OUTPUT;
+if (outputFile) {
+  appendFileSync(
+    outputFile,
+    Object.entries(outputs)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("\n") + "\n",
+  );
+}
+
+console.log(
+  JSON.stringify(
+    {
+      ...outputs,
+      subject,
+      files,
+    },
+    null,
+    2,
+  ),
+);

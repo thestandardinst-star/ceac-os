@@ -1,16 +1,11 @@
-export function CEACMark({ compact = false }) {
-  return <div className={`ceac-mark ${compact ? "compact" : ""}`} aria-hidden="true">
-    <span className="ceac-mark-core">C</span>
-    <span className="ceac-mark-dot" />
-  </div>;
-}
+import { BrandMark } from "../experience-v2/components";
 
 export default function AuthFrame({ eyebrow = "CEAC OS", title, description, children, footer }) {
   return <main className="auth-shell">
     <section className="auth-story" aria-label="CEAC OS">
       <div className="auth-story-inner">
         <div className="auth-brand-lockup">
-          <CEACMark />
+          <BrandMark size="lg" className="auth-brand-mark" />
           <div>
             <strong>CEAC OS</strong>
             <span>Christ Embassy Airport City</span>
@@ -55,7 +50,7 @@ export default function AuthFrame({ eyebrow = "CEAC OS", title, description, chi
     <section className="auth-access">
       <div className="auth-access-inner">
         <div className="auth-mobile-brand">
-          <CEACMark compact />
+          <BrandMark size="md" className="auth-brand-mark" />
           <div><strong>CEAC OS</strong><span>Airport City</span></div>
         </div>
 

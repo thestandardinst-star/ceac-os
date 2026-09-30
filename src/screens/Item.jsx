@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
 import { dueLabel } from "../lib/time";
-import { Sheet, statusPill } from "../components/bits";
+import { Sheet } from "../components/bits";
+import {
+  WorkDetailCopy,
+  WorkDetailHeader,
+  WorkDetailSection,
+  WorkDependencyNotice,
+  WorkReturnedNotice,
+} from "../experience-v2/work-family/WorkFamilyV2";
 
 const MANAGER_SELF_CERTIFICATION_READY = true;
 
@@ -15,6 +22,9 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
   const [recipeSource, setRecipeSource] = useState(null);
   const [blocker, setBlocker] = useState(null);
   const [review, setReview] = useState(null);
+  const [latestSubmission, setLatestSubmission] = useState(null);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewChecklist, setReviewChecklist] = useState([]);
   const [units, setUnits] = useState([]);
   const [routine, setRoutine] = useState(null);
   const [routineOccurrences, setRoutineOccurrences] = useState([]);
@@ -150,10 +160,11 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
     if (blockerError) { setErr(blockerError.message); return; }
     setBlocker(b);
     const { data: subs, error: submissionError } = await supabase.from("submissions")
-      .select("id, submitted_at, reviews(id, decision, comment, review_checklist_items(checklist_item_id))")
+      .select("id, profile_id, note, submitted_at, profiles!submissions_profile_id_fkey(full_name), submission_files(url), reviews(id, decision, comment, review_checklist_items(checklist_item_id))")
       .eq("work_item_id", id).order("submitted_at", { ascending: false }).limit(1);
     if (submissionError) { setErr(submissionError.message); return; }
     const last = subs && subs[0];
+    setLatestSubmission(last || null);
     setReview(last && last.reviews && last.reviews[0] ? last.reviews[0] : null);
     const { data: u, error: unitError } = await supabase.from("units").select("id,name").order("name");
     if (unitError) { setErr(unitError.message); return; }
@@ -263,6 +274,43 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       setSheet(null); setNote(""); setLink(""); await load();
     } catch (e) { setErr(e.message || "The work could not be submitted."); }
     finally { setBusy(false); }
+  }
+
+  function toggleReviewChecklist(id) {
+    setReviewChecklist((current) => current.includes(id)
+      ? current.filter((itemId) => itemId !== id)
+      : [...current, id]);
+  }
+
+  async function decideManagerReview(decision) {
+    if (!isManager || !latestSubmission || item?.status !== "in_review") return;
+    setBusy(true);
+    setErr(null);
+    try {
+      if (decision === "returned") {
+        if (!reviewComment.trim()) throw new Error("Add a comment explaining what needs changing.");
+        const { error } = await supabase.rpc("return_work_for_correction", {
+          p_submission_id: latestSubmission.id,
+          p_comment: reviewComment.trim(),
+          p_checklist_item_ids: reviewChecklist.length ? reviewChecklist : null,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc("approve_work_submission", {
+          p_submission_id: latestSubmission.id,
+          p_comment: reviewComment.trim() || null,
+        });
+        if (error) throw error;
+      }
+      setSheet(null);
+      setReviewComment("");
+      setReviewChecklist([]);
+      await load();
+    } catch (error) {
+      setErr(error.message || "The review could not be saved.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function recordDecision() {
@@ -436,16 +484,19 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
     : <div className="spin">Loading...</div>;
 
   return (
-    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"}`}>
-      <button className="back work-detail-back" onClick={back}>← Back</button>
-      <header className="work-detail-head">
-        <div className="eyebrow">{item.ref} · {item.kind.replaceAll("_", " ")}{item.projects ? " · " + item.projects.name : ""}{item.sub_teams ? " · " + item.sub_teams.name : ""}</div>
-        <h1 className="h2">{item.title}</h1>
-        <div className="work-detail-meta">
-          <span>{dueLabel(item.due_at)}</span>
-          {statusPill(item.status)}
-        </div>
-      </header>
+    <div className={`body ${isManager ? "manager-work-detail" : "staff-work-detail"} ev2-work-detail`}>
+      <WorkDetailHeader
+        refCode={item.ref}
+        kind={item.kind}
+        title={item.title}
+        context={[
+          item.projects?.name,
+          item.sub_teams?.name,
+        ].filter(Boolean).join(" · ")}
+        due={dueLabel(item.due_at)}
+        status={item.status}
+        onBack={back}
+      />
 
       {openRoom && (item.project_id || item.sub_team_id || item.unit_id) && <button className="work-room-entry" onClick={() => openRoom({
         ...(item.project_id
@@ -462,38 +513,34 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
       {err && <div className="flag flag-brick" style={{ marginTop: 14 }}>{err}</div>}
 
       {review && review.decision === "returned" && (
-        <div className="flag flag-brick">
-          <h4>Sent back by your manager</h4>
-          {review.comment}
-          {review.review_checklist_items?.length > 0 && <div style={{ marginTop: 8 }}>
-            <div className="small" style={{ fontWeight: 700 }}>Checklist points to redo</div>
-            {review.review_checklist_items.map((row) => {
-              const item = checks.find((check) => check.id === row.checklist_item_id);
-              return item ? <div className="small" key={row.checklist_item_id}>• {item.label}</div> : null;
-            })}
-          </div>}
-        </div>)}
+        <WorkReturnedNotice
+          comment={review.comment}
+          checklistItems={(review.review_checklist_items || []).map((row) => checks.find((check) => check.id === row.checklist_item_id)).filter(Boolean)}
+        />)}
 
       {blocker && (
-        <div className="flag flag-amber">
-          <h4>Waiting on {blocker.units ? blocker.units.name : blocker.party_text}
-            {blocker.state === "acknowledged" ? " — they have confirmed" : ""}
-            {blocker.state === "disputed" ? " — they disagree" : ""}</h4>
-          {blocker.party_text}
-          {blocker.note && <div style={{ marginTop: 5 }}>&ldquo;{blocker.note}&rdquo;</div>}
-          {blocker.state === "claimed" && <div style={{ marginTop: 6, fontSize: 12.5 }}>Waiting for them to reply. This is not counting as late.</div>}
-          {blocker.state === "disputed" && blocker.response_note && <div style={{ marginTop: 6 }}>They said: &ldquo;{blocker.response_note}&rdquo;</div>}
-          {blocker.claimed_by === me.id && <button className="btn btn-ghost btn-sm" style={{ marginTop: 10 }} onClick={resolveActiveBlocker} disabled={busy}>Mark resolved</button>}
-        </div>)}
+        <WorkDependencyNotice
+          party={blocker.units ? blocker.units.name : blocker.party_text}
+          state={blocker.state}
+          request={blocker.party_text}
+          note={blocker.note}
+          responseNote={blocker.response_note}
+          canResolve={blocker.claimed_by === me.id}
+          resolving={busy}
+          onResolve={resolveActiveBlocker}
+        />)}
 
-      {item.purpose && (<><div className="sec"><span>Why this matters</span></div>
-        <div className="card work-context-card">{item.purpose}</div></>)}
+      {item.purpose && <WorkDetailSection title="Why this matters">
+        <WorkDetailCopy>{item.purpose}</WorkDetailCopy>
+      </WorkDetailSection>}
 
-      {item.instructions && (<><div className="sec"><span>What to do</span></div>
-        <div className="card work-context-card">{item.instructions}</div></>)}
+      {item.expected_outcome && <WorkDetailSection title="What finished looks like">
+        <WorkDetailCopy tone="emphasis">{item.expected_outcome}</WorkDetailCopy>
+      </WorkDetailSection>}
 
-      {item.expected_outcome && (<><div className="sec"><span>What finished looks like</span></div>
-        <div className="card work-context-card">{item.expected_outcome}</div></>)}
+      {item.instructions && <WorkDetailSection title="What to do">
+        <WorkDetailCopy>{item.instructions}</WorkDetailCopy>
+      </WorkDetailSection>}
 
       {item.kind === "deliverable" && deliverableRecord && <>
         <div className="sec"><span>Deliverable evidence</span></div>
@@ -615,6 +662,42 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
             </button>))}
         </div></>)}
 
+      {isManager && item.status === "in_review" && latestSubmission && <WorkDetailSection
+        title="Review submitted work"
+        meta={`Submitted ${new Date(latestSubmission.submitted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
+      >
+        <div className="ev2wr-panel">
+          <div className="ev2wr-attribution">
+            <strong>{latestSubmission.profiles?.full_name || "Team member"}</strong>
+            <span>submitted this work for your decision.</span>
+          </div>
+          {latestSubmission.note && <div className="ev2wr-evidence">
+            <span>Submission note</span>
+            <p>{latestSubmission.note}</p>
+          </div>}
+          {latestSubmission.submission_files?.length > 0 && <div className="ev2wr-evidence">
+            <span>Submitted evidence</span>
+            <div className="ev2wr-links">
+              {latestSubmission.submission_files.map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer">Open evidence ↗</a>)}
+            </div>
+          </div>}
+          {checks.length > 0 && <div className="ev2wr-evidence">
+            <span>Checklist context</span>
+            <div className="ev2wr-checklist">
+              {checks.map((check) => <div key={check.id}>{check.label}</div>)}
+            </div>
+          </div>}
+          <div className="ev2wr-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => { setReviewComment(""); setReviewChecklist([]); setSheet("manager-review-return"); }}>
+              Return for correction
+            </button>
+            <button type="button" className="btn" onClick={() => { setReviewComment(""); setReviewChecklist([]); setSheet("manager-review-approve"); }}>
+              Approve
+            </button>
+          </div>
+        </div>
+      </WorkDetailSection>}
+
       {item.kind === "task" && item.assignee_id === me.id && !["in_review","completed","self_certified","cancelled"].includes(item.status) && <>
         {recipeSteps.length > 0 && <div className="card small" style={{ marginTop: 12 }}>
           <div className="row-t">Last time this unit did this</div>
@@ -645,13 +728,46 @@ export default function Item({ id, me, session, isManager = false, openRoom, bac
             I am waiting on someone</button>)}
       </>)}
 
-      {item.status === "in_review" &&
+      {!isManager && item.status === "in_review" &&
         <div className="flag flag-amber" style={{ marginTop: 20 }}><h4>Sent in</h4>Waiting on your manager to check it.</div>}
 
       {isManager && ["task", "meeting_outcome", "deliverable"].includes(item.kind) && ["completed", "self_certified"].includes(item.status) &&
         <button className="btn btn-ghost" style={{ marginTop: 20 }} onClick={() => { setNote(""); setSheet("reopen"); }}>
           Reopen this work
         </button>}
+
+      {sheet === "manager-review-return" && latestSubmission && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Return for correction</div>
+          <p className="screen-note">State exactly what needs changing. You can also identify checklist points that need to be redone.</p>
+          {checks.length > 0 && <div className="ev2wr-return-checklist">
+            {checks.map((check) => (
+              <button
+                type="button"
+                key={check.id}
+                className={reviewChecklist.includes(check.id) ? "is-selected" : ""}
+                onClick={() => toggleReviewChecklist(check.id)}
+              >
+                <span className="box" aria-hidden="true" />
+                <span>{check.label}</span>
+              </button>
+            ))}
+          </div>}
+          <AssistiveTextarea className="field" rows={4} placeholder="Explain exactly what needs changing" value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy || !reviewComment.trim()} onClick={() => decideManagerReview("returned")}>
+            {busy ? "Saving..." : "Return work"}
+          </button>
+        </Sheet>)}
+
+      {sheet === "manager-review-approve" && latestSubmission && (
+        <Sheet onClose={() => !busy && setSheet(null)}>
+          <div className="h2">Approve submitted work</div>
+          <p className="screen-note">This records your approval against the submitted evidence and current work record.</p>
+          <AssistiveTextarea className="field" rows={3} placeholder="Approval note (optional)" value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} />
+          <button className="btn" style={{ marginTop: 14 }} disabled={busy} onClick={() => decideManagerReview("completed")}>
+            {busy ? "Saving..." : "Confirm approval"}
+          </button>
+        </Sheet>)}
 
       {sheet === "decision-record" && (
         <Sheet onClose={() => !busy && setSheet(null)}>

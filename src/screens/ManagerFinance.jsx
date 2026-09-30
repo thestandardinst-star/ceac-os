@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import AssistiveTextarea from "../components/AssistiveTextarea";
 import { supabase } from "../lib/supabase";
-import { Sheet, FieldGroup, ProductNotice, LoadingState, ProgressMeter, EmptyState, SectionHeader } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice, LoadingState, ProgressMeter, EmptyState } from "../components/bits";
+import { Button } from "../experience-v2/components";
+import { FinanceCurrencyCard, FinancePageHeader, FinanceSection, FinanceFootnote } from "../experience-v2/finance-family/FinanceFamilyV2";
 import { humanError } from "../lib/productLanguage";
 import FinanceRequestQueue from "../components/FinanceRequestQueue";
 
@@ -99,28 +101,26 @@ export default function ManagerFinance({me,openProject}){
   committed[row.currency]=Number(row.committed_minor||0);
   if(budgetCurrencies.has(row.currency)) remaining[row.currency]=Number(row.remaining_minor||0);
  });
- if(loading)return <div className="body manager-finance"><LoadingState label="Loading finance…" /></div>;
- return <div className="body manager-finance">
-  <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Finance</h1><p className="screen-note">Your unit's actual money in, spending, commitments, transfers and budget context. Managers can record their own unit spending; entries remain append-only.</p></div>
-  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:16}}><button className="btn wide-auto" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</button><button className="btn btn-ghost wide-auto" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</button></div>
+ if(loading)return <div className="body manager-finance ev2-finance-page ev2-finance-manager"><LoadingState label="Loading finance…" /></div>;
+ return <div className="body manager-finance ev2-finance-page ev2-finance-manager">
+  <FinancePageHeader eyebrow={me.unit_name} title="Finance" description="Your unit’s actual money in, spending, commitments, transfers and budget context. Managers can record their own unit spending; entries remain append-only." />
+  <div className="ev2fin-actions"><Button icon="create" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</Button><Button variant="secondary" icon="finance" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</Button></div>
   {error&&<ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
   {notice&&<ProductNotice tone="success" title="Finance request updated">{notice}</ProductNotice>}
-  <SectionHeader eyebrow="Actual records" title="Unit operating position" />
+  <FinanceSection eyebrow="Actual records" title="Unit operating position" description="Confirmed incoming transfers, recorded spend and approved commitments for your unit, kept separate by currency.">
   <div className="manager-finance-position-grid">
     {operating.length===0&&<EmptyState compact title="No operating money recorded">Confirmed incoming transfers, spending and approved commitments will build this view automatically.</EmptyState>}
-    {operating.map(row=><article className="manager-finance-position-card" key={"op-"+row.currency}>
-      <div className="manager-finance-position-head"><div><span>Currency</span><strong>{row.currency}</strong></div><small>Actual records only</small></div>
-      <div className="manager-finance-position-facts">
-        <button onClick={()=>setDrill({kind:"source",currency:row.currency,title:`Money in · ${row.currency}`})}><b>{money(row.in_minor,row.currency)}</b><span>in</span></button>
-        <button onClick={()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})}><b>{money(row.out_minor,row.currency)}</b><span>out</span></button>
-        <button onClick={()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})}><b>{money(row.committed_minor,row.currency)}</b><span>committed</span></button>
-        <button onClick={()=>setDrill({kind:"operatingRemaining",currency:row.currency,title:`Operating remaining · ${row.currency}`})}><b>{money(row.remaining_minor,row.currency)}</b><span>remaining</span></button>
-      </div>
-    </article>)}
+    {operating.map(row=><FinanceCurrencyCard key={"op-"+row.currency} currency={row.currency} contextLabel="Actual records only" facts={[
+      {label:"In",value:money(row.in_minor,row.currency),onClick:()=>setDrill({kind:"source",currency:row.currency,title:`Money in · ${row.currency}`})},
+      {label:"Out",value:money(row.out_minor,row.currency),onClick:()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})},
+      {label:"Committed",value:money(row.committed_minor,row.currency),onClick:()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})},
+      {label:"Remaining",value:money(row.remaining_minor,row.currency),onClick:()=>setDrill({kind:"operatingRemaining",currency:row.currency,title:`Operating remaining · ${row.currency}`})},
+    ]} />)}
   </div>
-  <p className="screen-note">Money in means confirmed transfers received by this unit. Remaining is confirmed money in minus recorded spend minus approved commitments. It is not a bank balance.</p>
+  <p className="ev2fin-note">Money in means confirmed transfers received by this unit. Remaining is confirmed money in minus recorded spend minus approved commitments. It is not a bank balance.</p>
+  </FinanceSection>
 
-  <SectionHeader eyebrow={String(year)} title="Budget planning position" />
+  <FinanceSection eyebrow={String(year)} title="Budget planning position" description="Recorded budget, actual spend and approved commitments. Missing budget is not treated as zero.">
   <div className="manager-finance-position-grid">
     {positions.length===0&&<EmptyState compact title="No finance position recorded">Budgets, spend and approved requests will build this view automatically.</EmptyState>}
     {positions.map(row=>{
@@ -129,20 +129,18 @@ export default function ManagerFinance({me,openProject}){
       const spentValue=Number(row.spent_minor||0);
       const committedValue=Number(row.committed_minor||0);
       const remainingValue=hasBudget?Number(row.remaining_minor||0):null;
-      return <article className="manager-finance-position-card" key={row.currency}>
-        <div className="manager-finance-position-head"><div><span>Currency</span><strong>{row.currency}</strong></div><small>{hasBudget?"Budget recorded":"No budget recorded"}</small></div>
-        <div className="manager-finance-position-facts">
-          <button onClick={()=>setDrill({kind:"planned",currency:row.currency,title:`Planned · ${row.currency}`})}><b>{plannedValue===null?"—":money(plannedValue,row.currency)}</b><span>planned</span></button>
-          <button onClick={()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})}><b>{money(spentValue,row.currency)}</b><span>recorded spend</span></button>
-          <button onClick={()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})}><b>{money(committedValue,row.currency)}</b><span>committed</span></button>
-          <button onClick={()=>setDrill({kind:"remaining",currency:row.currency,title:`Remaining · ${row.currency}`})}><b>{remainingValue===null?"—":money(remainingValue,row.currency)}</b><span>remaining</span></button>
-        </div>
-        {hasBudget&&<ProgressMeter value={spentValue+committedValue} max={plannedValue} label="Spent + approved commitments" detail={money(spentValue+committedValue,row.currency)+" of "+money(plannedValue,row.currency)} />}
-      </article>;
+      return <FinanceCurrencyCard key={row.currency} currency={row.currency} contextLabel={hasBudget?"Budget recorded":"No budget recorded"} facts={[
+        {label:"Planned",value:plannedValue===null?"—":money(plannedValue,row.currency),onClick:()=>setDrill({kind:"planned",currency:row.currency,title:`Planned · ${row.currency}`})},
+        {label:"Recorded spend",value:money(spentValue,row.currency),onClick:()=>setDrill({kind:"spend",currency:row.currency,title:`Recorded spend · ${row.currency}`})},
+        {label:"Committed",value:money(committedValue,row.currency),onClick:()=>setDrill({kind:"committed",currency:row.currency,title:`Approved, not yet spent · ${row.currency}`})},
+        {label:"Remaining",value:remainingValue===null?"—":money(remainingValue,row.currency),onClick:()=>setDrill({kind:"remaining",currency:row.currency,title:`Remaining · ${row.currency}`})},
+      ]}>{hasBudget&&<ProgressMeter value={spentValue+committedValue} max={plannedValue} label="Spent + approved commitments" detail={money(spentValue+committedValue,row.currency)+" of "+money(plannedValue,row.currency)} />}</FinanceCurrencyCard>;
     })}
   </div>
-  {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="screen-note">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
-  {drill&&<div style={{marginTop:10}}>
+  {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="ev2fin-note">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
+  </FinanceSection>
+  {financeHandler&&<div className="ev2fin-authority"><FinanceRequestQueue me={me} authority="finance" canFulfil title="Requests needing Finance" /></div>}
+  {drill&&<div className="ev2fin-drill">
    <div className="sec"><span>{drill.title}</span></div>
    {drill.kind==="source"&&transfers.filter(x=>x.to_unit_id===me.unit_id&&x.state==="confirmed"&&x.currency===drill.currency).map(x=><div className="row" key={"t-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} received</div><div className="row-m">{x.sent_on} · {x.purpose}</div><div className="row-note">Confirmed transfer into your unit</div></div>)}
    {(drill.kind==="planned"||drill.kind==="remaining")&&budgets.filter(x=>x.currency===drill.currency).map(x=><div className="row" key={"b-"+x.id}><div className="row-t">{money(x.amount_minor,x.currency)} budget</div><div className="row-m">{x.project_id?"Project budget":"Unit budget"} · {year}</div>{x.note&&<div className="row-note">{x.note}</div>}</div>)}
@@ -179,8 +177,7 @@ export default function ManagerFinance({me,openProject}){
    {r.justification&&<div className="row-note">{r.justification}</div>}
   </div>)}
   {requests.length===0&&<div className="card small">No finance requests are recorded for this unit.</div>}
-  <p className="small" style={{marginTop:12}}>These figures are CEAC OS records, not a bank balance. Managers can add spending only for their own unit; recorded lines cannot be edited or deleted.</p>
-  {financeHandler&&<FinanceRequestQueue me={me} authority="finance" canFulfil title="Requests needing Finance" />}
+  <FinanceFootnote>These figures are CEAC OS records, not a bank balance. Managers can add spending only for their own unit; recorded lines cannot be edited or deleted.</FinanceFootnote>
 
   {sheet==="expense"&&<Sheet onClose={()=>!busy&&setSheet(null)}>
    <div className="eyebrow">Unit spending</div>
