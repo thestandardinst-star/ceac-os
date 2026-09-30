@@ -6,11 +6,11 @@ Last updated: 30 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 15 — Performance, Accessibility and CSS-Debt Closure (ACTIVE)
-Current substage: 15D — Performance and accessibility closure (ACTIVE)
+Current stage: Stage 16 — Release Candidate and Product Acceptance (ACTIVE)
+Current substage: Stage 16 — exact-head release acceptance (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical documentation HEAD at this reconciliation: `a739d4846d4ff9a71cf3b010fa43d90c18646a70`;
+- live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
 - accepted 14B application SHA: `c7822ec8b3b869d561fe7617204871df7d30be2b`;
 - accepted 14B implementation commit: `[level-b] EV2 14B: bound Stage 14 verification`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
@@ -31,7 +31,7 @@ Canonical reconciliation checkpoint:
 - final accepted Stage 14 application SHA: `5a1a024ada851646a8e86f4f38cc02f92851cac6`;
 - final exact-head Stage 14 CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
 - final Stage 14 product evidence artifact `11080916523`, digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
-- Stage 15 — Performance, Accessibility and CSS-Debt Closure is ACTIVE;
+- Stage 15 — Performance, Accessibility and CSS-Debt Closure is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_ACCEPTANCE_RECORD.md`;
 - Stage 15A is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_15A_ACCEPTANCE_RECORD.md`;
 - exact accepted 15A application SHA: `e1751ad2089bb38cd8b3d93cd0fe4f957536e9d1`;
 - exact-head 15A CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence and Vercel passed;
@@ -50,7 +50,15 @@ Canonical reconciliation checkpoint:
 - 15C retired the unused legacy bits shell/icon implementation plus `src/components/PremiumShell.jsx` and `src/components/ReferenceDashboard.jsx` after import/use proof;
 - `src/components/primitives/Icon.jsx` remains intentionally load-bearing for the legacy primitive set and the Administration-only Design Primitives compatibility route; it is not a V2 dependency;
 - V2 continues to use only `src/experience-v2/icons.jsx` for iconography;
-- current substage: 15D — Performance and accessibility closure;
+- Stage 15D is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_15D_ACCEPTANCE_RECORD.md`;
+- final accepted Stage 15 application SHA: `f521a9af02609e31bcd67bdb00b74fd3de1d7aa5`;
+- final Stage 15 exact-head CI PASS run `36726046999` (#1497), Migration Replay PASS run `36726047040` (#1108), Account Security PASS run `36726047010` (#1280), complete Level B Quality Gate PASS run `36726047037` (#1306), all four browser shards PASS, SQL/RLS/security contracts PASS, merged product evidence PASS, role-and-RLS PASS and Vercel PASS;
+- final Stage 15 R7 product artifact `11103516850`, digest `sha256:bd6ecd7bc648154ff981e897e80a42baf79a5dbaabfd36158e4eb5d5b8b9b57b`;
+- Stage 15 entry CSS approximately 506.90 kB / 74.06 kB gzip; final primary CSS 463.28 kB / 67.49 kB gzip plus 10.66 kB / 1.92 kB lazy reporting CSS;
+- Stage 15 entry JavaScript was one 1,543.05 kB / 380.46 kB gzip chunk; final route/vendor split has 63.89 kB / 18.12 kB application index and largest single JS chunk 214.54 kB / 55.04 kB gzip, with no >500 kB Vite warning;
+- Stage 15 final tracked legacy `!important` debt is 615, down from 1,043;
+- Stage 16 — Release Candidate and Product Acceptance is ACTIVE;
+- current Stage 16 action: exact-head release verification, four-role phone/laptop/desktop evidence inspection, stored-reference comparison and release handoff/decision reconciliation;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
