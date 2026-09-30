@@ -146,7 +146,6 @@
 .inbox-context{display:inline-flex;margin-top:5px;padding:3px 6px;border-radius:999px;background:#eef8f4;color:#26805e;font-size:12px;font-weight:700}
 
 @media(max-width:980px){
-  .staff-app .staff-home-dashboard{grid-template-columns:1fr!important}
   .staff-app .hub-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .staff-app .team-stack{grid-template-columns:1fr!important}
   .staff-calendar-layout{grid-template-columns:1fr}
