@@ -13,11 +13,8 @@ body{color:var(--ceac-text)}
 
 /* home grids */
 .staff-home,.manager-home,.admin-home,.executive-home{position:relative}
-.home-dashboard,.admin-home-grid,.admin-pulse-grid,.executive-intelligence-grid{margin-right:320px!important}
-.home-dashboard{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
-.home-panel,.admin-home-section,.admin-pulse-card,.executive-intelligence-card,.executive-change-card,.office-meeting-strip{background:#fff!important;border:1px solid var(--ceac-line)!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(38,65,99,.045)!important}
+.home-panel,.admin-pulse-card,.executive-intelligence-card,.office-meeting-strip{background:#fff!important;border:1px solid var(--ceac-line)!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(38,65,99,.045)!important}
 .home-panel{padding:13px!important;margin:0!important}
-.home-panel-movement{grid-column:1/3!important}
 .home-section-head h2{font-size:13px!important;color:#14263d!important;letter-spacing:-.01em!important}
 .home-kicker{font-size:12px!important;color:#7f8ca0!important;text-transform:uppercase;letter-spacing:.08em!important}
 .home-count{font-size:12px!important;min-width:25px!important;height:25px!important;border-radius:999px!important}
@@ -51,13 +48,10 @@ body{color:var(--ceac-text)}
 .tone-0{background:#edf5ff!important;color:#1677ff!important}.tone-1{background:#edf9f4!important;color:#17a673!important}.tone-2{background:#f5efff!important;color:#8656e9!important}.tone-3{background:#fff3eb!important;color:#f07d39!important}.tone-4{background:#eef3ff!important;color:#536ee8!important}
 
 /* Administration and executive */
-.admin-home-section{padding:14px!important;margin:10px 320px 0 0!important}
-.admin-pulse-grid,.executive-intelligence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
 .admin-pulse-card,.executive-intelligence-card{padding:13px!important}
 .admin-action-row,.admin-evidence-row,.office-meeting-row{border-color:#edf1f5!important;padding:10px!important}
 .admin-unit-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
 .admin-unit-summary{background:#fbfcfe!important;border:1px solid #edf1f5!important;border-radius:9px!important}
-.executive-change-card{margin-right:320px!important;padding:14px!important}
 .executive-home>.sec,.executive-home>.metric-grid,.executive-home>.row,.executive-home>.screen-note{margin-right:320px!important}
 
 /* Global product language */
@@ -68,8 +62,7 @@ body{color:var(--ceac-text)}
 @media(max-width:900px){
   .app-workspace{width:100%!important}.app-content{padding:8px 9px 78px!important}
   .reference-rail{position:relative;top:auto;right:auto;width:auto;margin:10px 0}.reference-calendar-card{display:none}
-  .home-dashboard,.admin-home-grid,.admin-pulse-grid,.executive-intelligence-grid{margin-right:0!important;grid-template-columns:1fr!important}
-  .home-panel-movement{grid-column:auto!important}.admin-home-section,.executive-change-card,.executive-home>.sec,.executive-home>.metric-grid,.executive-home>.row,.executive-home>.screen-note{margin-right:0!important}
+  .executive-home>.sec,.executive-home>.metric-grid,.executive-home>.row,.executive-home>.screen-note{margin-right:0!important}
   .reference-module-strip{margin-right:0!important}.reference-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
@@ -249,40 +242,8 @@ body{color:var(--ceac-text)}
   .reference-today-row strong{display:block;font-size:12px;color:#192b42}
   .reference-today-row small{display:block;font-size:12px;color:#8995a4;margin-top:2px}
 
-  .staff-app .staff-home-dashboard{
-    margin-right:322px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:10px!important;margin-top:0!important;align-items:start!important;
-  }
-  .staff-app .staff-home-dashboard>.home-panel{
-    grid-column:auto!important;padding:13px!important;border:1px solid var(--ceac-line)!important;
-    background:#fff!important;border-radius:12px!important;box-shadow:0 4px 14px rgba(38,65,99,.045)!important;
-  }
-  .staff-app .staff-home-dashboard>.home-panel-priority{grid-column:1!important;grid-row:1!important}
-  .staff-app .staff-home-dashboard>.home-panel-waiting{grid-column:2!important;grid-row:1!important}
-  .staff-app .staff-home-dashboard>.home-panel-coming{grid-column:3!important;grid-row:1!important}
-  .staff-app .staff-home-dashboard>.home-panel-movement{grid-column:1/3!important;grid-row:2!important}
-  .staff-app .staff-home-dashboard>.home-panel-secondary{grid-column:auto!important}
-  .staff-app .staff-home-dashboard>.home-panel-week{grid-column:1/4!important}
   .staff-app .reference-module-strip{margin-top:11px!important}
-
-  .manager-app .home-dashboard{
-    margin-right:322px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:10px!important;margin-top:0!important;align-items:start!important;
-  }
-  .manager-app .home-dashboard>.home-panel{grid-column:auto!important;padding:13px!important}
-  .manager-app .home-panel-priority{grid-column:1!important}
-  .manager-app .home-panel-projects{grid-column:2!important}
-  .manager-app .home-panel-waiting{grid-column:3!important}
-  .manager-app .home-panel-pulse{grid-column:1/2!important}
-  .manager-app .home-panel-week{grid-column:2/4!important}
   .manager-app .reference-module-strip{margin-right:322px!important}
-
-  .office-app .admin-pulse-grid{
-    margin-right:322px!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  }
-  .office-app .admin-home-section{margin-right:322px!important}
-  .office-app .admin-home-grid{margin-right:322px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .office-app .admin-home-grid>.admin-home-section{margin-right:0!important}
 }
 
 /* Dense reference rhythm */
@@ -290,20 +251,6 @@ body{color:var(--ceac-text)}
   .app-content{padding-left:18px!important;padding-right:18px!important}
 }
 
-@media(min-width:981px){
-  .manager-app .home-dashboard>.reference-module-strip{
-    grid-column:1 / -1!important;
-    width:auto!important;
-    min-width:0!important;
-    margin:0!important;
-  }
-}
-
-
-.office-app .admin-pulse-grid{
-  margin-right:0!important;
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-}
 @media(min-width:981px){
   .manager-command-action{
     position:absolute!important;
@@ -363,25 +310,6 @@ body{color:var(--ceac-text)}
     gap:12px!important;
   }
 
-  .staff-app .staff-home-dashboard,
-  .manager-app .home-dashboard{
-    margin-right:0!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:12px!important;
-  }
-
-  .staff-app .staff-home-dashboard>.home-panel-priority{grid-column:1!important;grid-row:auto!important}
-  .staff-app .staff-home-dashboard>.home-panel-waiting{grid-column:2!important;grid-row:auto!important}
-  .staff-app .staff-home-dashboard>.home-panel-coming{grid-column:1!important;grid-row:auto!important}
-  .staff-app .staff-home-dashboard>.home-panel-movement{grid-column:1/-1!important;grid-row:auto!important}
-  .staff-app .staff-home-dashboard>.home-panel-week{grid-column:1/-1!important;grid-row:auto!important}
-
-  .manager-app .home-panel-priority{grid-column:1!important}
-  .manager-app .home-panel-projects{grid-column:2!important}
-  .manager-app .home-panel-waiting{grid-column:1!important}
-  .manager-app .home-panel-pulse{grid-column:2!important}
-  .manager-app .home-panel-week{grid-column:1/-1!important}
-
   .staff-app .reference-module-strip,
   .manager-app .reference-module-strip,
   .office-app .reference-module-strip,
@@ -390,23 +318,12 @@ body{color:var(--ceac-text)}
   }
   .reference-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 
-  .office-app .admin-pulse-grid,
-  .office-app .admin-home-section,
-  .office-app .admin-home-grid{
-    margin-right:0!important;
-  }
-  .office-app .admin-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  .office-app .admin-home-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-
-  .executive-app .executive-intelligence-grid,
-  .executive-app .executive-change-card,
   .executive-app .executive-home>.sec,
   .executive-app .executive-home>.metric-grid,
   .executive-app .executive-home>.row,
   .executive-app .executive-home>.screen-note{
     margin-right:0!important;
   }
-  .executive-app .executive-intelligence-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 
   .manager-command-action{
     position:relative!important;
@@ -437,17 +354,6 @@ body{color:var(--ceac-text)}
 /* Narrow desktop / small laptop: one strong reading column is better than
    two compressed columns beside a persistent desktop sidebar. */
 @media(min-width:981px) and (max-width:1120px){
-  .staff-app .staff-home-dashboard,
-  .manager-app .home-dashboard,
-  .office-app .admin-home-grid,
-  .executive-app .executive-intelligence-grid{
-    grid-template-columns:1fr!important;
-  }
-  .staff-app .staff-home-dashboard>.home-panel,
-  .manager-app .home-dashboard>.home-panel,
-  .office-app .admin-home-grid>.admin-home-section{
-    grid-column:1!important;
-  }
   .reference-rail,
   .reference-focus-row{
     grid-template-columns:1fr!important;
@@ -502,10 +408,6 @@ body{color:var(--ceac-text)}
 .app-content .highlight-facts > span,
 .app-content .home-date-row.home-meeting-row small,
 .app-content .home-date-row.home-meeting-row strong,
-.app-content .home-panel.home-panel-pulse > div.home-subhead,
-.app-content .home-panel.home-panel-pulse > div.home-subhead.home-subhead-spaced,
-.app-content .home-panel.home-panel-pulse > p.home-context-note,
-.app-content .home-panel.home-panel-pulse.home-panel-empty > div.home-subhead.home-subhead-spaced,
 .app-content .home-secondary-summary > b,
 .app-content .home-secondary-summary small,
 .app-content .home-upcoming > div.home-subhead,
