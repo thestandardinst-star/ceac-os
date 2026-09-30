@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Chart, EmptyState, Icon, MapPin, QueueRow, Skeleton, Stat, StatRow, Table, Toast, byOldest } from "../components/primitives";
+import ExperienceV2FoundationGallery from "../experience-v2/ExperienceV2FoundationGallery";
 
 // Demonstration route for the design primitives.
 //
@@ -74,6 +75,9 @@ export default function DesignPrimitives({ me }) {
         </p>
       </div>
 
+      <ExperienceV2FoundationGallery />
+
+      <div className="sec"><span>Legacy/live CEAC primitive inspection</span></div>
       <div className="sec"><span>Stat — always a link</span></div>
       <StatRow>
         <Stat icon="gavel" label="Needs a decision" value={queue.length}

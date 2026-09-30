@@ -14,8 +14,10 @@ async function openRole(browser, email, appClass, viewport = { width: 390, heigh
 }
 
 async function openMore(page) {
-  await page.locator(".premium-tabs").getByRole("button", { name: "More", exact: true }).click();
-  await expect(page.locator(".premium-mobile-menu")).toBeVisible();
+  await page.locator(".ev2s-mobile-nav").getByRole("button", { name: "More", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: "More" });
+  await expect(drawer).toBeVisible();
+  return drawer;
 }
 
 const legacyLabels = [
@@ -27,10 +29,10 @@ const legacyLabels = [
 test.describe("Premium redesign R6 whole-system consistency", () => {
   test("Staff mobile More contains only approved shell destinations", async ({ browser }) => {
     const { context, page } = await openRole(browser, "staff@ceac.local.test", ".staff-app");
-    await openMore(page);
-    for (const label of legacyLabels) await expect(page.getByRole("menuitem", { name: label, exact: true })).toHaveCount(0);
-    await expect(page.getByRole("menuitem", { name: "Calendar", exact: true })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Messages", exact: true })).toBeVisible();
+    const more = await openMore(page);
+    for (const label of legacyLabels) await expect(more.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+    await expect(more.getByRole("button", { name: "Calendar", exact: true })).toBeVisible();
+    await expect(more.getByRole("button", { name: "Messages", exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r6-staff-mobile-more.png", fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await context.close();
@@ -38,9 +40,9 @@ test.describe("Premium redesign R6 whole-system consistency", () => {
 
   test("Manager mobile More is not a legacy module catalogue", async ({ browser }) => {
     const { context, page } = await openRole(browser, "manager@ceac.local.test", ".manager-app");
-    await openMore(page);
-    for (const label of legacyLabels) await expect(page.getByRole("menuitem", { name: label, exact: true })).toHaveCount(0);
-    for (const label of ["Calendar", "Finance", "Reports", "Messages", "My Hub"]) await expect(page.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
+    const more = await openMore(page);
+    for (const label of legacyLabels) await expect(more.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+    for (const label of ["Calendar", "Finance", "Reports", "Messages", "My Hub"]) await expect(more.getByRole("button", { name: label, exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r6-manager-mobile-more.png", fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await context.close();
@@ -48,9 +50,9 @@ test.describe("Premium redesign R6 whole-system consistency", () => {
 
   test("Administration mobile More exposes role shell destinations and Control Center", async ({ browser }) => {
     const { context, page } = await openRole(browser, "admin@ceac.local.test", ".office-app");
-    await openMore(page);
-    for (const label of legacyLabels) await expect(page.getByRole("menuitem", { name: label, exact: true })).toHaveCount(0);
-    for (const label of ["Reports", "Control Center", "Messages"]) await expect(page.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
+    const more = await openMore(page);
+    for (const label of legacyLabels) await expect(more.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+    for (const label of ["Reports", "Control Center", "Messages"]) await expect(more.getByRole("button", { name: label, exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r6-admin-mobile-more.png", fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await context.close();
@@ -58,9 +60,9 @@ test.describe("Premium redesign R6 whole-system consistency", () => {
 
   test("Executive mobile More stays within the approved executive shell", async ({ browser }) => {
     const { context, page } = await openRole(browser, "exec@ceac.local.test", ".executive-app");
-    await openMore(page);
-    for (const label of legacyLabels) await expect(page.getByRole("menuitem", { name: label, exact: true })).toHaveCount(0);
-    for (const label of ["Organisation", "Finance", "Reports", "Messages"]) await expect(page.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
+    const more = await openMore(page);
+    for (const label of legacyLabels) await expect(more.getByRole("button", { name: label, exact: true })).toHaveCount(0);
+    for (const label of ["Organisation", "Finance", "Reports", "Messages"]) await expect(more.getByRole("button", { name: label, exact: true })).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r6-executive-mobile-more.png", fullPage: true });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await context.close();

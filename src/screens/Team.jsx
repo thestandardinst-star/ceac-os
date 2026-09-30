@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
 import { isOverdue } from "../lib/time";
-import { Pill, Sheet, Avatar } from "../components/bits";
+import { LoadingState, ProductNotice, Sheet } from "../components/bits";
+import {
+  PeopleEmpty,
+  PeopleEvidencePerson,
+  PeoplePageHeader,
+  PeoplePersonRow,
+  PeopleRoomCard,
+  PeopleSection,
+} from "../experience-v2/people-family/PeopleFamilyV2";
 
 function weekStart() {
   const value = new Date();
@@ -20,29 +28,28 @@ function requireResult(result, label) {
   return result.data || [];
 }
 
-function CountLink({ children, onClick }) {
-  return <button onClick={(event) => { event.stopPropagation(); onClick(); }} style={{ textDecoration: "underline", color: "var(--ink-soft)" }}>{children}</button>;
-}
-
-function PersonRow({ person, openPerson }) {
-  return <div className="manager-person-card">
-    <button className="manager-person-main" onClick={() => openPerson(person.profile_id, "current")}>
-      <Avatar name={person.profiles?.full_name || "—"} size="md" />
-      <span className="manager-person-identity">
-        <strong>{person.profiles?.full_name || "—"}</strong>
-        <small>{person.profiles?.job_title || person.role}</small>
-        {person.current.length > 0 && <span>Currently: {person.current.slice(0, 2).map((item) => item.title).join(" · ")}{person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}</span>}
-      </span>
-      <Pill tone={person.presence === "Present" ? "green" : person.presence === "On leave" ? "amber" : "grey"}>{person.presence}</Pill>
-    </button>
-    <div className="manager-person-evidence">
-      <CountLink onClick={() => openPerson(person.profile_id, "sessions")}>{person.presenceDays} recorded day{person.presenceDays === 1 ? "" : "s"}</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "completed")}>{person.completed} completed</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "overdue")}>{person.overdue} overdue</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "review")}>{person.awaiting} awaiting you</CountLink>
-      <CountLink onClick={() => openPerson(person.profile_id, "submitted")}>{person.submitted} submitted</CountLink>
-    </div>
-  </div>;
+function PersonRow({ person, openPerson, laneNames = [] }) {
+  const name = person.profiles?.full_name || "—";
+  const currentSummary = person.current.length
+    ? `Currently: ${person.current.slice(0, 2).map((item) => item.title).join(" · ")}${person.current.length > 2 ? ` · ${person.current.length - 2} more` : ""}`
+    : laneNames.length
+      ? `Part of ${laneNames.join(" · ")}`
+      : null;
+  return <PeopleEvidencePerson
+    name={name}
+    subtitle={person.profiles?.job_title || person.role}
+    context={currentSummary}
+    status={person.presence}
+    statusTone={person.presence === "Present" ? "success" : person.presence === "On leave" ? "warning" : "neutral"}
+    onOpen={() => openPerson(person.profile_id, "current")}
+    facts={[
+      { label: person.presenceDays === 1 ? "recorded day" : "recorded days", value: person.presenceDays, onClick: () => openPerson(person.profile_id, "sessions") },
+      { label: "completed outcomes", value: person.completed, onClick: () => openPerson(person.profile_id, "completed") },
+      { label: "overdue", value: person.overdue, onClick: () => openPerson(person.profile_id, "overdue") },
+      { label: "awaiting review", value: person.awaiting, onClick: () => openPerson(person.profile_id, "review") },
+      { label: "submitted", value: person.submitted, onClick: () => openPerson(person.profile_id, "submitted") },
+    ]}
+  />;
 }
 
 export default function Team({ me, openPerson, goAssign, openRoom }) {
@@ -69,7 +76,16 @@ export default function Team({ me, openPerson, goAssign, openRoom }) {
   useEffect(() => { load(); }, [me.id, me.unit_id]);
 
   async function load() {
-    if (!me.unit_id) return;
+    if (!me.unit_id) {
+      setPeople([]);
+      setSubTeams([]);
+      setMembers({});
+      setPending([]);
+      setResources([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -253,92 +269,158 @@ export default function Team({ me, openPerson, goAssign, openRoom }) {
   const unassignedPeople = people.filter((person) => !(members[person.profile_id] || []).length);
 
   return (
-    <div className="body manager-team">
-      <div className="manager-page-intro">
-        <div className="eyebrow">{me.unit_name}</div>
-        <h1 className="h1" style={{ marginTop: 6 }}>Your team</h1>
-        <p className="screen-note">Presence and work are shown side by side as facts. They are not a judgement about a person.</p>
-        {openRoom && <button className="team-room-entry manager-room-entry" onClick={openRoom}>
-          <span><strong>Unit Room</strong><small>Coordinate with the unit without leaving CEAC OS</small></span>
-          <b aria-hidden="true">→</b>
-        </button>}
-      </div>
-      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
-      {loading && <div className="spin">Loading your team...</div>}
+    <div className="body manager-team ev2-people-page ev2-people-manager">
+      <PeoplePageHeader
+        eyebrow={me.unit_name || "Your unit"}
+        title="Your team"
+        description="Presence and work are shown as factual operating context. They are not a score or judgement about a person."
+        count={people.length + 1}
+        countLabel={people.length ? "people including you" : "person"}
+      />
 
-      {!loading && <>
-      <div className="sec"><span>Team setup</span><span>{showSetup ? "Open" : "Secondary"}</span></div>
-      <button className="btn btn-ghost wide-auto" onClick={() => setShowSetup((value) => !value)}>{showSetup ? "Hide team setup" : "Open team setup"}</button>
-      <p className="screen-note">Invitations and work-lane structure live here. Official role and sub-team membership changes are handled by Administration & HR. Leave decisions remain on Home.</p>
+      {openRoom && <PeopleRoomCard
+        title="Unit Room"
+        description="Coordinate with the unit without leaving CEAC OS."
+        onClick={openRoom}
+      />}
 
-      {showSetup && <div className="split" style={{ marginTop: 12 }}>
-        <div className="main-col">
-          <div className="sec"><span>Staff and invitations</span><span>{people.length + pending.length}</span></div>
-          {people.map((person) => {
-            const laneNames = subTeams
-              .filter((team) => (members[person.profile_id] || []).includes(team.id))
-              .map((team) => team.name);
-            return <div key={person.id} className="row">
-              <div className="row-t">{person.profiles?.full_name || "—"}</div>
-              <div className="row-m">{person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff"}</div>
-              <div className="row-note">{laneNames.length ? laneNames.join(" · ") : "Not assigned to a part yet"}</div>
-            </div>;
-          })}
-          {pending.map((person) => <div key={person.email} className="row"><div className="row-t">{person.full_name || person.email}</div><div className="row-m">Invitation sent — waiting for sign-in</div></div>)}
-          <button className="btn btn-ghost wide-auto" onClick={() => { setSheet("invite"); setMsg(null); }}>Add someone</button>
+      {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
+      {loading && <LoadingState label="Loading your team…" />}
+
+      {!loading && !me.unit_id && <PeopleEmpty
+        title="No unit context"
+        description="Manager Team requires an authorised unit membership."
+      />}
+
+      {!loading && me.unit_id && <>
+        <div className="ev2p-stack">
+          <PeopleSection
+            title="People"
+            meta={`${people.length + 1} in ${me.unit_name || "this unit"}`}
+            description="Open a person for unit-scoped work, activity and visible feedback context."
+          >
+            <PeoplePersonRow
+              name={me.full_name || "—"}
+              subtitle="Unit head"
+              context="Your own work remains under My work."
+              status="You"
+              statusTone="neutral"
+            />
+            {people.map((person) => {
+              const laneNames = subTeams
+                .filter((team) => (members[person.profile_id] || []).includes(team.id))
+                .map((team) => team.name);
+              return <PersonRow
+                key={person.id}
+                person={person}
+                openPerson={openPerson}
+                laneNames={laneNames}
+              />;
+            })}
+            {people.length === 0 && <PeopleEmpty
+              title="No other staff members yet"
+              description="Invited or authorised unit members will appear here. Your own work remains under My work."
+            />}
+          </PeopleSection>
+
+          <PeopleSection
+            title="Work lanes"
+            meta={`${subTeams.length} ${subTeams.length === 1 ? "part" : "parts"}`}
+            description="Current unit work lanes. This does not change official employment or role authority."
+          >
+            {groupedPeople.map((team) => <div key={team.id} className="ev2p-manager-resource-row">
+              <strong>{team.name}</strong>
+              <span>
+                {team.code} · {team.people.length} {team.people.length === 1 ? "person" : "people"}
+                {team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}
+              </span>
+              {goAssign && <div className="ev2p-manager-setup-actions">
+                <button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Assign work to this part</button>
+              </div>}
+            </div>)}
+            {unassignedPeople.length > 0 && <div className="ev2p-manager-resource-row">
+              <strong>Not assigned to a part yet</strong>
+              <span>{unassignedPeople.length} {unassignedPeople.length === 1 ? "person" : "people"} · unit membership remains unchanged</span>
+            </div>}
+            {subTeams.length === 0 && <PeopleEmpty
+              title="No work lanes set up"
+              description="Empty parts are allowed. Use Team setup only if this unit needs work lanes."
+            />}
+          </PeopleSection>
         </div>
-        <div className="side-col">
-          <div className="sec"><span>Parts of the team</span><span>{subTeams.length}</span></div>
-          {subTeams.map((team, index) => <div key={team.id} className="row">
-            <div className="row-t">{team.name}</div>
-            <div className="row-m">{team.code} · {Object.values(members).filter((value) => value.includes(team.id)).length} people{team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}</div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => { setEditName(team.name); setMsg(null); setSheet({ type: "rename-subteam", team }); }}>Rename</button>
-              <button className="btn btn-ghost btn-sm" disabled={index === 0} onClick={() => moveSubTeam(team, -1)}>Move up</button>
-              <button className="btn btn-ghost btn-sm" disabled={index === subTeams.length - 1} onClick={() => moveSubTeam(team, 1)}>Move down</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => openRemoveSubTeam(team)}>Remove</button>
+
+        <section className="ev2p-manager-setup">
+          <div className="ev2p-manager-setup-head">
+            <div>
+              <h2>Team setup</h2>
+              <p>Invitations, work-lane structure and unit resources are secondary administration. Official role and membership changes remain with Administration & HR; leave decisions remain on Home.</p>
             </div>
-          </div>)}
-          {subTeams.length === 0 && <div className="card small">No parts have been set up. Empty parts are allowed.</div>}
-          <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => { setSheet("subteam"); setMsg(null); }}>Add a part</button>
-        </div>
-      </div>}
-      {showSetup && <>
-        <div className="sec"><span>Unit resources</span><span>{resources.filter((resource) => resource.active).length} active</span></div>
-        <p className="screen-note">Share approved links and references with this unit. Files remain in their authorised source.</p>
-        {resources.map((resource) => <div key={resource.id} className="row">
-          <div className="row-t">{resource.pinned ? "Pinned · " : ""}{resource.title}</div>
-          <div className="row-m">{resource.category.replace("_", " ")} · {resource.active ? "Active" : "Archived"}</div>
-          <div className="row-note">{resource.reference_url}</div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 9 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => openResource(resource)}>Edit</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setResourceActive(resource, !resource.active)}>{resource.active ? "Archive" : "Restore"}</button>
+            <button className="btn btn-ghost wide-auto" onClick={() => setShowSetup((value) => !value)}>
+              {showSetup ? "Hide team setup" : "Open team setup"}
+            </button>
           </div>
-        </div>)}
-        {resources.length === 0 && <div className="card small">No unit resources have been added.</div>}
-        <button className="btn btn-ghost wide-auto" style={{ marginTop: 10 }} onClick={() => openResource()}>Add a resource</button>
-      </>}
 
+          {showSetup && <>
+            <div className="ev2p-manager-setup-grid">
+              <PeopleSection title="Staff and invitations" meta={String(people.length + pending.length)}>
+                {people.map((person) => {
+                  const laneNames = subTeams
+                    .filter((team) => (members[person.profile_id] || []).includes(team.id))
+                    .map((team) => team.name);
+                  return <div key={person.id} className="ev2p-manager-resource-row">
+                    <strong>{person.profiles?.full_name || "—"}</strong>
+                    <span>{person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff"}</span>
+                    <small>{laneNames.length ? laneNames.join(" · ") : "Not assigned to a part yet"}</small>
+                  </div>;
+                })}
+                {pending.map((person) => <div key={person.email} className="ev2p-manager-resource-row">
+                  <strong>{person.full_name || person.email}</strong>
+                  <span>Invitation sent — waiting for sign-in</span>
+                </div>)}
+                <div className="ev2p-manager-setup-actions">
+                  <button className="btn btn-ghost wide-auto" onClick={() => { setSheet("invite"); setMsg(null); }}>Add someone</button>
+                </div>
+              </PeopleSection>
 
-      <div className="sec"><span>People</span><span>{people.length}</span></div>
-      <div className="card" style={{ marginBottom: 12 }}>
-        <div className="row-t">{me.unit_name}</div>
-        <div className="row-m">Unit Head — {me.full_name || "—"}</div>
-      </div>
-      {groupedPeople.map((team) => <div key={team.id}>
-        <div className="sec" style={{ marginTop: 18 }}><span>{team.name}</span><span>{team.people.length}</span></div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 7 }}>
-          {team.profiles?.full_name && <div className="small">Sub-team lead — {team.profiles.full_name}</div>}
-          {goAssign && <><span className="small">Preselects this part in the work form.</span><button className="btn btn-ghost btn-sm" onClick={() => goAssign({ subTeamId: team.id })}>Assign work to this part</button></>}
-        </div>
-        {team.people.map((person) => <PersonRow key={`${team.id}-${person.id}`} person={person} openPerson={openPerson} />)}
-        {team.people.length === 0 && <div className="card small">No one is assigned to this part yet.</div>}
-      </div>)}
-      {unassignedPeople.length > 0 && <div>
-        <div className="sec" style={{ marginTop: 18 }}><span>Not assigned to a part yet</span><span>{unassignedPeople.length}</span></div>
-        {unassignedPeople.map((person) => <PersonRow key={`unassigned-${person.id}`} person={person} openPerson={openPerson} />)}
-      </div>}
-      {people.length === 0 && <div className="card small">There are no other staff members in this unit yet. Your own work remains under My work.</div>}
+              <PeopleSection title="Parts of the team" meta={String(subTeams.length)}>
+                {subTeams.map((team, index) => <div key={team.id} className="ev2p-manager-resource-row">
+                  <strong>{team.name}</strong>
+                  <span>{team.code} · {Object.values(members).filter((value) => value.includes(team.id)).length} people{team.profiles?.full_name ? ` · led by ${team.profiles.full_name}` : " · no lead yet"}</span>
+                  <div className="ev2p-manager-setup-actions">
+                    <button className="btn btn-ghost btn-sm" onClick={() => { setEditName(team.name); setMsg(null); setSheet({ type: "rename-subteam", team }); }}>Rename</button>
+                    <button className="btn btn-ghost btn-sm" disabled={index === 0} onClick={() => moveSubTeam(team, -1)}>Move up</button>
+                    <button className="btn btn-ghost btn-sm" disabled={index === subTeams.length - 1} onClick={() => moveSubTeam(team, 1)}>Move down</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openRemoveSubTeam(team)}>Remove</button>
+                  </div>
+                </div>)}
+                {subTeams.length === 0 && <PeopleEmpty title="No parts have been set up" description="Empty parts are allowed." />}
+                <div className="ev2p-manager-setup-actions">
+                  <button className="btn btn-ghost wide-auto" onClick={() => { setSheet("subteam"); setMsg(null); }}>Add a part</button>
+                </div>
+              </PeopleSection>
+            </div>
+
+            <PeopleSection
+              title="Unit resources"
+              meta={`${resources.filter((resource) => resource.active).length} active`}
+              description="Approved links and references for this unit. Files remain in their authorised source."
+            >
+              {resources.map((resource) => <div key={resource.id} className="ev2p-manager-resource-row">
+                <strong>{resource.pinned ? "Pinned · " : ""}{resource.title}</strong>
+                <span>{resource.category.replace("_", " ")} · {resource.active ? "Active" : "Archived"}</span>
+                <small>{resource.reference_url}</small>
+                <div className="ev2p-manager-setup-actions">
+                  <button className="btn btn-ghost btn-sm" onClick={() => openResource(resource)}>Edit</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setResourceActive(resource, !resource.active)}>{resource.active ? "Archive" : "Restore"}</button>
+                </div>
+              </div>)}
+              {resources.length === 0 && <PeopleEmpty title="No unit resources" description="Add an approved guide, template or shared link when needed." />}
+              <div className="ev2p-manager-setup-actions">
+                <button className="btn btn-ghost wide-auto" onClick={() => openResource()}>Add a resource</button>
+              </div>
+            </PeopleSection>
+          </>}
+        </section>
 
       {sheet === "subteam" && <Sheet onClose={() => setSheet(null)}>
         <div className="h2">Add a part of the team</div>

@@ -26,6 +26,10 @@ test("Authentication shell matches the PWA responsive contract", async ({ browse
   }
 });
 
+async function waitForRouteReady(page) {
+  await expect(page.locator(".route-fallback")).toHaveCount(0, { timeout: 15000 });
+}
+
 async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   const context = await browser.newContext({
     viewport,
@@ -38,6 +42,7 @@ async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   await page.getByPlaceholder("Password").fill(rolePassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await waitForRouteReady(page);
   return { context, page };
 }
 
@@ -51,14 +56,15 @@ const routeByLabel = {
   Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
   Reports:"reporting", Cost:"cost", Finance:"finance",
   Audit:"audit", Events:"events", Workflows:"workflows", Checks:"workflows", Authority:"authority",
-  "System rules":"policies", Integrations:"integrations", "Connected Apps":"integrations", "Control Center":"settings", Settings:"settings",
+  "System rules":"policies", Integrations:"integrations", "Control Center":"settings", Settings:"settings",
   Announcements:"announcements"
 };
 
 async function go(page, name) {
-  const visibleNav = page.locator(".premium-side").getByRole("button", { name, exact: true });
+  const visibleNav = page.locator(".ev2s-sidebar").getByRole("button", { name, exact: true });
   if (await visibleNav.count()) {
     await visibleNav.click();
+    await waitForRouteReady(page);
     await expect(page.locator(".body")).toBeVisible({ timeout: 15000 });
     return;
   }
@@ -74,6 +80,7 @@ async function go(page, name) {
   const target = route === "home" ? "/" : `/?tab=${route}`;
   await page.goto(target);
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await waitForRouteReady(page);
 }
 
 async function assignTask(page, title, step = null) {
@@ -132,7 +139,7 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
+    const reviewRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
     await reviewRow.getByRole("button", { name: "Review" }).click();
     const returnDialog = page.getByRole("dialog");
@@ -142,7 +149,7 @@ test("Staff and Manager complete the real work loop, including return and approv
     if (await redo.count()) await redo.click();
     await returnDialog.getByPlaceholder("Explain exactly what needs changing").fill("Please correct the acceptance item.");
     await returnDialog.getByRole("button", { name: "Return work", exact: true }).click();
-    await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.locator(".managerv2-decision-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
 
@@ -152,6 +159,7 @@ test("Staff and Manager complete the real work loop, including return and approv
     await page.getByText(title, { exact: true }).click();
     await expect(page.getByText("Sent back by your manager")).toBeVisible();
     await expect(page.getByText("Please correct the acceptance item.")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-stage10a3-returned-work.png", fullPage: true });
 
     const check = page.getByRole("button", { name: new RegExp(step) });
     const klass = await check.getAttribute("class");
@@ -178,14 +186,17 @@ test("Staff and Manager complete the real work loop, including return and approv
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const reviewRow = page.locator(".home-action-row").filter({ hasText: title });
+    await go(page, "Work");
+    await page.getByRole("tab", { name: /Needs review/ }).click();
+    const reviewRow = page.locator(".ev2w-review-row").filter({ hasText: title });
     await expect(reviewRow).toBeVisible();
-    await reviewRow.getByRole("button", { name: "Review" }).click();
+    await reviewRow.click();
+    await expect(page.locator(".ev2-work-detail")).toBeVisible();
+    await expect(page.getByText("Review submitted work", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Approve", exact: true }).click();
     const approveDialog = page.getByRole("dialog");
-    await expect(approveDialog.getByText("Evidence-first review")).toBeVisible();
-    await approveDialog.getByRole("button", { name: "Approve", exact: true }).click();
     await approveDialog.getByRole("button", { name: "Confirm approval", exact: true }).click();
-    await expect(page.locator(".home-action-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
     await context.close();
   }
 
@@ -225,18 +236,20 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await blockerDialog.getByRole("button", { name: "Test Unit A" }).click();
     await blockerDialog.getByRole("button", { name: "Mark as waiting" }).click();
     await expect(page.getByText(/Waiting on Test Unit A/)).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/redesign-r7-stage10a3-dependency-work.png", fullPage: true });
     await context.close();
   }
 
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
-    const blockerRow = page.locator(".home-blocker-row").filter({ hasText: title });
+    const blockerRow = page.locator(".managerv2-decision-row").filter({ hasText: title });
     await expect(blockerRow).toBeVisible();
     await blockerRow.getByRole("button", { name: "Acknowledge" }).click();
-    await expect(page.locator(".home-blocker-row").filter({ hasText: title })).toContainText("acknowledged");
-    const acknowledgedRow = page.locator(".home-blocker-row").filter({ hasText: title });
+    const acknowledgedRow = page.locator(".managerv2-dependency-row").filter({ hasText: title });
+    await expect(acknowledgedRow).toBeVisible();
+    await expect(acknowledgedRow).toContainText("Acknowledged");
     await acknowledgedRow.getByRole("button", { name: "Mark resolved" }).click();
-    await expect(page.locator(".home-blocker-row").filter({ hasText: title })).toHaveCount(0);
+    await expect(page.locator(".managerv2-dependency-row").filter({ hasText: title })).toHaveCount(0);
     await context.close();
   }
 
@@ -293,14 +306,14 @@ test("Staff personal details persist and private work stays out of another staff
     await dialog.getByLabel("Address or ordinary contact information").fill("Fixture address");
     await dialog.getByRole("button", { name: "Save personal details" }).click();
     await expect(dialog.getByRole("button", { name: "Save personal details" })).toBeEnabled();
-    await dialog.getByRole("button", { name: "Close dialog" }).click();
+    await dialog.locator(".ev2c-overlay-head").getByRole("button", { name: "Close", exact: true }).click();
 
     await page.getByRole("button", { name: "Edit" }).click();
     const reopened = page.getByRole("dialog");
     await expect(reopened.getByLabel("Preferred name")).toHaveValue("Staff Preferred");
     await expect(reopened.getByPlaceholder("Contact name")).toHaveValue("Emergency Fixture");
     await expect(reopened.getByLabel("Address or ordinary contact information")).toHaveValue("Fixture address");
-    await reopened.getByRole("button", { name: "Close dialog" }).click();
+    await reopened.locator(".ev2c-overlay-head").getByRole("button", { name: "Close", exact: true }).click();
 
     await go(page, "Work");
     await page.getByRole("button", { name: "Add private work" }).click();
@@ -415,19 +428,21 @@ test("Recurring ministry numbers flow from a unit record to the Group Pastor ove
 test("Experience Stage 8 removes the known navigation, Team and Calendar defects", async ({ browser }) => {
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
-    const side = page.locator(".premium-side");
+    const side = page.locator(".ev2s-sidebar");
     await expect(side.getByRole("button", { name: "Finance", exact: true })).toBeVisible();
     await expect(side.getByRole("button", { name: "Budget", exact: true })).toHaveCount(0);
     await expect(side.getByRole("button", { name: "Messages", exact: true })).toBeVisible();
     await expect(side.getByRole("button", { name: "My Hub", exact: true })).toBeVisible();
 
     await go(page, "Team");
+    await expect(page.locator(".ev2-people-page.ev2-people-manager")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Your team", exact: true })).toBeVisible();
-    await expect(page.locator(".manager-team .sec").filter({ hasText: "Team setup" }).first()).toBeVisible();
-    const sectionLabels = await page.locator(".manager-team .sec > span:first-child").allTextContents();
-    expect(sectionLabels.indexOf("Team setup")).toBeGreaterThanOrEqual(0);
-    expect(sectionLabels.indexOf("People")).toBeGreaterThanOrEqual(0);
-    expect(sectionLabels.indexOf("Team setup")).toBeLessThan(sectionLabels.indexOf("People"));
+    const peopleSection = page.locator(".ev2p-section").filter({ hasText: /^People/ }).first();
+    const setupHeading = page.getByRole("heading", { name: "Team setup", exact: true });
+    await expect(peopleSection).toBeVisible();
+    await expect(setupHeading).toBeVisible();
+    const [peopleBox, setupBox] = await Promise.all([peopleSection.boundingBox(), setupHeading.boundingBox()]);
+    expect(peopleBox?.y || 0).toBeLessThan(setupBox?.y || Number.POSITIVE_INFINITY);
     await expect(page.getByRole("button", { name: "Assign work to this part", exact: true }).first()).toBeVisible();
 
     await go(page, "Calendar");
@@ -456,7 +471,7 @@ test("Mobile Staff and desktop Admin/Executive surfaces render without obvious r
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await expect(page.locator(".tabs")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
     const activeEnd = page.getByRole("button", { name: "End work" });
     if (await activeEnd.count()) await activeEnd.click();
     await page.getByRole("button", { name: "Start work", exact: true }).click();
@@ -596,12 +611,12 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
     await go(page, "Calendar");
 
-    await expect(page.getByRole("button", { name: "Month", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Week", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Month", exact: true })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Week", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: /View All/ })).toBeVisible();
     await page.getByRole("button", { name: /View All/ }).click();
     const filterDialog = page.getByRole("dialog");
-    await filterDialog.getByRole("button", { name: "Meetings", exact: true }).click();
+    await filterDialog.getByRole("tab", { name: "Meetings", exact: true }).click();
 
     await page.getByRole("button", { name: "Schedule meeting" }).click();
     const dialog = page.getByRole("dialog");
@@ -626,7 +641,8 @@ test("A Manager can schedule a Unit meeting with an explicit audience and Staff 
 
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 390, height: 844 });
-    const meetingRow = page.locator(".home-meeting-row").filter({ hasText: title });
+    const meetingRow = page.locator(".staffv2").getByRole("button").filter({ hasText: title });
+    await expect(meetingRow).toHaveCount(1);
     await expect(meetingRow).toBeVisible();
     await meetingRow.click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
@@ -883,7 +899,7 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
     await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
-    await page.getByRole("button", { name: "Register", exact: true }).click();
+    await page.getByRole("tab", { name: /^Register/ }).click();
     await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Add slot type", exact: true }).click();
@@ -1032,7 +1048,7 @@ test("Experience Stage 7 keeps work capture simple, staff-owned and manager-conf
   {
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
-    const proposal = page.locator(".row").filter({ hasText: proposalName }).first();
+    const proposal = page.locator(".ev2p-attention").filter({ hasText: proposalName }).first();
     await expect(proposal).toBeVisible();
     await proposal.getByRole("button", { name: "Confirm project", exact: true }).click();
     await expect(page.getByRole("heading", { name: proposalName, exact: true })).toBeVisible();
@@ -1084,11 +1100,14 @@ test("Stage 6 Workload keeps capacity components factual and manager-scoped", as
     await expect(page.getByText("Project commitment recorded.", { exact: true })).toBeVisible();
 
     await page.reload();
-    await page.getByLabel("Workload person").selectOption("31000000-0000-4000-8000-000000000001");
+    const workloadPerson = page.getByLabel("Workload person");
+    await workloadPerson.selectOption("31000000-0000-4000-8000-000000000001");
+    await expect(workloadPerson).toHaveValue("31000000-0000-4000-8000-000000000001");
     await expect(page.getByText("35 h", { exact: true }).first()).toBeVisible();
 
     const capacityMetric = page.getByRole("button", { name: /weekly planning capacity/i }).last();
     await capacityMetric.click();
+    await expect(workloadPerson).toHaveValue("31000000-0000-4000-8000-000000000001");
     await expect(page.getByText("Planning capacity history", { exact: true })).toBeVisible();
     await expect(page.getByText("Acceptance Stage 6 planning capacity", { exact: true })).toBeVisible();
 
@@ -1889,9 +1908,9 @@ test("Administration surfaces use policy-safe HR states and real employee record
   const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
 
   await expect(page.getByRole("heading", { name: "Administration", exact: true })).toBeVisible();
-  await expect(page.getByText("Need your action", { exact: true })).toBeVisible();
-  await expect(page.getByText("Reporting gaps", { exact: true })).toBeVisible();
-  await expect(page.getByText("Delivery risks", { exact: true })).toBeVisible();
+  await expect(page.getByText("Needs Administration", { exact: true })).toBeVisible();
+  await expect(page.getByText("Reporting coverage", { exact: true })).toBeVisible();
+  await expect(page.getByText("Delivery signals", { exact: true })).toBeVisible();
   await expect(page.getByText("Administration could not finish loading", { exact: true })).toHaveCount(0);
 
   await go(page, "Units");
@@ -1909,6 +1928,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
   await page.getByLabel("Find a person").fill("Staff Fixture");
   await page.getByRole("button", { name: /Staff Fixture/ }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
   const peopleMain = page.getByRole("main");
   await expect(peopleMain.getByText("Protected HR", { exact: true })).toBeVisible();
   await expect(peopleMain.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
@@ -1993,31 +2013,19 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await page.getByRole("button", { name: /Work quiet days/ }).click();
   await expect(page.getByText("Acceptance policy rule version", { exact: true })).toBeVisible();
 
-  await go(page, "Connected Apps");
-  await expect(page.getByRole("heading", { name: "Connected Apps", exact: true })).toBeVisible();
-  const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
-  await expect(telegramCard).toBeVisible();
-  await expect(telegramCard.locator(".pill").getByText("Not connected", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Integration connector name")).toHaveCount(0);
-  await expect(page.getByLabel("Integration connector key")).toHaveCount(0);
-
-  await telegramCard.getByRole("button", { name: "Connect", exact: true }).click();
-  let connectedDialog = page.getByRole("dialog");
-  const tokenInput = connectedDialog.getByLabel("Telegram bot token");
-  await expect(tokenInput).toHaveAttribute("type", "password");
-  await expect(connectedDialog.getByText(/stored encrypted in Supabase Vault/i)).toBeVisible();
-  await expect(connectedDialog.getByRole("button", { name: "Verify & connect", exact: true })).toBeDisabled();
-  await tokenInput.fill("123456:abcdefghijklmnopqrstuvwxyz123456");
-  await connectedDialog.getByLabel("Telegram chat ID").fill("-100123456");
-  await expect(connectedDialog.getByRole("button", { name: "Verify & connect", exact: true })).toBeEnabled();
-  await connectedDialog.getByRole("button", { name: "Close dialog", exact: true }).click();
-
-  await page.getByRole("button", { name: /Advanced diagnostics/ }).click();
-  await expect(page.getByText("Pending", { exact: true })).toBeVisible();
-  await expect(page.getByText("Processing", { exact: true })).toBeVisible();
-  await expect(page.getByText("Retry / failed", { exact: true })).toBeVisible();
-  await expect(page.getByText("Delivered", { exact: true })).toBeVisible();
-  await page.screenshot({ path: "test-artifacts/stage12-connected-apps-admin.png", fullPage: true });
+  await go(page, "Integrations");
+  await expect(page.getByRole("heading", { name: "Integrations", exact: true })).toBeVisible();
+  await page.getByLabel("Integration connector name").fill("Acceptance Connector");
+  await page.getByLabel("Integration connector key").fill("acceptance-connector");
+  await page.getByRole("button", { name: "Create connector", exact: true }).click();
+  await expect(page.getByText("Connector created.", { exact: true })).toBeVisible();
+  const connectorRow = page.locator(".row").filter({ hasText: "Acceptance Connector" }).first();
+  await connectorRow.getByRole("button", { name: "Enable", exact: true }).click();
+  await expect(page.getByText("Connector enabled.", { exact: true })).toBeVisible();
+  await page.getByLabel("Integration subscription connector").selectOption({ label: "Acceptance Connector" });
+  await page.getByLabel("Integration subscription event").selectOption("policy.rule_changed");
+  await page.getByRole("button", { name: "Create subscription", exact: true }).click();
+  await expect(page.getByText("Event subscription created.", { exact: true })).toBeVisible();
 
   await go(page, "Audit");
   await expect(page.getByRole("heading", { name: "Audit", exact: true })).toBeVisible();
@@ -2050,7 +2058,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
 
   await go(page, "Settings");
   await page.getByText("Organisation", { exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Organisation settings", exact: true })).toBeVisible();
 
   const attentionRule = page.locator(".office-threshold-row").filter({ hasText: "active work has not moved for" });
   const attentionInput = attentionRule.locator("input");
@@ -2180,7 +2188,7 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
     await expect(page.getByText("Acceptance task — review loop", { exact: true })).toBeVisible();
 
     await go(page, "Home");
-    await expect(page.locator(".home-meeting-row").filter({ hasText: "Acceptance unit meeting" })).toBeVisible();
+    await expect(page.locator(".staffv2").getByRole("button").filter({ hasText: "Acceptance unit meeting" })).toBeVisible();
 
     await go(page, "Team");
     await page.getByRole("button", { name: /Unit Room/ }).click();
@@ -2216,38 +2224,14 @@ test("Closure corridor preserves the Staff Fixture journey across CEAC OS", asyn
   }
 });
 
-test("Stage 12 Connected Apps keeps provider secrets server-bound on mobile", async ({ browser }) => {
-  const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 390, height: 844 });
-  await go(page, "Control Center");
-  await expect(page.getByRole("heading", { name: "Control Center", exact: true })).toBeVisible();
-  await page.getByText("Connected Apps", { exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Connected Apps", exact: true })).toBeVisible();
+const administrationPhoneWidths = [320, 360, 375, 390, 414, 430];
+const administrationPrimaryDestinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Integrations", "Settings"];
 
-  const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
-  await expect(telegramCard).toBeVisible();
-  await expect(telegramCard.locator(".pill").getByText("Not connected", { exact: true })).toBeVisible();
-  await telegramCard.getByRole("button", { name: "Connect", exact: true }).click();
-
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByLabel("Telegram bot token")).toHaveAttribute("type", "password");
-  await expect(dialog.getByText(/never saved in browser-visible CEAC tables/i)).toBeVisible();
-  await dialog.getByRole("button", { name: "Close dialog", exact: true }).click();
-
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow, "Stage 12 Connected Apps overflowed the 390px viewport").toBeLessThanOrEqual(1);
-  await page.screenshot({ path: "test-artifacts/stage12-connected-apps-admin-mobile.png", fullPage: true });
-  await context.close();
-});
-
-test("Administration primary surfaces stay within supported phone widths", async ({ browser }) => {
-  test.setTimeout(120000);
-  const widths = [320, 360, 375, 390, 414, 430];
-  const destinations = ["Home", "Strategy", "Delivery", "Workload", "Assets & devices", "People", "Employee lifecycle", "Protected HR", "Workforce", "Reports", "Units", "Projects", "Calendar", "Cost", "Finance", "Audit", "Events", "Workflows", "Authority", "System rules", "Connected Apps", "Settings"];
-
-  for (const width of widths) {
+for (const width of administrationPhoneWidths) {
+  test(`Administration primary surfaces stay within the ${width}px phone width`, async ({ browser }) => {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width, height: 844 });
 
-    for (const destination of destinations) {
+    for (const destination of administrationPrimaryDestinations) {
       await go(page, destination);
       await expect(page.locator(".body")).toBeVisible();
       const geometry = await page.evaluate(() => {
@@ -2269,8 +2253,8 @@ test("Administration primary surfaces stay within supported phone widths", async
       expect(Math.abs((geometry.bodyRight ?? geometry.viewport) - geometry.viewport), `Administration body left a right-side gap at ${width}px`).toBeLessThanOrEqual(1);
     }
     await context.close();
-  }
-});
+  });
+}
 
 test("Role shells stay within the phone viewport", async ({ browser }) => {
   const roles = [

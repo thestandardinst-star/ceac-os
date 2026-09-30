@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
+import { FieldGroup, LoadingState, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
 import ProjectParticipantRegister from "../components/ProjectParticipantRegister";
+import {
+  ProjectContextRow,
+  ProjectEmpty,
+  ProjectListRow,
+  ProjectPageHeader,
+  ProjectSectionHeader,
+  ProjectSummary,
+} from "../experience-v2/project-family/ProjectFamilyV2";
 
 const PRIORITIES = [["low","Low"],["normal","Normal"],["high","High"],["critical","Critical"]];
 const HEALTH = [["on_track","On track"],["watch","Watch"],["at_risk","At risk"],["blocked","Blocked"]];
@@ -15,12 +23,6 @@ function label(list, value) {
 function human(value = "") {
   return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase());
 }
-function projectTone(health) {
-  if (health === "blocked" || health === "at_risk") return "brick";
-  if (health === "watch") return "amber";
-  return "green";
-}
-
 export default function Delivery({ me }) {
   const [projects,setProjects]=useState([]);
   const [groups,setGroups]=useState([]);
@@ -301,29 +303,62 @@ export default function Delivery({ me }) {
   if(loading) return <div className="body"><LoadingState label="Loading delivery management…" /></div>;
 
   const executiveSurface=Boolean(me.is_exec);
-  return <div className="body">
-    <div style={{paddingTop:26}}>
-      <div className="eyebrow">{executiveSurface ? "Major initiatives" : "Work Management 2.0"}</div>
-      <h1 className="h1">{executiveSurface ? "Portfolio" : "Delivery"}</h1>
-      <p className="screen-note">{executiveSurface ? "Major programmes and projects, their milestones, dependencies, risks and explicitly recorded health. CEAC OS does not generate a hidden project score." : "Programmes, portfolios, milestones, dependencies, risks and issues. Health is an explicit management state; CEAC OS does not generate a hidden project score."}</p>
-    </div>
+  const attentionProjects=projects.filter((project)=>{
+    const explicitHealth=["watch","at_risk","blocked"].includes(project.health);
+    const seriousOpenItem=registerItems.some((item)=>item.project_id===project.id&&item.state!=="resolved"&&["high","critical"].includes(item.severity));
+    return explicitHealth||seriousOpenItem;
+  });
+
+  return <div className={"body ev2-project-page ev2-project-delivery"+(executiveSurface?" is-executive":"")}>
+    <ProjectPageHeader
+      eyebrow={executiveSurface ? "Major initiatives" : "Work Management 2.0"}
+      title={executiveSurface ? "Portfolio" : "Delivery"}
+      description={executiveSurface ? "Major programmes and projects, their milestones, dependencies, risks and explicitly recorded health. CEAC OS does not generate a hidden project score." : "Programmes, portfolios, milestones, dependencies, risks and issues. Health is an explicit management state; CEAC OS does not generate a hidden project score."}
+    />
 
     {error&&<ProductNotice tone="error" title="Delivery">{error}</ProductNotice>}
     {notice&&<ProductNotice tone="success" title="Delivery">{notice}</ProductNotice>}
 
-    <section className="admin-project-summary" style={{marginTop:18}}>
-      <div><b>{projects.filter((p)=>p.status==="active").length}</b><span>active projects</span></div>
-      <div><b>{projects.filter((p)=>["at_risk","blocked"].includes(p.health)).length}</b><span>explicit risk / blocked</span></div>
-      <div><b>{milestones.filter((m)=>!["achieved","cancelled"].includes(m.status)).length}</b><span>open milestones</span></div>
-      <div><b>{registerItems.filter((r)=>r.state!=="resolved").length}</b><span>open risks / issues</span></div>
-    </section>
+    <ProjectSummary items={[
+      {label:"Active projects",value:projects.filter((p)=>p.status==="active").length,detail:"Recorded as active"},
+      {label:"Explicit risk / blocked",value:projects.filter((p)=>["at_risk","blocked"].includes(p.health)).length,detail:"Stored project health"},
+      {label:"Open milestones",value:milestones.filter((m)=>!["achieved","cancelled"].includes(m.status)).length,detail:"Recorded milestone state"},
+      {label:"Open risks / issues",value:registerItems.filter((r)=>r.state!=="resolved").length,detail:"Recorded register items"},
+    ]} />
 
-    <div className="project-area-head" style={{marginTop:20}}>
-      <div><span className="eyebrow">Programmes & portfolios</span><h2>Delivery structure</h2></div>
-      <button className="btn btn-sm" onClick={()=>setSheet({type:"group"})}>New Programme / Portfolio</button>
-    </div>
-    {report.length===0&&<EmptyState title="No Programmes or Portfolios">Create a delivery group when several projects belong to one coordinated outcome.</EmptyState>}
-    {report.map((group)=><section className="card" key={group.id} style={{marginBottom:10}}>
+    {executiveSurface&&<>
+      <ProjectSectionHeader eyebrow="Leadership attention" title="Recorded attention" count={attentionProjects.length} />
+      {attentionProjects.length>0?<div className="ev2p-attention-list">
+        {attentionProjects.map((project)=>{
+          const openMilestones=milestones.filter((row)=>row.project_id===project.id&&!["achieved","cancelled"].includes(row.status)).length;
+          const openRegister=registerItems.filter((row)=>row.project_id===project.id&&row.state!=="resolved");
+          return <ProjectContextRow
+            key={project.id}
+            eyebrow="Explicit recorded state"
+            title={project.name}
+            meta={(unitsById[project.lead_unit_id]?.name||"Lead unit")+" · "+label(PRIORITIES,project.priority)+" priority"}
+            note={project.purpose||"No purpose recorded."}
+            health={project.health}
+            facts={[
+              {label:"Open milestones",value:openMilestones},
+              {label:"Open risks / issues",value:openRegister.length},
+              {label:"High / critical",value:openRegister.filter((row)=>["high","critical"].includes(row.severity)).length},
+            ]}
+            actions={[{label:"View project",onClick:()=>setSelectedProjectId(project.id)}]}
+          />;
+        })}
+      </div>:<ProjectEmpty title="No recorded project attention" description="No visible project currently has Watch, At risk, Blocked, or a high / critical open register item." />}
+    </>}
+
+    <ProjectSectionHeader
+      eyebrow="Structure"
+      title="Programmes & portfolios"
+      count={report.length}
+      actionLabel="New Programme / Portfolio"
+      onAction={()=>setSheet({type:"group"})}
+    />
+    {report.length===0&&<ProjectEmpty title="No Programmes or Portfolios" description="Create a delivery group when several projects belong to one coordinated outcome." />}
+    {report.map((group)=><section className="ev2p-portfolio-card" key={group.id}>
       <div className="row-t">{group.name}</div>
       <div className="row-m">{human(group.kind)} · {group.unit_id?unitsById[group.unit_id]?.name||"Unit":"Ministry-wide"} · {human(group.status)}</div>
       {group.purpose&&<div className="row-note">{group.purpose}</div>}
@@ -336,15 +371,22 @@ export default function Delivery({ me }) {
       </div>
     </section>)}
 
-    <div className="split" style={{marginTop:22}}>
-      <div className="main-col">
-        <div className="sec"><span>Projects</span><span>{projects.length}</span></div>
-        {projects.map((project)=><button className={"row row-button"+(selectedProjectId===project.id?" on":"")} key={project.id} onClick={()=>setSelectedProjectId(project.id)}>
-          <div className="row-t">{project.name}</div>
-          <div className="row-m">{unitsById[project.lead_unit_id]?.name||"Lead unit"} · {label(PRIORITIES,project.priority)}</div>
-          <div style={{marginTop:7}}><Pill tone={projectTone(project.health)}>{label(HEALTH,project.health)}</Pill></div>
-        </button>)}
-        {!projects.length&&<EmptyState title="No visible projects">Projects you are authorised to see will appear here.</EmptyState>}
+    <div className="ev2p-delivery-layout">
+      <div className="main-col ev2p-delivery-main">
+        <ProjectSectionHeader eyebrow="Projects" title="Portfolio projects" count={projects.length} />
+        <div className="ev2p-list">
+          {projects.map((project)=><ProjectListRow
+            key={project.id}
+            eyebrow={unitsById[project.lead_unit_id]?.name||"Lead unit"}
+            title={project.name}
+            meta={label(PRIORITIES,project.priority)+" priority"}
+            note={project.purpose||"No purpose recorded."}
+            health={project.health}
+            selected={selectedProjectId===project.id}
+            onClick={()=>setSelectedProjectId(project.id)}
+          />)}
+        </div>
+        {!projects.length&&<ProjectEmpty title="No visible projects" description="Projects you are authorised to see will appear here." />}
 
         {selectedProject&&<>
           <div className="sec"><span>Milestones</span><span>{selectedMilestones.length}</span></div>
@@ -376,7 +418,7 @@ export default function Delivery({ me }) {
         </>}
       </div>
 
-      <div className="side-col">
+      <div className="side-col ev2p-delivery-side">
         {selectedProject&&<>
           <div className="sec"><span>Project management state</span></div>
           <div className="card" style={{padding:15}}>

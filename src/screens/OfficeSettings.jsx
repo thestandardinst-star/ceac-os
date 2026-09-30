@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { dateOnly } from "../lib/time";
 import { FieldGroup, ProductNotice, SectionHeader } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { StatusBadge } from "../experience-v2/components";
 
 export default function OfficeSettings({ me, openWorkforce }) {
   const [office, setOffice] = useState(null);
@@ -147,11 +148,12 @@ export default function OfficeSettings({ me, openWorkforce }) {
   const leaveConfigured = Boolean(leavePolicy);
   const mapSrc = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}&z=17&output=embed` : null;
 
-  return <div className="body office-settings">
-    <div className="office-page-intro">
-      <div className="eyebrow">Control room</div>
-      <h1 className="h1">Settings</h1>
-      <p className="screen-note">Organisation rules CEAC can maintain without a developer. Unconfirmed policy stays visibly unconfigured rather than being guessed.</p>
+  return <div className="body office-settings ev2-office-settings">
+    <div className="office-page-intro ev2-office-settings-header">
+      <div><div className="eyebrow">Control room</div>
+      <h1 className="h1">Organisation settings</h1>
+      <p className="screen-note">Organisation rules CEAC can maintain without a developer. Unconfirmed policy stays visibly unconfigured rather than being guessed.</p></div>
+      <StatusBadge tone={leaveConfigured && office ? "success" : "warning"} icon={false}>{leaveConfigured && office ? "Core setup recorded" : "Setup needs attention"}</StatusBadge>
     </div>
 
     {message && <ProductNotice tone={message.tone} title={message.title}>{message.body}</ProductNotice>}

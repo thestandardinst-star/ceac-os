@@ -6,6 +6,15 @@ import { Pill, Sheet, statusPill, ProductNotice, LoadingState } from "../compone
 import ManagerProjectClose from "./ManagerProjectClose";
 import ProjectParticipantRegister from "../components/ProjectParticipantRegister";
 import { humanError } from "../lib/productLanguage";
+import {
+  ProjectAttentionCard,
+  ProjectEmpty,
+  ProjectListRow,
+  ProjectPageHeader,
+  ProjectSectionHeader,
+  ProjectTabs,
+  ProjectWorkspaceHeader,
+} from "../experience-v2/project-family/ProjectFamilyV2";
 
 const OBJECTIVE_STATUSES = [
   ["on_track", "On track"],
@@ -263,26 +272,32 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   }
 
   if (selectedId) {
-    if (!detail) return <div className="body manager-projects"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <ProductNotice tone="error" title="Could not open project">{error}</ProductNotice> : <LoadingState label="Loading project…" />}</div>;
+    if (!detail) return <div className="body manager-projects ev2-project-page ev2-project-workspace"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <ProductNotice tone="error" title="Could not open project">{error}</ProductNotice> : <LoadingState label="Loading project…" />}</div>;
     const team = [...new Set(detail.work.map((item) => item.profiles?.full_name).filter(Boolean))];
     const unattached = detail.work.filter((item) => !item.objective_id);
-    return <div className="body manager-projects">
-      <button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>
-      <div className="eyebrow">{detail.kind} · {detail.status}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>{detail.name}</h1>
-      {detail.purpose ? <p className="screen-note">{detail.purpose}</p> : <p className="screen-note">No purpose has been recorded.</p>}
-      {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
+    return <div className="body manager-projects ev2-project-page ev2-project-workspace">
+      <ProjectWorkspaceHeader
+        kind={detail.kind}
+        status={detail.status}
+        title={detail.name}
+        purpose={detail.purpose}
+        context={detail.units?.name || "Lead unit not recorded"}
+        onBack={() => initialProjectId && back ? back() : setSelectedId(null)}
+      />
+      {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
 
-      <nav className="project-workspace-nav" aria-label="Project workspace">
-        {[
+      <ProjectTabs
+        value={area}
+        onChange={setArea}
+        items={[
           ["overview","Overview"],
-          ["work","Work"],
-          ["objectives","Objectives"],
+          ["work","Work",detail.work.length],
+          ["objectives","Objectives",detail.objectives.length],
           ["register","Register"],
           ["collaboration","Collaboration"],
           ["close","Close & record"],
-        ].map(([key,label]) => <button key={key} className={area === key ? "on" : ""} onClick={() => setArea(key)}>{label}</button>)}
-      </nav>
+        ]}
+      />
 
       {area === "overview" && <section className="project-workspace-area">
         <div className="project-overview-grid">
@@ -387,36 +402,50 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     </div>;
   }
 
-  return <div className="body manager-projects">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">{me.unit_name}</div>
-      <h1 className="h1" style={{ marginTop: 6 }}>Projects</h1>
-      <p className="screen-note">Purpose, objectives, work, people, evidence and cost in one place.</p>
-    </div>
-    {canCreate && <button className="btn wide-auto" style={{ marginTop: 16 }} onClick={() => setSheet({ type: "project" })}>Create project</button>}
-    {error && <div className="flag flag-brick" style={{ marginTop: 14 }}><h4>Could not complete that</h4>{error}</div>}
-    {proposals.filter((proposal) => proposal.state === "submitted").length > 0 && <section style={{ marginTop: 16 }}>
-      <div className="sec"><span>Project proposals needing confirmation</span><span>{proposals.filter((proposal) => proposal.state === "submitted").length}</span></div>
-      {proposals.filter((proposal) => proposal.state === "submitted").map((proposal) => <div className="row" key={proposal.id}>
-        <div className="row-t">{proposal.name}</div>
-        <div className="row-m">Proposed by {proposal.profiles?.full_name || "Staff"}{proposal.starts_on ? ` · starts ${proposal.starts_on}` : ""}</div>
-        <div className="row-note">{proposal.purpose}</div>
-        <div style={{ display:"flex", gap:8, marginTop:9 }}>
-          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => decideProposal(proposal, "declined")}>Decline</button>
-          <button className="btn btn-sm" disabled={busy} onClick={() => decideProposal(proposal, "approved")}>Confirm project</button>
-        </div>
-      </div>)}
+  return <div className="body manager-projects ev2-project-page ev2-project-manager">
+    <ProjectPageHeader
+      eyebrow={me.unit_name}
+      title="Projects"
+      description="Purpose, objectives, work, people, evidence and unit cost context in one operating workspace."
+      actionLabel={canCreate ? "Create project" : undefined}
+      onAction={canCreate ? () => setSheet({ type: "project" }) : undefined}
+    />
+    {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
+    {proposals.filter((proposal) => proposal.state === "submitted").length > 0 && <section className="ev2p-proposals">
+      <ProjectSectionHeader
+        eyebrow="Needs confirmation"
+        title="Project proposals"
+        count={proposals.filter((proposal) => proposal.state === "submitted").length}
+      />
+      {proposals.filter((proposal) => proposal.state === "submitted").map((proposal) => <ProjectAttentionCard
+        key={proposal.id}
+        eyebrow="Staff proposal"
+        title={proposal.name}
+        meta={`Proposed by ${proposal.profiles?.full_name || "Staff"}${proposal.starts_on ? ` · starts ${proposal.starts_on}` : ""}`}
+        description={proposal.purpose}
+        actions={[
+          { label: "Decline", disabled: busy, onClick: () => decideProposal(proposal, "declined") },
+          { label: "Confirm project", disabled: busy, onClick: () => decideProposal(proposal, "approved") },
+        ]}
+      />)}
     </section>}
     {loadingList && <LoadingState label="Loading projects…" />}
-    {!loadingList && <><div className="sec"><span>Your unit’s projects</span><span>{projects.length}</span></div>
-    {projects.map((project) => <button className="row" key={project.id} onClick={() => setSelectedId(project.id)}>
-      <div className="eyebrow">{project.role === "lead" ? "Lead unit" : "Participating unit"}</div>
-      <div className="row-t" style={{ marginTop: 3 }}>{project.name}</div>
-      <div className="row-m">{project.objectives.length} objective{project.objectives.length === 1 ? "" : "s"} · {project.completedTasks} of {project.taskCount} project tasks completed</div>
-      {project.costs.length ? <div className="row-note">{project.costs.map((row) => `${row.currency}: ${row.planned === null ? "no planned amount" : `${money(row.currency, row.planned)} planned`} · ${row.actual === null ? "no actual spend" : `${money(row.currency, row.actual)} actual`}`).join(" | ")}</div> : <div className="row-note">No project cost has been recorded for your unit.</div>}
-      <div style={{ marginTop: 7 }}><Pill tone={project.status === "active" ? "green" : "grey"}>{project.status}</Pill></div>
-    </button>)}
-    {projects.length === 0 && <div className="card small">No project currently involves your unit.</div>}
+    {!loadingList && <>
+      <ProjectSectionHeader eyebrow="Unit delivery" title="Your unit’s projects" count={projects.length} />
+      <div className="ev2p-list">
+        {projects.map((project) => <ProjectListRow
+          key={project.id}
+          eyebrow={project.role === "lead" ? "Lead unit" : "Participating unit"}
+          title={project.name}
+          meta={`${project.objectives.length} objective${project.objectives.length === 1 ? "" : "s"} · ${project.completedTasks} of ${project.taskCount} project tasks completed`}
+          note={project.costs.length
+            ? project.costs.map((row) => `${row.currency}: ${row.planned === null ? "no planned amount" : `${money(row.currency, row.planned)} planned`} · ${row.actual === null ? "no actual spend" : `${money(row.currency, row.actual)} actual`}`).join(" | ")
+            : "No project cost has been recorded for your unit."}
+          status={project.status}
+          onClick={() => setSelectedId(project.id)}
+        />)}
+      </div>
+      {projects.length === 0 && <ProjectEmpty title="No unit projects yet" description="Projects where your unit leads or participates will appear here." />}
     </>}
     {sheet?.type === "project" && <ProjectSheet units={units.filter((unit) => unit.id !== me.unit_id)} busy={busy} onClose={() => setSheet(null)} onCreate={createProject} />}
   </div>;

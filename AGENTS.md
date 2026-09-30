@@ -1,25 +1,74 @@
+# EXPERIENCE V2 IS THE ACTIVE PRODUCT-EXPERIENCE PROGRAMME
+
+This section supersedes conflicting older UI/redesign sequencing text below. Security, RLS, data-integrity, audit, protected-HR, work-behaviour and enterprise authority contracts remain binding.
+
+Before ANY UI/product-experience change, read in this order:
+
+1. docs/experience-v2/START_HERE.md
+2. docs/experience-v2/BUILD_STATE.md
+3. docs/experience-v2/CEAC_OS_EXPERIENCE_V2_SOURCE_OF_TRUTH.md
+4. docs/experience-v2/IMPLEMENTATION_SEQUENCE.md
+5. docs/experience-v2/REFERENCE_INDEX.md
+6. docs/experience-v2/ACCEPTANCE_AND_HANDOFF.md
+7. docs/experience-v2/DECISION_LOG.md
+8. this AGENTS.md file in full
+9. the current domain/security contract for the capability being touched.
+
+Before ANY Experience V2 implementation or acceptance commit, also read:
+
+- `docs/experience-v2/VERIFICATION_PROTOCOL.md`
+
+Experience V2 uses a permanent two-level verification model:
+- Level A is the fast, affected-scope development gate and cannot accept a substage;
+- Level B is the complete engineering, security, migration, browser and evidence gate required at every acceptance boundary;
+- final application commits for an acceptance boundary use `[level-b]` in the commit subject unless the complete gate is manually dispatched;
+- documentation-only checkpoints use the documented integrity fast path only after the cited application SHA passed Level B;
+- while Level B runs, the sole writer may prepare the next substage read-only but must not commit it before current acceptance.
+
+Mandatory continuation rule:
+- GitHub is the build source of truth, not Chat/Work memory.
+- Chat and Work may alternate, but only ONE active writer may mutate the Experience V2 branch at a time.
+- An incoming session MUST inspect the current branch HEAD and BUILD_STATE.md before editing.
+- If Work stops with unpushed changes, Chat MUST NOT overwrite/recreate them; recover and push that state first.
+- Every meaningful substage ends in a pushed commit, relevant tests, and an updated BUILD_STATE.md.
+- No important design decision, reference, defect, blocker or TODO may live only in a conversation.
+- Follow `docs/experience-v2/VERIFICATION_PROTOCOL.md`; a green Level A result is never sufficient evidence for acceptance.
+
+Active Experience V2 branch:
+chatgpt/experience-v2-2026-09-26
+
+Experience V2 baseline:
+1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
+
+PR #71 Stage 12 remains frozen while Experience V2 is active. Do not update, merge, rebuild or discard it unless the product owner explicitly changes this programme.
+
+The Experience V2 implementation sequence is a gate sequence. Do not propagate redesign work past the current stage recorded in BUILD_STATE.md.
+
+The user-supplied visual and motion references are persisted outside chat and mapped by REFERENCE_INDEX.md. Do not substitute from memory if they are unavailable.
+
+---
+
 # CEAC OS — instructions for coding agents
 
-## PREMIUM EXPERIENCE IS MERGED AND LOCKED — STAGE 12 ACTIVE
+## PREMIUM REDESIGN PROGRAMME — READ THIS BEFORE ANY UI WORK
 
-The premium redesign and subsequent approved design corrections are part of current `main`. Preserve them. Do not recreate the old module-catalogue interface or substitute a different visual system.
+The product owner has explicitly replaced the current visible product direction with the premium redesign programme on this branch.
 
-Before changing any route, role shell, navigation, page composition, styling, iconography, messaging surface or interaction pattern, read:
+Before changing any route, role shell, navigation, page composition, styling, iconography, messaging surface or interaction pattern, read in this order:
+
 1. `docs/design/CEAC_OS_PREMIUM_REDESIGN_SOURCE_OF_TRUTH_2026-09-23.md`
-2. `docs/design/CEAC_OS_PREMIUM_REDESIGN_R6_ROUTE_AUDIT_2026-09-23.md`
+2. `docs/handoff/CEAC_OS_PREMIUM_REDESIGN_HANDOFF_2026-09-23.md`
 3. this file in full;
-4. the domain/security contract for the capability being changed.
+4. the existing security/data/domain contract for the capability being surfaced.
 
-The product owner explicitly resumed the enterprise programme on 26 September 2026.
+The premium redesign contract supersedes conflicting older **UX/navigation/visual** decisions on this redesign branch. It does **not** supersede security, RLS, data-integrity, audit, protected-HR, work-behaviour or capability-authority contracts.
 
-**Current active enterprise stage: Stage 12 — Integrations.**
+The approved master mockup and the source-of-truth document are binding. Do not substitute icons, palette, information architecture, role composition or generic admin-template UI because it is easier to implement. Any deliberate visual/product deviation requires explicit product-owner approval and a contract update first.
 
-Before Stage 12 implementation also read:
-1. `docs/architecture/CEAC_OS_STAGE12_INTEGRATIONS_2026-09-26.md`
-2. `docs/architecture/CEAC_OS_STAGE1G_INTEGRATION_GATEWAY_2026-09-22.md`
-3. `docs/handoff/CEAC_OS_ENTERPRISE_EXPANSION_HANDOFF_2026-09-22.md`
+The redesign sequence is R0 shell/design foundation → R1 Staff → R2 Manager → R3 Administration/HR → R4 Group Pastor/CEO → R5 communication consolidation → R6 whole-system visual consistency → R7 closure. Do not run multiple redesign tranches in parallel.
 
-Stage 12 must extend Stage 1G. Provider credentials/tokens are server-side only. Connected Apps must report real connection state; a provider card, pasted URL or enabled row is not a completed integration.
+**Stage 12 remains paused while the redesign programme is active unless the product owner explicitly resumes enterprise expansion.**
+
 
 A staff operating system for CEAC, a church in Accra. Four surfaces:
 staff, unit manager, Administration & HR, Group Pastor.

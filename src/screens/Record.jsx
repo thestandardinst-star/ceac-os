@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { humanError } from "../lib/productLanguage";
+import { PersonalPageHeader } from "../experience-v2/personal-family/PersonalFamilyV2";
 import { Sheet } from "../components/bits";
 
 function accraDateKey(value) {
@@ -177,11 +178,14 @@ export default function Record({ me, openItem }) {
   const firstHighlight = record.completedItems[0];
   const secondHighlight = record.completedItems[1];
 
-  return <div className="body staff-record">
-    <div className="staff-page-intro">
-      <div className="eyebrow">Your evidence</div>
-      <h1 className="h1">My work history</h1>
-      <p className="screen-note">Completed CEAC work, feedback and recorded activity from the period you choose. Private work and personal goals remain outside this history.</p>
+  return <div className="body staff-record ev2-personal-page ev2-personal-record">
+    <PersonalPageHeader
+      eyebrow="My Hub"
+      title="My work history"
+      description="Completed CEAC work, feedback and recorded activity from the period you choose. Private work and personal goals remain outside this history."
+      statusLabel={monthLabel}
+    />
+    <div className="ev2-personal-record-period">
       <div className="record-period-control" aria-label="Work history period">
         <button type="button" aria-label="Previous month" onClick={() => changeMonth(-1)}>←</button>
         <div className="record-period-selects">

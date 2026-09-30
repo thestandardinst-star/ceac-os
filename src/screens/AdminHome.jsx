@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase, inviteByEmail } from "../lib/supabase";
-import { dueLabel } from "../lib/time";
-import { Sheet, FieldGroup, ProductNotice, EmptyState, SectionHeader, StatusDistribution, ProgressMeter } from "../components/bits";
+import { Sheet, FieldGroup, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
-import { DashboardCalendar, ReferenceModuleStrip, ReferenceFocusPanel } from "../components/ReferenceDashboard";
-import { Stat, StatRow } from "../components/primitives";
-
-function jump(id) {
-  const el = typeof document !== "undefined" && document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
+import AdminOverviewV2 from "../experience-v2/admin-overview/AdminOverviewV2";
 
 export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, openSettings, openUnits, go }) {
   const [units, setUnits] = useState([]);
@@ -30,6 +23,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
   const [loadError, setLoadError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { load(); }, []);
 
@@ -41,6 +35,7 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
 
   async function load() {
     setLoadError(null);
+    setLoading(true);
     try {
       const now = Date.now();
       const weekAgo = new Date(now - 7 * 864e5).toISOString();
@@ -192,6 +187,8 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       setMeetings(meetingRows || []);
     } catch (error) {
       setLoadError(error.message || "Administration could not load.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -221,204 +218,50 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
     finally { setBusy(false); }
   }
 
-  const withoutHead = units.filter((unit) => !unit.head).length;
-  const adminDate = new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
-  const adminAttention = alerts.length + leaveQueue.length + checks.length + withoutHead + (reporting?.missing?.length || 0);
+  const adminDate = new Date().toLocaleDateString("en-GB", {
+    timeZone: "Africa/Accra",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const canManagePeople = (me.capabilities || []).includes("people.manage");
 
-  const reportingGap = reporting?.missing?.length || 0;
-  const deliveryRisk = watch.length + blockers.length;
-  const needsYou = alerts.length + leaveQueue.length + checks.length + withoutHead;
-
-  return <div className="body admin-home">
-    <section className="admin-command-surface">
-      <div className="admin-command-context"><span>Administration &amp; HR</span><time>{adminDate}</time></div>
-      <div className="eyebrow">Organisation command surface</div>
-      <h1 className="h1">Administration</h1>
-      <p className="screen-note">Decisions, gaps and office-wide exceptions first. Unit-level work stays with managers unless Administration deliberately drills into it.</p>
-      <div className="admin-command-stats" aria-label="Administration overview">
-        <Stat icon="gavel" label="Need your action" value={needsYou}
-          tone={needsYou ? "late" : "ink"} onOpen={() => jump("admin-needs-heading")} />
-        <Stat icon="reports" label="Reporting gaps" value={reportingGap}
-          tone={reportingGap ? "slow" : "ink"} onOpen={() => go?.("reporting")} />
-        <Stat icon="warning" label="Delivery risks" value={deliveryRisk}
-          tone={deliveryRisk ? "slow" : "ink"} onOpen={() => jump("admin-delivery-heading")} />
-        <Stat icon="people" label="People on record" value={today.headcount}
-          onOpen={() => go?.("people")} />
-      </div>
-    </section>
-
-    <DashboardCalendar meetings={meetings} />
-
-    <ReferenceFocusPanel item={mine[0] || null} meetings={meetings} openItem={openItem} openMeeting={openMeeting} />
-
-    {loadError && <ProductNotice tone="error" title="Administration could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{loadError}</ProductNotice>}
-    {msg && !inviting && <ProductNotice tone={msg.includes("sent") || msg.includes("saved") ? "success" : "attention"} title={msg.includes("sent") ? "Done" : "Administration update"}>{msg}</ProductNotice>}
-
-    {!loadError && <section className="admin-home-section admin-pulse-section">
-      <SectionHeader eyebrow="Organisation pulse" title="What is happening" />
-      <div className="admin-pulse-grid">
-        <article className="admin-pulse-card" id="admin-delivery-heading">
-          <div className="admin-pulse-head"><div><span>Objectives</span><strong>Current recorded status</strong></div><small>Recorded, not inferred</small></div>
-          <Stat icon="chart" label="Objectives recorded" value={delivery.objectives} onOpen={() => go?.("strategy")} />
-          <StatusDistribution label="Objective status distribution" segments={[
-            { key:"met", label:"Met", value:delivery.met, tone:"success" },
-            { key:"track", label:"On track", value:delivery.onTrack, tone:"info" },
-            { key:"risk", label:"At risk", value:delivery.atRisk, tone:"attention" },
-            { key:"missed", label:"Not met", value:delivery.notMet, tone:"danger" },
-            { key:"other", label:"Other", value:delivery.other, tone:"neutral" },
-          ]} />
-        </article>
-
-        <article className="admin-pulse-card" id="admin-reporting-heading">
-          <div className="admin-pulse-head"><div><span>Reporting</span><strong>{reporting ? reporting.label : "No open period"}</strong></div><small>{reporting ? "Current unit coverage" : "Open a period to track coverage"}</small></div>
-          {reporting && <Stat icon="reports" label="Units submitted" value={`${reporting.submitted}/${reporting.total}`} onOpen={() => go?.("reporting")} />}
-          {reporting
-            ? <ProgressMeter value={reporting.submitted} max={reporting.total} label="Coverage" detail={reporting.missing.length ? `${reporting.missing.length} outstanding` : "Everyone is in"} />
-            : <div className="admin-pulse-empty">No reporting coverage is being measured right now.</div>}
-        </article>
-
-        <article className="admin-pulse-card">
-          <div className="admin-pulse-head"><div><span>Projects</span><strong>Recorded movement</strong></div><small>This month</small></div>
-          <StatRow>
-            <Stat icon="project" label="Active" value={delivery.active} onOpen={() => go?.("admin-projects")} />
-            <Stat icon="check" label="Closed" value={delivery.closedThisMonth} onOpen={() => go?.("admin-projects")} />
-            <Stat icon="warning" label="Exceptions" value={deliveryRisk} tone={deliveryRisk ? "slow" : "ink"} onOpen={() => jump("admin-delivery-heading")} />
-          </StatRow>
-        </article>
-
-        <article className="admin-pulse-card" id="admin-office-heading">
-          <div className="admin-pulse-head"><div><span>Office today</span><strong>Operational context</strong></div><small>Context, not performance</small></div>
-          <Stat icon="people" label="People on record" value={today.headcount} onOpen={() => go?.("people")} />
-          <StatusDistribution label="Office context today" segments={[
-            { key:"working", label:"Working now", value:today.working, tone:"success" },
-            { key:"leave", label:"Approved leave", value:today.leave, tone:"info" },
-            { key:"not-started", label:"No session", value:today.notStarted, tone:"neutral" },
-          ]} />
-        </article>
-      </div>
-    </section>}
-
-    <section className="admin-home-section admin-home-priority" id="admin-needs-heading">
-      <SectionHeader eyebrow="Action" title="Needs you" count={needsYou} />
-      {needsYou === 0 && <EmptyState compact title="Nothing requires Administration right now">Checks, leave decisions, access/setup exceptions and administrative alerts will appear here.</EmptyState>}
-
-      {!office && <ProductNotice tone="attention" title="Set the office location" action={<button className="btn btn-ghost btn-sm" onClick={openSettings}>Open Settings</button>}>Attendance cannot distinguish the office from another work location until this is configured.</ProductNotice>}
-
-      {withoutHead > 0 && <ProductNotice tone="attention" title={`${withoutHead} unit${withoutHead === 1 ? "" : "s"} without a head`} action={<button className="btn btn-ghost btn-sm" onClick={openUnits}>Open Units</button>}>Assign an existing unit member after their account is active. New invitations always begin as Staff.</ProductNotice>}
-
-      {checks.length > 0 && <button className="admin-action-row admin-action-button" onClick={() => go?.("workflows")}>
-        <div>
-          <strong>Checks · {checks.length} waiting</strong>
-          <span>Oldest waiting since {new Date(checks[0].created_at).toLocaleDateString("en-GB", { day:"numeric", month:"short" })}</span>
-        </div>
-        <b aria-hidden="true">→</b>
-      </button>}
-
-      {leaveQueue.map((request) => <div key={request.id} className="admin-action-row">
-        <div>
-          <strong>{request.requester?.full_name || "—"} · {request.days} day{request.days === 1 ? "" : "s"} {request.kind} leave</strong>
-          <span>{request.start_date} → {request.end_date} · {request.status === "escalated" ? "Escalated by manager" : "Waiting for Administration"}</span>
-        </div>
-        <div className="admin-row-actions">
-          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => decideLeave(request, "declined")}>Decline</button>
-          <button className="btn btn-sm" disabled={busy} onClick={() => decideLeave(request, "approved")}>Approve</button>
-        </div>
-      </div>)}
-
-      {alerts.map((alert) => <button key={alert.id} className="admin-action-row admin-action-button" onClick={() => alert.subject_type === "work_item" && alert.subject_id && openItem(alert.subject_id)}>
-        <div><strong>{alert.message}</strong><span>Since {new Date(alert.first_seen_at).toLocaleDateString("en-GB", { day:"numeric", month:"short" })}</span></div>
-        <b aria-hidden="true">→</b>
-      </button>)}
-    </section>
-
-    <section className="admin-home-section">
-      <SectionHeader eyebrow="Reporting" title="Who is missing" count={reportingGap} />
-      {!reporting && <EmptyState compact title="No open reporting period">When Administration opens a reporting period, missing units will be named here.</EmptyState>}
-      {reporting && <div className="admin-reporting-card">
-        <div><Stat icon="reports" label="Units submitted" value={`${reporting.submitted}/${reporting.total}`} onOpen={() => go?.("reporting")} /><span>{reporting.label}</span></div>
-        {reporting.missing.length > 0
-          ? <div className="admin-missing-units">{reporting.missing.map((unit) => <span key={unit.id}>{unit.name}</span>)}</div>
-          : <span className="admin-all-in">Everyone is in.</span>}
-      </div>}
-    </section>
-
-    <section className="admin-home-section">
-      <SectionHeader eyebrow="Delivery risk" title="Needs attention" count={deliveryRisk} />
-      {deliveryRisk === 0 && <EmptyState compact title="No current delivery exceptions">Rule-based silence, at-risk objectives and cross-unit blockers will appear here.</EmptyState>}
-      {watch.map((row) => <div key={row.k} className="admin-evidence-row"><strong>{row.who}</strong><span>{row.why}</span></div>)}
-      {blockers.map((blocker) => <button key={blocker.id} className="admin-evidence-row admin-action-button" onClick={() => blocker.work_items && openItem(blocker.work_items.id)}>
-        <div><strong>{blocker.work_items?.title || "—"}</strong><span>{blocker.claimant?.full_name || ""} waiting on {blocker.units?.name || blocker.party_text}</span></div>
-        <b aria-hidden="true">→</b>
-      </button>)}
-    </section>
-
-    <div className="admin-home-grid">
-      <section className="admin-home-section">
-        <SectionHeader eyebrow="Today" title="Office context" />
-        <p className="screen-note">Session and leave facts are operational context only. They do not measure output or performance.</p>
-        <div className="admin-fact-grid">
-          <Stat icon="people" label="Working now" value={today.working} onOpen={() => go?.("attendance")} />
-          <Stat icon="calendar" label="Approved leave" value={today.leave} onOpen={() => go?.("attendance")} />
-          <Stat icon="clock" label="No session started" value={today.notStarted}
-            tone={today.notStarted ? "slow" : "ink"} onOpen={() => go?.("attendance")} />
-          <Stat icon="person" label="People on record" value={today.headcount} onOpen={() => go?.("people")} />
-        </div>
-      </section>
-
-      <section className="admin-home-section">
-        <SectionHeader eyebrow="Delivery" title="Organisation movement" />
-        <div className="admin-fact-grid">
-          <Stat icon="project" label="Active projects" value={delivery.active} onOpen={() => go?.("admin-projects")} />
-          <Stat icon="check" label="Closed this month" value={delivery.closedThisMonth} onOpen={() => go?.("admin-projects")} />
-          <Stat icon="chart" label="Objectives on track" value={delivery.onTrack} onOpen={() => go?.("strategy")} />
-          <Stat icon="chart" label="Objectives recorded" value={delivery.objectives} onOpen={() => go?.("strategy")} />
-        </div>
-      </section>
-    </div>
-
-    <section className="admin-home-section">
-      <div className="office-meeting-strip-head">
-        <div><span>Next 14 days</span><strong>Meetings</strong></div>
-        <button className="btn btn-sm" onClick={() => scheduleMeeting?.({ scope:"organisation", organisation:true })}>Schedule</button>
-      </div>
-      {meetings.length === 0 ? <EmptyState compact title="No upcoming meetings">Organisation, unit and project meetings visible to Administration will appear here.</EmptyState>
-        : meetings.slice(0, 4).map((meeting) => <button className="office-meeting-row" key={meeting.id} onClick={() => openMeeting?.(meeting.id)}>
-          <span><strong>{meeting.title}</strong><small>{new Date(meeting.starts_at).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</small></span>
-          <b aria-hidden="true">→</b>
-        </button>)}
-    </section>
-
-    {mine.length > 0 && <section className="admin-home-section">
-      <SectionHeader eyebrow="Personal" title="Your own work" count={mine.length} />
-      {mine.map((item) => <button key={item.id} className="admin-evidence-row admin-action-button" onClick={() => openItem(item.id)}>
-        <div><strong>{item.title}</strong><span>{item.ref} · {dueLabel(item.due_at)}</span></div><b aria-hidden="true">→</b>
-      </button>)}
-    </section>}
-
-    <section className="admin-home-section">
-      <SectionHeader eyebrow="Organisation" title="Units" count={units.length} action={<button className="text-action" onClick={openUnits}>Open all units</button>} />
-      <div className="admin-unit-summary-grid">
-        {units.map((unit) => <div key={unit.id} className="admin-unit-summary">
-          <div><strong>{unit.name}</strong>{unit.alerts > 0 && <span className="pill p-amber">{unit.alerts}</span>}</div>
-          {unit.head
-            ? <span>{unit.head.full_name}</span>
-            : unit.pending
-              ? <span>Invitation sent to {unit.pending.email}</span>
-              : <span className="admin-unit-missing">No Unit Head</span>}
-          <small>{unit.done7} finished output{unit.done7 === 1 ? "" : "s"} this week</small>
-          {!unit.head && !unit.pending && <button className="text-action" onClick={() => { setInviting(unit); setMsg(null); }}>Invite prospective head</button>}
-        </div>)}
-      </div>
-    </section>
-
-    <ReferenceModuleStrip items={[
-      {label:"People",icon:"people",note:"People and employment.",onClick:()=>go?.("people")},
-      {label:"Work",icon:"work",note:"Organisation work.",onClick:()=>go?.("work")},
-      {label:"Time & Leave",icon:"time",note:"Workforce operations.",onClick:()=>go?.("attendance")},
-      {label:"Finance",icon:"finance",note:"Budgets, spend and income.",onClick:()=>go?.("finance")},
-      {label:"Reports",icon:"reports",note:"Organisation reporting.",onClick:()=>go?.("reporting")},
-      {label:"Control Center",icon:"control",note:"Authority and settings.",onClick:()=>go?.("settings")},
-    ]}/>
+  return <>
+    <AdminOverviewV2
+      me={me}
+      dateLabel={adminDate}
+      loading={loading}
+      loadFailed={loadError}
+      message={msg && !inviting ? msg : null}
+      busy={busy}
+      units={units}
+      alerts={alerts}
+      blockers={blockers}
+      leaveQueue={leaveQueue}
+      checks={checks}
+      mine={mine}
+      office={office}
+      today={today}
+      delivery={delivery}
+      reporting={reporting}
+      watch={watch}
+      meetings={meetings}
+      canManagePeople={canManagePeople}
+      onRetry={load}
+      onOpenItem={openItem}
+      onOpenMeeting={openMeeting}
+      onScheduleMeeting={scheduleMeeting}
+      onOpenSettings={openSettings}
+      onOpenUnits={openUnits}
+      onOpenWorkflows={() => go?.("workflows")}
+      onOpenReports={() => go?.("reporting")}
+      onOpenPeople={() => go?.("people")}
+      onOpenProjects={() => go?.("admin-projects")}
+      onOpenStrategy={() => go?.("strategy")}
+      onOpenAttendance={() => go?.("attendance")}
+      onInviteUnit={(unit) => { setInviting(unit); setMsg(null); }}
+      onLeaveDecision={decideLeave}
+    />
 
     {inviting && <Sheet onClose={() => { setInviting(null); setMsg(null); }}>
       <div className="eyebrow">People & access</div>
@@ -429,6 +272,5 @@ export default function AdminHome({ me, openItem, openMeeting, scheduleMeeting, 
       {msg && <ProductNotice tone="attention" title="Invitation">{msg}</ProductNotice>}
       <button className="btn" style={{ marginTop:14 }} onClick={sendInvite} disabled={busy || !name.trim() || !email.trim()}>{busy ? "Sending…" : "Send Staff invitation"}</button>
     </Sheet>}
-  </div>;
-
+  </>;
 }

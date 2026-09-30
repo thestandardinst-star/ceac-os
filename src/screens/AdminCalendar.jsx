@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { EmptyState, LoadingState, ProductNotice, SectionHeader } from "../components/bits";
+import { LoadingState, ProductNotice } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Button, StatePanel } from "../experience-v2/components";
+import {
+  CalendarPageHeader,
+  CalendarTimeline,
+  CalendarViewTabs,
+} from "../experience-v2/calendar/CalendarFamilyV2";
 
 function dateKey(value){
   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Accra",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date(value));
@@ -9,6 +15,12 @@ function dateKey(value){
   return `${by.year}-${by.month}-${by.day}`;
 }
 function labelDate(value){return new Date(value).toLocaleString("en-GB",{timeZone:"Africa/Accra",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
+
+const RANGE_ITEMS = [
+  { value:"14", label:"Next 14 days", icon:"calendar" },
+  { value:"30", label:"Next 30 days", icon:"calendar" },
+  { value:"90", label:"Next 90 days", icon:"calendar" },
+];
 
 export default function AdminCalendar({ me, openMeeting, scheduleMeeting }) {
   const [events,setEvents]=useState([]);
@@ -27,7 +39,7 @@ export default function AdminCalendar({ me, openMeeting, scheduleMeeting }) {
         supabase.from("meeting_sessions").select("id,title,starts_at,ends_at,status,scope,provider").gte("starts_at",now.toISOString()).lte("starts_at",end.toISOString()).neq("status","cancelled"),
         supabase.from("projects").select("id,name,starts_on,ends_on,status").eq("org_id",me.org_id),
         supabase.from("ministry_events").select("id,title,starts_at,ends_at,location,cancelled").gte("starts_at",now.toISOString()).lte("starts_at",end.toISOString()),
-        supabase.from("leave_requests").select("id,profile_id,start_date,end_date,status,profiles(full_name)").eq("status","approved").gte("end_date",now.toISOString().slice(0,10)).lte("start_date",end.toISOString().slice(0,10)),
+        supabase.from("leave_requests").select("id,profile_id,start_date,end_date,status,profiles!leave_requests_profile_id_fkey(full_name)").eq("status","approved").gte("end_date",now.toISOString().slice(0,10)).lte("start_date",end.toISOString().slice(0,10)),
       ]);
       const failed=[meetings,projects,ministry,leave].find((row)=>row.error);
       if(failed) throw failed.error;
@@ -48,34 +60,60 @@ export default function AdminCalendar({ me, openMeeting, scheduleMeeting }) {
     const cutoff=Date.now()+windowDays*864e5;
     return events.filter((event)=>new Date(event.at).getTime()<=cutoff);
   },[events,windowDays]);
-  const grouped=useMemo(()=>{
+
+  const groups=useMemo(()=>{
     const map={};
     visible.forEach((event)=>{const key=dateKey(event.at);(map[key]=map[key]||[]).push(event);});
-    return Object.entries(map);
-  },[visible]);
+    return Object.entries(map).map(([day,rows])=>({
+      key:day,
+      label:new Date(day+"T00:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"}),
+      events:rows.map((event)=>({
+        ...event,
+        kind:event.type==="Meeting"?"meeting":event.type==="Project"?"projects":event.type==="Approved leave"?"leave":"ministry",
+        icon:event.type==="Meeting"?"meeting":event.type==="Project"?"projects":event.type==="Approved leave"?"time":"ministry",
+        meta:event.type==="Meeting"?labelDate(event.at):event.meta,
+        status:event.type,
+        statusTone:event.type==="Meeting"?"action":event.type==="Approved leave"?"success":"neutral",
+        onClick:event.meetingId?()=>openMeeting?.(event.meetingId):undefined,
+      })),
+    }));
+  },[visible,openMeeting]);
 
-  if(loading)return <div className="body"><LoadingState label="Loading organisation calendar…" /></div>;
+  return <div className="body ev2cal-role-page ev2cal-admin-page">
+    <CalendarPageHeader
+      eyebrow="Organisation schedule"
+      title="Calendar"
+      description="Upcoming meetings, ministry activities, project dates and approved leave in one chronological operating view."
+      status="Organisation timeline"
+      statusTone="action"
+      action={<Button icon="meeting" onClick={()=>scheduleMeeting?.({scope:"organisation",organisation:true})}>Schedule meeting</Button>}
+    />
 
-  return <div className="body admin-calendar">
-    <div className="office-page-intro admin-page-title-row">
-      <div><div className="eyebrow">Organisation schedule</div><h1 className="h1">Calendar</h1><p className="screen-note">Upcoming meetings, ministry activities, project dates and approved leave in one chronological operating view.</p></div>
-      <button className="btn btn-sm" onClick={()=>scheduleMeeting?.({scope:"organisation",organisation:true})}>Schedule meeting</button>
+    {error&&<ProductNotice
+      tone="error"
+      title="Calendar could not finish loading"
+      action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}
+    >{error}</ProductNotice>}
+
+    <div className="ev2cal-admin-range">
+      <CalendarViewTabs
+        value={String(windowDays)}
+        onChange={(value)=>setWindowDays(Number(value))}
+        items={RANGE_ITEMS}
+        ariaLabel="Calendar range"
+      />
+      <span>{visible.length} recorded item{visible.length===1?"":"s"} in this range</span>
     </div>
-    {error&&<ProductNotice tone="error" title="Calendar could not finish loading" action={<button className="btn btn-ghost btn-sm" onClick={load}>Try again</button>}>{error}</ProductNotice>}
-    <div className="calendar-window-switch" role="group" aria-label="Calendar range">
-      {[14,30,90].map((days)=><button key={days} className={windowDays===days?"on":""} onClick={()=>setWindowDays(days)}>Next {days} days</button>)}
-    </div>
-    <SectionHeader eyebrow="Upcoming" title="Organisation timeline" count={visible.length} />
-    {visible.length===0&&<EmptyState title="Nothing upcoming in this range">Meetings, project dates, ministry activities and approved leave will appear here.</EmptyState>}
-    <div className="admin-calendar-timeline">
-      {grouped.map(([day,rows])=><section key={day} className="admin-calendar-day">
-        <time>{new Date(day+"T00:00:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</time>
-        <div>{rows.map((event)=><button key={event.id} className="admin-calendar-event" onClick={()=>event.meetingId&&openMeeting?.(event.meetingId)}>
-          <span className="admin-calendar-event-type">{event.type}</span>
-          <strong>{event.title}</strong>
-          <small>{event.type==="Meeting"?labelDate(event.at):event.meta}</small>
-        </button>)}</div>
-      </section>)}
-    </div>
+
+    {loading?<LoadingState label="Loading organisation calendar…"/>:
+      visible.length===0
+        ?<StatePanel
+          state="empty"
+          icon="calendar"
+          title="Nothing upcoming in this range"
+          description="Meetings, project dates, ministry activities and approved leave will appear here when they are recorded."
+        />
+        :<CalendarTimeline groups={groups}/>
+    }
   </div>;
 }

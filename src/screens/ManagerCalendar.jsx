@@ -2,8 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Sheet, ProductNotice, LoadingState } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
+import { Button, Surface } from "../experience-v2/components";
+import {
+  CalendarAgenda,
+  CalendarFilters,
+  CalendarMonthGrid,
+  CalendarPageHeader,
+  CalendarPeriodControls,
+  CalendarViewTabs,
+} from "../experience-v2/calendar/CalendarFamilyV2";
 
-const FILTERS = [["all","All"],["meetings","Meetings"],["projects","Projects"],["tasks","Tasks"],["leave","Leave"],["activities","Ministry/unit activities"]];
+const FILTERS = [
+  { value:"all", label:"All", icon:"calendar" },
+  { value:"meetings", label:"Meetings", icon:"meeting" },
+  { value:"projects", label:"Projects", icon:"projects" },
+  { value:"tasks", label:"Tasks", icon:"work" },
+  { value:"leave", label:"Leave", icon:"time" },
+  { value:"activities", label:"Ministry/unit activities", icon:"ministry" },
+];
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const pad = (n) => String(n).padStart(2, "0");
 const dateKey = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -11,6 +27,7 @@ const parseDateOnly = (s) => { const [y,m,d] = String(s).slice(0,10).split("-").
 const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
 const startOfWeek = (d) => { const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); return x; };
 const labelDate = (s) => parseDateOnly(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const labelDay = (s) => parseDateOnly(s).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
 const accraDateKey = (value) => {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Accra", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
   const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
@@ -30,9 +47,11 @@ function googleCalendarUrl(event) {
 }
 
 export default function ManagerCalendar({ me, openItem, openProject, openMeeting, scheduleMeeting, openPerson }) {
+  const now=new Date();
   const [view,setView]=useState("month");
   const [filter,setFilter]=useState("all");
-  const [cursor,setCursor]=useState(new Date());
+  const [cursor,setCursor]=useState(now);
+  const [selectedDate,setSelectedDate]=useState(dateKey(now));
   const [events,setEvents]=useState([]);
   const [selectedActivity,setSelectedActivity]=useState(null);
   const [selectedLeave,setSelectedLeave]=useState(null);
@@ -126,52 +145,147 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
     return Array.from({length:42},(_,i)=>addDays(start,i));
   },[cursor,view]);
   const visible=filter==="all"?events:events.filter(e=>e.type===filter);
-  const move=(n)=>setCursor(view==="month"?new Date(cursor.getFullYear(),cursor.getMonth()+n,1):addDays(cursor,n*7));
   const heading=view==="month"?`${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`:`${labelDate(dateKey(days[0]))} – ${labelDate(dateKey(days[6]))}`;
   const googleMeetings=events
     .filter((event)=>event.type==="meetings"&&event.meetingStatus!=="cancelled"&&event.startsAt&&new Date(event.startsAt)>=new Date())
     .sort((a,b)=>new Date(a.startsAt)-new Date(b.startsAt))
     .slice(0,3);
 
-  return <div className="body manager-calendar">
-    <div style={{paddingTop:26}}><div className="eyebrow">{me.unit_name}</div><h1 className="h1" style={{marginTop:6}}>Calendar</h1><p className="screen-note">Meetings, project dates, task deadlines, approved leave and ministry activity in one place.</p></div>
-    <button className="btn wide-auto manager-calendar-create" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</button>
-    <section className="card" style={{ marginTop:12, padding:15 }} aria-label="Google Calendar">
-      <div className="row-t">Your Google Calendar</div>
-      <p className="screen-note" style={{ marginBottom:10 }}>Automatic personal sync is not connected yet because CEAC OS does not hold a Google authorisation for your account. You can add CEAC meetings yourself from here without giving Administration access to your calendar.</p>
-      <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-        <a className="btn btn-ghost btn-sm" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Open Google Calendar</a>
-        {googleMeetings.map((meeting)=><a key={meeting.id} className="btn btn-ghost btn-sm" href={googleCalendarUrl(meeting)} target="_blank" rel="noreferrer">Add {meeting.title}</a>)}
+  const openCalendarEvent=(event)=>{
+    if(event.itemId) return openItem(event.itemId);
+    if(event.meetingId) return openMeeting?.(event.meetingId);
+    if(event.projectId) return openProject(event.projectId);
+    if(event.leave) return setSelectedLeave(event.leave);
+    if(event.activity) return setSelectedActivity(event.activity);
+    return null;
+  };
+
+  const displayEvent=(event)=>({
+    ...event,
+    kind:event.type,
+    icon:event.type==="meetings"?"meeting":event.type==="projects"?"projects":event.type==="tasks"?"work":event.type==="leave"?"time":"ministry",
+    meta:event.meta
+      || (event.leave?`${event.leave.start_date} → ${event.leave.end_date}`:null)
+      || (event.activity?.location||event.activity?.unit_note||"Ministry activity")
+      || (event.type==="projects"?"Project date":event.type==="tasks"?"Work deadline":"Recorded calendar item"),
+    status:event.meetingStatus==="cancelled"||event.activity?.cancelled
+      ?"Cancelled"
+      :event.type==="meetings"
+        ?"Meeting"
+        :event.type==="projects"
+          ?"Project"
+          :event.type==="tasks"
+            ?"Due"
+            :event.type==="leave"
+              ?"Approved"
+              :"Ministry",
+    statusTone:event.meetingStatus==="cancelled"||event.activity?.cancelled
+      ?"danger"
+      :event.type==="meetings"
+        ?"action"
+        :event.type==="leave"
+          ?"success"
+          :"neutral",
+    onClick:()=>openCalendarEvent(event),
+  });
+
+  const selectedEvents=visible.filter(event=>event.date===selectedDate).map(displayEvent);
+
+  const move=(amount)=>{
+    const next=view==="month"
+      ?new Date(cursor.getFullYear(),cursor.getMonth()+amount,1)
+      :addDays(cursor,amount*7);
+    setCursor(next);
+    setSelectedDate(dateKey(next));
+  };
+  const goToday=()=>{
+    const today=new Date();
+    setCursor(today);
+    setSelectedDate(dateKey(today));
+  };
+  const switchView=(next)=>{
+    setView(next);
+    setSelectedDate(dateKey(cursor));
+  };
+
+  return <div className="body ev2cal-role-page ev2cal-manager-page">
+    <CalendarPageHeader
+      eyebrow={me.unit_name}
+      title="Calendar"
+      description="Meetings, project dates, task deadlines, approved leave and ministry activity in one place."
+      status="Unit schedule"
+      statusTone="action"
+      action={<Button icon="meeting" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</Button>}
+    />
+
+    <Surface variant="soft" padding="standard" className="ev2cal-google" aria-label="Google Calendar">
+      <div className="ev2cal-integration-copy">
+        <strong>Your Google Calendar</strong>
+        <p>Automatic personal sync is not connected yet because CEAC OS does not hold a Google authorisation for your account. You can add CEAC meetings yourself from here without giving Administration access to your calendar.</p>
       </div>
-    </section>
+      <div className="ev2cal-link-row">
+        <a className="ev2cal-external-link" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Open Google Calendar</a>
+        {googleMeetings.map((meeting)=><a key={meeting.id} className="ev2cal-external-link" href={googleCalendarUrl(meeting)} target="_blank" rel="noreferrer">Add {meeting.title}</a>)}
+      </div>
+    </Surface>
+
     {error&&<ProductNotice tone="error" title="Could not load the calendar">{error}</ProductNotice>}
-    <div className="manager-calendar-toolbar">
-      <div className="calendar-view-toggle" role="group" aria-label="Calendar view">
-        <button className={view==="month"?"on":""} onClick={()=>setView("month")}>Month</button>
-        <button className={view==="week"?"on":""} onClick={()=>setView("week")}>Week</button>
-      </div>
-      <button className="calendar-filter-trigger" onClick={()=>setFilterSheet(true)}>
-        <span>View</span><strong>{FILTERS.find(([key])=>key===filter)?.[1]||"All"}</strong><b aria-hidden="true">⌄</b>
-      </button>
+
+    <div className="ev2cal-toolbar">
+      <CalendarViewTabs
+        value={view}
+        onChange={switchView}
+        ariaLabel="Calendar view"
+        items={[
+          { value:"month", label:"Month", icon:"calendar" },
+          { value:"week", label:"Week", icon:"calendar" },
+        ]}
+      />
+      <Button variant="secondary" icon="filter" onClick={()=>setFilterSheet(true)}>
+        View {FILTERS.find((item)=>item.value===filter)?.label||"All"}
+      </Button>
     </div>
-    <div className="manager-calendar-period"><button aria-label="Previous period" onClick={()=>move(-1)}>←</button><strong>{heading}</strong><button aria-label="Next period" onClick={()=>move(1)}>→</button></div>
-    {loading?<LoadingState label="Loading calendar…" />:<div className={`manager-calendar-grid manager-calendar-${view}`}>
-      {days.map(d=>{const key=dateKey(d); const dayEvents=visible.filter(e=>e.date===key); const muted=view==="month"&&d.getMonth()!==cursor.getMonth(); return <div key={key} className={`manager-calendar-day ${dayEvents.length?"has-events":"is-empty"} ${muted?"is-muted":""}`}>
-        <div className="manager-calendar-date">{d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric"})}</div>
-        <div className="manager-calendar-events">{dayEvents.map(e=><button className={`manager-calendar-event ${e.type==="meetings"?"is-meeting":""} ${e.meetingStatus==="cancelled"?"is-cancelled":""}`} key={e.id} onClick={()=>e.itemId?openItem(e.itemId):e.meetingId?openMeeting?.(e.meetingId):e.projectId?openProject(e.projectId):e.leave?setSelectedLeave(e.leave):e.activity?setSelectedActivity(e.activity):null}><span>{e.title}</span>{e.type==="meetings"&&e.meta&&<small>{e.meta}</small>}</button>)}</div>
-      </div>})}
+
+    <CalendarPeriodControls
+      label={heading}
+      onPrevious={()=>move(-1)}
+      onNext={()=>move(1)}
+      onToday={goToday}
+    />
+
+    {loading?<LoadingState label="Loading calendar…"/>:<div className="ev2cal-role-layout">
+      <CalendarMonthGrid
+        days={days}
+        currentMonth={view==="month"?cursor.getMonth():undefined}
+        selectedDateKey={selectedDate}
+        onSelectDate={(key)=>setSelectedDate(key)}
+        getEvents={(key)=>visible.filter(event=>event.date===key).map(displayEvent)}
+        maxEventsPerDay={view==="week"?6:3}
+        ariaLabel={view==="month"?"Manager month calendar":"Manager week calendar"}
+      />
+      <div className="ev2cal-side-stack">
+        <CalendarAgenda
+          title={labelDay(selectedDate)}
+          description="Recorded unit calendar items for the selected date. Open an item to keep its existing authoritative workflow."
+          events={selectedEvents}
+          emptyTitle="Nothing recorded for this date"
+          emptyDescription={visible.length?"Choose another date to inspect this filtered view.":"No events are recorded for this view."}
+        />
+      </div>
     </div>}
-    {!loading&&visible.length===0&&<div className="card small manager-calendar-empty">No events are recorded for this view and period.</div>}
+
     {filterSheet&&<Sheet onClose={()=>setFilterSheet(false)}>
       <div className="eyebrow">Calendar view</div>
       <div className="h2" style={{marginTop:5}}>Show on calendar</div>
       <p className="screen-note">Choose one layer. Your Month or Week setting stays unchanged.</p>
-      <div className="calendar-filter-sheet">
-        {FILTERS.map(([key,label])=><button key={key} className={filter===key?"on":""} onClick={()=>{setFilter(key);setFilterSheet(false);}}>
-          <span>{label}</span><b>{filter===key?"✓":""}</b>
-        </button>)}
-      </div>
+      <CalendarFilters
+        value={filter}
+        ariaLabel="Calendar layer"
+        items={FILTERS}
+        onChange={(value)=>{setFilter(value);setFilterSheet(false);}}
+      />
     </Sheet>}
+
     {selectedLeave&&<Sheet onClose={()=>setSelectedLeave(null)}>
       <div className="eyebrow">Approved leave</div>
       <div className="h2" style={{marginTop:5}}>{selectedLeave.full_name}</div>
@@ -183,6 +297,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       <button className="btn btn-ghost" style={{marginTop:12}} onClick={()=>{ const personId=selectedLeave.profile_id; setSelectedLeave(null); openPerson(personId,"current"); }}>Open team member</button>
       <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>setSelectedLeave(null)}>Close</button>
     </Sheet>}
+
     {selectedActivity&&<Sheet onClose={()=>setSelectedActivity(null)}>
       <div className="eyebrow">{selectedActivity.kind.replaceAll("_"," ")} · {selectedActivity.scope==="church"?"Church-wide":"Unit activity"}</div>
       <div className="h2" style={{marginTop:5}}>{selectedActivity.title}</div>

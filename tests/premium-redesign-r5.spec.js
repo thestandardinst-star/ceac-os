@@ -17,7 +17,7 @@ test.describe("Premium redesign R5 Communication", () => {
   test("Manager can jump from Create straight into the current Unit Room", async ({ browser }) => {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
     await page.getByRole("button", { name: "Create", exact: true }).click();
-    await page.getByRole("button", { name: "Message room", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Message room", exact: true }).click();
     await expect(page.locator(".room-screen")).toBeVisible();
     await expect(page.locator(".room-composer")).toBeVisible();
     await expect(page.getByText(/Work communication only/i)).toBeVisible();
@@ -27,7 +27,7 @@ test.describe("Premium redesign R5 Communication", () => {
 
   test("Messages remains contextual and does not introduce unrestricted DMs", async ({ browser }) => {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
-    await page.locator(".premium-side").getByRole("button", { name: "Messages", exact: true }).click();
+    await page.locator(".ev2s-sidebar").getByRole("button", { name: "Messages", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Messages", exact: true })).toBeVisible();
     await expect(page.getByText(/does not provide unrestricted direct messages/i)).toBeVisible();
     for (const label of ["All", "Rooms", "Mentions", "Work", "Announcements"]) {
@@ -40,7 +40,7 @@ test.describe("Premium redesign R5 Communication", () => {
   test("Meeting composer visibly offers Google Meet, Zoom and Other link", async ({ browser }) => {
     const { context, page } = await openAs(browser, "manager@ceac.local.test");
     await page.getByRole("button", { name: "Create", exact: true }).click();
-    await page.getByRole("button", { name: "Meeting", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Meeting", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Schedule meeting" });
     await expect(dialog).toBeVisible();
     await expect(dialog.locator('option[value="google_meet"]')).toHaveText("Google Meet");
