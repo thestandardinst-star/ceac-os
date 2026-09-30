@@ -82,6 +82,7 @@ test("Stage 14C renders loading explicitly rather than presenting an empty My Hu
   const loading = page.getByLabel("Loading My Hub");
   await expect(loading).toBeVisible({ timeout: 10000 });
   await expect(loading).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator(".ev2pf-empty")).toHaveCount(0);
   await expect.poll(() => intercepted).toBe(true);
   await expectNoPageOverflow(page, "My Hub loading state overflowed the phone viewport");
 
