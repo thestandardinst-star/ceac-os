@@ -11,20 +11,6 @@ body{color:var(--ceac-text)}
 
 /* Top bar */
 
-/* hero / command surface */
-.staff-command-surface,.manager-command-surface,.admin-command-surface,.executive-command-surface{position:relative;overflow:hidden;border:1px solid #dce5ee!important;border-radius:15px!important;padding:20px 22px!important;min-height:128px!important;margin:0 320px 12px 0!important;background:linear-gradient(90deg,rgba(244,250,255,.96) 0 31%,rgba(244,250,255,.78) 42%,rgba(244,250,255,.18) 66%,rgba(6,31,47,.18) 100%),url("/ceac-hero-landscape.svg") center/cover no-repeat!important;box-shadow:var(--ceac-shadow-soft)!important}
-.staff-command-surface:after,.manager-command-surface:after,.admin-command-surface:after,.executive-command-surface:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(7,29,44,.06));pointer-events:none}
-.staff-home-context,.manager-command-context,.admin-command-context,.executive-command-context{color:#41546b!important;font-size:12px!important}
-.staff-command-surface .h1,.manager-command-surface .h1,.admin-command-surface .h1,.executive-command-surface .h1{position:relative;z-index:1;color:#071321!important;font-size:29px!important;letter-spacing:-.035em!important;line-height:1.08!important;margin:5px 0 4px!important}
-.staff-command-surface .screen-note,.manager-command-surface .screen-note,.admin-command-surface .screen-note,.executive-command-surface .screen-note{position:relative;z-index:1;color:#33465d!important;max-width:530px!important;font-size:12px!important}
-.staff-work-status{position:absolute!important;right:19px;top:16px;z-index:2;width:244px!important;min-height:86px!important;border:1px solid rgba(255,255,255,.35)!important;background:rgba(10,31,47,.58)!important;backdrop-filter:blur(12px);color:#fff!important;box-shadow:none!important}
-.staff-work-status-copy span,.staff-work-status-copy small{color:#d8e7ef!important}
-.staff-work-status-copy strong{color:#fff!important}
-.staff-quick-actions{display:none!important}
-.manager-command-stats,.admin-command-stats,.executive-command-stats{position:absolute!important;right:19px;top:18px;z-index:2;width:270px!important;background:rgba(9,32,49,.55)!important;border:1px solid rgba(255,255,255,.25)!important;border-radius:12px!important;padding:12px!important;color:#fff!important;backdrop-filter:blur(12px)}
-.manager-command-stats strong,.admin-command-stats strong,.executive-command-stats strong{color:#fff!important;font-size:19px!important}
-.manager-command-stats span,.admin-command-stats span,.executive-command-stats span{color:#d8e5ec!important;font-size:12px!important}
-
 /* home grids */
 .staff-home,.manager-home,.admin-home,.executive-home{position:relative}
 .home-dashboard,.admin-home-grid,.admin-pulse-grid,.executive-intelligence-grid{margin-right:320px!important}
@@ -81,18 +67,12 @@ body{color:var(--ceac-text)}
 
 @media(max-width:900px){
   .app-workspace{width:100%!important}.app-content{padding:8px 9px 78px!important}
-  .staff-command-surface,.manager-command-surface,.admin-command-surface,.executive-command-surface{margin-right:0!important;min-height:138px!important;padding:17px 15px!important;border-radius:13px!important}
-  .staff-command-surface .h1,.manager-command-surface .h1,.admin-command-surface .h1,.executive-command-surface .h1{font-size:21px!important}
-  .staff-work-status{position:relative!important;right:auto;top:auto;width:auto!important;margin-top:11px!important;background:rgba(9,31,48,.72)!important}
-  .manager-command-stats,.admin-command-stats,.executive-command-stats{position:relative!important;right:auto;top:auto;width:auto!important;margin-top:12px!important}
   .reference-rail{position:relative;top:auto;right:auto;width:auto;margin:10px 0}.reference-calendar-card{display:none}
   .home-dashboard,.admin-home-grid,.admin-pulse-grid,.executive-intelligence-grid{margin-right:0!important;grid-template-columns:1fr!important}
   .home-panel-movement{grid-column:auto!important}.admin-home-section,.executive-change-card,.executive-home>.sec,.executive-home>.metric-grid,.executive-home>.row,.executive-home>.screen-note{margin-right:0!important}
   .reference-module-strip{margin-right:0!important}.reference-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-.manager-command-action{position:relative!important;z-index:4!important}
-.manager-command-stats{pointer-events:none!important}
 
 
 /* Full-app parity layer: all routed screens inherit the approved workspace language */
