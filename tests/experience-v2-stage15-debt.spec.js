@@ -161,3 +161,14 @@ test("Stage 15C keeps the remaining primitive icon compatibility boundary explic
     expect(fs.readFileSync(file, "utf8"), file).toContain('import Icon from "./Icon"');
   }
 });
+
+
+test("Stage 15D keeps production chunking explicit and bounded", () => {
+  const config = fs.readFileSync("vite.config.js", "utf8");
+  expect(config).toContain("rolldownOptions");
+  expect(config).toContain("codeSplitting");
+  for (const group of ["react-vendor", "supabase-vendor", "motion-vendor", "icons-vendor", "vendor"]) {
+    expect(config, `missing chunk group ${group}`).toContain(`name: "${group}"`);
+  }
+  expect(config).toContain("maxSize: 300 * 1024");
+});
