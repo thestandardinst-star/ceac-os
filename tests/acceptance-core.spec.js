@@ -26,6 +26,10 @@ test("Authentication shell matches the PWA responsive contract", async ({ browse
   }
 });
 
+async function waitForRouteReady(page) {
+  await expect(page.locator(".route-fallback")).toHaveCount(0, { timeout: 15000 });
+}
+
 async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   const context = await browser.newContext({
     viewport,
@@ -38,6 +42,7 @@ async function openAs(browser, email, viewport = { width: 1280, height: 900 }) {
   await page.getByPlaceholder("Password").fill(rolePassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await waitForRouteReady(page);
   return { context, page };
 }
 
@@ -59,6 +64,7 @@ async function go(page, name) {
   const visibleNav = page.locator(".ev2s-sidebar").getByRole("button", { name, exact: true });
   if (await visibleNav.count()) {
     await visibleNav.click();
+    await waitForRouteReady(page);
     await expect(page.locator(".body")).toBeVisible({ timeout: 15000 });
     return;
   }
@@ -74,6 +80,7 @@ async function go(page, name) {
   const target = route === "home" ? "/" : `/?tab=${route}`;
   await page.goto(target);
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await waitForRouteReady(page);
 }
 
 async function assignTask(page, title, step = null) {

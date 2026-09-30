@@ -65,7 +65,7 @@ const MeetingScheduler = lazy(() => import("./components/MeetingScheduler"));
 
 
 function RouteFallback() {
-  return <div className="body" role="status" aria-live="polite" aria-busy="true">
+  return <div className="body route-fallback" role="status" aria-live="polite" aria-busy="true">
     <p className="screen-note">Opening this workspace…</p>
   </div>;
 }
