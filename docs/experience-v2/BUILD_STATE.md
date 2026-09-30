@@ -7,10 +7,10 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
-Current substage: 14C — State and interaction matrix (ACTIVE)
+Current substage: 14D — Stage 14 final acceptance (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical documentation HEAD at this reconciliation: `3ff581559491c66ecf6aa4fd304ab137ddc5111c`;
+- live canonical documentation HEAD at this reconciliation: `b734e92882c92522bc4b09f71c53f1e9f90e9b4e`;
 - accepted 14B application SHA: `c7822ec8b3b869d561fe7617204871df7d30be2b`;
 - accepted 14B implementation commit: `[level-b] EV2 14B: bound Stage 14 verification`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
@@ -23,8 +23,12 @@ Canonical reconciliation checkpoint:
 - Stage 14B is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE14_14B_ACCEPTANCE_RECORD.md`;
 - exact-head 14B CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
 - 14B product evidence artifact `11042275616`, digest `sha256:6f5bb547d475e39a15fb4ea09ac6bcd8fc1d60baec6e1156db097983f51c2d36`;
-- Stage 14C — State and interaction matrix is ACTIVE;
-- no accepted Stage 11, Stage 12, Stage 13 or Stage 14B work is rolled backward to match older stale summary text.
+- Stage 14C is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE14_14C_ACCEPTANCE_RECORD.md`;
+- exact accepted 14C application SHA: `5a1a024ada851646a8e86f4f38cc02f92851cac6`;
+- exact-head 14C CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
+- 14C product evidence artifact `11080916523`, digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
+- Stage 14D — Stage 14 final acceptance is ACTIVE;
+- no accepted Stage 11, Stage 12, Stage 13, Stage 14B or Stage 14C work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
@@ -2638,18 +2642,52 @@ Accepted implementation:
 Acceptance record:
 - `docs/experience-v2/STAGE14_14B_ACCEPTANCE_RECORD.md`.
 
-Current substage:
-- 14C — State and interaction matrix.
+14C — State and interaction matrix is ACCEPTED AND COMPLETE.
 
-14C execution rule:
-- inventory accepted family/state tests first;
-- reuse accepted deterministic coverage rather than duplicating it;
-- add only missing cumulative state/interaction contracts;
-- preserve truthful loading, empty, partial/unconfigured, populated, error, permission-limited, completed/success and confirmation semantics;
-- preserve long-content recomposition and no page-level overflow;
-- preserve keyboard/touch parity for the same authorised actions;
-- fix only proven owning defects;
-- complete affected Level A, then exact-head Level B and direct evidence inspection before 14D.
+Exact accepted 14C application head:
+- `5a1a024ada851646a8e86f4f38cc02f92851cac6`.
+
+Accepted cumulative implementation:
+- `tests/experience-v2-stage14-states.spec.js`;
+- accepted family coverage is reused rather than duplicated;
+- loading remains distinct from empty;
+- error remains distinct from empty;
+- partial/unconfigured and permission-limited states remain truthful;
+- completed/success evidence remains factual;
+- destructive global sign-out retains confirmation and cancellation preserves the session;
+- long content recomposes at 320px without page-level overflow;
+- keyboard and touch expose the same authorised Staff Calendar destination.
+
+14C exact-head Level B:
+- CI PASS — run `36677743731` (#1452);
+- Migration Replay PASS — run `36677743767` (#1063);
+- Account Security PASS — run `36677743632` (#1235);
+- Complete Quality Gate PASS — run `36677743757` (#1261);
+- Level B SQL and authority contracts PASS;
+- all four Level B browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+14C evidence:
+- `redesign-r7-product-inspection` artifact `11080916523`;
+- digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
+- direct loading-state and long-content phone evidence inspected;
+- deterministic keyboard/touch and destructive-cancel contracts passed;
+- no unresolved deterministic 14C defect remained.
+
+Acceptance record:
+- `docs/experience-v2/STAGE14_14C_ACCEPTANCE_RECORD.md`.
+
+Current substage:
+- 14D — Stage 14 final acceptance.
+
+14D execution rule:
+- reconcile Stage 14 on the accepted 14C application SHA;
+- require CI, Migration Replay, Account Security, complete Quality Gate, SQL/RLS/security contracts, Vercel and merged product evidence;
+- confirm no unresolved responsive/state defect;
+- write Stage 14 acceptance record;
+- update BUILD_STATE and open Stage 15 only after Stage 14 is accepted.
 
 Stage 14 protected boundaries:
 - no fabricated records;
