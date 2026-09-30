@@ -6,62 +6,6 @@
 .manager-app .manager-projects,.manager-app .manager-calendar,.manager-app .manager-finance,
 .manager-app .manager-reports{padding-top:14px!important}
 
-.manager-command-surface{
-  position:relative;overflow:hidden;border-radius:22px!important;padding:26px 28px!important;
-  background:
-    radial-gradient(circle at 90% 15%,rgba(78,125,255,.17),transparent 25%),
-    radial-gradient(circle at 83% 42%,rgba(149,101,245,.09),transparent 24%),
-    linear-gradient(135deg,#111f32 0%,#172d4e 58%,#13223b 100%)!important;
-  color:#fff!important;border:0!important;box-shadow:0 22px 55px rgba(24,42,69,.14)!important;
-}
-.manager-command-surface .h1{color:#fff!important;font-size:35px!important}
-.manager-command-surface .screen-note{color:#a7b7cb!important}
-.manager-command-context,.manager-command-context span,.manager-command-context time{color:#90a3bb!important}
-.manager-command-action{box-shadow:0 8px 22px rgba(12,93,249,.24)!important}
-.manager-command-stats{
-  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:1px!important;
-  margin-top:22px!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.09)!important;
-  border-radius:14px!important;overflow:hidden!important;
-}
-.manager-command-stats>div{background:rgba(5,17,33,.23)!important;padding:13px 15px!important}
-.manager-command-stats strong{color:#fff!important;font-size:19px!important}
-.manager-command-stats span{color:#9fb0c4!important;font-size:12px!important}
-
-.manager-app .home-dashboard{
-  display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr)!important;
-  gap:14px!important;margin-top:15px!important;align-items:start;
-}
-.manager-app .home-panel{
-  margin:0!important;border:1px solid #e2e7ee!important;border-radius:16px!important;background:#fff!important;
-  padding:17px!important;box-shadow:0 7px 24px rgba(35,53,79,.04)!important;
-}
-.manager-app .home-panel-priority{grid-column:1}
-.manager-app .home-panel-projects{grid-column:2}
-.manager-app .home-panel-waiting{grid-column:1}
-.manager-app .home-panel-pulse{grid-column:2}
-.manager-app .home-panel-week{grid-column:1/-1}
-.manager-app .home-section-head{margin-bottom:9px!important}
-.manager-app .home-section-head h2{font-size:16px!important;color:#172b43!important}
-.manager-app .home-kicker{color:#8190a3!important;letter-spacing:.12em!important}
-.manager-app .home-action-row,.manager-app .home-project-row,.manager-app .home-blocker-row,
-.manager-app .home-panel>.row{
-  border:0!important;border-top:1px solid #edf0f4!important;border-radius:0!important;
-  box-shadow:none!important;background:transparent!important;padding:12px 2px!important;
-}
-.manager-app .home-action-row:first-of-type,.manager-app .home-project-row:first-of-type{border-top:0!important}
-.manager-app .home-stat-grid{gap:7px!important}
-.manager-app .home-stat{
-  border:1px solid #e7ebf0!important;background:#f8fafc!important;border-radius:11px!important;
-  box-shadow:none!important;min-height:72px!important;
-}
-.manager-app .home-stat b{font-size:19px!important;color:#18324e!important}
-.manager-app .home-stat span{font-size:12px!important;color:#77869a!important}
-.manager-app .home-progress{background:#edf1f6!important;border-radius:99px!important;height:5px!important}
-.manager-app .home-progress>span{background:linear-gradient(90deg,var(--ceac-action-blue),var(--ceac-action-blue-2))!important}
-.manager-app .home-quiet{border-radius:11px!important;background:#f8fafc!important;color:#78879a!important}
-
-
-
 /* Person workspace */
 .manager-person-detail{max-width:1050px!important}
 .manager-person-detail>.back{margin-bottom:16px!important}
