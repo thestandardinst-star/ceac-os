@@ -41,58 +41,6 @@
   font-size:12px;font-weight:750;white-space:nowrap;
 }
 
-/* Today */
-.staff-app .staff-command-surface{
-  position:relative;overflow:hidden;border-radius:22px!important;
-  padding:27px 28px 24px!important;
-  background:
-    radial-gradient(circle at 92% 18%,rgba(67,197,214,.12),transparent 25%),
-    radial-gradient(circle at 88% 20%,transparent 0 84px,rgba(77,197,203,.055) 85px 135px,transparent 136px),
-    linear-gradient(135deg,#172737 0%,#122433 58%,#163841 100%)!important;
-  box-shadow:0 22px 50px rgba(23,43,61,.12)!important;
-}
-.staff-app .staff-home-context{color:#9bacc0!important}
-.staff-app .staff-home-context span,.staff-app .staff-home-context time{color:#9bacc0!important}
-.staff-app .staff-work-status{
-  margin-top:18px!important;background:rgba(255,255,255,.065)!important;
-  border:1px solid rgba(255,255,255,.12)!important;border-radius:14px!important;
-  box-shadow:none!important;color:#fff!important;
-}
-.staff-app .staff-work-status-copy span,
-.staff-app .staff-work-status-copy small{color:#9fb0c1!important}
-.staff-app .staff-work-status-copy strong{color:#f9fbfd!important}
-.staff-app .staff-quick-actions{margin-top:10px!important;gap:8px!important}
-.staff-app .staff-quick-action{
-  min-height:54px!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.1)!important;
-  border-radius:12px!important;color:#f7fbff!important;
-}
-.staff-app .staff-quick-action strong{color:#f7fbff!important}
-.staff-app .staff-quick-action small{color:#9eb0c2!important}
-.staff-app .staff-home-dashboard{
-  display:grid!important;grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr)!important;
-  gap:14px!important;margin-top:16px!important;
-}
-.staff-app .staff-home-dashboard>.home-panel{
-  margin:0!important;border-radius:16px!important;background:rgba(255,255,255,.94)!important;
-  border:1px solid #e1e7ee!important;padding:18px!important;box-shadow:0 8px 26px rgba(36,55,82,.045)!important;
-}
-.staff-app .home-panel-priority{grid-column:1/-1}
-.staff-app .home-panel-movement{grid-column:1/-1}
-.staff-app .home-panel-waiting{grid-column:1/-1}
-.staff-app .home-panel-week{grid-column:1/-1}
-.staff-app .home-kicker{color:#7f8fa2!important;letter-spacing:.12em!important}
-.staff-app .home-section-head h2{color:#17253a!important;font-size:17px!important}
-.staff-app .home-work-row{
-  border:0!important;border-top:1px solid #edf0f4!important;border-radius:0!important;
-  padding:12px 2px!important;background:transparent!important;box-shadow:none!important;
-}
-.staff-app .home-work-row:first-of-type{border-top:0!important}
-.staff-app .home-quiet{border-radius:11px!important}
-.staff-app .home-stat{
-  background:#f8fafc!important;border:1px solid #e7ebf0!important;border-radius:11px!important;
-}
-
-
 /* Team V2 keeps the shared scroll-anchor behaviour only. */
 .team-scroll-anchor{scroll-margin-top:88px}
 
