@@ -141,4 +141,3 @@ test("Stage 15C removes visual components proven unused by the production import
   expect(fs.existsSync("src/components/PremiumShell.jsx")).toBe(false);
   expect(fs.existsSync("src/components/ReferenceDashboard.jsx")).toBe(false);
 });
-
