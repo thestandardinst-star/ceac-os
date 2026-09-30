@@ -7,7 +7,7 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACTIVE)
-Current substage: Stage 17A — merge accepted Experience V2 to main (ACTIVE)
+Current substage: Stage 17B — reconcile secure enterprise integrations onto V2 main (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
@@ -64,7 +64,12 @@ Canonical reconciliation checkpoint:
 - Stage 16 visual-parity artifact `11104615802`, digest `sha256:58a49cb60df0c9e8308b1e1c1ee2dca86923ffa04e22a225c2b22183ca558264`;
 - direct exact-head product inspection covered Staff phone, Manager desktop/laptop composition, Administration phone/laptop and Executive phone/desktop, with no unresolved high-severity release defect;
 - Stage 17 — Merge V2 and Reconcile Enterprise Sequence is ACTIVE;
-- current Stage 17 action: merge accepted PR #72 to main safely, record merged main SHA, supersede PR #69, then reconcile frozen PR #71 from the new main without weakening its integration security architecture;
+- Experience V2 PR #72 merged to protected main via squash at exact merged main SHA `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`;
+- superseded PR #69 is closed without merge;
+- PR #71 has been merged forward from the accepted V2 main using a two-parent reconciliation commit, preserving the secure Stage 12 runtime while resolving product conflicts in favour of V2;
+- Stage 12 integration migration is reconciled as migration 099 because V2 main already contains migrations 097 and 098;
+- V2 Connected Apps now uses the secure Edge/service boundary and scoped V2 components/styles; the old browser-mutated connector flow is removed from the reconciled branch;
+- current Stage 17 action: finish exact-head enterprise verification, inspect Telegram/Connected Apps, apply/deploy the approved Stage 12 runtime where authorised, record acceptance, then merge PR #71 only when green;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
