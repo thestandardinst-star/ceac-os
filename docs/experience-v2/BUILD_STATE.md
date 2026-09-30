@@ -42,7 +42,11 @@ Canonical reconciliation checkpoint:
 - 15B product evidence artifact `11091639391`, digest `sha256:522752a0f5b0da90009cd07878249d11d5a0b55a59d23894766e56edfe420fa0`;
 - 15B foundation artifact `11092595604`, digest `sha256:11b5c4401703dcd9350abdb1ab83eac2cb69ddddbe00d913ef6ce5bc1edbe41e`;
 - Stage 15B tracked legacy !important debt: 1,043 → 615 (428 removed, approximately 41%);
-- current substage: 15C — Icon and dead visual cleanup;
+- current substage: 15C — Icon and dead visual cleanup (implementation complete; exact-head Level B requested);
+- 15C implementation checkpoint: `7d4062af7b47acae780139686bc0e2343ce2adaa`;
+- 15C removed the unused legacy bits shell/icon implementation plus `src/components/PremiumShell.jsx` and `src/components/ReferenceDashboard.jsx` after import/use proof;
+- `src/components/primitives/Icon.jsx` remains intentionally load-bearing for the legacy primitive set and the Administration-only Design Primitives compatibility route; it is not a V2 dependency;
+- V2 continues to use only `src/experience-v2/icons.jsx` for iconography;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
