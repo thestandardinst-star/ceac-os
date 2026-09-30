@@ -126,3 +126,14 @@ test("Stage 15B keeps superseded overview override layers retired", () => {
   expect(fs.readFileSync("src/premium-staff.css", "utf8"), "src/premium-staff.css")
     .not.toContain(".staff-home-dashboard");
 });
+
+test("Stage 15C retires the unused bits shell icon implementation", () => {
+  const bits = fs.readFileSync("src/components/bits.jsx", "utf8");
+  for (const deadExport of ["Icon", "MobileTopBar", "AppTopBar", "SideNav", "Tabs"]) {
+    expect(bits, "src/components/bits.jsx").not.toContain(`export function ${deadExport}`);
+  }
+  expect(bits, "src/components/bits.jsx").not.toContain("function tabItems(");
+  expect(bits, "src/components/bits.jsx").not.toContain("function desktopGroups(");
+  expect(bits, "src/components/bits.jsx").not.toContain("function MobileMenuGroup(");
+});
+
