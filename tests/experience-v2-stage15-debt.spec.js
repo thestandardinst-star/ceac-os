@@ -161,4 +161,3 @@ test("Stage 15C keeps the remaining primitive icon compatibility boundary explic
     expect(fs.readFileSync(file, "utf8"), file).toContain('import Icon from "./Icon"');
   }
 });
-
