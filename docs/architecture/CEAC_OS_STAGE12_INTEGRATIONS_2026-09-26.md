@@ -1,11 +1,11 @@
 # CEAC OS — Stage 12 Integrations Architecture
 
 **Date:** 26 September 2026
-**Status:** IMPLEMENTATION CONTRACT — STAGE 12 ACTIVE
+**Status:** IMPLEMENTATION CONTRACT — STAGE 12 RECONCILED ON EXPERIENCE V2 MAIN
 **Repository:** `thestandardinst-star/ceac-os`
-**Baseline main:** `225185e75050085ccc14026b46947eead3e52167`
-**Baseline state:** Stage 1–11 + premium redesign + subsequent experience/design corrections through current main merged
-**Latest migration at activation:** 096
+**Reconciliation baseline main:** `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`
+**Baseline state:** Experience V2 Stages 1–16 accepted and merged; Stage 17 enterprise reconciliation active
+**Latest migration on V2 main at reconciliation:** 098; Stage 12 integration runtime is migration 099
 **Active branch:** `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`
 
 ## 1. Purpose
@@ -53,7 +53,7 @@ Stage 13 remains blocked until CEAC payroll rules are explicitly confirmed.
 
 ## 3. Initial provider families
 
-Stage 12 was explicitly resumed by the product owner on 26 September 2026 after the premium/design work had already merged. The live Supabase project is at migration 096, Supabase Vault is installed, and no Edge Functions are deployed at activation. Migration 097 is therefore the first Stage 12 migration owner.
+Stage 12 was explicitly resumed by the product owner on 26 September 2026 after the premium/design work had already merged. The live Supabase project is at migration 096, Supabase Vault is installed, and no Edge Functions are deployed at activation. The original frozen branch called its migration 097. Experience V2 main later added migrations 097 and 098, so Stage 17 reconciles the same integration runtime SQL as migration 099 without changing its security contract.
 
 The first provider adapter is **Telegram**:
 - bot token is entered only into the server connection flow and stored encrypted in Supabase Vault;
@@ -262,7 +262,7 @@ A provider outage must:
 
 ## 15. Data / migration rule
 
-Before creating migration 097:
+Before applying the reconciled Stage 12 migration 099:
 - inspect current migration list;
 - reuse Stage 1G tables where possible;
 - extend instead of duplicating connector/subscription/outbox concepts;
