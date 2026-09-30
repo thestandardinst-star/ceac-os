@@ -2718,26 +2718,60 @@ Final acceptance record:
 
 Stage 15 is ACTIVE.
 
-Current substage:
-- 15B — Evidence-backed CSS cleanup.
+15A — Audit and debt contract is COMPLETE.
 
-15B execution rule:
-- remove only selectors proven obsolete, duplicated or superseded;
-- start with dead PremiumShell-specific selectors in premium-parity.css;
-- preserve live generic page/content parity rules;
-- run Stage 15 Level A after each cleanup slice;
-- tighten deterministic debt ceilings after proven reductions;
-- inspect product evidence whenever presentation can change;
-- do not remove an entire legacy stylesheet until its remaining ownership is proven dead.
+15B — Evidence-backed CSS cleanup is at EXACT-HEAD LEVEL B ACCEPTANCE CANDIDATE.
 
-Stage 14 protected boundaries:
-- no fabricated records;
-- no route-authority broadening;
-- no hidden permission-limited state;
+Latest application cleanup head:
+- `74a6bf57c6c57a6dc27551356cfd6c44afe203f4` — `EV2 15B: retire unreachable legacy overview grids`.
+
+Latest debt-contract head:
+- `8b46fd147525190fa803e6100981d322b1285516` — `EV2 15B: lock retired overview debt ceiling`.
+
+Accepted cleanup method:
+- only selectors proven obsolete, duplicated or superseded were removed;
+- the superseded PremiumShell command-surface parity layer was retired;
+- obsolete Staff, Manager, Administration and Executive overview-specific role CSS was removed in small slices;
+- a branch-wide production JS/JSX ownership scan confirmed the legacy overview grid classes were no longer referenced;
+- live generic `home-panel` styling used by `MinistryNumbers` was explicitly preserved;
+- shared reference/deep-surface compatibility styling without equivalent ownership proof remains intact;
+- no replacement global parity layer was introduced;
+- no V2 `!important` debt was introduced.
+
+Measured Stage 15B debt movement:
+- `src/premium-admin.css`: 128 → 83;
+- `src/premium-executive.css`: 12 → 2;
+- `src/premium-manager.css`: 139 → 68;
+- `src/premium-parity.css`: 466 → 228;
+- `src/premium-staff.css`: 112 → 63;
+- `src/premium.css`: 65 → 50;
+- `src/styles.css`: 121 → 121;
+- total tracked legacy `!important` debt: 1,043 → 615;
+- verified reduction: 428 declarations, approximately 41% of the Stage 15 entry baseline.
+
+Remaining debt boundary:
+- remaining Staff compatibility CSS covers My Hub, work history, Calendar, Inbox and shared page patterns;
+- remaining Manager compatibility CSS covers person workspace, Projects, Calendar, Budget and Reports;
+- remaining Administration compatibility CSS covers People/employee workspace, Workforce/Time & Leave, Finance/Expenses and Control Center;
+- remaining Executive compatibility debt is minimal;
+- generic premium/parity/styles layers continue to support shared/deep routed surfaces and the operational 12px floor;
+- no further selector may be removed without fresh import/render ownership evidence.
+
+Current acceptance action:
+- run exact-head complete Level B for the canonical acceptance-candidate commit;
+- require CI, Migration Replay, Account Security, complete Quality Gate, all browser shards, SQL/RLS/security contracts, Vercel and direct product evidence;
+- if deterministic failure appears, fix only the proven owning defect and rerun;
+- if green, write the 15B acceptance record, reconcile BUILD_STATE and continue immediately to 15C.
+
+Stage 15 protected boundaries:
+- no fabricated records or evidence;
+- no route, role or capability broadening;
+- no schema/RPC/RLS/auth changes merely for cleanup;
 - no error-to-empty collapse;
 - no confirmation removal;
-- no new global parity/override stylesheet;
-- no security/RLS weakening;
+- no replacement global parity/override stylesheet;
+- no migration of legacy override debt into V2;
+- no security weakening;
 - frozen enterprise PR #71 remains untouched;
 - Payroll remains blocked.
 
