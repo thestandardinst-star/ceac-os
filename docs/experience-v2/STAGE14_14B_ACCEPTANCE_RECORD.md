@@ -1,8 +1,8 @@
 # CEAC OS Experience V2 — Stage 14B Acceptance Record
 
-Date: 30 September 2026  
-Stage: 14 — Whole-System Responsive and State Pass  
-Substage: 14B — Whole-system route matrix  
+Date: 30 September 2026
+Stage: 14 — Whole-System Responsive and State Pass
+Substage: 14B — Whole-system route matrix
 Status: ACCEPTED AND COMPLETE
 
 ## Exact accepted application head
