@@ -6,11 +6,11 @@ Last updated: 30 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
-Current substage: 14D — Stage 14 final acceptance (ACTIVE)
+Current stage: Stage 15 — Performance, Accessibility and CSS-Debt Closure (ACTIVE)
+Current substage: 15A — Audit and debt contract (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical documentation HEAD at this reconciliation: `b734e92882c92522bc4b09f71c53f1e9f90e9b4e`;
+- live canonical documentation HEAD at this reconciliation: `fb05490b9983e4f77f0cbf73a441c6933aff054b`;
 - accepted 14B application SHA: `c7822ec8b3b869d561fe7617204871df7d30be2b`;
 - accepted 14B implementation commit: `[level-b] EV2 14B: bound Stage 14 verification`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
@@ -27,8 +27,13 @@ Canonical reconciliation checkpoint:
 - exact accepted 14C application SHA: `5a1a024ada851646a8e86f4f38cc02f92851cac6`;
 - exact-head 14C CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
 - 14C product evidence artifact `11080916523`, digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
-- Stage 14D — Stage 14 final acceptance is ACTIVE;
-- no accepted Stage 11, Stage 12, Stage 13, Stage 14B or Stage 14C work is rolled backward to match older stale summary text.
+- Stage 14 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE14_ACCEPTANCE_RECORD.md`;
+- final accepted Stage 14 application SHA: `5a1a024ada851646a8e86f4f38cc02f92851cac6`;
+- final exact-head Stage 14 CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
+- final Stage 14 product evidence artifact `11080916523`, digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
+- Stage 15 — Performance, Accessibility and CSS-Debt Closure is ACTIVE;
+- current substage: 15A — Audit and debt contract;
+- no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
@@ -2679,15 +2684,48 @@ Accepted cumulative implementation:
 Acceptance record:
 - `docs/experience-v2/STAGE14_14C_ACCEPTANCE_RECORD.md`.
 
-Current substage:
-- 14D — Stage 14 final acceptance.
+14D — Stage 14 final acceptance is ACCEPTED AND COMPLETE.
 
-14D execution rule:
-- reconcile Stage 14 on the accepted 14C application SHA;
-- require CI, Migration Replay, Account Security, complete Quality Gate, SQL/RLS/security contracts, Vercel and merged product evidence;
-- confirm no unresolved responsive/state defect;
-- write Stage 14 acceptance record;
-- update BUILD_STATE and open Stage 15 only after Stage 14 is accepted.
+Final accepted Stage 14 application head:
+- `5a1a024ada851646a8e86f4f38cc02f92851cac6`.
+
+Final Stage 14 verification:
+- CI PASS — run `36677743731` (#1452);
+- Migration Replay PASS — run `36677743767` (#1063);
+- Account Security PASS — run `36677743632` (#1235);
+- Complete Quality Gate PASS — run `36677743757` (#1261);
+- Level B SQL and authority contracts PASS;
+- all four Level B browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
+- Vercel PASS.
+
+Final Stage 14 evidence:
+- `redesign-r7-product-inspection` artifact `11080916523`;
+- digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
+- exact-head phone/intermediate/laptop/desktop route evidence inspected;
+- exact-head loading and long-content state evidence inspected;
+- no unresolved deterministic responsive/state defect remained.
+
+Final acceptance record:
+- `docs/experience-v2/STAGE14_ACCEPTANCE_RECORD.md`.
+
+## Stage 15 — Performance, Accessibility and CSS-Debt Closure
+
+Stage 15 is ACTIVE.
+
+Current substage:
+- 15A — Audit and debt contract.
+
+15A execution rule:
+- inventory production bundle/media weight before deleting or splitting anything;
+- inventory obsolete/competing CSS and current !important debt;
+- inventory duplicate icon implementations and dead visual components;
+- verify semantic focus/keyboard, contrast and reduced-motion coverage already present;
+- inspect layout shift and responsive-image behaviour;
+- identify any role stylesheet acting as a hidden global override layer;
+- persist the smallest evidence-backed Stage 15 work brief before cleanup product code;
+- do not perform broad cleanup without proof of ownership and replacement.
 
 Stage 14 protected boundaries:
 - no fabricated records;
