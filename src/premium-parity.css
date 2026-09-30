@@ -200,10 +200,6 @@ body{color:var(--ceac-text)}
     width:100%!important;max-width:none!important;margin:0!important;padding:14px 0 50px!important;
   }
 
-  .staff-command-surface,.manager-command-surface,.admin-command-surface,.executive-command-surface{
-    margin-right:322px!important;
-  }
-
   .reference-focus-row{
     margin:0 322px 12px 0;
     display:grid;grid-template-columns:minmax(0,1.58fr) minmax(245px,.72fr);gap:10px;
@@ -289,26 +285,6 @@ body{color:var(--ceac-text)}
   .office-app .admin-home-grid>.admin-home-section{margin-right:0!important}
 }
 
-/* Reference hero copy is dark over the light scenic portion; older premium rules made it white. */
-.app-content .staff-command-surface .h1,
-.app-content .manager-command-surface .h1,
-.app-content .admin-command-surface .h1,
-.app-content .executive-command-surface .h1{color:#071321!important}
-.app-content .staff-command-surface .screen-note,
-.app-content .manager-command-surface .screen-note,
-.app-content .admin-command-surface .screen-note,
-.app-content .executive-command-surface .screen-note{color:#34475e!important}
-.app-content .staff-command-surface .staff-home-context,
-.app-content .manager-command-surface .manager-command-context,
-.app-content .admin-command-surface .admin-command-context,
-.app-content .executive-command-surface .executive-command-context{color:#50637a!important}
-
-/* Keep right-hand summary cards readable on top of the darker scenic end. */
-.staff-command-surface .staff-work-status,
-.manager-command-surface .manager-command-stats,
-.admin-command-surface .admin-command-stats,
-.executive-command-surface .executive-command-stats{color:#fff!important}
-
 /* Dense reference rhythm */
 @media(min-width:1280px){
   .app-content{padding-left:18px!important;padding-right:18px!important}
@@ -324,30 +300,6 @@ body{color:var(--ceac-text)}
 }
 
 
-/* Final visual parity corrections: make the approved scenic hero authoritative. */
-.staff-app .app-content .staff-command-surface,
-.office-app .app-content .admin-command-surface{
-  background:
-    linear-gradient(90deg,rgba(247,251,255,.98) 0 34%,rgba(247,251,255,.82) 47%,rgba(247,251,255,.18) 69%,rgba(8,31,47,.16) 100%),
-    url("/ceac-hero-landscape.svg") center/cover no-repeat!important;
-  border:1px solid #dce5ee!important;
-  color:#071321!important;
-  box-shadow:var(--ceac-shadow-soft)!important;
-}
-.staff-app .app-content .staff-command-surface .h1,
-.office-app .app-content .admin-command-surface .h1{
-  color:#071321!important;
-}
-.staff-app .app-content .staff-command-surface .screen-note,
-.office-app .app-content .admin-command-surface .screen-note{
-  color:#34475e!important;
-}
-.staff-app .app-content .staff-command-surface .staff-home-context,
-.staff-app .app-content .staff-command-surface .staff-home-context span,
-.staff-app .app-content .staff-command-surface .staff-home-context time,
-.office-app .app-content .admin-command-surface .admin-command-context{
-  color:#50637a!important;
-}
 .office-app .admin-pulse-grid{
   margin-right:0!important;
   grid-template-columns:repeat(2,minmax(0,1fr))!important;
@@ -395,13 +347,6 @@ body{color:var(--ceac-text)}
 /* Ordinary laptop composition: keep desktop navigation, remove the
    fixed side rail from the content calculation and favour readable blocks. */
 @media(min-width:981px) and (max-width:1399px){
-  .staff-command-surface,
-  .manager-command-surface,
-  .admin-command-surface,
-  .executive-command-surface{
-    margin-right:0!important;
-  }
-
   .reference-rail{
     position:relative!important;
     top:auto!important;
@@ -514,7 +459,6 @@ body{color:var(--ceac-text)}
    Targets only element/ancestry combinations proven to render below 12px.
    Keep this transitional rule until the matching legacy selectors are migrated. */
 .app-content .admin-action-row.admin-action-button span,
-.app-content .admin-command-surface > div.eyebrow,
 .app-content .admin-evidence-row > span,
 .app-content .admin-page-header span.eyebrow,
 .app-content .admin-project-card > p,
@@ -548,7 +492,6 @@ body{color:var(--ceac-text)}
 .app-content .empty-state > span,
 .app-content .empty-state.compact > span,
 .app-content .exec-page-head span.eyebrow,
-.app-content .executive-command-surface > div.eyebrow,
 .app-content .executive-intelligence-head > small,
 .app-content .executive-intelligence-head span,
 .app-content .field-group > span.field-hint,
