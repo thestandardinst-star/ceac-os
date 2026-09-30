@@ -7,10 +7,10 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 15 — Performance, Accessibility and CSS-Debt Closure (ACTIVE)
-Current substage: 15B — Evidence-backed CSS cleanup (ACTIVE)
+Current substage: 15C — Icon and dead visual cleanup (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical documentation HEAD at this reconciliation: `fb05490b9983e4f77f0cbf73a441c6933aff054b`;
+- live canonical documentation HEAD at this reconciliation: `a739d4846d4ff9a71cf3b010fa43d90c18646a70`;
 - accepted 14B application SHA: `c7822ec8b3b869d561fe7617204871df7d30be2b`;
 - accepted 14B implementation commit: `[level-b] EV2 14B: bound Stage 14 verification`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
@@ -36,7 +36,13 @@ Canonical reconciliation checkpoint:
 - exact accepted 15A application SHA: `e1751ad2089bb38cd8b3d93cd0fe4f957536e9d1`;
 - exact-head 15A CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence and Vercel passed;
 - 15A product evidence artifact `11083159889`, digest `sha256:a47309c094d3b10439b12e531a7edf58e6a92e71d88a0331f60f789a6ba0c4b0`;
-- current substage: 15B — Evidence-backed CSS cleanup;
+- Stage 15B is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_15B_ACCEPTANCE_RECORD.md`;
+- exact accepted 15B application SHA: `a739d4846d4ff9a71cf3b010fa43d90c18646a70`;
+- exact-head 15B CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/RLS/security contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
+- 15B product evidence artifact `11091639391`, digest `sha256:522752a0f5b0da90009cd07878249d11d5a0b55a59d23894766e56edfe420fa0`;
+- 15B foundation artifact `11092595604`, digest `sha256:11b5c4401703dcd9350abdb1ab83eac2cb69ddddbe00d913ef6ce5bc1edbe41e`;
+- Stage 15B tracked legacy !important debt: 1,043 → 615 (428 removed, approximately 41%);
+- current substage: 15C — Icon and dead visual cleanup;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
