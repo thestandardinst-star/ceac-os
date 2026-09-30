@@ -1,4 +1,4 @@
--- 097 — Stage 12: secure provider connections and integration runtime.
+-- 099 — Stage 12: secure provider connections and integration runtime.
 -- Extends Stage 1G. Provider secrets remain in Supabase Vault and are never
 -- browser-readable. First provider definition: Telegram outbound notifications.
 
