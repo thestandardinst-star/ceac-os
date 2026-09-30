@@ -7,7 +7,7 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACTIVE)
-Current substage: Stage 17B — reconcile secure enterprise integrations onto V2 main (ACTIVE)
+Current substage: Stage 17C — exact-head enterprise acceptance (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
@@ -69,7 +69,9 @@ Canonical reconciliation checkpoint:
 - PR #71 has been merged forward from the accepted V2 main using a two-parent reconciliation commit, preserving the secure Stage 12 runtime while resolving product conflicts in favour of V2;
 - Stage 12 integration migration is reconciled as migration 099 because V2 main already contains migrations 097 and 098;
 - V2 Connected Apps now uses the secure Edge/service boundary and scoped V2 components/styles; the old browser-mutated connector flow is removed from the reconciled branch;
-- current Stage 17 action: finish exact-head enterprise verification, inspect Telegram/Connected Apps, apply/deploy the approved Stage 12 runtime where authorised, record acceptance, then merge PR #71 only when green;
+- reconciled Stage 17 implementation head `d217a99fb9337c81dda304756b3f8dcc6bf35d74` passed CI #1516, Migration Replay #1126, Account Security #1298 and Vercel before Level B request;
+- secure integration runtime, migration 099, Telegram adapter, V2 Connected Apps surface and cumulative Stage 12 tests are now one canonical branch history;
+- current Stage 17 action: complete exact-head Level B on the reconciliation head, inspect Stage 12 product evidence, validate/deploy the approved runtime where authorised, then record and merge PR #71 only when green;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
