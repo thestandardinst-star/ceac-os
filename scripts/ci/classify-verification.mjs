@@ -60,6 +60,7 @@ const levelB =
     databaseOrSecurityChanged);
 
 const scopeRules = [
+  ["stage15", /experience-v2-stage15-|premium(?:-(?:parity|staff|manager|admin|executive))?\.css$|\/styles\.css$|\/PremiumShell\.jsx$/i],
   ["stage14", /experience-v2-stage14-/i],
   ["personal", /personal-family|\/Me\.jsx$|\/AccountActivity\.jsx$|\/Performance\.jsx$|\/Learning\.jsx$|\/Assets\.jsx$|\/Compliance\.jsx$/i],
   ["finance", /finance|cost|spend|budget|transfer|expense/i],
