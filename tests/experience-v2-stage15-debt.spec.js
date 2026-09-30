@@ -136,4 +136,3 @@ test("Stage 15C retires the unused bits shell icon implementation", () => {
   expect(bits, "src/components/bits.jsx").not.toContain("function desktopGroups(");
   expect(bits, "src/components/bits.jsx").not.toContain("function MobileMenuGroup(");
 });
-
