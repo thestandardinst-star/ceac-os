@@ -1,3 +1,4 @@
+// Stage 14C cumulative acceptance boundary: preserve accepted family evidence and add only proven whole-system gaps.
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
