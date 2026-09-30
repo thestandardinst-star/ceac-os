@@ -1,0 +1,217 @@
+/* CEAC OS Experience V2 — secure Connected Apps reconciliation */
+.ev2i-page {
+  width: 100%;
+  max-width: 74rem;
+  display: grid;
+  gap: var(--ev2-space-5);
+}
+
+.ev2i-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ev2-space-5);
+  padding-top: var(--ev2-space-2);
+}
+
+.ev2i-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ev2-space-4);
+}
+
+.ev2i-provider-card {
+  display: grid;
+  align-content: start;
+  gap: var(--ev2-space-4);
+}
+
+.ev2i-provider-top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ev2-space-3);
+  align-items: center;
+}
+
+.ev2i-provider-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-action-soft);
+  color: var(--ev2-action);
+}
+
+.ev2i-provider-title {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+}
+
+.ev2i-provider-title strong {
+  font-size: var(--ev2-type-card-mobile);
+  line-height: 1.25;
+  color: var(--ev2-text);
+}
+
+.ev2i-provider-title span,
+.ev2i-empty-copy {
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+  color: var(--ev2-text-secondary);
+}
+
+.ev2i-provider-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ev2-space-2);
+}
+
+.ev2i-provider-facts > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+  padding: var(--ev2-space-3);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2i-provider-facts span {
+  font-size: var(--ev2-type-label);
+  color: var(--ev2-text-tertiary);
+}
+
+.ev2i-provider-facts strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.4;
+  color: var(--ev2-text);
+}
+
+.ev2i-provider-warning,
+.ev2i-notice,
+.ev2i-security-note {
+  display: flex;
+  gap: var(--ev2-space-3);
+  align-items: flex-start;
+}
+
+.ev2i-provider-warning {
+  color: var(--ev2-warning);
+}
+
+.ev2i-provider-warning > span,
+.ev2i-security-note > span {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+.ev2i-notice {
+  color: var(--ev2-success);
+}
+
+.ev2i-provider-actions,
+.ev2i-subscribe-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ev2-space-2);
+  align-items: end;
+}
+
+.ev2i-subscribe-form .ev2c-field {
+  flex: 1 1 18rem;
+}
+
+.ev2i-subscription-list {
+  display: grid;
+  gap: var(--ev2-space-2);
+  margin-top: var(--ev2-space-3);
+}
+
+.ev2i-subscription-list > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ev2-space-3);
+  padding: var(--ev2-space-2) var(--ev2-space-3);
+  border-radius: var(--ev2-radius-sm);
+  background: var(--ev2-surface-soft);
+  font-size: var(--ev2-type-supporting);
+  color: var(--ev2-text-secondary);
+}
+
+.ev2i-diagnostic-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--ev2-space-2);
+}
+
+.ev2i-diagnostic-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ev2-space-4);
+  margin-top: var(--ev2-space-4);
+}
+
+.ev2i-connect-form {
+  display: grid;
+  gap: var(--ev2-space-4);
+}
+
+@media (min-width: 900px) {
+  .ev2i-provider-title strong {
+    font-size: var(--ev2-type-card-desktop);
+  }
+}
+
+@media (max-width: 899px) {
+  .ev2i-provider-grid,
+  .ev2i-diagnostic-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2i-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2i-page {
+    gap: var(--ev2-space-4);
+  }
+
+  .ev2i-provider-top {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ev2i-provider-top > .ev2c-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .ev2i-provider-facts,
+  .ev2i-diagnostic-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2i-provider-actions,
+  .ev2i-subscribe-form {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ev2i-provider-actions .ev2c-button,
+  .ev2i-subscribe-form .ev2c-button {
+    width: 100%;
+  }
+
+  .ev2i-subscription-list > div {
+    align-items: flex-start;
+  }
+}
