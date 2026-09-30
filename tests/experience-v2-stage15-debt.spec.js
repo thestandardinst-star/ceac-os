@@ -141,3 +141,24 @@ test("Stage 15C removes visual components proven unused by the production import
   expect(fs.existsSync("src/components/PremiumShell.jsx")).toBe(false);
   expect(fs.existsSync("src/components/ReferenceDashboard.jsx")).toBe(false);
 });
+
+test("Stage 15C keeps the remaining primitive icon compatibility boundary explicit", () => {
+  const app = fs.readFileSync("src/App.jsx", "utf8");
+  const gallery = fs.readFileSync("src/screens/DesignPrimitives.jsx", "utf8");
+  const primitiveIcon = fs.readFileSync("src/components/primitives/Icon.jsx", "utf8");
+
+  expect(app).toContain('tab === "primitives" && isAdmin');
+  expect(gallery).toContain("../components/primitives");
+  expect(gallery).toContain("Icon");
+  expect(primitiveIcon).toContain("export default function Icon");
+
+  for (const file of [
+    "src/components/primitives/Stat.jsx",
+    "src/components/primitives/QueueRow.jsx",
+    "src/components/primitives/Chart.jsx",
+    "src/components/primitives/EmptyState.jsx",
+  ]) {
+    expect(fs.readFileSync(file, "utf8"), file).toContain('import Icon from "./Icon"');
+  }
+});
+
