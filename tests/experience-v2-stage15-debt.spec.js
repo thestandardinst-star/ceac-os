@@ -167,8 +167,81 @@ test("Stage 15D keeps production chunking explicit and bounded", () => {
   const config = fs.readFileSync("vite.config.js", "utf8");
   expect(config).toContain("rolldownOptions");
   expect(config).toContain("codeSplitting");
-  for (const group of ["react-vendor", "supabase-vendor", "motion-vendor", "icons-vendor", "vendor"]) {
+  for (const group of ["react-vendor", "supabase-vendor", "motion-vendor", "icons-vendor", "vendor", "app-screens", "app-v2", "app-components"]) {
     expect(config, `missing chunk group ${group}`).toContain(`name: "${group}"`);
   }
   expect(config).toContain("maxSize: 300 * 1024");
+});
+
+
+function stage15HexToRgb(hex) {
+  const value = String(hex).replace("#", "");
+  return [0, 2, 4].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16) / 255);
+}
+
+function stage15RelativeLuminance(hex) {
+  const [r, g, b] = stage15HexToRgb(hex).map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  );
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function stage15ContrastRatio(foreground, background) {
+  const left = stage15RelativeLuminance(foreground);
+  const right = stage15RelativeLuminance(background);
+  return (Math.max(left, right) + 0.05) / (Math.min(left, right) + 0.05);
+}
+
+function stage15CssHex(source, token) {
+  const match = source.match(new RegExp(`${token}:\\s*(#[0-9a-fA-F]{6})`));
+  expect(match, `missing ${token}`).not.toBeNull();
+  return match[1];
+}
+
+test("Stage 15D keeps V2 normal-text semantic colors at AA contrast", () => {
+  const css = fs.readFileSync("src/experience-v2.css", "utf8");
+  const surfaces = [
+    stage15CssHex(css, "--ev2-surface"),
+    stage15CssHex(css, "--ev2-surface-soft"),
+    stage15CssHex(css, "--ev2-surface-muted"),
+  ];
+  for (const foregroundToken of ["--ev2-text", "--ev2-text-secondary", "--ev2-text-tertiary"]) {
+    const foreground = stage15CssHex(css, foregroundToken);
+    for (const background of surfaces) {
+      expect(stage15ContrastRatio(foreground, background), `${foregroundToken} on ${background}`)
+        .toBeGreaterThanOrEqual(4.5);
+    }
+  }
+
+  for (const [foregroundToken, backgroundToken] of [
+    ["--ev2-success", "--ev2-success-soft"],
+    ["--ev2-warning", "--ev2-warning-soft"],
+    ["--ev2-danger", "--ev2-danger-soft"],
+  ]) {
+    expect(
+      stage15ContrastRatio(stage15CssHex(css, foregroundToken), stage15CssHex(css, backgroundToken)),
+      `${foregroundToken} on ${backgroundToken}`
+    ).toBeGreaterThanOrEqual(4.5);
+  }
+
+  for (const foregroundToken of ["--ev2-action", "--ev2-identity-strong", "--ev2-violet"]) {
+    expect(stage15ContrastRatio(stage15CssHex(css, foregroundToken), "#ffffff"), `${foregroundToken} on white`)
+      .toBeGreaterThanOrEqual(4.5);
+  }
+});
+
+test("Stage 15D keeps V2 image geometry reserved before media decode", () => {
+  const brand = fs.readFileSync("src/experience-v2/components/BrandMark.jsx", "utf8");
+  const avatar = fs.readFileSync("src/experience-v2/components/Avatar.jsx", "utf8");
+  const components = fs.readFileSync("src/experience-v2/components/components.css", "utf8");
+
+  expect(brand).toContain("width={pixels}");
+  expect(brand).toContain("height={pixels}");
+  expect(brand).toContain('decoding="async"');
+  expect(avatar).toContain("ev2c-avatar");
+  expect(components).toContain(".ev2c-avatar img");
+  expect(components).toContain("object-fit: cover");
+  expect(components).toContain(".ev2c-avatar-sm");
+  expect(components).toContain(".ev2c-avatar-md");
+  expect(components).toContain(".ev2c-avatar-lg");
 });
