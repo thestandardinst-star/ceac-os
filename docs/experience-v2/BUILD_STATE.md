@@ -7,7 +7,7 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 15 — Performance, Accessibility and CSS-Debt Closure (ACTIVE)
-Current substage: 15C — Icon and dead visual cleanup (ACTIVE)
+Current substage: 15D — Performance and accessibility closure (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `a739d4846d4ff9a71cf3b010fa43d90c18646a70`;
@@ -42,11 +42,15 @@ Canonical reconciliation checkpoint:
 - 15B product evidence artifact `11091639391`, digest `sha256:522752a0f5b0da90009cd07878249d11d5a0b55a59d23894766e56edfe420fa0`;
 - 15B foundation artifact `11092595604`, digest `sha256:11b5c4401703dcd9350abdb1ab83eac2cb69ddddbe00d913ef6ce5bc1edbe41e`;
 - Stage 15B tracked legacy !important debt: 1,043 → 615 (428 removed, approximately 41%);
-- current substage: 15C — Icon and dead visual cleanup (implementation complete; exact-head Level B requested);
-- 15C implementation checkpoint: `7d4062af7b47acae780139686bc0e2343ce2adaa`;
-- 15C removed the unused legacy bits shell/icon implementation plus `src/components/PremiumShell.jsx` and `src/components/ReferenceDashboard.jsx` after import/use proof;
+- Stage 15C is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_15C_ACCEPTANCE_RECORD.md`;
+- exact accepted 15C application SHA: `722ee3e82fa607befb5a1bfd94d415a7f44d532e`;
+- exact-head 15C CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/RLS/security contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
+- 15C product evidence artifact `11097211560`, digest `sha256:d918216e305683012e907b9c6171ede2f2483942bf14c11d0f0a847b12e3f879`;
+- 15C foundation artifact `11095834318`, digest `sha256:5d28c6e45e398b844f23813cdb87e6c2172d34ea9f9edb75d7fbf907e4b9a24d`;
+- 15C retired the unused legacy bits shell/icon implementation plus `src/components/PremiumShell.jsx` and `src/components/ReferenceDashboard.jsx` after import/use proof;
 - `src/components/primitives/Icon.jsx` remains intentionally load-bearing for the legacy primitive set and the Administration-only Design Primitives compatibility route; it is not a V2 dependency;
 - V2 continues to use only `src/experience-v2/icons.jsx` for iconography;
+- current substage: 15D — Performance and accessibility closure;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
