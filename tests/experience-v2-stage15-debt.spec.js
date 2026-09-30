@@ -86,3 +86,26 @@ test("Stage 15A retains the accepted focus, touch and reduced-motion contracts",
   expect(motion).toContain("reduced");
   expect(provider).toContain('reducedMotion="user"');
 });
+
+
+test("Stage 15B keeps superseded overview override layers retired", () => {
+  const retired = [
+    ["src/premium-staff.css", ".staff-command-surface"],
+    ["src/premium-manager.css", ".manager-command-surface"],
+    ["src/premium-admin.css", ".admin-command-surface"],
+    ["src/premium-executive.css", ".executive-command-surface"],
+  ];
+  for (const [file, selector] of retired) {
+    expect(fs.readFileSync(file, "utf8"), file).not.toContain(selector);
+  }
+
+  const parity = fs.readFileSync("src/premium-parity.css", "utf8");
+  for (const selector of [
+    ".staff-command-surface",
+    ".manager-command-surface",
+    ".admin-command-surface",
+    ".executive-command-surface",
+  ]) {
+    expect(parity, "src/premium-parity.css").not.toContain(selector);
+  }
+});
