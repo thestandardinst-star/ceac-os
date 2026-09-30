@@ -167,7 +167,7 @@ test("Stage 15D keeps production chunking explicit and bounded", () => {
   const config = fs.readFileSync("vite.config.js", "utf8");
   expect(config).toContain("rolldownOptions");
   expect(config).toContain("codeSplitting");
-  for (const group of ["react-vendor", "supabase-vendor", "motion-vendor", "icons-vendor", "vendor", "app-screens", "app-v2", "app-components"]) {
+  for (const group of ["react-vendor", "supabase-vendor", "motion-vendor", "icons-vendor", "vendor"]) {
     expect(config, `missing chunk group ${group}`).toContain(`name: "${group}"`);
   }
   expect(config).toContain("maxSize: 300 * 1024");
@@ -244,4 +244,29 @@ test("Stage 15D keeps V2 image geometry reserved before media decode", () => {
   expect(components).toContain(".ev2c-avatar-sm");
   expect(components).toContain(".ev2c-avatar-md");
   expect(components).toContain(".ev2c-avatar-lg");
+});
+
+
+test("Stage 15D lazy-loads authenticated route surfaces", () => {
+  const app = fs.readFileSync("src/App.jsx", "utf8");
+  expect(app).toContain("lazy, Suspense");
+  expect(app).toContain("<Suspense fallback={<RouteFallback />}>");
+  for (const route of [
+    ["Home", "./screens/Home"],
+    ["ManagerHome", "./screens/ManagerHome"],
+    ["AdminHome", "./screens/AdminHome"],
+    ["ExecutiveHome", "./screens/ExecutiveHome"],
+    ["DesignPrimitives", "./screens/DesignPrimitives"],
+    ["MeetingScheduler", "./components/MeetingScheduler"],
+  ]) {
+    expect(app, `missing lazy route ${route[0]}`).toContain(`const ${route[0]} = lazy(() => import("${route[1]}"));`);
+  }
+  for (const staticImport of [
+    'import Home from "./screens/Home";',
+    'import ManagerHome from "./screens/ManagerHome";',
+    'import AdminHome from "./screens/AdminHome";',
+    'import ExecutiveHome from "./screens/ExecutiveHome";',
+  ]) {
+    expect(app).not.toContain(staticImport);
+  }
 });

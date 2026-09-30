@@ -1,66 +1,74 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase, loadMe } from "./lib/supabase";
 import { openSession } from "./lib/session";
 import SignIn from "./screens/SignIn";
 import AccountPassword from "./screens/AccountPassword";
-import Home from "./screens/Home";
-import Work from "./screens/Work";
-import Item from "./screens/Item";
-import Record from "./screens/Record";
-import MeScreen from "./screens/Me";
-import ManagerHome from "./screens/ManagerHome";
-import ManagerWork from "./screens/ManagerWork";
-import AdminHome from "./screens/AdminHome";
-import AdminWork from "./screens/AdminWork";
-import Units from "./screens/Units";
-import People from "./screens/People";
-import Workforce from "./screens/Workforce";
-import Cost from "./screens/Cost";
-import Finance from "./screens/Finance";
-import Reports from "./screens/Reports";
-import ExecutiveHome from "./screens/ExecutiveHome";
-import ExecutiveWork from "./screens/ExecutiveWork";
-import ExecutiveOrganisation from "./screens/ExecutiveOrganisation";
-import ExecutiveFinance from "./screens/ExecutiveFinance";
-import ExecutiveReports from "./screens/ExecutiveReports";
-import Assign from "./screens/Assign";
-import Team from "./screens/Team";
-import PersonDetail from "./screens/PersonDetail";
-import StaffTeam from "./screens/StaffTeam";
-import StaffCalendar from "./screens/StaffCalendar";
-import Inbox from "./screens/Inbox";
-import OfficeSettings from "./screens/OfficeSettings";
-import ControlCenter from "./screens/ControlCenter";
-import AdminProjects from "./screens/AdminProjects";
-import AdminCalendar from "./screens/AdminCalendar";
-import AdminAudit from "./screens/AdminAudit";
-import AdminAuthority from "./screens/AdminAuthority";
-import AdminEvents from "./screens/AdminEvents";
-import AdminWorkflows from "./screens/AdminWorkflows";
-import AdminPolicies from "./screens/AdminPolicies";
-import AdminIntegrations from "./screens/AdminIntegrations";
-import AdminLifecycle from "./screens/AdminLifecycle";
-import AdminProtectedHR from "./screens/AdminProtectedHR";
-import Goals from "./screens/Goals";
-import Strategy from "./screens/Strategy";
-import Delivery from "./screens/Delivery";
-import ResourceWorkload from "./screens/ResourceWorkload";
-import Performance from "./screens/Performance";
-import Learning from "./screens/Learning";
-import Assets from "./screens/Assets";
-import Compliance from "./screens/Compliance";
-import ManagerProjects from "./screens/ManagerProjects";
-import ManagerCalendar from "./screens/ManagerCalendar";
-import ManagerFinance from "./screens/ManagerFinance";
-import ManagerReports from "./screens/ManagerReports";
-import Announcements from "./screens/Announcements";
-import Room from "./screens/Room";
-import Meeting from "./screens/Meeting";
-import DesignPrimitives from "./screens/DesignPrimitives";
-import AccountActivity from "./screens/AccountActivity";
-import MeetingScheduler from "./components/MeetingScheduler";
 import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./experience-v2/shell";
 import AuthFrame from "./components/AuthFrame";
+
+const Home = lazy(() => import("./screens/Home"));
+const Work = lazy(() => import("./screens/Work"));
+const Item = lazy(() => import("./screens/Item"));
+const Record = lazy(() => import("./screens/Record"));
+const MeScreen = lazy(() => import("./screens/Me"));
+const ManagerHome = lazy(() => import("./screens/ManagerHome"));
+const ManagerWork = lazy(() => import("./screens/ManagerWork"));
+const AdminHome = lazy(() => import("./screens/AdminHome"));
+const AdminWork = lazy(() => import("./screens/AdminWork"));
+const Units = lazy(() => import("./screens/Units"));
+const People = lazy(() => import("./screens/People"));
+const Workforce = lazy(() => import("./screens/Workforce"));
+const Cost = lazy(() => import("./screens/Cost"));
+const Finance = lazy(() => import("./screens/Finance"));
+const Reports = lazy(() => import("./screens/Reports"));
+const ExecutiveHome = lazy(() => import("./screens/ExecutiveHome"));
+const ExecutiveWork = lazy(() => import("./screens/ExecutiveWork"));
+const ExecutiveOrganisation = lazy(() => import("./screens/ExecutiveOrganisation"));
+const ExecutiveFinance = lazy(() => import("./screens/ExecutiveFinance"));
+const ExecutiveReports = lazy(() => import("./screens/ExecutiveReports"));
+const Assign = lazy(() => import("./screens/Assign"));
+const Team = lazy(() => import("./screens/Team"));
+const PersonDetail = lazy(() => import("./screens/PersonDetail"));
+const StaffTeam = lazy(() => import("./screens/StaffTeam"));
+const StaffCalendar = lazy(() => import("./screens/StaffCalendar"));
+const Inbox = lazy(() => import("./screens/Inbox"));
+const OfficeSettings = lazy(() => import("./screens/OfficeSettings"));
+const ControlCenter = lazy(() => import("./screens/ControlCenter"));
+const AdminProjects = lazy(() => import("./screens/AdminProjects"));
+const AdminCalendar = lazy(() => import("./screens/AdminCalendar"));
+const AdminAudit = lazy(() => import("./screens/AdminAudit"));
+const AdminAuthority = lazy(() => import("./screens/AdminAuthority"));
+const AdminEvents = lazy(() => import("./screens/AdminEvents"));
+const AdminWorkflows = lazy(() => import("./screens/AdminWorkflows"));
+const AdminPolicies = lazy(() => import("./screens/AdminPolicies"));
+const AdminIntegrations = lazy(() => import("./screens/AdminIntegrations"));
+const AdminLifecycle = lazy(() => import("./screens/AdminLifecycle"));
+const AdminProtectedHR = lazy(() => import("./screens/AdminProtectedHR"));
+const Goals = lazy(() => import("./screens/Goals"));
+const Strategy = lazy(() => import("./screens/Strategy"));
+const Delivery = lazy(() => import("./screens/Delivery"));
+const ResourceWorkload = lazy(() => import("./screens/ResourceWorkload"));
+const Performance = lazy(() => import("./screens/Performance"));
+const Learning = lazy(() => import("./screens/Learning"));
+const Assets = lazy(() => import("./screens/Assets"));
+const Compliance = lazy(() => import("./screens/Compliance"));
+const ManagerProjects = lazy(() => import("./screens/ManagerProjects"));
+const ManagerCalendar = lazy(() => import("./screens/ManagerCalendar"));
+const ManagerFinance = lazy(() => import("./screens/ManagerFinance"));
+const ManagerReports = lazy(() => import("./screens/ManagerReports"));
+const Announcements = lazy(() => import("./screens/Announcements"));
+const Room = lazy(() => import("./screens/Room"));
+const Meeting = lazy(() => import("./screens/Meeting"));
+const DesignPrimitives = lazy(() => import("./screens/DesignPrimitives"));
+const AccountActivity = lazy(() => import("./screens/AccountActivity"));
+const MeetingScheduler = lazy(() => import("./components/MeetingScheduler"));
+
+
+function RouteFallback() {
+  return <div className="body" role="status" aria-live="polite" aria-busy="true">
+    <p className="screen-note">Opening this workspace…</p>
+  </div>;
+}
 
 function routeFromLocation() {
   const params = new URLSearchParams(window.location.search);
@@ -341,6 +349,7 @@ export default function App() {
           onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
         />
         <main className="app-content ev2s-content">
+          <Suspense fallback={<RouteFallback />}>
           {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} openRoom={openRoom} back={closeUrlOverlay} />
             : assigning ? <Assign me={me}
                 initialProjectId={assigning.projectId}
@@ -363,6 +372,7 @@ export default function App() {
             : meetingDraft ? <MeetingScheduler me={me} context={meetingDraft} onClose={() => setMeetingDraft(null)} onCreated={(id) => { setMeetingDraft(null); openMeeting(id); }} />
             : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} openRoom={openRoom} />
             : pageForTab()}
+          </Suspense>
         </main>
         {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} />}
       </div>
