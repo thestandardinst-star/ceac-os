@@ -103,10 +103,9 @@ test("Stage 14C long content recomposes on a 320px product surface without page 
     viewport: { width: 320, height: 844 },
   });
 
-  const heading = page.getByRole("heading", {
-    name: /Good (morning|afternoon|evening), Staff/,
-  });
+  const heading = page.locator(".staffv2-intro h1");
   await expect(heading).toBeVisible();
+  await expect(heading).toHaveText(/Good (morning|afternoon|evening), Staff/);
 
   await heading.evaluate((node) => {
     node.textContent =
