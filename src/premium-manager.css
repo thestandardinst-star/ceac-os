@@ -64,12 +64,6 @@
   .manager-app .home-panel-priority,.manager-app .home-panel-projects,.manager-app .home-panel-waiting,.manager-app .home-panel-pulse,.manager-app .home-panel-week{grid-column:1!important}
 }
 @media(max-width:620px){
-  .manager-command-surface{padding:20px 17px!important;border-radius:18px!important}
-  .manager-command-surface .h1{font-size:28px!important}
-  .manager-command-head{display:block!important}
-  .manager-command-action{margin-top:14px!important}
-  .manager-command-stats strong{font-size:16px!important}
-  .manager-command-stats span{font-size:12px!important}
   .manager-page-header{display:block}
   .manager-page-header>.btn{margin-top:12px}
   .manager-person-detail .person-orientation-grid{grid-template-columns:1fr!important}

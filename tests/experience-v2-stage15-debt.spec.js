@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 const legacyCeilings = Object.freeze({
   "src/premium-admin.css": 86,
   "src/premium-executive.css": 2,
-  "src/premium-manager.css": 75,
+  "src/premium-manager.css": 68,
   "src/premium-parity.css": 324,
   "src/premium-staff.css": 64,
   "src/premium.css": 50,
@@ -34,7 +34,7 @@ test("Stage 15A prevents legacy important debt from increasing", () => {
     total += count;
     expect(count, file).toBeLessThanOrEqual(ceiling);
   }
-  expect(total, "legacy !important total").toBeLessThanOrEqual(722);
+  expect(total, "legacy !important total").toBeLessThanOrEqual(715);
 });
 
 test("Stage 15A keeps Experience V2 free of hidden role override debt", () => {
