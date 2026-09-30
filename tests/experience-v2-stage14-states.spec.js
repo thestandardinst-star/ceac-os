@@ -35,7 +35,7 @@ test("Stage 14C inventories accepted state and interaction coverage before addin
   const routes = readFileSync("tests/experience-v2-stage14-routes.spec.js", "utf8");
 
   // Populated shell/route rendering remains the accepted 14B responsibility.
-  expect(routes).toContain("route body");
+  expect(routes).toContain(".app-content .body");
   expect(routes).toContain("staff@ceac.local.test");
   expect(routes).toContain("manager@ceac.local.test");
   expect(routes).toContain("admin@ceac.local.test");
