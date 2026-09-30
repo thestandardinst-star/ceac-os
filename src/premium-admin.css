@@ -91,8 +91,6 @@
   .office-app .workforce-tabs{top:64px}
 }
 @media(max-width:620px){
-  .office-app .admin-command-surface{padding:20px 17px!important;border-radius:18px!important}
-  .office-app .admin-command-surface .h1{font-size:29px!important}
   .admin-page-header{display:block}.admin-page-header>.btn{margin-top:12px}
   .control-grid{grid-template-columns:1fr 1fr;gap:6px}
   .office-app .split{display:block!important}
