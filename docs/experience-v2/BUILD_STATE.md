@@ -6,8 +6,8 @@ Last updated: 30 September 2026
 
 Programme: Experience V2
 Status: ACTIVE
-Current stage: Stage 16 — Release Candidate and Product Acceptance (ACTIVE)
-Current substage: Stage 16 — exact-head release acceptance (ACTIVE)
+Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACTIVE)
+Current substage: Stage 17A — merge accepted Experience V2 to main (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
@@ -57,8 +57,14 @@ Canonical reconciliation checkpoint:
 - Stage 15 entry CSS approximately 506.90 kB / 74.06 kB gzip; final primary CSS 463.28 kB / 67.49 kB gzip plus 10.66 kB / 1.92 kB lazy reporting CSS;
 - Stage 15 entry JavaScript was one 1,543.05 kB / 380.46 kB gzip chunk; final route/vendor split has 63.89 kB / 18.12 kB application index and largest single JS chunk 214.54 kB / 55.04 kB gzip, with no >500 kB Vite warning;
 - Stage 15 final tracked legacy `!important` debt is 615, down from 1,043;
-- Stage 16 — Release Candidate and Product Acceptance is ACTIVE;
-- current Stage 16 action: exact-head release verification, four-role phone/laptop/desktop evidence inspection, stored-reference comparison and release handoff/decision reconciliation;
+- Stage 16 — Release Candidate and Product Acceptance is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE16_ACCEPTANCE_RECORD.md`;
+- exact accepted Stage 16 application SHA: `fbc3562022dac6b0ee94e75261087263c0ae1aa3`;
+- exact-head Stage 16 CI PASS run `36728259888` (#1501), Migration Replay PASS run `36728259813` (#1112), Account Security PASS run `36728259897` (#1284), complete Level B Quality Gate PASS run `36728259991` (#1310), all four browser shards PASS, SQL/RLS/security contracts PASS, merged product evidence PASS, role-and-RLS PASS and Vercel PASS;
+- Stage 16 release product artifact `11104790784`, digest `sha256:5433c6d4e946bddbd69856edb1f8864968afe231c682be218f40517b44053fd6`;
+- Stage 16 visual-parity artifact `11104615802`, digest `sha256:58a49cb60df0c9e8308b1e1c1ee2dca86923ffa04e22a225c2b22183ca558264`;
+- direct exact-head product inspection covered Staff phone, Manager desktop/laptop composition, Administration phone/laptop and Executive phone/desktop, with no unresolved high-severity release defect;
+- Stage 17 — Merge V2 and Reconcile Enterprise Sequence is ACTIVE;
+- current Stage 17 action: merge accepted PR #72 to main safely, record merged main SHA, supersede PR #69, then reconcile frozen PR #71 from the new main without weakening its integration security architecture;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:

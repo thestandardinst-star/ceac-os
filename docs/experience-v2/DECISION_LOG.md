@@ -147,3 +147,19 @@ Decision:
 A future implementer may not replace the approved icon family, typography system, layout proportions, interaction pattern or reference direction simply because another implementation is easier.
 
 Any deliberate deviation is recorded here and in the source-of-truth first.
+
+## D-020 — Experience V2 release accepted
+
+Decision:
+Stage 16 release candidate `fbc3562022dac6b0ee94e75261087263c0ae1aa3` is accepted after exact-head CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/RLS/security contracts, all four browser shards, merged product evidence, role-and-RLS, Vercel and direct four-role product inspection passed.
+
+Reason:
+The cumulative V2 product now satisfies the release gate across functional, security, responsive, accessibility, performance and continuity requirements. Stage 17 may merge V2 to main.
+
+## D-021 — Enterprise integrations reconcile onto V2, never the reverse
+
+Decision:
+After V2 merges to main, frozen PR #71 must be reconciled from the new main. Its secure integration architecture is preserved, while any Administration/Connected Apps presentation conflict is adapted to the accepted V2 product system.
+
+Reason:
+Security/data architecture and final product architecture are both accepted contracts. Reconciliation must combine them without restoring superseded premium/parity visual debt or weakening provider-secret, capability, RLS, service-role, idempotency or audit boundaries.
