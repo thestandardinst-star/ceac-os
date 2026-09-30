@@ -1,29 +1,30 @@
 # CEAC OS Experience V2 — Build State
 
-Last updated: 29 September 2026
+Last updated: 30 September 2026
 
 ## Current programme state
 
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 14 — Whole-System Responsive and State Pass (ACTIVE)
-Current substage: 14B — Whole-system route matrix (ACTIVE)
+Current substage: 14C — State and interaction matrix (ACTIVE)
 
 Canonical reconciliation checkpoint:
-- live canonical implementation HEAD at this reconciliation: `4581fd2dc5da6114653821f850d5fdb7bf3a8235`;
-- latest implementation commit: `EV2 14B: align route sweep with shell breakpoint`;
+- live canonical documentation HEAD at this reconciliation: `3ff581559491c66ecf6aa4fd304ab137ddc5111c`;
+- accepted 14B application SHA: `c7822ec8b3b869d561fe7617204871df7d30be2b`;
+- accepted 14B implementation commit: `[level-b] EV2 14B: bound Stage 14 verification`;
 - Stage 11 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE11_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 11 application SHA: `b1867b91fda28722bd8ae8f3555b6212f3180256`;
-- final Stage 11 Level B evidence remains the persisted CI/Migration Replay/Account Security/Quality Gate/Vercel evidence recorded later in this document and in the Stage 11 acceptance record;
 - Stage 12 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE12_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 12 application SHA: `79cb9586ebaf6cd6ceff6a18e507b40e8ed6c2ab`;
 - Stage 13 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE13_ACCEPTANCE_RECORD.md`;
 - final accepted Stage 13 application SHA: `668d9ef0c29d5d64770b0d565121a2272f6a9023`;
 - Stage 14A is ACCEPTED AND COMPLETE at documentation head `260dc4b0c4321596148dd01f17f1bd92a00f680c`;
-- Stage 14B — Whole-system route matrix is ACTIVE and is not accepted;
-- at the pre-reconciliation inspection of application HEAD `4581fd2dc5da6114653821f850d5fdb7bf3a8235`, GitHub had not yet returned CI, Migration Replay, Account Security or Quality Gate runs for that SHA; Vercel reported PASS;
-- absence of completed 14B Level B evidence means 14B must remain ACTIVE regardless of implementation progress;
-- no accepted Stage 11, Stage 12 or Stage 13 work is rolled backward to match earlier stale summary text.
+- Stage 14B is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE14_14B_ACCEPTANCE_RECORD.md`;
+- exact-head 14B CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
+- 14B product evidence artifact `11042275616`, digest `sha256:6f5bb547d475e39a15fb4ea09ac6bcd8fc1d60baec6e1156db097983f51c2d36`;
+- Stage 14C — State and interaction matrix is ACTIVE;
+- no accepted Stage 11, Stage 12, Stage 13 or Stage 14B work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
 - canonical code + persisted acceptance records + exact-head evidence take precedence over stale summary text;
@@ -2599,34 +2600,56 @@ Contract:
 Exact accepted 14A documentation head:
 - `260dc4b0c4321596148dd01f17f1bd92a00f680c`.
 
-Documentation integrity verification:
-- CI PASS — run `36572455657` (#1438);
-- Migration Replay PASS — run `36572455918` (#1049);
-- Account Security PASS — run `36572455962` (#1221);
-- Quality Gate documentation contract PASS — run `36572455646` (#1247);
+14B — Whole-system route matrix is ACCEPTED AND COMPLETE.
+
+Exact accepted 14B application head:
+- `c7822ec8b3b869d561fe7617204871df7d30be2b`.
+
+Accepted implementation:
+- `tests/experience-v2-stage14-routes.spec.js`;
+- all shell-visible Staff, Manager, Administration and Executive destinations;
+- width matrix 320/360/375/390/414/430/900/1366/1440;
+- accepted shell/router navigation;
+- active route state;
+- intended role shell;
+- rendered route body;
+- mobile More navigation;
+- desktop sidebar navigation;
+- no page-level horizontal overflow;
+- bounded intentional inner scrolling.
+
+14B exact-head Level B:
+- CI PASS — run `36584473614` (#1445);
+- Migration Replay PASS — run `36584473682` (#1056);
+- Account Security PASS — run `36584473677` (#1228);
+- Complete Quality Gate PASS — run `36584473631` (#1254);
+- Level B SQL and authority contracts PASS;
+- all four Level B browser shards PASS;
+- merged exact-head product evidence PASS;
+- role-and-RLS coordinator PASS;
 - Vercel PASS.
 
-14A locked findings:
-- shell-visible Staff route inventory is 7 destinations;
-- Manager is 10 destinations;
-- Administration is 10 destinations subject to capability filtering;
-- Executive is 10 destinations;
-- accepted family tests already cover deep Work/People/Project/Calendar/Finance/contextual surfaces at phone/intermediate/laptop/desktop widths;
-- Stage 14 will add the missing cumulative shell-route sweep rather than duplicate every family workflow;
-- loading, empty, partial/unconfigured, populated, error, permission-limited, success/completed, confirmation and long-content semantics must remain distinct;
-- contextual capability routes remain governed by existing App guards and accepted family/security tests.
+14B evidence:
+- `redesign-r7-product-inspection` artifact `11042275616`;
+- digest `sha256:6f5bb547d475e39a15fb4ea09ac6bcd8fc1d60baec6e1156db097983f51c2d36`;
+- direct representative inspection completed at Staff 390px, Manager 900px, Administration 1366px and Executive 1440px;
+- no unresolved deterministic 14B defect remained.
+
+Acceptance record:
+- `docs/experience-v2/STAGE14_14B_ACCEPTANCE_RECORD.md`.
 
 Current substage:
-- 14B — Whole-system route matrix.
+- 14C — State and interaction matrix.
 
-14B exact next action:
-- add one cumulative route-level browser contract for all shell-visible role destinations;
-- cover 320/360/375/390/414/430/900/1366/1440;
-- navigate through the accepted shell/router;
-- assert active route state, intended role shell, rendered route body and no page-level horizontal overflow;
-- preserve intentional bounded inner scrolling;
-- add representative phone/intermediate/laptop/desktop evidence;
-- run Level A, fix deterministic defects, then complete exact-head Level B before 14C.
+14C execution rule:
+- inventory accepted family/state tests first;
+- reuse accepted deterministic coverage rather than duplicating it;
+- add only missing cumulative state/interaction contracts;
+- preserve truthful loading, empty, partial/unconfigured, populated, error, permission-limited, completed/success and confirmation semantics;
+- preserve long-content recomposition and no page-level overflow;
+- preserve keyboard/touch parity for the same authorised actions;
+- fix only proven owning defects;
+- complete affected Level A, then exact-head Level B and direct evidence inspection before 14D.
 
 Stage 14 protected boundaries:
 - no fabricated records;
