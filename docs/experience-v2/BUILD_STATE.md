@@ -7,7 +7,7 @@ Last updated: 30 September 2026
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 15 — Performance, Accessibility and CSS-Debt Closure (ACTIVE)
-Current substage: 15A — Audit and debt contract (ACTIVE)
+Current substage: 15B — Evidence-backed CSS cleanup (ACTIVE)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `fb05490b9983e4f77f0cbf73a441c6933aff054b`;
@@ -32,7 +32,11 @@ Canonical reconciliation checkpoint:
 - final exact-head Stage 14 CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence, role-and-RLS coordinator and Vercel passed;
 - final Stage 14 product evidence artifact `11080916523`, digest `sha256:0858305d7be3863f899c0b25c8a370e5ccb5e8a8e025f68ada88060a8fc2d82f`;
 - Stage 15 — Performance, Accessibility and CSS-Debt Closure is ACTIVE;
-- current substage: 15A — Audit and debt contract;
+- Stage 15A is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE15_15A_ACCEPTANCE_RECORD.md`;
+- exact accepted 15A application SHA: `e1751ad2089bb38cd8b3d93cd0fe4f957536e9d1`;
+- exact-head 15A CI, Migration Replay, Account Security, complete Level B Quality Gate, SQL/authority contracts, all four browser shards, merged product evidence and Vercel passed;
+- 15A product evidence artifact `11083159889`, digest `sha256:a47309c094d3b10439b12e531a7edf58e6a92e71d88a0331f60f789a6ba0c4b0`;
+- current substage: 15B — Evidence-backed CSS cleanup;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
@@ -2715,17 +2719,16 @@ Final acceptance record:
 Stage 15 is ACTIVE.
 
 Current substage:
-- 15A — Audit and debt contract.
+- 15B — Evidence-backed CSS cleanup.
 
-15A execution rule:
-- inventory production bundle/media weight before deleting or splitting anything;
-- inventory obsolete/competing CSS and current !important debt;
-- inventory duplicate icon implementations and dead visual components;
-- verify semantic focus/keyboard, contrast and reduced-motion coverage already present;
-- inspect layout shift and responsive-image behaviour;
-- identify any role stylesheet acting as a hidden global override layer;
-- persist the smallest evidence-backed Stage 15 work brief before cleanup product code;
-- do not perform broad cleanup without proof of ownership and replacement.
+15B execution rule:
+- remove only selectors proven obsolete, duplicated or superseded;
+- start with dead PremiumShell-specific selectors in premium-parity.css;
+- preserve live generic page/content parity rules;
+- run Stage 15 Level A after each cleanup slice;
+- tighten deterministic debt ceilings after proven reductions;
+- inspect product evidence whenever presentation can change;
+- do not remove an entire legacy stylesheet until its remaining ownership is proven dead.
 
 Stage 14 protected boundaries:
 - no fabricated records;
