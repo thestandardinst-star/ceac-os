@@ -1,4 +1,6 @@
-# EXPERIENCE V2 IS THE ACTIVE PRODUCT-EXPERIENCE PROGRAMME
+# EXPERIENCE V2 IS MERGED — STAGE 17 ENTERPRISE RECONCILIATION IS ACTIVE
+
+Canonical V2 main after PR #72: `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`. Active reconciliation branch: `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`.
 
 This section supersedes conflicting older UI/redesign sequencing text below. Security, RLS, data-integrity, audit, protected-HR, work-behaviour and enterprise authority contracts remain binding.
 
@@ -40,7 +42,7 @@ chatgpt/experience-v2-2026-09-26
 Experience V2 baseline:
 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
 
-PR #71 Stage 12 remains frozen while Experience V2 is active. Do not update, merge, rebuild or discard it unless the product owner explicitly changes this programme.
+PR #71 is now the sole active enterprise reconciliation lane. Preserve the accepted V2 product layer while reconciling the secure Stage 12 integrations contract. Do not weaken provider-secret, service-role, capability, RLS, outbox, idempotency or audit boundaries.
 
 The Experience V2 implementation sequence is a gate sequence. Do not propagate redesign work past the current stage recorded in BUILD_STATE.md.
 
