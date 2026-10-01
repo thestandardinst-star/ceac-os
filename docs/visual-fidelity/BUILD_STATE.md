@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF1 — Shared composition foundation
-Current substage: VF1B — Typography / spacing / surface discipline (ACTIVE)
+Current substage: VF1C — Responsive and motion primitives (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -87,22 +87,34 @@ Acceptance evidence:
 
 VF1A preserved routing, capability, security and mobile navigation contracts while tightening shell hierarchy and laptop density.
 
-## Active: VF1B — Typography / spacing / surface discipline
+### VF1B — Typography / spacing / surface discipline: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`58f0579c1f3c9b396389ba975d6757e13427abf0`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF1B_ACCEPTANCE.md`
+- Quality Gate `36860086949`: PASS
+- Vercel: PASS
+
+VF1B established a flatter shared surface grammar and tighter operational row rhythm without changing business or authority semantics.
+
+## Active: VF1C — Responsive and motion primitives
 
 Purpose:
-Create the shared visual grammar that later role stages can use without returning to universal card grids.
+Lock shared responsive recomposition and one restrained interaction/motion vocabulary before role-specific fidelity work.
 
 Required outcomes:
-1. preserve the approved Instrument Sans scale and 12px operational text floor;
-2. tighten spacing so ordinary work rows carry more information without becoming cramped;
-3. make borders and whitespace the default separator before shadow/elevation;
-4. reduce nested-card treatment in shared operational primitives;
-5. introduce explicit flat-section / ledger-ready surface variants for later role stages;
-6. keep controls, semantic colours, focus states and reduced-motion behaviour unchanged in meaning;
-7. do not broaden into role-specific home redesigns yet;
+1. keep all primary controls usable at 320–430 phone widths without accidental horizontal overflow;
+2. make shared segmented controls and dense data primitives recompose rather than simply shrink;
+3. keep drawers/modals safe-area aware and keyboard/focus safe;
+4. keep motion within the approved 120–280ms shared vocabulary;
+5. ensure reduced-motion removes non-essential movement without hiding state change;
+6. improve shared table behaviour so phone users are not forced into a desktop-width visual treatment;
+7. preserve shell/mobile navigation contracts and all authority/business semantics;
 8. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
 
-Do not begin VF1C until VF1B is accepted.
+Do not begin VF2A until VF1C is accepted.
 
 ## Protected boundaries
 
