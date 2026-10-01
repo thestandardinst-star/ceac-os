@@ -261,7 +261,7 @@
 
 .staffv2-panel {
   min-width: 0;
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .staffv2-count {
@@ -594,7 +594,7 @@
 
 
 .staffv2-ministry-panel {
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .staffv2-ministry-list {

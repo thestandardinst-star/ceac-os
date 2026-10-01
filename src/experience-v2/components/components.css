@@ -289,6 +289,16 @@
   background: linear-gradient(135deg, var(--ev2-surface) 0%, var(--ev2-action-soft) 150%);
 }
 
+.ev2c-surface-section {
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ev2c-surface-none {
+  padding: 0;
+}
+
 .ev2c-surface-compact {
   padding: var(--ev2-space-3);
 }
@@ -548,12 +558,12 @@ a.ev2c-stat {
 
 .ev2c-queue-row,
 .ev2c-record-row {
-  min-height: 3.75rem;
+  min-height: 3.375rem;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: var(--ev2-space-3);
   align-items: center;
-  padding: var(--ev2-space-2) var(--ev2-space-3);
+  padding: .4375rem var(--ev2-space-3);
   border: 0;
   border-bottom: 1px solid var(--ev2-line);
   background: transparent;
@@ -635,7 +645,7 @@ button.ev2c-record-row {
 
 .ev2c-data-panel {
   display: grid;
-  gap: var(--ev2-space-4);
+  gap: var(--ev2-space-3);
 }
 
 .ev2c-data-panel-head {
@@ -643,6 +653,7 @@ button.ev2c-record-row {
   justify-content: space-between;
   gap: var(--ev2-space-4);
   align-items: flex-start;
+  padding-inline: var(--ev2-space-1);
 }
 
 .ev2c-data-panel-body {
