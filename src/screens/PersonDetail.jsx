@@ -178,25 +178,29 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
   return <div className="body manager-person-detail ev2-people-page ev2-person-workspace">
     <PeopleBackButton onClick={back} label="Team" />
 
-    <PeoplePersonHeader
-      name={personName}
-      eyebrow={`Operational view · ${me.unit_name}`}
-      subtitle={personRole}
-      context={personContext}
-    />
-
     {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
 
-    <PeopleEvidenceSummary
-      facts={[
-        { value: current.length, label: "current responsibilities" },
-        { value: needsSupport, label: "need support or follow-up", tone: needsSupport ? "attention" : undefined },
-        { value: completed.length, label: "recent completed outcomes" },
-      ]}
-      note="These counts are factual operating context. They are not a productivity score, ranking or judgement about this person."
-    />
+    <div className="ev2p-person-layout">
+      <aside className="ev2p-person-context-rail" aria-label="Selected person context">
+        <PeoplePersonHeader
+          name={personName}
+          eyebrow={`Operational view · ${me.unit_name}`}
+          subtitle={personRole}
+          context={personContext}
+        />
 
-    <PeopleWorkspaceSection
+        <PeopleEvidenceSummary
+          facts={[
+            { value: current.length, label: "current responsibilities" },
+            { value: needsSupport, label: "need support or follow-up", tone: needsSupport ? "attention" : undefined },
+            { value: completed.length, label: "recent completed outcomes" },
+          ]}
+          note="These counts are factual operating context. They are not a productivity score, ranking or judgement about this person."
+        />
+      </aside>
+
+      <div className="ev2p-person-detail-stack">
+        <PeopleWorkspaceSection
       id="current-work"
       title="Current responsibilities"
       description="Current non-private work in this unit. Open an item for the full work record and evidence."
@@ -329,7 +333,9 @@ export default function PersonDetail({ me, profileId, focus, openItem, openProje
         </FieldGroup>
         <Button onClick={addFeedback} disabled={busy || !note.trim()}>{busy ? "Saving..." : "Save visible feedback"}</Button>
       </div>
-    </PeopleWorkspaceSection>
+        </PeopleWorkspaceSection>
+      </div>
+    </div>
   </div>;
 
 }

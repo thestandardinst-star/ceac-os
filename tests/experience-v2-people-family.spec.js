@@ -618,3 +618,25 @@ test("Stage 10 Family B5C Administration People states stay factual and usable",
   });
   await context.close();
 });
+
+
+test("VF3C Manager Team and Person workspace locks factual command composition", () => {
+  const team = readFileSync("src/screens/Team.jsx", "utf8");
+  const person = readFileSync("src/screens/PersonDetail.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  expect(team).toContain("They are not a score or judgement about a person.");
+  expect(team).toContain("PeopleEvidencePerson");
+  expect(person).toContain('className="ev2p-person-layout"');
+  expect(person).toContain('className="ev2p-person-context-rail"');
+  expect(person).toContain('className="ev2p-person-detail-stack"');
+  expect(person).toContain("They are not a productivity score, ranking or judgement about this person.");
+  expect(person).toContain("There are no private manager notes.");
+
+  expect(css).toContain("/* VF3C — Manager Team and Person workspace");
+  expect(css).toContain(".ev2-people-manager .ev2p-stack");
+  expect(css).toContain(".ev2p-person-context-rail");
+  expect(css).toContain("position: sticky");
+  expect(css).toContain("grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr)");
+  expect(css).not.toContain("!important");
+});

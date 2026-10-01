@@ -1716,3 +1716,123 @@
     padding-inline: 0;
   }
 }
+
+
+/* VF3C — Manager Team and Person workspace
+   Manager People surfaces use flatter operating composition and keep the
+   selected person's factual context persistent on larger workspaces. */
+.ev2-people-manager .ev2p-section {
+  box-shadow: none;
+}
+
+.ev2-people-manager .ev2p-room {
+  box-shadow: none;
+}
+
+.ev2-person-workspace .ev2p-evidence-summary-grid,
+.ev2-person-workspace .ev2p-link-list,
+.ev2-person-workspace .ev2p-outcome-grid {
+  box-shadow: none;
+}
+
+.ev2p-person-layout,
+.ev2p-person-detail-stack {
+  min-width: 0;
+}
+
+.ev2p-person-detail-stack > .ev2p-workspace-section:first-child {
+  margin-top: 0;
+}
+
+@media (min-width: 1000px) {
+  .ev2-people-manager .ev2p-stack {
+    grid-template-columns: minmax(0, 1.55fr) minmax(18rem, .45fr);
+    align-items: start;
+    gap: var(--ev2-space-5);
+  }
+
+  .ev2-people-manager .ev2p-stack .ev2p-section {
+    align-self: start;
+  }
+
+  .ev2p-person-layout {
+    display: grid;
+    grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr);
+    gap: var(--ev2-space-7);
+    align-items: start;
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2p-person-context-rail {
+    position: sticky;
+    top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+    align-self: start;
+    min-width: 0;
+  }
+
+  .ev2-person-workspace .ev2p-person-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 0 0 var(--ev2-space-4);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary {
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-item {
+    border-right: 0;
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-item:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 760px) {
+  .ev2-people-manager .ev2p-evidence-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button,
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(2n),
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(3n),
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-right: 0;
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-people-manager .ev2p-evidence-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button,
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(2n),
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-right: 0;
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-bottom: 0;
+  }
+}
