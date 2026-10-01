@@ -270,6 +270,88 @@ export default function AdminOverviewV2({
           </DataPanel>
         </section>
 
+        <section className="adminv2-mobile-context" aria-label="Administration supporting context">
+          <div className="adminv2-mobile-context-head">
+            <span>Organisation context</span>
+            <strong>Recorded facts</strong>
+          </div>
+
+          <div className="adminv2-mobile-context-list">
+            <QueueRow
+              icon="reports"
+              title="Reporting"
+              meta={reporting ? `${reporting.submitted}/${reporting.total} units submitted${reportingGap ? ` · ${reportingGap} outstanding` : ""}` : "No reporting period is open"}
+              status={reporting ? (reportingGap ? `${reportingGap} outstanding` : "All submitted") : "No open period"}
+              statusTone={reportingGap ? "warning" : "neutral"}
+              onClick={onOpenReports}
+            />
+            <QueueRow
+              icon="projects"
+              title="Projects"
+              meta={`${delivery?.active || 0} active · ${delivery?.closedThisMonth || 0} closed this month`}
+              status="Recorded"
+              statusTone="action"
+              onClick={onOpenProjects}
+            />
+            <QueueRow
+              icon="goal"
+              title="Objectives"
+              meta={`${objectiveTotal} recorded objective${objectiveTotal === 1 ? "" : "s"}`}
+              status={delivery?.atRisk ? `${delivery.atRisk} at risk` : "Recorded"}
+              statusTone={delivery?.atRisk ? "warning" : "neutral"}
+              onClick={onOpenStrategy}
+            />
+            <QueueRow
+              icon="people"
+              title="Workforce today"
+              meta={`${today?.working || 0} working · ${today?.leave || 0} approved leave · ${today?.headcount || 0} people on record`}
+              status="Factual context"
+              statusTone="neutral"
+              onClick={onOpenAttendance}
+            />
+            <QueueRow
+              icon="organisation"
+              title="Units"
+              meta={`${units.length} recorded · ${headlessUnits.length} without a Unit Head`}
+              status={headlessUnits.length ? `${headlessUnits.length} setup gap${headlessUnits.length === 1 ? "" : "s"}` : "Configured"}
+              statusTone={headlessUnits.length ? "warning" : "success"}
+              onClick={onOpenUnits}
+            />
+            <QueueRow
+              icon="meeting"
+              title="Meetings"
+              meta={meetings.length ? `${meetings.length} recorded in the next 14 days` : "No upcoming meeting recorded in the next 14 days"}
+              status={meetings.length ? "Upcoming" : "Clear"}
+              statusTone={meetings.length ? "action" : "neutral"}
+            />
+          </div>
+
+          <div className="adminv2-mobile-delivery">
+            <div className="adminv2-mobile-delivery-head">
+              <span>Cross-unit attention</span>
+              <Count value={deliveryAttention} tone={deliveryAttention ? "attention" : "success"} />
+            </div>
+            {deliveryAttention === 0 ? <Quiet>No rule-based delivery signal or cross-unit blocker needs attention.</Quiet> : null}
+            {watch.map((row) => <AdminActionRow
+              key={`mobile-${row.k}`}
+              icon="warning"
+              title={row.who}
+              meta={row.why}
+              status="Recorded signal"
+              statusTone="warning"
+            />)}
+            {blockers.map((blocker) => <AdminActionRow
+              key={`mobile-${blocker.id}`}
+              icon="work"
+              title={blocker.work_items?.title || "Cross-unit blocker"}
+              meta={`${blocker.claimant?.full_name || "Someone"} waiting on ${blocker.units?.name || blocker.party_text}`}
+              status="Cross-unit blocker"
+              statusTone="warning"
+              onClick={blocker.work_items ? () => onOpenItem?.(blocker.work_items.id) : undefined}
+            />)}
+          </div>
+        </section>
+
         <section className="adminv2-context-grid">
           <DataPanel
             className="adminv2-panel adminv2-reporting"

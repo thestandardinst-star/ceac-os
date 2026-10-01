@@ -72,10 +72,13 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: "Administration", exact: true })).toBeVisible();
     await expect(page.locator(".adminv2-inbox")).toBeVisible();
     await expect(page.locator(".adminv2-setup")).toBeVisible();
-    await expect(page.locator(".adminv2-reporting")).toBeVisible();
-    await expect(page.locator(".adminv2-pulse")).toBeVisible();
-    await expect(page.locator(".adminv2-workforce")).toBeVisible();
-    await expect(page.locator(".adminv2-delivery")).toBeVisible();
+    if (viewport.width > 599) {
+      await expect(page.locator(".adminv2-reporting")).toBeVisible();
+      await expect(page.locator(".adminv2-pulse")).toBeVisible();
+      await expect(page.locator(".adminv2-workforce")).toBeVisible();
+      await expect(page.locator(".adminv2-delivery")).toBeVisible();
+      await expect(page.locator(".adminv2-mobile-context")).toBeHidden();
+    }
     await expect(page.locator(".admin-command-surface")).toHaveCount(0);
     await expect(page.locator(".reference-calendar-card")).toHaveCount(0);
     await expect(page.locator(".reference-module-strip")).toHaveCount(0);
@@ -100,12 +103,19 @@ for (const viewport of [
       expect(inboxBox?.y || 0).toBeLessThan(shortcutsBox?.y || 0);
       expect(shortcutsBox?.y || 0).toBeLessThan(setupBox?.y || 0);
 
-      const firstContextRail = page.locator(".adminv2-context-grid").first();
-      const railWidths = await firstContextRail.evaluate((node) => ({
-        client: node.clientWidth,
-        scroll: node.scrollWidth,
-      }));
-      expect(railWidths.scroll).toBeGreaterThan(railWidths.client);
+      await expect(page.locator(".adminv2-mobile-context")).toBeVisible();
+      await expect(page.locator(".adminv2-context-grid").first()).toBeHidden();
+      await expect(page.locator(".adminv2-support-grid")).toBeHidden();
+
+      const supportingRows = page.locator(".adminv2-mobile-context-list .ev2c-queue-row");
+      expect(await supportingRows.count()).toBeGreaterThanOrEqual(6);
+      await expect(supportingRows.filter({ hasText: "Reporting" }).first()).toBeVisible();
+      await expect(supportingRows.filter({ hasText: "Projects" }).first()).toBeVisible();
+      await expect(supportingRows.filter({ hasText: "Workforce today" }).first()).toBeVisible();
+      await expect(supportingRows.filter({ hasText: "Units" }).first()).toBeVisible();
+
+      const contextBox = await page.locator(".adminv2-mobile-context").boundingBox();
+      expect(contextBox?.height || Number.POSITIVE_INFINITY).toBeLessThan(760);
     }
 
     await page.screenshot({

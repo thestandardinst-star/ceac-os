@@ -70,6 +70,10 @@
   display: none;
 }
 
+.adminv2-mobile-context {
+  display: none;
+}
+
 .adminv2-loading {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(18rem, .6fr);
@@ -434,25 +438,61 @@ button.adminv2-action-main {
 
   .adminv2-context-grid,
   .adminv2-support-grid {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--ev2-space-3);
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    padding-bottom: var(--ev2-space-2);
-  }
-
-  .adminv2-context-grid::-webkit-scrollbar,
-  .adminv2-support-grid::-webkit-scrollbar {
     display: none;
   }
 
-  .adminv2-context-grid > .adminv2-panel,
-  .adminv2-support-grid > .adminv2-panel {
-    flex: 0 0 calc(100% - 2rem);
-    scroll-snap-align: start;
+  .adminv2-mobile-context {
+    display: grid;
+    gap: var(--ev2-space-3);
+  }
+
+  .adminv2-mobile-context-head,
+  .adminv2-mobile-delivery-head {
+    min-height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ev2-space-3);
+  }
+
+  .adminv2-mobile-context-head > span,
+  .adminv2-mobile-delivery-head > span {
+    color: var(--ev2-text-tertiary);
+    font-size: var(--ev2-type-label);
+    line-height: 1.3;
+    font-weight: 750;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .adminv2-mobile-context-head > strong {
+    color: var(--ev2-text-secondary);
+    font-size: var(--ev2-type-supporting);
+    line-height: 1.35;
+    font-weight: 650;
+  }
+
+  .adminv2-mobile-context-list,
+  .adminv2-mobile-delivery {
+    overflow: hidden;
+    border: 1px solid var(--ev2-line);
+    border-radius: var(--ev2-radius-control);
+    background: var(--ev2-surface);
+  }
+
+  .adminv2-mobile-context-list .ev2c-queue-row,
+  .adminv2-mobile-delivery .adminv2-action-main {
+    min-height: 4rem;
+  }
+
+  .adminv2-mobile-context-list .ev2c-queue-row {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+
+  .adminv2-mobile-delivery-head {
+    padding: var(--ev2-space-2) var(--ev2-space-3);
+    border-bottom: 1px solid var(--ev2-line);
+    background: var(--ev2-surface-soft);
   }
 
   .adminv2-action-main,
@@ -519,9 +559,16 @@ button.adminv2-action-main {
     grid-template-columns: 1fr;
   }
 
-  .adminv2-context-grid > .adminv2-panel,
-  .adminv2-support-grid > .adminv2-panel {
-    flex-basis: calc(100% - 1rem);
+  .adminv2-mobile-context-list .ev2c-queue-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .adminv2-mobile-context-list .ev2c-row-icon {
+    display: none;
+  }
+
+  .adminv2-mobile-context-list .ev2c-status {
+    grid-column: 1;
   }
 
   .adminv2-stat-grid.is-four {
