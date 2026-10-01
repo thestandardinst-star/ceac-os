@@ -66,6 +66,11 @@ for (const viewport of [
     const box = await first.boundingBox();
     expect(box?.height || 0).toBeGreaterThanOrEqual(44);
 
+    if (viewport.width <= 760) {
+      const sectionBox = await page.locator(".ev2-project-manager .ev2p-section-head").last().boundingBox();
+      expect(sectionBox?.height || 0).toBeLessThanOrEqual(72);
+    }
+
     const smallest = await page.locator(".ev2-project-manager").evaluate((root) => {
       const values = [...root.querySelectorAll("*")]
         .filter((node) => {

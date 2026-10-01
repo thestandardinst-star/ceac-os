@@ -965,6 +965,24 @@
 }
 
 @media (max-width: 760px) {
+  .ev2-project-manager .ev2p-section-head {
+    align-items: flex-end;
+    flex-direction: row;
+    gap: var(--ev2-space-3);
+    margin-top: var(--ev2-space-5);
+  }
+
+  .ev2-project-manager .ev2p-section-head > div:first-child {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .ev2-project-manager .ev2p-section-actions {
+    width: auto;
+    flex: none;
+    margin-left: auto;
+  }
+
   .ev2-project-manager .ev2p-list {
     border-radius: var(--ev2-radius-control);
   }
