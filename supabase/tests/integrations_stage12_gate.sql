@@ -32,6 +32,37 @@ begin
 end
 $stage12_structure$;
 
+do $stage12_table_privileges$
+declare
+  v_table text;
+  v_privilege text;
+begin
+  foreach v_table in array array[
+    'integration_connectors',
+    'integration_subscriptions',
+    'integration_outbox',
+    'integration_provider_definitions',
+    'integration_connection_events',
+    'integration_delivery_attempts',
+    'integration_inbound_events'
+  ] loop
+    if not has_table_privilege('authenticated','public.'||v_table,'SELECT') then
+      raise exception 'Stage 12 gate failure: authenticated lost required read access to public.%.',v_table;
+    end if;
+
+    foreach v_privilege in array array['INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'] loop
+      if has_table_privilege('authenticated','public.'||v_table,v_privilege) then
+        raise exception 'Stage 12 gate failure: authenticated has unintended % privilege on public.%.',v_privilege,v_table;
+      end if;
+      if has_table_privilege('anon','public.'||v_table,v_privilege)
+         or has_table_privilege('anon','public.'||v_table,'SELECT') then
+        raise exception 'Stage 12 gate failure: anon has integration privilege on public.%.',v_table;
+      end if;
+    end loop;
+  end loop;
+end
+$stage12_table_privileges$;
+
 do $stage12_secret_surface$
 declare n integer;
 begin
