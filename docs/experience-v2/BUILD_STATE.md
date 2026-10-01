@@ -63,7 +63,7 @@ Canonical reconciliation checkpoint:
 - Stage 16 release product artifact `11104790784`, digest `sha256:5433c6d4e946bddbd69856edb1f8864968afe231c682be218f40517b44053fd6`;
 - Stage 16 visual-parity artifact `11104615802`, digest `sha256:58a49cb60df0c9e8308b1e1c1ee2dca86923ffa04e22a225c2b22183ca558264`;
 - direct exact-head product inspection covered Staff phone, Manager desktop/laptop composition, Administration phone/laptop and Executive phone/desktop, with no unresolved high-severity release defect;
-- Stage 17 — Merge V2 and Reconcile Enterprise Sequence is ACTIVE;
+- Stage 17 — Merge V2 and Reconcile Enterprise Sequence is ACCEPTED AND COMPLETE;
 - Experience V2 PR #72 merged to protected main via squash at exact merged main SHA `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`;
 - superseded PR #69 is closed without merge;
 - PR #71 has been merged forward from the accepted V2 main using a two-parent reconciliation commit, preserving the secure Stage 12 runtime while resolving product conflicts in favour of V2;
