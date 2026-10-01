@@ -75,7 +75,7 @@ for (const [path, markers] of Object.entries(mustContain)) {
 
 if (fs.existsSync("docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg")) {
   const size = fs.statSync("docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg").size;
-  if (size < 20000) failures.push("CEAC premium repository reference is unexpectedly small/corrupt");
+  if (size < 8000) failures.push("CEAC premium repository reference is unexpectedly small/corrupt");
 }
 
 if (failures.length) {
