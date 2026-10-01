@@ -1,3 +1,29 @@
+# VISUAL FIDELITY & INTERACTION CLOSURE IS THE ACTIVE UI PROGRAMME
+
+Stage 17 is merged to `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`.
+
+For ANY visible UI/product-experience work, the active programme is the VF sequence on branch `chatgpt/visual-fidelity-closure-2026-10-01`.
+
+Before any UI write, read in this order:
+1. `docs/visual-fidelity/START_HERE.md`
+2. `docs/visual-fidelity/BUILD_STATE.md`
+3. `docs/visual-fidelity/VISUAL_FIDELITY_CONTRACT.md`
+4. `docs/visual-fidelity/VISUAL_ACCEPTANCE_PROTOCOL.md`
+5. `docs/visual-fidelity/IMPLEMENTATION_SEQUENCE.md`
+6. `docs/visual-fidelity/REFERENCE_MANIFEST.md`
+7. `docs/visual-fidelity/SESSION_START_PROMPT.md`
+8. existing Experience V2 and domain/security contracts.
+
+This block supersedes older conflicting visual/redesign sequencing. It does NOT supersede security, RLS, data integrity, privacy, audit, work, finance, HR or integration authority.
+
+A green Level B gate is not visual acceptance. Every VF substage also requires Level C Product Fidelity acceptance. “Technically correct but generic enterprise dashboard” is a failure.
+
+The CEAC premium target is repository-addressable under `docs/visual-fidelity/references/` and `docs/visual-fidelity/targets/`. Do not substitute memory or generic SaaS defaults.
+
+Continue through VF0–VF10 and their recorded substages until VF10E is accepted, unless a genuine stop condition in `docs/visual-fidelity/START_HERE.md` occurs.
+
+---
+
 # EXPERIENCE V2 IS MERGED — STAGE 17 ENTERPRISE RECONCILIATION IS ACTIVE
 
 Canonical V2 main after PR #72: `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`. Active reconciliation branch: `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`.
