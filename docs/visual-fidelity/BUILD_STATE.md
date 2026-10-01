@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF3 — Manager
-Current substage: VF3A — Home command centre (ACTIVE)
+Current substage: VF3B — Work (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -165,24 +165,39 @@ Acceptance evidence:
 
 VF2C completed the Staff family with flatter Team context, a compact My Hub, evidence-first Record treatment and preserved mobile-navigation reachability. No employee score, ranking or inferred productivity was introduced.
 
-## Active: VF3A — Manager Home command centre
+### VF3A — Manager Home command centre: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`66549ccbfb0f9eb139f4af3447cfde6b4d18a62b`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF3A_ACCEPTANCE.md`
+- CI `36887894134`: PASS
+- Migration Replay `36887894140`: PASS
+- Account Security `36887894065`: PASS
+- Quality Gate `36887894137`: PASS
+- Level B browser shards 1–4: PASS
+- Vercel: PASS
+- exact-head Manager Home phone evidence: `redesign-r7-stage6-manager-390.png` in artifact `11176475736`
+- exact-head Manager Home laptop/desktop evidence: Quality Gate artifacts `11176350790` and `11175721784`
+
+VF3A makes Manager Home decision-first, keeps delegated work visible without duplicating the full Work screen, uses workload/availability as factual context rather than scoring, preserves project/dependency evidence, separates currencies and keeps commitments/personal work secondary. A final mobile hierarchy correction ensured “Needs your decision” remains above delegation on phone.
+
+## Active: VF3B — Manager Work
 
 Purpose:
-Make Manager Home feel like a coordinated team command centre rather than Staff plus more modules.
+Make Manager Work a clean operational workspace across the four Manager work modes without altering work authority or review semantics.
 
 Required outcomes:
-1. Needs your decision remains the dominant authority queue;
-2. delegation / work given out becomes immediately visible without duplicating the full Work screen;
-3. team workload and availability read as operational context, not employee scoring;
-4. projects needing attention and dependencies remain evidence-led and open to underlying records;
-5. money context preserves currency separation and never implies a bank balance;
-6. schedule / commitments provide useful context on laptop and desktop without stealing hierarchy;
-7. personal work and lower-value movement remain visibly secondary;
-8. reduce nested statistic cards and use flatter rows / segmented evidence where they scan better;
-9. preserve current Manager routes, RPC/RLS/capability boundaries and business semantics;
-10. pass targeted Level A during implementation, then exact-head Level B + Level C before VF3B.
+1. keep all four Manager modes explicit: Given out, Needs review, Team work and My work;
+2. make all four modes immediately reachable on phone rather than hiding core modes behind horizontal scrolling;
+3. keep delegation and review states legible as operational rows, not dashboard cards;
+4. keep owner, project, due date and recorded status easy to scan;
+5. preserve existing work detail, assignment, review, return, blocker and self-certification semantics;
+6. preserve Manager authority/RLS/RPC boundaries and the shared Work family contract;
+7. pass targeted Level A during implementation, then exact-head Level B + Level C before VF3C.
 
-Do not begin VF3B until VF3A is accepted.
+Do not begin VF3C until VF3B is accepted.
 
 ## Protected boundaries
 
