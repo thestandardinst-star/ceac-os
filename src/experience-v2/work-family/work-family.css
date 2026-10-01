@@ -1577,11 +1577,12 @@
 
 @media (max-width: 359px) {
   .ev2-work-staff .ev2w-actions {
-    grid-template-columns: 1fr;
+    gap: var(--ev2-space-1);
   }
 
-  .ev2-work-staff .ev2w-actions .ev2c-button:nth-child(3) {
-    grid-column: auto;
+  .ev2-work-staff .ev2w-actions .ev2c-button {
+    gap: var(--ev2-space-1);
+    padding-inline: var(--ev2-space-2);
   }
 
   .ev2-work-staff > .ev2w-tabs-compact button {
