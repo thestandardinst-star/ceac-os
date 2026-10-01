@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF1 — Shared composition foundation
-Current substage: VF1C — Responsive and motion primitives (ACTIVE)
+Current stage: VF2 — Staff
+Current substage: VF2A — Today (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -99,22 +99,38 @@ Acceptance evidence:
 
 VF1B established a flatter shared surface grammar and tighter operational row rhythm without changing business or authority semantics.
 
-## Active: VF1C — Responsive and motion primitives
+### VF1C — Responsive and motion primitives: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`628c4ecc636ba129a31d7f49c653d757ee320834`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF1C_ACCEPTANCE.md`
+- CI `36862272664`: PASS
+- Migration Replay `36862272584`: PASS
+- Account Security `36862272642`: PASS
+- Quality Gate `36862272686`: PASS
+- Level B browser shards 1–4: PASS
+- Vercel: PASS
+
+VF1C locked shared responsive recomposition, mobile table/segmented-control behaviour and the restrained motion/reduced-motion foundation without changing authority or business semantics.
+
+## Active: VF2A — Today
 
 Purpose:
-Lock shared responsive recomposition and one restrained interaction/motion vocabulary before role-specific fidelity work.
+Make Staff Today the clearest mobile-first working surface in CEAC OS: one dominant next action, concise work-session state, and lightweight supporting context.
 
 Required outcomes:
-1. keep all primary controls usable at 320–430 phone widths without accidental horizontal overflow;
-2. make shared segmented controls and dense data primitives recompose rather than simply shrink;
-3. keep drawers/modals safe-area aware and keyboard/focus safe;
-4. keep motion within the approved 120–280ms shared vocabulary;
-5. ensure reduced-motion removes non-essential movement without hiding state change;
-6. improve shared table behaviour so phone users are not forced into a desktop-width visual treatment;
-7. preserve shell/mobile navigation contracts and all authority/business semantics;
+1. preserve the existing Staff data, session, work, meeting and announcement contracts;
+2. make the first phone viewport answer “what should I do next?” without dashboard noise;
+3. keep Needs you, Waiting/Updates and Coming up visually subordinate to the next action;
+4. reduce serial card stacking by using flatter grouped rows and section rhythm;
+5. keep schedule and factual record useful without competing with immediate work;
+6. retain truthful empty states and no synthetic productivity scoring;
+7. preserve all 320–430 responsive acceptance widths and safe bottom-nav clearance;
 8. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
 
-Do not begin VF2A until VF1C is accepted.
+Do not begin VF2B until VF2A is accepted.
 
 ## Protected boundaries
 
