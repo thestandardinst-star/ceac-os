@@ -14,6 +14,11 @@ Current substage: VF0C — Whole-system visual gap map (ACTIVE)
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
 
+Implementation branch creation checkpoint:
+`132cc4e3bd30374cc164ab425c41a79a2bd1e399`
+
+This branch was created directly from the finalized protected `main` handoff SHA above. Future writers must refresh live HEAD before every material write.
+
 Protected functional baseline:
 `3a287ea4d7be1305970c0224abc3d28800f73d45`
 — Experience V2 accepted and Stage 17 secure integrations merged.
