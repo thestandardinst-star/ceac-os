@@ -448,6 +448,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       drillRows={drillRows}
       onRetry={load}
       onGiveOutWork={goAssign}
+      onOpenWork={() => go?.("work")}
       onOpenItem={openItem}
       onOpenProject={openProject}
       onOpenMeeting={openMeeting}

@@ -144,6 +144,7 @@ export default function ManagerOverviewV2({
   drillRows = [],
   onRetry,
   onGiveOutWork,
+  onOpenWork,
   onOpenItem,
   onOpenProject,
   onOpenMeeting,
@@ -284,9 +285,9 @@ export default function ManagerOverviewV2({
             eyebrow="Delegation"
             title="Work you gave out"
             supporting="Open work you assigned. Recorded states only — no productivity score."
-            action={<Count value={delegated.length} />}
+            action={<div className="managerv2-panel-actions"><Count value={delegated.length} /><Button variant="quiet" size="compact" onClick={onOpenWork}>Open Work</Button></div>}
           >
-            {delegated.length ? delegated.map((item) => <QueueRow
+            {delegated.length ? delegated.slice(0, 2).map((item) => <QueueRow
               key={item.id}
               icon="work"
               title={item.title}
@@ -295,6 +296,7 @@ export default function ManagerOverviewV2({
               statusTone={workTone(item)}
               onClick={() => onOpenItem?.(item.id)}
             />) : <Quiet>No open work you assigned needs tracking.</Quiet>}
+            {delegated.length > 2 ? <div className="managerv2-more-note">+{delegated.length - 2} more open item{delegated.length - 2 === 1 ? "" : "s"} in Work.</div> : null}
           </DataPanel>
         </section>
 

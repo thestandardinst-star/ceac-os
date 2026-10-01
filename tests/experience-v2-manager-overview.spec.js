@@ -46,6 +46,8 @@ test("Stage 6 Manager Overview is isolated V2 presentation on preserved manager 
   expect(view).toContain('from "../icons"');
   expect(view).toContain("Needs your decision");
   expect(view).toContain("Work you gave out");
+  expect(view).toContain("delegated.slice(0, 2)");
+  expect(view).toContain("more open item");
   expect(view).toContain("Team operating context");
   expect(view).toContain("Availability is context, not a performance measure.");
   expect(view).toContain("This is not a performance score.");

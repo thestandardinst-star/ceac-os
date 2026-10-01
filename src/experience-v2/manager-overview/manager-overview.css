@@ -137,6 +137,20 @@
   padding: 0 var(--ev2-space-1);
 }
 
+.managerv2-panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ev2-space-2);
+}
+
+.managerv2-more-note {
+  padding: var(--ev2-space-2) var(--ev2-space-3);
+  border-top: 1px solid var(--ev2-line);
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-label);
+  line-height: 1.3;
+}
+
 .managerv2-panel .ev2c-data-panel-body {
   overflow: hidden;
   border: 1px solid var(--ev2-line);
