@@ -685,3 +685,26 @@ button.ev2cal-event:hover {
     width: 100%;
   }
 }
+
+
+/* VF3D provisional — Manager Calendar hierarchy.
+   Calendar and selected-date agenda are primary; Google linking is supporting context. */
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-google {
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: var(--ev2-space-3);
+}
+
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-link-row {
+  justify-content: flex-start;
+}
+
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-external-link {
+  flex: 1 1 9rem;
+}
+
+@media (max-width: 599px) {
+  .ev2cal-manager-page .ev2cal-side-stack .ev2cal-google {
+    padding: var(--ev2-space-3);
+  }
+}

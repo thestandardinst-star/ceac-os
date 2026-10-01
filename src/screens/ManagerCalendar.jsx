@@ -218,16 +218,7 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
       action={<Button icon="meeting" onClick={()=>scheduleMeeting?.({ scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}>Schedule meeting</Button>}
     />
 
-    <Surface variant="soft" padding="standard" className="ev2cal-google" aria-label="Google Calendar">
-      <div className="ev2cal-integration-copy">
-        <strong>Your Google Calendar</strong>
-        <p>Automatic personal sync is not connected yet because CEAC OS does not hold a Google authorisation for your account. You can add CEAC meetings yourself from here without giving Administration access to your calendar.</p>
-      </div>
-      <div className="ev2cal-link-row">
-        <a className="ev2cal-external-link" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Open Google Calendar</a>
-        {googleMeetings.map((meeting)=><a key={meeting.id} className="ev2cal-external-link" href={googleCalendarUrl(meeting)} target="_blank" rel="noreferrer">Add {meeting.title}</a>)}
-      </div>
-    </Surface>
+
 
     {error&&<ProductNotice tone="error" title="Could not load the calendar">{error}</ProductNotice>}
 
@@ -271,6 +262,17 @@ export default function ManagerCalendar({ me, openItem, openProject, openMeeting
           emptyTitle="Nothing recorded for this date"
           emptyDescription={visible.length?"Choose another date to inspect this filtered view.":"No events are recorded for this view."}
         />
+
+        <Surface variant="soft" padding="standard" className="ev2cal-google" aria-label="Google Calendar">
+          <div className="ev2cal-integration-copy">
+            <strong>Your Google Calendar</strong>
+            <p>Automatic personal sync is not connected yet because CEAC OS does not hold a Google authorisation for your account. You can add CEAC meetings yourself from here without giving Administration access to your calendar.</p>
+          </div>
+          <div className="ev2cal-link-row">
+            <a className="ev2cal-external-link" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Open Google Calendar</a>
+            {googleMeetings.map((meeting)=><a key={meeting.id} className="ev2cal-external-link" href={googleCalendarUrl(meeting)} target="_blank" rel="noreferrer">Add {meeting.title}</a>)}
+          </div>
+        </Surface>
       </div>
     </div>}
 

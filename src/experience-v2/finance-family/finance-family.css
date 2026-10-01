@@ -76,3 +76,37 @@
 @media(max-width:760px){.ev2-finance-admin .ev2fin-row{grid-template-columns:auto minmax(0,1fr)}.ev2-finance-admin .ev2fin-row>.ev2c-status{grid-column:2}.ev2-finance-admin .ev2fin-row-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.ev2-finance-admin .ev2fin-row-actions .ev2c-button{width:100%}}
 @media(max-width:760px){.ev2-finance-admin .ev2fin-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}.ev2-finance-admin .ev2fin-tabs button{width:100%;min-width:0;padding-inline:var(--ev2-space-2)}}
 @media(max-width:359px){.ev2fin-tabs{margin-inline:calc(var(--ev2-space-2) * -1);padding-inline:var(--ev2-space-2)}.ev2-finance-admin .ev2fin-tabs{margin-inline:0;padding-inline:0}.ev2-finance-admin .ev2fin-row-actions{grid-template-columns:1fr}}
+
+
+/* VF3D provisional — Manager Finance operating composition.
+   Currencies remain separate; no conversion or inferred finance state is introduced. */
+.ev2-finance-manager .manager-finance-positions {
+  display: grid;
+  gap: var(--ev2-space-4);
+}
+
+.ev2-finance-manager .manager-finance-positions > .ev2fin-section {
+  min-width: 0;
+  margin-top: var(--ev2-space-4);
+}
+
+.ev2-finance-manager .manager-finance-positions .ev2fin-currency-card,
+.ev2-finance-manager .finance-section,
+.ev2-finance-manager .ev2fin-drill {
+  box-shadow: none;
+}
+
+@media (min-width: 1040px) {
+  .ev2-finance-manager {
+    width: min(100%, 84rem);
+  }
+
+  .ev2-finance-manager .manager-finance-positions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .ev2-finance-manager .manager-finance-positions .manager-finance-position-grid {
+    grid-template-columns: 1fr;
+  }
+}
