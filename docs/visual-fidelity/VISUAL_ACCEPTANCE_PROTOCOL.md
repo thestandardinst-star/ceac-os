@@ -139,4 +139,10 @@ Every VF substage acceptance record must include:
   - TECHNICALLY ACCEPTED: YES/NO
   - VISUALLY ACCEPTED: YES/NO
 
+Acceptance record must explicitly state:
+- TECHNICALLY ACCEPTED: YES / NO
+- VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES / NO
+
 Only YES/YES may advance the sequence.
+
+A technically correct screen that still reads as a generic enterprise dashboard is not visually accepted.
