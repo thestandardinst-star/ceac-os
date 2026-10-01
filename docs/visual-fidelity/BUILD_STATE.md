@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF1 — Shared composition foundation
-Current substage: VF1A — Shell / navigation / command layer (ACTIVE)
+Current substage: VF1B — Typography / spacing / surface discipline (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -75,21 +75,34 @@ Primary system-wide drift now locked:
 - insufficient split/table/ledger/timeline use;
 - motion/context continuity not yet fully expressed.
 
-## Active: VF1A — Shell / navigation / command layer
+### VF1A — Shell / navigation / command layer: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`2c9600c1e0c18365723dcc7b54c84d21bf52eab0`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF1A_ACCEPTANCE.md`
+- Quality Gate `36856711925`: PASS
+- Vercel: PASS
+
+VF1A preserved routing, capability, security and mobile navigation contracts while tightening shell hierarchy and laptop density.
+
+## Active: VF1B — Typography / spacing / surface discipline
 
 Purpose:
-Refine the shared desktop/laptop/mobile composition without changing authority, routing, data contracts or business semantics.
+Create the shared visual grammar that later role stages can use without returning to universal card grids.
 
 Required outcomes:
-1. preserve dark CEAC navigation identity and strong active state;
-2. keep command/search/action layer but improve compactness and optical hierarchy;
-3. create a stronger content canvas contract for role-specific composition;
-4. reduce dead space and avoid shell-driven card framing;
-5. preserve mobile bottom-navigation safety and role priorities;
-6. preserve all existing routing, capability and security boundaries;
-7. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
+1. preserve the approved Instrument Sans scale and 12px operational text floor;
+2. tighten spacing so ordinary work rows carry more information without becoming cramped;
+3. make borders and whitespace the default separator before shadow/elevation;
+4. reduce nested-card treatment in shared operational primitives;
+5. introduce explicit flat-section / ledger-ready surface variants for later role stages;
+6. keep controls, semantic colours, focus states and reduced-motion behaviour unchanged in meaning;
+7. do not broaden into role-specific home redesigns yet;
+8. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
 
-Do not begin VF1B until VF1A is accepted.
+Do not begin VF1C until VF1B is accepted.
 
 ## Protected boundaries
 
