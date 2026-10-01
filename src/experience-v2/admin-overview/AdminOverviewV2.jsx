@@ -223,6 +223,11 @@ export default function AdminOverviewV2({
             />)}
           </DataPanel>
 
+          <div className="adminv2-mobile-actions" aria-label="Administration shortcuts">
+            {canManagePeople ? <Button icon="people" variant="secondary" onClick={onOpenPeople}>Open People</Button> : null}
+            <Button icon="control" onClick={onOpenSettings}>Control Center</Button>
+          </div>
+
           <DataPanel
             className="adminv2-panel adminv2-setup"
             eyebrow="Setup & access"
