@@ -1,3 +1,13 @@
+# Post-V2 visual fidelity continuation notice
+
+Experience V2 and Stage 17 are now the protected functional/security baseline. The active post-V2 visible-product programme is `docs/visual-fidelity/START_HERE.md` on branch `chatgpt/visual-fidelity-closure-2026-10-01`.
+
+For any new UI/product-experience work, read the Visual Fidelity programme first. Its Level C Product Fidelity gate is mandatory in addition to the existing Level B technical gate.
+
+The CEAC premium target is now repository-addressable, so Library/chat memory is no longer sufficient or required as the sole visual source of truth.
+
+---
+
 # CEAC OS Experience V2 — START HERE
 
 Status: ACTIVE. This file is the mandatory entry point for every Chat or Work session that touches Experience V2.
