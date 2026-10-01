@@ -113,6 +113,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         supabase.from("work_items")
           .select("id, ref, title, status, due_at, assignee_id, profiles!work_items_assignee_id_fkey(full_name)")
           .eq("assigned_by", me.id)
+          .neq("assignee_id", me.id)
           .not("status", "in", "(completed,self_certified,cancelled)")
           .order("due_at", { ascending: true, nullsFirst: false })
           .limit(6),
