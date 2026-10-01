@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF3 — Manager
-Current substage: VF3D — Projects / Calendar / Money / Reports (ACTIVE)
+Current stage: VF4 — Administration & HR
+Current substage: VF4A — Home operational inbox (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -219,27 +219,41 @@ Acceptance evidence:
 
 VF3C makes Team a factual operating roster with Work lanes as secondary context, keeps Person identity and operating context persistent on larger screens, preserves unit/private-work/feedback authority, and removes the material mobile vertical-waste defect by keeping the five factual drill-downs in one accessible horizontal evidence rail rather than multi-row blocks. No employee score, ranking or inferred productivity judgement was introduced.
 
-## Active: VF3D — Projects / Calendar / Money / Reports
+### VF3D — Manager Projects / Calendar / Money / Reports: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`1ad80d1cf3e6bbe6d41c0e0c3f2f59bebf4e28af`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF3D_ACCEPTANCE.md`
+- CI `36907758489`: PASS
+- Migration Replay `36907758564`: PASS
+- Account Security `36907758180`: PASS
+- Quality Gate `36907760480`, attempt 2: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Manager Projects phone/laptop evidence: shard artifact `11185869576`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11186326350`
+
+VF3D makes Manager Projects a compact operational ledger/workspace, keeps Calendar and selected-date context primary over integrations, uses wide-screen Finance deliberately while preserving currency separation, and makes Reports evidence-first with traceable drill-down. A final phone correction kept the Manager Projects section title and count on one compact row instead of wasting vertical space. No finance conversion, fake KPI, employee score, ranking or authority change was introduced.
+
+## Active: VF4A — Administration Home operational inbox
 
 Purpose:
-Complete the Manager operating environment across projects, schedule, finance and reporting while preserving accepted V2 domain authority and factual semantics.
+Make Administration Home read as a high-authority operations console: immediate decisions and exceptions first, configuration second, monitoring/supporting context after that.
 
 Required outcomes:
-1. Projects read as a compact operational portfolio/workspace rather than stacked generic cards;
-2. Calendar keeps schedule and selected-date context primary, with integrations as supporting context;
-3. Finance uses laptop/desktop width deliberately while keeping every currency separate and never implying conversion or a bank balance;
-4. Reports prioritise factual evidence, traceable drill-down and authoring without decorative charts or invented trends;
-5. phone layouts deliberately recompose and keep primary actions reachable;
-6. project/work, calendar/meeting, finance, reporting, RLS/RPC and audit contracts remain unchanged;
-7. pass exact-head Level B + Level C before VF4A.
+1. operational inbox dominates the route and preserves direct resolution;
+2. configuration/setup remains truthful but visually subordinate when no urgent setup action exists;
+3. reporting, organisation pulse, workforce, delivery, meetings and unit context remain factual supporting information rather than equal-weight dashboard cards;
+4. mobile keeps the highest-authority Administration actions in context without becoming a very long serial card feed;
+5. desktop/laptop uses the available canvas as an operations console rather than a generic dashboard;
+6. Administration authority, leave decisions, invitations, reporting provenance, privacy, RLS/RPC and audit boundaries remain unchanged;
+7. pass affected Level A during implementation, then exact-head Level B + Level C before VF4B.
 
-Recovery note:
-- temporary Vercel-wait PR #80 contains provisional VF3D presentation preparation from the pre-acceptance VF3C ancestor;
-- its full provisional Level B Quality Gate `36903115314` passed;
-- reconcile only valid VF3D application changes forward onto this accepted boundary;
-- do not merge the provisional history or use it to bypass VF3D Level C acceptance.
-
-Do not begin VF4A until VF3D is accepted.
+Do not begin VF4B until VF4A is accepted.
 
 ## Protected boundaries
 
