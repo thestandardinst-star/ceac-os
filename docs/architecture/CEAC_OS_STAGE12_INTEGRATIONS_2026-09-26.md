@@ -1,10 +1,10 @@
 # CEAC OS — Stage 12 Integrations Architecture
 
 **Date:** 26 September 2026
-**Status:** IMPLEMENTATION CONTRACT — STAGE 12 RECONCILED ON EXPERIENCE V2 MAIN
+**Status:** ACCEPTED FOR MERGE — STAGE 17 ENTERPRISE RECONCILIATION
 **Repository:** `thestandardinst-star/ceac-os`
 **Reconciliation baseline main:** `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`
-**Baseline state:** Experience V2 Stages 1–16 accepted and merged; Stage 17 enterprise reconciliation active
+**Baseline state:** Experience V2 Stages 1–16 accepted and merged; Stage 17 enterprise reconciliation accepted for protected-main merge
 **Latest migration on V2 main at reconciliation:** 098; Stage 12 integration runtime is migration 099
 **Active branch:** `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`
 
@@ -331,13 +331,15 @@ Stage 12 is complete only when:
 
 The earlier PR #45 contained only documentation and diverged from current main after later product/design work. It was closed without merge. This contract is the clean restart from current main.
 
-Live activation facts:
+Live validation facts as of 1 October 2026:
 - Supabase project: `efjljhftsesssumtshvp`;
-- current live migration head: 096;
-- `supabase_vault` is installed;
-- no Supabase Edge Functions are deployed yet;
-- current Integration Gateway tables from Stage 1G are live and must be extended, not replaced;
-- the existing `AdminIntegrations` screen is still an engineering-facing Stage 1G surface and must become the premium Control Center → Connected Apps experience.
+- migrations `099_integration_runtime` and `100_integration_table_privilege_hardening` are present in the live migration ledger;
+- `supabase_vault` is installed and the integration worker authentication secret exists;
+- the `integration-runtime` Edge Function is ACTIVE with JWT verification enabled;
+- deployed `index.ts` and `telegram.mjs` match accepted application SHA `1cc76a013c8dc3904bdc09f00fe2bded3a12904a`;
+- browser roles retain read-only authorised integration metadata access and cannot use the private integration schema or service-owned secret/worker functions;
+- the V2 `AdminIntegrations` Connected Apps surface is active on the reconciled branch;
+- Telegram remains truthfully not connected because no production CEAC bot credential/destination has been supplied; this is the explicit provider-only activation dependency permitted by the Stage 12 exit gate.
 
 ## 20. Current baseline debt carried into Stage 12
 

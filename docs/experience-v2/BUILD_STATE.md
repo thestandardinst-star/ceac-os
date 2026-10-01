@@ -1,13 +1,13 @@
 # CEAC OS Experience V2 — Build State
 
-Last updated: 30 September 2026
+Last updated: 1 October 2026
 
 ## Current programme state
 
 Programme: Experience V2
 Status: ACTIVE
 Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACTIVE)
-Current substage: Stage 17C — exact-head enterprise acceptance (ACTIVE)
+Current substage: Stage 17D — protected-main enterprise merge (READY)
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
@@ -71,7 +71,14 @@ Canonical reconciliation checkpoint:
 - V2 Connected Apps now uses the secure Edge/service boundary and scoped V2 components/styles; the old browser-mutated connector flow is removed from the reconciled branch;
 - reconciled Stage 17 implementation head `d217a99fb9337c81dda304756b3f8dcc6bf35d74` passed CI #1516, Migration Replay #1126, Account Security #1298 and Vercel before Level B request;
 - secure integration runtime, migration 099, Telegram adapter, V2 Connected Apps surface and cumulative Stage 12 tests are now one canonical branch history;
-- current Stage 17 action: complete exact-head Level B on the reconciliation head, inspect Stage 12 product evidence, validate/deploy the approved runtime where authorised, then record and merge PR #71 only when green;
+- exact accepted Stage 17 enterprise application SHA: `1cc76a013c8dc3904bdc09f00fe2bded3a12904a`;
+- exact-head CI #1521, Migration Replay #1131, Account Security #1303, complete Level B Quality Gate #1329, all four browser shards, SQL/RLS/security contracts, merged product evidence, role-and-RLS and Vercel PASS;
+- exact-head Connected Apps product artifact `11154127943`, digest `sha256:2d465b2a740a53aefaf592422d85f6f5ed10256d3f4791ec734d020f67590cc6`;
+- live Supabase contains migrations 099 and 100; the ACTIVE JWT-protected `integration-runtime` Edge Function matches the accepted repository source;
+- live integration browser roles are read-only over authorised public metadata and cannot use the private schema or service-owned secret/worker functions;
+- Telegram is truthfully not connected because no production CEAC bot credential/destination is configured; this provider-only activation dependency is recorded rather than fabricated;
+- Stage 17 enterprise reconciliation acceptance is recorded in `docs/experience-v2/STAGE17_ENTERPRISE_ACCEPTANCE_RECORD.md`;
+- current Stage 17 action: protected-main squash merge PR #71, record the exact merged main SHA, then merge the documentation-only Stage 17 closure checkpoint;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
@@ -116,7 +123,7 @@ Measured improvement:
 
 No test, assertion, retry, timeout, security gate or acceptance criterion was removed or weakened. 10E3 visual inspection resumes from the already-green application head; 10E4 remains unopened until 10E3 acceptance.
 
-Active branch: chatgpt/experience-v2-2026-09-26
+Active branch: chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
 
 The branch was created directly from the exact green PR #69 head so that existing fixes and test coverage are retained while the visible product layer is rebuilt safely.
@@ -125,7 +132,7 @@ The branch was created directly from the exact green PR #69 head so that existin
 
 PR #69 remains the recovery/reference line from exact green head 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883.
 
-PR #71 remains OPEN DRAFT and FROZEN at bf068f32958134319ea32ecf833748879a163fd2. Do not update, merge, rebuild or discard it while Experience V2 is active.
+PR #71 has been reconciled from accepted V2 main and is accepted for protected-main merge at application SHA `1cc76a013c8dc3904bdc09f00fe2bded3a12904a`.
 
 Stage 13 Payroll remains blocked until CEAC payroll rules are formally confirmed.
 
