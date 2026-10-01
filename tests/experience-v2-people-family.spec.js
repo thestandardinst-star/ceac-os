@@ -177,12 +177,17 @@ for (const viewport of [
 
     const person = page.locator(".ev2p-evidence-person").filter({ hasText: "Staff Fixture" }).first();
     await expect(person).toBeVisible();
-    const factualButtons = person.locator(".ev2p-evidence-strip button");
+    const factualStrip = person.locator(".ev2p-evidence-strip");
+    const factualButtons = factualStrip.locator("button");
     expect(await factualButtons.count()).toBe(5);
     const count = await factualButtons.count();
     for (let index = 0; index < count; index += 1) {
       const box = await factualButtons.nth(index).boundingBox();
       expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+    }
+    if (viewport.width <= 760) {
+      const stripBox = await factualStrip.boundingBox();
+      expect(stripBox?.height || Number.POSITIVE_INFINITY).toBeLessThanOrEqual(72);
     }
 
     await page.screenshot({
