@@ -731,18 +731,18 @@
 
 /* VF2C — Staff personal workspace fidelity
    Staff personal surfaces are evidence/context workspaces, not destination-card dashboards. */
-.staff-app .ev2-personal-hub,
-.staff-app .ev2-personal-record {
+.ev2-personal-hub.ev2-personal-staff,
+.ev2-personal-record.ev2-personal-staff {
   width: min(100%, 68rem);
 }
 
-.staff-app .ev2-personal-hub .ev2pf-header,
-.staff-app .ev2-personal-record .ev2pf-header {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-header,
+.ev2-personal-record.ev2-personal-staff .ev2pf-header {
   padding-bottom: var(--ev2-space-4);
 }
 
 /* My Hub destinations become compact navigation rows rather than six feature cards. */
-.staff-app .ev2-personal-hub .ev2pf-destinations {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destinations {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   margin: var(--ev2-space-4) 0 var(--ev2-space-5);
@@ -750,7 +750,7 @@
   border-bottom: 1px solid var(--ev2-line);
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination {
   min-height: 4.5rem;
   padding: var(--ev2-space-3) var(--ev2-space-2);
   border: 0;
@@ -761,31 +761,31 @@
   transform: none;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination:nth-child(odd) {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination:nth-child(odd) {
   padding-right: var(--ev2-space-4);
   border-right: 1px solid var(--ev2-line);
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination:nth-child(even) {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination:nth-child(even) {
   padding-left: var(--ev2-space-4);
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination:nth-last-child(-n + 2) {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination:nth-last-child(-n + 2) {
   border-bottom: 0;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination:hover {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination:hover {
   border-color: var(--ev2-line);
   background: color-mix(in srgb, var(--ev2-surface) 72%, transparent);
   transform: none;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-destination small {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-destination small {
   margin-top: var(--ev2-space-1);
 }
 
 /* Goals, reminders, leave and ordinary personal details share one flat record rhythm. */
-.staff-app .ev2-personal-hub .ev2pf-section {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-section {
   margin-top: var(--ev2-space-5);
   overflow: visible;
   border: 0;
@@ -796,77 +796,81 @@
   box-shadow: none;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-section-head {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-section-head {
   padding: var(--ev2-space-4) 0;
   background: transparent;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-row {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-row {
   padding-inline: 0;
   background: transparent;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-row.is-action:hover {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-row.is-action:hover {
   background: color-mix(in srgb, var(--ev2-surface) 72%, transparent);
 }
 
-.staff-app .ev2-personal-hub .ev2pf-empty {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-empty {
   padding: var(--ev2-space-4) 0;
   background: transparent;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-facts {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-facts {
   background: transparent;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-fact {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-fact {
   background: transparent;
 }
 
-.staff-app .ev2-personal-hub .ev2pf-boundary {
+.ev2-personal-hub.ev2-personal-staff .ev2pf-boundary {
   margin-inline: 0;
   box-shadow: none;
 }
 
 /* Record is evidence-first. Totals are context; completed work and history carry the visual weight. */
-.staff-app .ev2-personal-record .ev2-personal-record-period {
+.ev2-personal-record.ev2-personal-staff .ev2-personal-record-period {
   margin: var(--ev2-space-3) 0 var(--ev2-space-4);
 }
 
-.staff-app .ev2-personal-record .record-summary-grid {
+.ev2-personal-record.ev2-personal-staff .record-summary-grid {
   gap: 0;
   margin-top: var(--ev2-space-3);
   border-top: 1px solid var(--ev2-line);
   border-bottom: 1px solid var(--ev2-line);
 }
 
-.staff-app .ev2-personal-record .record-summary-grid > div {
+.ev2-personal-record.ev2-personal-staff .record-summary-grid > div {
   min-height: 4.75rem;
   padding: var(--ev2-space-3) var(--ev2-space-4);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.staff-app .ev2-personal-record .record-summary-grid > div + div {
+.ev2-personal-record.ev2-personal-staff .record-summary-grid > div + div {
   border-left: 1px solid var(--ev2-line);
 }
 
-.staff-app .ev2-personal-record .record-summary-grid strong {
+.ev2-personal-record.ev2-personal-staff .record-summary-grid strong {
   font-size: var(--ev2-type-card-desktop);
   letter-spacing: -.02em;
 }
 
-.staff-app .ev2-personal-record .record-summary-grid span {
+.ev2-personal-record.ev2-personal-staff .record-summary-grid span {
   margin-top: var(--ev2-space-1);
   color: var(--ev2-text-secondary);
   font-size: var(--ev2-type-supporting);
 }
 
-.staff-app .ev2-personal-record .highlight-stack {
+.ev2-personal-record.ev2-personal-staff .highlight-stack {
   gap: 0;
   margin-top: var(--ev2-space-3);
   border-top: 1px solid var(--ev2-line);
 }
 
-.staff-app .ev2-personal-record .highlight-card {
+.ev2-personal-record.ev2-personal-staff .highlight-card {
   padding: var(--ev2-space-4) var(--ev2-space-1);
   border: 0;
   border-bottom: 1px solid var(--ev2-line);
@@ -875,71 +879,71 @@
   box-shadow: none;
 }
 
-.staff-app .ev2-personal-record .highlight-card:hover {
+.ev2-personal-record.ev2-personal-staff .highlight-card:hover {
   background: color-mix(in srgb, var(--ev2-surface) 72%, transparent);
 }
 
-.staff-app .ev2-personal-record .timeline {
+.ev2-personal-record.ev2-personal-staff .timeline {
   box-shadow: none;
 }
 
-.staff-app .ev2-personal-record .timeline-row,
-.staff-app .ev2-personal-record .record-line,
-.staff-app .ev2-personal-record .session-row {
+.ev2-personal-record.ev2-personal-staff .timeline-row,
+.ev2-personal-record.ev2-personal-staff .record-line,
+.ev2-personal-record.ev2-personal-staff .session-row {
   background: transparent;
 }
 
-.staff-app .ev2-personal-record .quiet-empty.compact {
+.ev2-personal-record.ev2-personal-staff .quiet-empty.compact {
   border-inline: 0;
   border-radius: 0;
   background: transparent;
 }
 
 @media (max-width: 760px) {
-  .staff-app .ev2-personal-hub,
-  .staff-app .ev2-personal-record {
+  .ev2-personal-hub.ev2-personal-staff,
+  .ev2-personal-record.ev2-personal-staff {
     padding-top: var(--ev2-space-2);
   }
 
-  .staff-app .ev2-personal-hub .ev2pf-header,
-  .staff-app .ev2-personal-record .ev2pf-header {
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-header,
+  .ev2-personal-record.ev2-personal-staff .ev2pf-header {
     padding-top: var(--ev2-space-2);
   }
 
-  .staff-app .ev2-personal-hub .ev2pf-destinations {
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-destinations {
     grid-template-columns: 1fr;
   }
 
-  .staff-app .ev2-personal-hub .ev2pf-destination,
-  .staff-app .ev2-personal-hub .ev2pf-destination:nth-child(odd),
-  .staff-app .ev2-personal-hub .ev2pf-destination:nth-child(even) {
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-destination,
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-destination:nth-child(odd),
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-destination:nth-child(even) {
     min-height: 4.25rem;
     padding: var(--ev2-space-3) 0;
     border-right: 0;
     border-bottom: 1px solid var(--ev2-line);
   }
 
-  .staff-app .ev2-personal-hub .ev2pf-destination:last-child {
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-destination:last-child {
     border-bottom: 0;
   }
 
-  .staff-app .ev2-personal-hub .ev2pf-section-head {
+  .ev2-personal-hub.ev2-personal-staff .ev2pf-section-head {
     padding-block: var(--ev2-space-3);
   }
 
-  .staff-app .ev2-personal-record .record-summary-grid {
+  .ev2-personal-record.ev2-personal-staff .record-summary-grid {
     grid-template-columns: 1fr;
   }
 
-  .staff-app .ev2-personal-record .record-summary-grid > div,
-  .staff-app .ev2-personal-record .record-summary-grid > div + div {
+  .ev2-personal-record.ev2-personal-staff .record-summary-grid > div,
+  .ev2-personal-record.ev2-personal-staff .record-summary-grid > div + div {
     min-height: 0;
     padding: var(--ev2-space-3) 0;
     border-left: 0;
     border-bottom: 1px solid var(--ev2-line);
   }
 
-  .staff-app .ev2-personal-record .record-summary-grid > div:last-child {
+  .ev2-personal-record.ev2-personal-staff .record-summary-grid > div:last-child {
     border-bottom: 0;
   }
 }

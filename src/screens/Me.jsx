@@ -273,7 +273,7 @@ export default function Me({ me, openGoal, openRecord, openPerformance, openWork
     profile.birthday ? { label: "Birthday", value: new Date(profile.birthday + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" }) } : null,
   ];
 
-  return <div className="body ev2-personal-page ev2-personal-hub">
+  return <div className={`body ev2-personal-page ev2-personal-hub ${!me.is_admin && !me.is_exec && me.role !== "manager" ? "ev2-personal-staff" : ""}`.trim()}>
     <PersonalPageHeader
       eyebrow={me.unit_name || "CEAC OS"}
       title="My Hub"

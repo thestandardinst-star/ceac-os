@@ -178,7 +178,7 @@ export default function Record({ me, openItem }) {
   const firstHighlight = record.completedItems[0];
   const secondHighlight = record.completedItems[1];
 
-  return <div className="body staff-record ev2-personal-page ev2-personal-record">
+  return <div className={`body staff-record ev2-personal-page ev2-personal-record ${!me.is_admin && !me.is_exec && me.role !== "manager" ? "ev2-personal-staff" : ""}`.trim()}>
     <PersonalPageHeader
       eyebrow="My Hub"
       title="My work history"
