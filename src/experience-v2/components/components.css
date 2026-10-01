@@ -835,6 +835,10 @@ button.ev2c-record-row {
   .ev2c-data-panel-head {
     flex-direction: column;
   }
+
+  .ev2c-surface-section.ev2c-data-panel .ev2c-data-panel-head {
+    padding-inline: 0;
+  }
 }
 
 
