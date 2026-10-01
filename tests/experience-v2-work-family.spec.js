@@ -14,7 +14,7 @@ const roles = [
     key: "manager",
     email: "manager@ceac.local.test",
     app: ".manager-app",
-    tabs: ["Given out", "Needs review", "Team work", "Mine"],
+    tabs: ["Given out", "Needs review", "Team work", "My work"],
   },
   {
     key: "administration",
@@ -74,6 +74,19 @@ for (const viewport of [
       await expect(page.getByRole("heading", { name: role.key === "staff" ? "My work" : "Work", exact: true })).toBeVisible();
       for (const label of role.tabs) {
         await expect(page.getByRole("tab", { name: new RegExp(label) }).first()).toBeVisible();
+      }
+
+      if (role.key === "manager" && viewport.width <= 320) {
+        const managerTabs = await page.locator(".ev2-work-manager .ev2w-tabs").evaluate((node) => ({
+          clientWidth: node.clientWidth,
+          scrollWidth: node.scrollWidth,
+          visibleTabs: [...node.querySelectorAll('[role="tab"]')].filter((tab) => {
+            const rect = tab.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          }).length,
+        }));
+        expect(managerTabs.visibleTabs).toBe(4);
+        expect(managerTabs.scrollWidth - managerTabs.clientWidth).toBeLessThanOrEqual(1);
       }
 
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);

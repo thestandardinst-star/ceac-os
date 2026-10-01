@@ -367,6 +367,18 @@
     flex: 0 0 auto;
   }
 
+  .ev2-work-manager .ev2w-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .ev2-work-manager .ev2w-tabs button {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+
   .ev2w-toolbar {
     grid-template-columns: 1fr;
   }
