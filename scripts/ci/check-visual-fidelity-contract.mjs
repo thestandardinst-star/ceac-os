@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 
 const requiredFiles = [
   "docs/visual-fidelity/START_HERE.md",
