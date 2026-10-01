@@ -1616,3 +1616,103 @@
     padding-inline: var(--ev2-space-3);
   }
 }
+
+
+/* VF2C — Staff Team fidelity
+   Staff Team is context and directory, not a management dashboard. */
+.ev2-people-staff {
+  width: min(100%, 68rem);
+}
+
+.ev2-people-staff .ev2p-header {
+  padding-bottom: var(--ev2-space-4);
+}
+
+.ev2-people-staff .ev2p-count {
+  min-width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: right;
+}
+
+.ev2-people-staff .ev2p-count strong {
+  font-size: var(--ev2-type-card-mobile);
+}
+
+.ev2-people-staff .ev2p-room {
+  min-height: 4rem;
+  border-radius: var(--ev2-radius-control);
+  box-shadow: none;
+}
+
+.ev2-people-staff .ev2p-stack {
+  gap: 0;
+  margin-top: var(--ev2-space-5);
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section {
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-head {
+  min-height: 3.75rem;
+  padding-inline: var(--ev2-space-1);
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-body {
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2-people-staff .ev2p-stack .ev2p-person-row,
+.ev2-people-staff .ev2p-stack .ev2p-fact-row,
+.ev2-people-staff .ev2p-stack .ev2p-resource-row {
+  padding-inline: var(--ev2-space-1);
+}
+
+.ev2-people-staff .ev2p-attention-grid .ev2p-section {
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .ev2-people-staff {
+    padding-top: var(--ev2-space-2);
+  }
+
+  .ev2-people-staff .ev2p-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--ev2-space-3);
+    padding-top: var(--ev2-space-2);
+  }
+
+  .ev2-people-staff .ev2p-header-copy {
+    grid-column: 1 / -1;
+  }
+
+  .ev2-people-staff .ev2p-header-side {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .ev2-people-staff .ev2p-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ev2-space-1);
+  }
+
+  .ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-head,
+  .ev2-people-staff .ev2p-stack .ev2p-person-row,
+  .ev2-people-staff .ev2p-stack .ev2p-fact-row,
+  .ev2-people-staff .ev2p-stack .ev2p-resource-row {
+    padding-inline: 0;
+  }
+}
