@@ -824,6 +824,10 @@ button.ev2c-record-row {
     width: 100%;
   }
 
+  .ev2c-segmented-item {
+    min-height: var(--ev2-control-min);
+  }
+
   .ev2c-table-wrap {
     overflow-x: visible;
     border-radius: var(--ev2-radius-control);
