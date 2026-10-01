@@ -10,7 +10,7 @@ const requiredFiles = [
   "docs/visual-fidelity/SESSION_START_PROMPT.md",
   "docs/visual-fidelity/VF_ACCEPTANCE_RECORD_TEMPLATE.md",
   "docs/visual-fidelity/targets/CEAC_PREMIUM_COMPOSITION_TARGET.html",
-  "docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg",
+  "docs/visual-fidelity/references/README.md",
 ];
 
 const failures = [];
@@ -59,6 +59,14 @@ const mustContain = {
     "4cbc4c7aeb467a7ba889edec3464fbc0e7a1a72f75f32ada7360bb61aeb3b562",
     "8eeffe84b8a3e08616c37c8764cb65a271796152d06c0f89a528b8045dbbfddd",
     "0ec1c21124f7dd4e4f3143d8a1394de7a4599b870c85afc4578d7af643598b91",
+    "CEAC_PREMIUM_COMPOSITION_TARGET.html",
+  ],
+  "docs/visual-fidelity/targets/CEAC_PREMIUM_COMPOSITION_TARGET.html": [
+    "People. Work. Ministry. Impact.",
+    "Needs your attention",
+    "Waiting on others",
+    "Coming up",
+    "Calendar context",
   ],
 };
 
@@ -71,11 +79,6 @@ for (const [path, markers] of Object.entries(mustContain)) {
   for (const marker of markers) {
     if (!text.includes(marker)) failures.push(`${path} lost binding marker: ${marker}`);
   }
-}
-
-if (fs.existsSync("docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg")) {
-  const size = fs.statSync("docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg").size;
-  if (size < 8000) failures.push("CEAC premium repository reference is unexpectedly small/corrupt");
 }
 
 if (failures.length) {
