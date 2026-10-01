@@ -2,8 +2,9 @@
 
 Status: ACTIVE
 Programme namespace: VF
-Branch: `chatgpt/visual-fidelity-closure-2026-10-01`
-Protected baseline: post-Stage-17 `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`
+Branch: `chatgpt/visual-fidelity-implementation-2026-10-01`
+Protected functional baseline: post-Stage-17 `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`
+Visual-fidelity bootstrap merged to `main` at `76843f94897ece6e62e1cc255bb9da24eef6a15b`
 
 This is the mandatory entry point for every Chat, Work, Codex, Claude or other coding agent that changes the visible CEAC OS experience after Experience V2.
 
