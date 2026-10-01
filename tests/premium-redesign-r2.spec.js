@@ -26,7 +26,7 @@ test.describe("Premium redesign R2 Manager",()=>{
     const {context,page}=await openAs(browser);
     await page.locator(".ev2s-sidebar").getByRole("button",{name:"Work",exact:true}).click();
     await expect(page.getByRole("heading",{name:"Work",exact:true})).toBeVisible();
-    for (const label of ["Given out","Needs review","Team work","Mine"]) {
+    for (const label of ["Given out","Needs review","Team work","My work"]) {
       await expect(page.getByRole("tab",{name:new RegExp(label)})).toBeVisible();
     }
     await page.screenshot({path:"test-artifacts/redesign-r2-manager-work.png",fullPage:true});
