@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF0 — Continuity, reference lock and acceptance hardening
-Current substage: VF0C — Whole-system visual gap map (ACTIVE)
+Current stage: VF1 — Shared composition foundation
+Current substage: VF1A — Shell / navigation / command layer (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -37,57 +37,59 @@ Persisted in GitHub:
 - `docs/visual-fidelity/targets/CEAC_PREMIUM_COMPOSITION_TARGET.html`
 - root/legacy writer entrypoint bindings.
 
-The full-resolution CEAC premium mockup remains the integrity master in the persistent Library. Its SHA-256 and the exact external-quality-reference fingerprints are persisted in REFERENCE_MANIFEST.
-
-External inspiration images are not copied as product assets. Their exact identity and binding quality parameters are persisted, while the CEAC-owned target is repository-native.
-
 ### VF0B — Acceptance hardening: COMPLETE
-
-Persisted:
-- Level C Product Fidelity gate;
-- Level B + Level C acceptance formula;
-- visual acceptance record template;
-- continuous VF0–VF10 implementation sequence;
-- portable session-start prompt;
-- machine-enforced source-of-truth check wired into CI and Quality Gate.
 
 Bootstrap PR:
 - PR #77
-- exact accepted bootstrap application head: `4a457173940307bb93e98ca8b59b780d129755ef`
-- CI #1536: PASS
-- Migration Replay #1143: PASS
-- Account Security #1315: PASS
-- Quality Gate #1341: PASS
-- SQL/RLS/security contracts: PASS
-- all four browser shards: PASS
-- merged exact-head evidence: PASS
-- role-and-RLS: PASS
+- accepted application head: `4a457173940307bb93e98ca8b59b780d129755ef`
+- CI: PASS
+- Migration Replay: PASS
+- Account Security: PASS
+- Quality Gate: PASS
 - Vercel: PASS
 - protected-main signed squash merge: `76843f94897ece6e62e1cc255bb9da24eef6a15b`
 
-## Active: VF0C — Whole-system visual gap map
+### VF0C — Whole-system visual gap map: COMPLETE / ACCEPTED
 
-Before broad visual implementation:
+Persisted:
+- `docs/visual-fidelity/VF0C_WHOLE_SYSTEM_VISUAL_GAP_MAP.md`
+- `docs/visual-fidelity/acceptance/VF0C_ACCEPTANCE.md`
 
-1. create the complete route/surface inventory across Staff, Manager, Administration/HR and Executive;
-2. capture/inspect current accepted product evidence at representative phone, laptop and desktop viewports;
-3. compare every major route against:
-   - repository CEAC target;
-   - Visual Fidelity Contract;
-   - role-specific product architecture;
-4. classify exact drift:
-   - hierarchy;
-   - composition;
-   - density;
-   - surface/card overuse;
-   - typography;
-   - iconography;
-   - state/colour;
-   - data visualisation;
-   - responsive recomposition;
-   - interaction/motion;
-5. persist the gap map and acceptance priorities;
-6. do not begin broad VF1 shell changes until VF0C is accepted.
+Evidence inspected:
+- Quality Gate run `36851322487`
+- `visual-parity-all-pages` artifact `11155139632` — 57 primary route screenshots
+- `laptop-density-inspection` artifact `11155538765`
+- `redesign-r7-product-inspection` artifact `11155458929` — phone/intermediate/laptop/desktop matrix
+
+VF0C decision:
+- TECHNICALLY ACCEPTED: YES
+- VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES for the audit deliverable
+- current product visual fidelity: MATERIAL DRIFT RECORDED, not yet accepted as final
+
+Primary system-wide drift now locked:
+- universal white-card composition;
+- equal visual weighting;
+- under-used laptop/desktop canvas;
+- mobile serial card stacking;
+- insufficient role differentiation inside route content;
+- insufficient split/table/ledger/timeline use;
+- motion/context continuity not yet fully expressed.
+
+## Active: VF1A — Shell / navigation / command layer
+
+Purpose:
+Refine the shared desktop/laptop/mobile composition without changing authority, routing, data contracts or business semantics.
+
+Required outcomes:
+1. preserve dark CEAC navigation identity and strong active state;
+2. keep command/search/action layer but improve compactness and optical hierarchy;
+3. create a stronger content canvas contract for role-specific composition;
+4. reduce dead space and avoid shell-driven card framing;
+5. preserve mobile bottom-navigation safety and role priorities;
+6. preserve all existing routing, capability and security boundaries;
+7. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
+
+Do not begin VF1B until VF1A is accepted.
 
 ## Protected boundaries
 
