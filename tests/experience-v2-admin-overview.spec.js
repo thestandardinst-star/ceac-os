@@ -114,8 +114,14 @@ for (const viewport of [
       await expect(supportingRows.filter({ hasText: "Workforce today" }).first()).toBeVisible();
       await expect(supportingRows.filter({ hasText: "Units" }).first()).toBeVisible();
 
+      const deliveryDisclosure = page.locator(".adminv2-mobile-delivery");
+      await expect(deliveryDisclosure).not.toHaveAttribute("open", "");
       const contextBox = await page.locator(".adminv2-mobile-context").boundingBox();
       expect(contextBox?.height || Number.POSITIVE_INFINITY).toBeLessThan(760);
+
+      await deliveryDisclosure.locator("summary").click();
+      await expect(deliveryDisclosure).toHaveAttribute("open", "");
+      await expect(deliveryDisclosure.locator(".adminv2-mobile-delivery-body")).toBeVisible();
     }
 
     await page.screenshot({

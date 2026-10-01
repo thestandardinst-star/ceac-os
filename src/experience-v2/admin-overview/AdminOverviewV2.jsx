@@ -326,30 +326,32 @@ export default function AdminOverviewV2({
             />
           </div>
 
-          <div className="adminv2-mobile-delivery">
-            <div className="adminv2-mobile-delivery-head">
+          <details className="adminv2-mobile-delivery">
+            <summary className="adminv2-mobile-delivery-head">
               <span>Cross-unit attention</span>
               <Count value={deliveryAttention} tone={deliveryAttention ? "attention" : "success"} />
+            </summary>
+            <div className="adminv2-mobile-delivery-body">
+              {deliveryAttention === 0 ? <Quiet>No rule-based delivery signal or cross-unit blocker needs attention.</Quiet> : null}
+              {watch.map((row) => <AdminActionRow
+                key={`mobile-${row.k}`}
+                icon="warning"
+                title={row.who}
+                meta={row.why}
+                status="Recorded signal"
+                statusTone="warning"
+              />)}
+              {blockers.map((blocker) => <AdminActionRow
+                key={`mobile-${blocker.id}`}
+                icon="work"
+                title={blocker.work_items?.title || "Cross-unit blocker"}
+                meta={`${blocker.claimant?.full_name || "Someone"} waiting on ${blocker.units?.name || blocker.party_text}`}
+                status="Cross-unit blocker"
+                statusTone="warning"
+                onClick={blocker.work_items ? () => onOpenItem?.(blocker.work_items.id) : undefined}
+              />)}
             </div>
-            {deliveryAttention === 0 ? <Quiet>No rule-based delivery signal or cross-unit blocker needs attention.</Quiet> : null}
-            {watch.map((row) => <AdminActionRow
-              key={`mobile-${row.k}`}
-              icon="warning"
-              title={row.who}
-              meta={row.why}
-              status="Recorded signal"
-              statusTone="warning"
-            />)}
-            {blockers.map((blocker) => <AdminActionRow
-              key={`mobile-${blocker.id}`}
-              icon="work"
-              title={blocker.work_items?.title || "Cross-unit blocker"}
-              meta={`${blocker.claimant?.full_name || "Someone"} waiting on ${blocker.units?.name || blocker.party_text}`}
-              status="Cross-unit blocker"
-              statusTone="warning"
-              onClick={blocker.work_items ? () => onOpenItem?.(blocker.work_items.id) : undefined}
-            />)}
-          </div>
+          </details>
         </section>
 
         <section className="adminv2-context-grid">

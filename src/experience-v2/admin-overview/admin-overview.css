@@ -491,8 +491,21 @@ button.adminv2-action-main {
 
   .adminv2-mobile-delivery-head {
     padding: var(--ev2-space-2) var(--ev2-space-3);
-    border-bottom: 1px solid var(--ev2-line);
     background: var(--ev2-surface-soft);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .adminv2-mobile-delivery-head::-webkit-details-marker {
+    display: none;
+  }
+
+  .adminv2-mobile-delivery[open] .adminv2-mobile-delivery-head {
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .adminv2-mobile-delivery-body {
+    min-width: 0;
   }
 
   .adminv2-action-main,
