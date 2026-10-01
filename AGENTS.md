@@ -2,7 +2,7 @@
 
 Stage 17 is merged to `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`.
 
-For ANY visible UI/product-experience work, the active programme is the VF sequence on branch `chatgpt/visual-fidelity-closure-2026-10-01`.
+For ANY visible UI/product-experience work, the active programme is the VF sequence on branch `chatgpt/visual-fidelity-implementation-2026-10-01`.
 
 Before any UI write, read in this order:
 1. `docs/visual-fidelity/START_HERE.md`

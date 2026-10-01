@@ -4,7 +4,7 @@ Stage 17 is COMPLETE and merged to protected `main` at `3a287ea4d7be1305970c0224
 
 Current visible-product programme: **Visual Fidelity & Interaction Closure (VF0–VF10)**.
 
-Active programme branch: `chatgpt/visual-fidelity-closure-2026-10-01`.
+Active programme branch: `chatgpt/visual-fidelity-implementation-2026-10-01`.
 
 Current state and next action live in `docs/visual-fidelity/BUILD_STATE.md`.
 

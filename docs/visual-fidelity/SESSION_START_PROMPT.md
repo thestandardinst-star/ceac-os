@@ -5,8 +5,9 @@ Use this prompt verbatim or treat this file as the authoritative equivalent.
 Continue CEAC OS Visual Fidelity & Interaction Closure safely and continuously from the live canonical repository state.
 
 Repository: thestandardinst-star/ceac-os
-Programme branch: chatgpt/visual-fidelity-closure-2026-10-01
-Protected baseline: post-Stage-17 main at 3a287ea4d7be1305970c0224abc3d28800f73d45
+Programme branch: chatgpt/visual-fidelity-implementation-2026-10-01
+Protected functional baseline: post-Stage-17 main at 3a287ea4d7be1305970c0224abc3d28800f73d45
+Visual-fidelity bootstrap main: 76843f94897ece6e62e1cc255bb9da24eef6a15b
 
 GITHUB IS CANONICAL.
 
