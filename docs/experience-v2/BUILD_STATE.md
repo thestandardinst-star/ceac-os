@@ -5,9 +5,9 @@ Last updated: 1 October 2026
 ## Current programme state
 
 Programme: Experience V2
-Status: ACTIVE
-Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACTIVE)
-Current substage: Stage 17D — protected-main enterprise merge (READY)
+Status: ACCEPTED AND COMPLETE
+Current stage: Stage 17 — Merge V2 and Reconcile Enterprise Sequence (ACCEPTED AND COMPLETE)
+Current substage: COMPLETE
 
 Canonical reconciliation checkpoint:
 - live canonical documentation HEAD at this reconciliation: `28e9eaea3601871639b8852908ce58717496d7e1`;
@@ -78,7 +78,13 @@ Canonical reconciliation checkpoint:
 - live integration browser roles are read-only over authorised public metadata and cannot use the private schema or service-owned secret/worker functions;
 - Telegram is truthfully not connected because no production CEAC bot credential/destination is configured; this provider-only activation dependency is recorded rather than fabricated;
 - Stage 17 enterprise reconciliation acceptance is recorded in `docs/experience-v2/STAGE17_ENTERPRISE_ACCEPTANCE_RECORD.md`;
-- current Stage 17 action: protected-main squash merge PR #71, record the exact merged main SHA, then merge the documentation-only Stage 17 closure checkpoint;
+- PR #71 was squash-merged to protected main at verified SHA `3a287ea4d7be1305970c0224abc3d28800f73d45`;
+- PR #71 accepted documentation head `5864cb39339ee0560d1834d695cfdad82ff45571` and merged main `3a287ea4d7be1305970c0224abc3d28800f73d45` share exact tree `b7933e0cf41e9178f7556b462ce4ca9349026d44`;
+- Stage 17 is ACCEPTED AND COMPLETE per `docs/experience-v2/STAGE17_ACCEPTANCE_RECORD.md`;
+- canonical application branch is `main`;
+- Telegram production activation remains an explicit later operational configuration action because no CEAC production bot credential/destination has been supplied;
+- Payroll remains BLOCKED until CEAC payroll rules are formally confirmed;
+- no further Experience V2 programme stage is authorised by this closure;
 - no accepted Stage 11–14 work is rolled backward to match older stale summary text.
 
 Reconciliation precedence:
@@ -123,7 +129,7 @@ Measured improvement:
 
 No test, assertion, retry, timeout, security gate or acceptance criterion was removed or weakened. 10E3 visual inspection resumes from the already-green application head; 10E4 remains unopened until 10E3 acceptance.
 
-Active branch: chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26
+Active branch: main
 Experience V2 baseline SHA: 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883
 
 The branch was created directly from the exact green PR #69 head so that existing fixes and test coverage are retained while the visible product layer is rebuilt safely.
@@ -132,7 +138,7 @@ The branch was created directly from the exact green PR #69 head so that existin
 
 PR #69 remains the recovery/reference line from exact green head 1a0fb33d3fff18ddae63e6523547b4f4d5d5c883.
 
-PR #71 has been reconciled from accepted V2 main and is accepted for protected-main merge at application SHA `1cc76a013c8dc3904bdc09f00fe2bded3a12904a`.
+PR #71 is merged into protected `main` at verified SHA `3a287ea4d7be1305970c0224abc3d28800f73d45`; the accepted enterprise application SHA remains `1cc76a013c8dc3904bdc09f00fe2bded3a12904a`.
 
 Stage 13 Payroll remains blocked until CEAC payroll rules are formally confirmed.
 

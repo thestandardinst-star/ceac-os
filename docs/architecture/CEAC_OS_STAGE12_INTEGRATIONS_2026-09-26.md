@@ -1,12 +1,13 @@
 # CEAC OS — Stage 12 Integrations Architecture
 
 **Date:** 26 September 2026
-**Status:** ACCEPTED FOR MERGE — STAGE 17 ENTERPRISE RECONCILIATION
+**Status:** MERGED AND ACCEPTED — STAGE 17 COMPLETE
 **Repository:** `thestandardinst-star/ceac-os`
 **Reconciliation baseline main:** `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`
-**Baseline state:** Experience V2 Stages 1–16 accepted and merged; Stage 17 enterprise reconciliation accepted for protected-main merge
-**Latest migration on V2 main at reconciliation:** 098; Stage 12 integration runtime is migration 099
-**Active branch:** `chatgpt/enterprise-expansion-stage-12-integrations-2026-09-26`
+**Merged enterprise main:** `3a287ea4d7be1305970c0224abc3d28800f73d45`
+**Baseline state:** Experience V2 Stages 1–16 accepted; Stage 17 enterprise integration reconciliation merged and accepted
+**Integration migrations on canonical main:** 099 integration runtime; 100 table privilege hardening
+**Canonical branch:** `main`
 
 ## 1. Purpose
 
