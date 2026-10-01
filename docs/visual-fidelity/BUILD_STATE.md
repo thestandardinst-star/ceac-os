@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF2 — Staff
-Current substage: VF2C — Team / Record / Me / mobile navigation (ACTIVE)
+Current stage: VF3 — Manager
+Current substage: VF3A — Home command centre (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`

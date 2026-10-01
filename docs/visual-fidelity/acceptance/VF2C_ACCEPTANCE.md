@@ -1,7 +1,7 @@
 # CEAC OS — VF2C Acceptance Record
 
-Substage: VF2C — Team / Record / Me / mobile navigation  
-Accepted application SHA: `efe0b0cf5135c0a908c82e63473774b4ba5e1f33`  
+Substage: VF2C — Team / Record / Me / mobile navigation
+Accepted application SHA: `efe0b0cf5135c0a908c82e63473774b4ba5e1f33`
 Date: 1 October 2026
 
 ## Target
@@ -61,7 +61,7 @@ Record summary facts remain bounded as a small factual group; they are subordina
 
 ## Decision
 
-TECHNICALLY ACCEPTED: YES  
+TECHNICALLY ACCEPTED: YES
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
 VF2 — Staff is complete.
