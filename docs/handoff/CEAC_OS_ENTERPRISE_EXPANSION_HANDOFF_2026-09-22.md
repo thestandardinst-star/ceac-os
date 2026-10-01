@@ -266,3 +266,17 @@ Stage 11 contract:
 The existing Stage 1F Policies & rules engine remains system configuration; Stage 11 Compliance is a separate human policy/evidence/exception workflow.
 
 No Stage 12 work may begin until Stage 11 is green and merged.
+
+
+## Stage 17 Experience V2 reconciliation — 30 September 2026
+
+Experience V2 PR #72 is merged to protected main at `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`.
+
+The frozen Stage 12 integration architecture is now reconciled on top of that main line. Binding rules:
+- preserve V2 shell, components, responsive behaviour and CSS-debt boundaries;
+- preserve Stage 12 provider-secret, Supabase Vault, capability, service-role, outbox, idempotency, audit and RLS boundaries;
+- do not restore the old engineering-facing Integrations screen;
+- present real provider state through V2 Connected Apps;
+- migration suffix is reconciled from 097 to 099 because V2 main already contains migrations 097 and 098;
+- Telegram remains the only shipped provider adapter in this Stage 12 closure;
+- Payroll remains blocked until CEAC payroll rules are confirmed.

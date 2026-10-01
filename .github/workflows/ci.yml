@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         if: steps.classify.outputs.documentation_only != 'true'
         run: npm ci
+      - name: Run Telegram provider unit tests
+        if: steps.classify.outputs.documentation_only != 'true'
+        run: node --test tests/integration-runtime.test.mjs
       - name: Dependency security audit
         if: steps.classify.outputs.documentation_only != 'true'
         run: npm audit --audit-level=high

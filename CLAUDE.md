@@ -1,3 +1,7 @@
+# Stage 17 enterprise reconciliation notice
+
+Experience V2 is merged to main at `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`. PR #71 is now the authorised Stage 12 enterprise reconciliation lane. Preserve the V2 product system and secure integrations architecture together. Payroll remains blocked.
+
 # Legacy compatibility notice
 
 The active CEAC OS product-experience programme is Experience V2. The product owner's current workflow is Chat + Work, not a separate Claude implementation lane.

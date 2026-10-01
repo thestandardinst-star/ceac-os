@@ -24,6 +24,7 @@ tests=(
   workforce_management_stage9_gate.sql
   assets_devices_stage10_gate.sql
   compliance_policy_stage11_gate.sql
+  integrations_stage12_gate.sql
   project_register_experience_stage5_gate.sql
   experience_stage6_finance_gate.sql
   experience_stage7_work_capture_gate.sql

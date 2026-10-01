@@ -163,3 +163,40 @@ After V2 merges to main, frozen PR #71 must be reconciled from the new main. Its
 
 Reason:
 Security/data architecture and final product architecture are both accepted contracts. Reconciliation must combine them without restoring superseded premium/parity visual debt or weakening provider-secret, capability, RLS, service-role, idempotency or audit boundaries.
+
+
+## D-022 — Experience V2 merges through protected-main squash
+
+Decision:
+PR #72 was merged to protected `main` with GitHub squash merge at `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`.
+
+Reason:
+Protected main requires verified signatures. A normal API merge commit was rejected by that protection. GitHub squash produced the repository-standard verified commit while preserving the accepted V2 tree.
+
+## D-023 — Stage 12 integration migration is reconciled as 099
+
+Decision:
+The Stage 12 integration runtime migration is named `20260926062000_099_integration_runtime.sql` on the reconciled enterprise branch.
+
+Reason:
+The frozen Stage 12 branch originally called the migration 097, but Experience V2 main subsequently added migrations 097 and 098. Renumbering the suffix to 099 removes ambiguity while preserving chronological migration order and the Stage 12 SQL contract.
+
+## D-024 — Connected Apps uses V2 presentation over the Stage 12 service boundary
+
+Decision:
+The reconciled Administration Connected Apps screen uses Experience V2 components and scoped `ev2i-` styles, while all provider connection, health, subscription and disconnect mutations go through the Stage 12 server runtime.
+
+Reason:
+This preserves the accepted V2 product system without restoring the superseded browser-mutated Integrations UI or weakening the secure provider boundary.
+
+## D-025 — Enterprise integration reconciliation accepted after live deployment validation
+
+Decision:
+PR #71 enterprise reconciliation application SHA `1cc76a013c8dc3904bdc09f00fe2bded3a12904a` is accepted for protected-main squash merge after exact-head CI, Migration Replay, Account Security, complete Level B Quality Gate, all four browser shards, SQL/RLS/security contracts, merged product evidence, role-and-RLS and Vercel passed.
+
+Live Supabase validation also confirmed migrations 099 and 100 are present, the JWT-protected `integration-runtime` Edge Function source matches the accepted repository source, and browser roles retain read-only/no-secret integration authority.
+
+Telegram remains truthfully disconnected until CEAC supplies and verifies a real production bot credential and destination. This is an explicit provider activation dependency, not permission to fabricate a connected state.
+
+Reason:
+Stage 17 must combine the accepted V2 product with the secure Stage 12 provider boundary without weakening either. Exact-head automation, direct Connected Apps inspection and live deployment/security validation establish that boundary before merge.
