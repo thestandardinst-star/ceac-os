@@ -15,6 +15,11 @@ Primary repository-native sources:
 
 The JPEG reference is a repository review copy of the CEAC-owned premium mockup. The original full-resolution Library file remains the integrity master.
 
+Repository review-copy Git blob:
+`0a17f30db4941827dfd75bf5742e4545d8d4884b`
+
+Repository review-copy size: 9,910 bytes.
+
 ## CEAC-owned premium mockup
 
 Library master:
