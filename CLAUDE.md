@@ -1,3 +1,20 @@
+# Visual Fidelity & Interaction Closure notice
+
+The active visible-product programme is now the repository-locked VF sequence on branch `chatgpt/visual-fidelity-closure-2026-10-01`, based on post-Stage-17 main `3a287ea4d7be1305970c0224abc3d28800f73d45`.
+
+Before any UI change, ignore conflicting legacy continuation text below and read:
+1. `docs/visual-fidelity/START_HERE.md`
+2. `docs/visual-fidelity/BUILD_STATE.md`
+3. `docs/visual-fidelity/VISUAL_FIDELITY_CONTRACT.md`
+4. `docs/visual-fidelity/VISUAL_ACCEPTANCE_PROTOCOL.md`
+5. `docs/visual-fidelity/IMPLEMENTATION_SEQUENCE.md`
+6. `docs/visual-fidelity/REFERENCE_MANIFEST.md`
+7. `AGENTS.md`.
+
+Level B technical green does not equal visual acceptance. Level C Product Fidelity is mandatory. Continue the canonical VF sequence until VF10E unless a recorded genuine blocker requires owner input.
+
+---
+
 # Stage 17 enterprise reconciliation notice
 
 Experience V2 is merged to main at `1b3d6b4f62c93f9de41462fe0dbcef920077b3bd`. PR #71 is now the authorised Stage 12 enterprise reconciliation lane. Preserve the V2 product system and secure integrations architecture together. Payroll remains blocked.
