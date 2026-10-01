@@ -90,6 +90,22 @@ for (const viewport of [
         buttons.map((button) => button.getBoundingClientRect().height)
       );
       for (const height of compactHeights) expect(height).toBeGreaterThanOrEqual(44);
+
+      await expect(page.locator(".adminv2-intro-actions")).toBeHidden();
+      await expect(page.locator(".adminv2-mobile-actions")).toBeVisible();
+
+      const inboxBox = await page.locator(".adminv2-inbox").boundingBox();
+      const shortcutsBox = await page.locator(".adminv2-mobile-actions").boundingBox();
+      const setupBox = await page.locator(".adminv2-setup").boundingBox();
+      expect(inboxBox?.y || 0).toBeLessThan(shortcutsBox?.y || 0);
+      expect(shortcutsBox?.y || 0).toBeLessThan(setupBox?.y || 0);
+
+      const firstContextRail = page.locator(".adminv2-context-grid").first();
+      const railWidths = await firstContextRail.evaluate((node) => ({
+        client: node.clientWidth,
+        scroll: node.scrollWidth,
+      }));
+      expect(railWidths.scroll).toBeGreaterThan(railWidths.client);
     }
 
     await page.screenshot({
