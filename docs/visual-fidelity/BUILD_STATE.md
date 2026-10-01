@@ -147,23 +147,42 @@ Acceptance evidence:
 
 VF2B flattened Staff Work into an operational list, reduced creation/control dominance, removed duplicate project context from rows, and made Work Detail read as a working surface rather than a sequence of generic cards.
 
-## Active: VF2C — Team / Record / Me / mobile navigation
+### VF2C — Team / Record / Me / mobile navigation: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`efe0b0cf5135c0a908c82e63473774b4ba5e1f33`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF2C_ACCEPTANCE.md`
+- CI `36875789722`: PASS
+- Migration Replay `36875789588`: PASS
+- Account Security `36875789719`: PASS
+- Quality Gate `36875789846`: PASS
+- Level B browser shards 1–4: PASS
+- Vercel: PASS
+- exact-head Staff Team phone evidence: shard artifact `11169672719`
+- exact-head Staff My Hub / Record phone and laptop evidence: shard artifact `11169497166`
+
+VF2C completed the Staff family with flatter Team context, a compact My Hub, evidence-first Record treatment and preserved mobile-navigation reachability. No employee score, ranking or inferred productivity was introduced.
+
+## Active: VF3A — Manager Home command centre
 
 Purpose:
-Finish Staff role character across context, evidence and personal-workspace routes without turning Staff into an administrative dashboard.
+Make Manager Home feel like a coordinated team command centre rather than Staff plus more modules.
 
 Required outcomes:
-1. Team reads as lightweight people/context: Unit Room, leadership, availability, directory and references;
-2. ordinary Team directory sections use flatter grouped rows instead of large card islands;
-3. Record remains evidence-first, with statistics visibly subordinate to completed work, feedback and factual history;
-4. My Hub becomes a compact personal workspace, not a six-card destination gallery;
-5. personal goals, reminders, leave and ordinary profile information remain self-focused and privacy-safe;
-6. preserve existing Staff bottom-navigation reachability, safe-area behaviour and More access without route/authority changes;
-7. keep truthful empty states and avoid scores, ranking or inferred productivity;
-8. preserve 320–430 responsive acceptance widths and existing People/Personal business contracts;
-9. pass targeted Level A during implementation, then exact-head Level B + Level C before family exit.
+1. Needs your decision remains the dominant authority queue;
+2. delegation / work given out becomes immediately visible without duplicating the full Work screen;
+3. team workload and availability read as operational context, not employee scoring;
+4. projects needing attention and dependencies remain evidence-led and open to underlying records;
+5. money context preserves currency separation and never implies a bank balance;
+6. schedule / commitments provide useful context on laptop and desktop without stealing hierarchy;
+7. personal work and lower-value movement remain visibly secondary;
+8. reduce nested statistic cards and use flatter rows / segmented evidence where they scan better;
+9. preserve current Manager routes, RPC/RLS/capability boundaries and business semantics;
+10. pass targeted Level A during implementation, then exact-head Level B + Level C before VF3B.
 
-Do not begin VF3A until VF2C is accepted.
+Do not begin VF3B until VF3A is accepted.
 
 ## Protected boundaries
 
