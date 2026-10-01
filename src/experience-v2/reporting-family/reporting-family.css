@@ -73,3 +73,57 @@
 .ev2rep-field-label .field{width:100%;margin:0}
 @media(max-width:760px){.ev2-reporting-admin .ev2rep-kind-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.ev2-reporting-admin .ev2rep-row-actions{grid-template-columns:1fr}}
 @media(max-width:359px){.ev2-reporting-admin .ev2rep-kind-picker{grid-template-columns:1fr}}
+
+
+/* VF3D provisional — Manager Reports evidence-first composition.
+   This changes presentation only; every number and drill-down remains sourced from existing report evidence. */
+.ev2-reporting-manager .ev2rep-evidence-grid {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-line);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2-reporting-manager .ev2rep-evidence {
+  min-height: 6.75rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-reporting-manager .ev2rep-control-panel,
+.ev2-reporting-manager .report-analysis-toggle,
+.ev2-reporting-manager .report-record-card {
+  box-shadow: none;
+}
+
+.ev2-reporting-manager .ev2rep-ministry-context {
+  margin-top: var(--ev2-space-6);
+  padding-top: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+}
+
+@media (min-width: 1040px) {
+  .ev2-reporting-manager {
+    width: min(100%, 84rem);
+  }
+
+  .ev2-reporting-manager .report-authoring {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-reporting-manager .ev2rep-evidence-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-reporting-manager .ev2rep-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -924,3 +924,48 @@
     grid-column: auto;
   }
 }
+
+
+/* VF3D provisional — Manager Projects operational ledger.
+   Presentation-only: preserves project, work, objective and finance authority. */
+.ev2-project-manager .ev2p-list {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row {
+  min-height: 4.35rem;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row:hover {
+  background: var(--ev2-surface-soft);
+}
+
+@media (min-width: 1040px) {
+  .ev2-project-manager {
+    width: min(100%, 80rem);
+  }
+
+  .ev2-project-manager .ev2p-list .ev2p-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr) minmax(8rem, auto);
+    padding-block: var(--ev2-space-2);
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-project-manager .ev2p-list {
+    border-radius: var(--ev2-radius-control);
+  }
+}
