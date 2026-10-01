@@ -72,7 +72,7 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   padding: var(--ev2-space-3) var(--ev2-space-3);
   border-right: 1px solid rgba(255, 255, 255, .07);
-  background: linear-gradient(180deg, #102238 0%, var(--ev2-shell) 42%, #0b1420 100%);
+  background: linear-gradient(180deg, var(--ev2-shell-raised) 0%, var(--ev2-shell) 42%, #0b1420 100%);
   color: #f8fbff;
   box-shadow: 8px 0 24px rgba(15, 23, 35, .055);
 }
@@ -189,7 +189,7 @@
 
 .ev2s-sidebar-group-label {
   padding: 0 var(--ev2-space-3) var(--ev2-space-1);
-  color: #72869a;
+  color: #8ea0b5;
   font-size: var(--ev2-type-label);
   line-height: 1.2;
   font-weight: 700;
