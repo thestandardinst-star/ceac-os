@@ -480,6 +480,16 @@ button.adminv2-action-main {
     justify-self: start;
   }
 
+  /* VF4A: preserve authority hierarchy on phone.
+     JSX order is inbox → shortcuts → setup; mobile order rules must match it. */
+  .adminv2-mobile-actions {
+    order: 2;
+  }
+
+  .adminv2-setup {
+    order: 3;
+  }
+
   .adminv2-action-buttons {
     justify-content: flex-start;
   }
