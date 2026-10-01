@@ -2018,6 +2018,7 @@ test("Administration surfaces use policy-safe HR states and real employee record
   const telegramCard = page.locator(".connected-provider-card").filter({ hasText: "Telegram" });
   await expect(telegramCard).toBeVisible();
   await expect(telegramCard.getByText("Not connected", { exact: true })).toBeVisible();
+  await expect(telegramCard.getByText("No connected account", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Integration connector name")).toHaveCount(0);
   await expect(page.getByLabel("Integration connector key")).toHaveCount(0);
 

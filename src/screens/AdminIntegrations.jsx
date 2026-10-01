@@ -257,7 +257,7 @@ export default function AdminIntegrations({ me }) {
           </div>
 
           <div className="ev2i-provider-facts">
-            <div><span>Connected account</span><strong>{connector?.connected_account_label || "Not connected"}</strong></div>
+            <div><span>Connected account</span><strong>{connector?.connected_account_label || "No connected account"}</strong></div>
             <div><span>What CEAC OS can do</span><strong>{connected ? (connector.advertised_capabilities || []).map(human).join(", ") || "No verified capability" : "Connect to verify capability"}</strong></div>
             <div><span>Granted permission</span><strong>{connected ? (connector.granted_scopes || []).map(human).join(", ") || "None" : "None granted"}</strong></div>
             <div><span>Last health check</span><strong>{stamp(connector?.last_health_at)}</strong></div>
