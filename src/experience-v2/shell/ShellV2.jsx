@@ -83,17 +83,24 @@ export function SideNav({
       </div>
 
       <nav className="ev2s-sidebar-nav" aria-label="Primary navigation">
-        {navigation.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={tab === item.key ? "is-active" : ""}
-            aria-current={tab === item.key ? "page" : undefined}
-            onClick={() => setTab(item.key)}
-          >
-            <CeacIcon name={item.icon} size="nav" decorative />
-            <span>{item.label}</span>
-          </button>
+        {groupDestinations(navigation).map((group) => (
+          <section key={group.key} className="ev2s-sidebar-group" aria-label={group.label}>
+            <div className="ev2s-sidebar-group-label">{group.label}</div>
+            <div className="ev2s-sidebar-group-items">
+              {group.items.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={tab === item.key ? "is-active" : ""}
+                  aria-current={tab === item.key ? "page" : undefined}
+                  onClick={() => setTab(item.key)}
+                >
+                  <CeacIcon name={item.icon} size="nav" decorative />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
         ))}
       </nav>
 

@@ -367,6 +367,18 @@
     flex: 0 0 auto;
   }
 
+  .ev2-work-manager .ev2w-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .ev2-work-manager .ev2w-tabs button {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+  }
+
   .ev2w-toolbar {
     grid-template-columns: 1fr;
   }
@@ -1318,5 +1330,274 @@
 @media (max-width: 520px) {
   .ev2-work-detail .ev2wr-actions {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* VF2B — Staff Work fidelity
+   Staff Work is an operational list, not a task-card gallery. These rules are
+   deliberately scoped to Staff so Manager/Admin/Executive Work keep their
+   higher-density family composition. */
+.ev2-work-staff {
+  width: min(100%, 68rem);
+}
+
+.ev2-work-staff .ev2w-header {
+  padding-bottom: var(--ev2-space-4);
+}
+
+.ev2-work-staff > .ev2w-tabs:not(.ev2w-tabs-compact) {
+  width: fit-content;
+  max-width: 100%;
+  gap: 2px;
+  padding: var(--ev2-space-1);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface-muted);
+}
+
+.ev2-work-staff > .ev2w-tabs:not(.ev2w-tabs-compact) button {
+  min-height: 2.5rem;
+  padding-inline: var(--ev2-space-3);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-work-staff > .ev2w-tabs:not(.ev2w-tabs-compact) button.is-selected {
+  background: var(--ev2-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 35, .07);
+}
+
+.ev2-work-staff .ev2w-context-note {
+  margin-top: calc(var(--ev2-space-3) * -1);
+  margin-bottom: var(--ev2-space-3);
+}
+
+.ev2-work-staff .ev2w-actions {
+  margin-block: var(--ev2-space-3);
+}
+
+.ev2-work-staff .ev2w-actions .ev2c-button-primary {
+  border-color: var(--ev2-line-strong);
+  background: var(--ev2-surface);
+  color: var(--ev2-text);
+  box-shadow: none;
+}
+
+.ev2-work-staff .ev2w-actions .ev2c-button-primary:hover {
+  border-color: color-mix(in srgb, var(--ev2-action) 24%, var(--ev2-line-strong));
+  background: var(--ev2-action-soft);
+  color: var(--ev2-action);
+}
+
+.ev2-work-staff > .ev2w-tabs-compact {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  margin: var(--ev2-space-4) 0 0;
+  padding: var(--ev2-space-1);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface-muted);
+}
+
+.ev2-work-staff > .ev2w-tabs-compact button {
+  min-width: 0;
+  min-height: 2.5rem;
+  justify-content: center;
+  padding-inline: var(--ev2-space-2);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-work-staff > .ev2w-tabs-compact button.is-selected {
+  background: var(--ev2-surface);
+  box-shadow: 0 1px 2px rgba(15, 23, 35, .07);
+}
+
+.ev2-work-staff .ev2w-group {
+  margin-top: var(--ev2-space-5);
+}
+
+.ev2-work-staff .ev2w-group-head {
+  padding-inline: 0;
+}
+
+.ev2-work-staff .ev2w-group-head strong {
+  font-weight: 680;
+}
+
+.ev2-work-staff .ev2w-group-head span {
+  min-width: auto;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ev2-text-tertiary);
+}
+
+.ev2-work-staff .ev2w-list {
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-work-staff .ev2w-row {
+  min-height: 4.125rem;
+  padding-inline: var(--ev2-space-2);
+  background: transparent;
+}
+
+.ev2-work-staff .ev2w-row:last-child {
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2-work-staff .ev2w-row:hover {
+  background: color-mix(in srgb, var(--ev2-surface) 72%, transparent);
+}
+
+.ev2-work-staff .ev2w-row-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--ev2-radius-sm);
+  background: color-mix(in srgb, var(--ev2-surface-muted) 72%, transparent);
+}
+
+.ev2-work-staff .ev2w-row-main small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ev2-work-staff .ev2w-empty {
+  border-inline: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.staff-work-detail .ev2wd-header {
+  padding-bottom: var(--ev2-space-4);
+}
+
+.staff-work-detail .ev2wd-section {
+  margin-top: var(--ev2-space-5);
+}
+
+.staff-work-detail .ev2wd-section + .ev2wd-section {
+  padding-top: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+}
+
+.staff-work-detail .ev2wd-copy {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.staff-work-detail .ev2wd-copy-emphasis {
+  padding: var(--ev2-space-3) var(--ev2-space-4);
+  border-left: 3px solid var(--ev2-identity);
+  border-radius: 0 var(--ev2-radius-sm) var(--ev2-radius-sm) 0;
+  background: color-mix(in srgb, var(--ev2-identity-soft) 50%, var(--ev2-surface));
+}
+
+.staff-work-detail .work-room-entry {
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface-soft);
+  box-shadow: none;
+}
+
+.staff-work-detail .card,
+.staff-work-detail .row {
+  box-shadow: none;
+}
+
+.staff-work-detail .row {
+  border-inline: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 760px) {
+  .ev2-work-staff {
+    padding-top: var(--ev2-space-2);
+  }
+
+  .ev2-work-staff .ev2w-header {
+    padding-top: var(--ev2-space-2);
+    padding-bottom: var(--ev2-space-4);
+  }
+
+  .ev2-work-staff > .ev2w-tabs:not(.ev2w-tabs-compact) {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .ev2-work-staff > .ev2w-tabs:not(.ev2w-tabs-compact) button {
+    min-width: 0;
+    justify-content: center;
+    padding-inline: var(--ev2-space-2);
+  }
+
+  .ev2-work-staff .ev2w-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ev2-work-staff .ev2w-actions .ev2c-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ev2-work-staff .ev2w-actions .ev2c-button:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .ev2-work-staff > .ev2w-tabs-compact {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .ev2-work-staff > .ev2w-tabs-compact button {
+    flex: initial;
+    white-space: normal;
+    line-height: 1.15;
+  }
+
+  .ev2-work-staff .ev2w-group {
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-work-staff .ev2w-row {
+    min-height: 4.25rem;
+    padding-inline: var(--ev2-space-1);
+  }
+
+  .staff-work-detail .ev2wd-section + .ev2wd-section {
+    padding-top: var(--ev2-space-3);
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-work-staff .ev2w-actions {
+    gap: var(--ev2-space-1);
+  }
+
+  .ev2-work-staff .ev2w-actions .ev2c-button {
+    gap: var(--ev2-space-1);
+    padding-inline: var(--ev2-space-2);
+  }
+
+  .ev2-work-staff > .ev2w-tabs-compact button {
+    padding-inline: var(--ev2-space-1);
   }
 }

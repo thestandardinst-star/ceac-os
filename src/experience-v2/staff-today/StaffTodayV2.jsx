@@ -645,13 +645,13 @@ export default function StaffTodayV2({
                   })}
                 </DataPanel>
               ) : null}
-            </div>
 
-            {ministryRecord ? (
-              <section className="staffv2-ministry-record" aria-label="Ministry record">
-                {ministryRecord}
-              </section>
-            ) : null}
+              {ministryRecord ? (
+                <section className="staffv2-ministry-record" aria-label="Ministry record">
+                  {ministryRecord}
+                </section>
+              ) : null}
+            </div>
           </>
         ) : null}
       </div>

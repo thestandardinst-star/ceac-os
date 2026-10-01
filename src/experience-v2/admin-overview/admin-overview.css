@@ -105,7 +105,7 @@
 
 .adminv2-panel {
   min-width: 0;
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .adminv2-panel .ev2c-data-panel-body {

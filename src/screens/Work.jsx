@@ -280,7 +280,6 @@ export default function Work({ me, isManager = false, openItem }) {
         title={item.title}
         refCode={item.ref}
         kind={item.kind}
-        context={item.projects?.name}
         due={dueLabel(item.due_at)}
         status={item.status}
         note={item.expected_outcome}
