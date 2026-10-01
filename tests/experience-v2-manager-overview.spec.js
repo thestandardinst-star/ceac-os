@@ -33,6 +33,8 @@ test("Stage 6 Manager Overview is isolated V2 presentation on preserved manager 
 
   expect(home).toContain('from "../experience-v2/manager-overview/ManagerOverviewV2"');
   expect(home).toContain('supabase.rpc("unit_budget_position"');
+  expect(home).toContain('.eq("assigned_by", me.id)');
+  expect(home).toContain('setDelegated(requireResult(delegatedResult, "Work you gave out"))');
   expect(home).toContain('supabase.rpc("respond_to_blocker"');
   expect(home).toContain('supabase.rpc("resolve_blocker"');
   expect(home).not.toContain("ReferenceFocusPanel");
@@ -43,6 +45,8 @@ test("Stage 6 Manager Overview is isolated V2 presentation on preserved manager 
   expect(view).toContain('from "../components"');
   expect(view).toContain('from "../icons"');
   expect(view).toContain("Needs your decision");
+  expect(view).toContain("Work you gave out");
+  expect(view).toContain("Team operating context");
   expect(view).toContain("Availability is context, not a performance measure.");
   expect(view).toContain("This is not a performance score.");
   expect(view).not.toContain("components/bits");
@@ -74,8 +78,10 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), Manager/ })).toBeVisible();
     await expect(page.getByRole("button", { name: "Give out work", exact: true })).toBeVisible();
     await expect(page.locator(".managerv2-decisions")).toBeVisible();
+    await expect(page.locator(".managerv2-delegated")).toBeVisible();
     await expect(page.locator(".managerv2-team")).toBeVisible();
     await expect(page.locator(".managerv2-delivery")).toBeVisible();
+    await expect(page.locator(".managerv2-schedule")).toBeVisible();
     await expect(page.locator(".managerv2-finance")).toBeVisible();
     await expect(page.locator(".reference-module-strip")).toHaveCount(0);
     await expect(page.locator(".manager-command-surface")).toHaveCount(0);

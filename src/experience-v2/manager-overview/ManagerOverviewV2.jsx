@@ -47,6 +47,18 @@ function Quiet({ icon = "checkCircle", children }) {
   </div>;
 }
 
+function PulseFact({ label, value, meta, tone = "neutral", onClick }) {
+  return <button
+    type="button"
+    className={`managerv2-pulse-fact is-${tone}`}
+    onClick={onClick}
+  >
+    <strong>{value}</strong>
+    <span>{label}</span>
+    {meta ? <small>{meta}</small> : null}
+  </button>;
+}
+
 function DecisionRow({ icon, title, meta, note, status, statusTone = "warning", actions }) {
   return <div className="managerv2-decision-row">
     <span className="managerv2-row-icon"><CeacIcon name={icon} size="row" decorative /></span>
@@ -122,6 +134,7 @@ export default function ManagerOverviewV2({
   financePositions = [],
   serviceDayData = [],
   mine = [],
+  delegated = [],
   week,
   upcomingMeetings = [],
   upcomingProjects = [],
@@ -188,7 +201,7 @@ export default function ManagerOverviewV2({
       </div> : null}
 
       {!loading && !loadFailed ? <main className="managerv2-main">
-        <section className="managerv2-command-grid" aria-label="Manager decisions and schedule">
+        <section className="managerv2-command-grid" aria-label="Manager decisions and delegation">
           <DataPanel
             className="managerv2-panel managerv2-decisions"
             eyebrow="Decisions first"
@@ -267,29 +280,21 @@ export default function ManagerOverviewV2({
           </DataPanel>
 
           <DataPanel
-            className="managerv2-panel managerv2-schedule"
-            eyebrow="Today & next"
-            title="Schedule"
-            supporting="Meetings and project dates already recorded in CEAC OS."
-            action={onScheduleMeeting ? <Button variant="quiet" size="compact" onClick={() => onScheduleMeeting?.({ scope: "unit", unitId: me.unit_id, unitName: me.unit_name })}>Schedule meeting</Button> : null}
+            className="managerv2-panel managerv2-delegated"
+            eyebrow="Delegation"
+            title="Work you gave out"
+            supporting="Open work you assigned. Recorded states only — no productivity score."
+            action={<Count value={delegated.length} />}
           >
-            {upcomingMeetings.length ? upcomingMeetings.slice(0, 4).map((meeting) => <QueueRow
-              key={meeting.id}
-              icon="meeting"
-              title={meeting.title}
-              meta={`${formatDate(meeting.starts_at, { weekday: "short", hour: "2-digit", minute: "2-digit" })} · ${meeting.scope === "project" && meeting.projects?.name ? meeting.projects.name : meeting.scope === "unit" ? me.unit_name : "CEAC"}`}
-              status={meeting.provider === "zoom" ? "Zoom" : "Meeting"}
-              statusTone="action"
-              onClick={() => onOpenMeeting?.(meeting.id)}
-            />) : <Quiet icon="calendar">No meeting invitation is recorded in the next 14 days.</Quiet>}
-            {upcomingProjects.slice(0, 3).map((project) => <QueueRow
-              key={`date-${project.id}`}
-              icon="projects"
-              title={project.name}
-              meta={`Ends ${new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
-              status="Project date"
-              onClick={() => onOpenProject?.(project.id)}
-            />)}
+            {delegated.length ? delegated.map((item) => <QueueRow
+              key={item.id}
+              icon="work"
+              title={item.title}
+              meta={`${item.ref} · ${item.profiles?.full_name || "Unassigned"}${item.due_at ? ` · ${dueLabel(item.due_at)}` : ""}`}
+              status={item.status?.replaceAll("_", " ")}
+              statusTone={workTone(item)}
+              onClick={() => onOpenItem?.(item.id)}
+            />) : <Quiet>No open work you assigned needs tracking.</Quiet>}
           </DataPanel>
         </section>
 
@@ -300,16 +305,13 @@ export default function ManagerOverviewV2({
             title="Team context"
             supporting="Availability is context, not a performance measure."
           >
-            <div className="managerv2-subhead">Availability</div>
-            <div className="managerv2-stat-grid is-two">
-              <StatTile label="Present" value={team.present.length} supporting="Today" icon="team" tone="success" onClick={() => onDrill?.({ zone: "team", title: "Present today", people: true, rows: team.present })} />
-              <StatTile label="Approved leave" value={team.leave.length} supporting="Today" icon="time" tone="neutral" onClick={() => onDrill?.({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })} />
-            </div>
-            <div className="managerv2-subhead">Work movement</div>
-            <div className="managerv2-stat-grid is-three">
-              <StatTile label="Completed" value={team.completed.length} supporting="Today" icon="checkCircle" tone="success" onClick={() => onDrill?.({ zone: "team", title: "Work completed today", rows: team.completed })} />
-              <StatTile label="Submitted" value={team.submitted.length} supporting="Today" icon="work" tone="action" onClick={() => onDrill?.({ zone: "team", title: "Work submitted today", rows: team.submitted })} />
-              <StatTile label="Awaiting review" value={decisionRows.filter((row) => row.type === "submission").length} supporting="Needs manager" icon="pending" tone="warning" onClick={() => onDrill?.({ zone: "team", title: "Awaiting your review", rows: decisionRows.filter((row) => row.type === "submission").map((row) => row.item.work_items) })} />
+            <div className="managerv2-pulse-grid" aria-label="Team operating context">
+              <PulseFact label="Present" value={team.present.length} meta="Today" tone="success" onClick={() => onDrill?.({ zone: "team", title: "Present today", people: true, rows: team.present })} />
+              <PulseFact label="Working now" value={team.working.length} meta="Open sessions" tone="action" onClick={() => onDrill?.({ zone: "team", title: "Working now", people: true, rows: team.working })} />
+              <PulseFact label="Approved leave" value={team.leave.length} meta="Today" onClick={() => onDrill?.({ zone: "team", title: "On approved leave today", people: true, rows: team.leave })} />
+              <PulseFact label="No session yet" value={team.notStarted.length} meta="Today" onClick={() => onDrill?.({ zone: "team", title: "No work session recorded today", people: true, rows: team.notStarted })} />
+              <PulseFact label="Completed" value={team.completed.length} meta="Today" tone="success" onClick={() => onDrill?.({ zone: "team", title: "Work completed today", rows: team.completed })} />
+              <PulseFact label="Awaiting review" value={decisionRows.filter((row) => row.type === "submission").length} meta="Needs manager" tone="warning" onClick={() => onDrill?.({ zone: "team", title: "Awaiting your review", rows: decisionRows.filter((row) => row.type === "submission").map((row) => row.item.work_items) })} />
             </div>
             {drill?.zone === "team" ? <div className="managerv2-drill">
               <div className="managerv2-drill-head"><strong>{drill.title}</strong><Count value={drillRows.length} /></div>
@@ -356,6 +358,32 @@ export default function ManagerOverviewV2({
         </section>
 
         <section className="managerv2-operational-grid">
+          <DataPanel
+            className="managerv2-panel managerv2-schedule"
+            eyebrow="Commitments"
+            title="Schedule"
+            supporting="Meetings and project dates already recorded in CEAC OS."
+            action={onScheduleMeeting ? <Button variant="quiet" size="compact" onClick={() => onScheduleMeeting?.({ scope: "unit", unitId: me.unit_id, unitName: me.unit_name })}>Schedule</Button> : null}
+          >
+            {upcomingMeetings.length ? upcomingMeetings.slice(0, 3).map((meeting) => <QueueRow
+              key={meeting.id}
+              icon="meeting"
+              title={meeting.title}
+              meta={`${formatDate(meeting.starts_at, { weekday: "short", hour: "2-digit", minute: "2-digit" })} · ${meeting.scope === "project" && meeting.projects?.name ? meeting.projects.name : meeting.scope === "unit" ? me.unit_name : "CEAC"}`}
+              status={meeting.provider === "zoom" ? "Zoom" : "Meeting"}
+              statusTone="action"
+              onClick={() => onOpenMeeting?.(meeting.id)}
+            />) : <Quiet icon="calendar">No meeting invitation is recorded in the next 14 days.</Quiet>}
+            {upcomingProjects.slice(0, 2).map((project) => <QueueRow
+              key={`date-${project.id}`}
+              icon="projects"
+              title={project.name}
+              meta={`Ends ${new Date(`${project.ends_on}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
+              status="Project date"
+              onClick={() => onOpenProject?.(project.id)}
+            />)}
+          </DataPanel>
+
           {incomingRequests.length ? <DataPanel
             className="managerv2-panel"
             eyebrow="Other units are waiting"
@@ -390,10 +418,10 @@ export default function ManagerOverviewV2({
             eyebrow="This week"
             title="Work horizon"
           >
-            <div className="managerv2-stat-grid is-three">
-              <StatTile label="Due" value={week.due.length} supporting="This week" icon="calendar" tone="action" onClick={() => onDrill?.({ zone: "week", title: "Tasks due this week", rows: week.due })} />
-              <StatTile label="Completed" value={week.completed.length} supporting="This week" icon="checkCircle" tone="success" onClick={() => onDrill?.({ zone: "week", title: "Tasks completed this week", rows: week.completed })} />
-              <StatTile label="Overdue" value={week.overdue.length} supporting="Open work" icon="warning" tone="danger" onClick={() => onDrill?.({ zone: "week", title: "Tasks overdue", rows: week.overdue })} />
+            <div className="managerv2-pulse-grid is-horizon" aria-label="This week work horizon">
+              <PulseFact label="Due" value={week.due.length} meta="This week" tone="action" onClick={() => onDrill?.({ zone: "week", title: "Tasks due this week", rows: week.due })} />
+              <PulseFact label="Completed" value={week.completed.length} meta="This week" tone="success" onClick={() => onDrill?.({ zone: "week", title: "Tasks completed this week", rows: week.completed })} />
+              <PulseFact label="Overdue" value={week.overdue.length} meta="Open work" tone="danger" onClick={() => onDrill?.({ zone: "week", title: "Tasks overdue", rows: week.overdue })} />
             </div>
             {drill?.zone === "week" ? <div className="managerv2-drill">
               <div className="managerv2-drill-head"><strong>{drill.title}</strong><Count value={drillRows.length} /></div>
