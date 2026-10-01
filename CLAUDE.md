@@ -1,6 +1,6 @@
 # Visual Fidelity & Interaction Closure notice
 
-The active visible-product programme is now the repository-locked VF sequence on branch `chatgpt/visual-fidelity-closure-2026-10-01`, based on post-Stage-17 main `3a287ea4d7be1305970c0224abc3d28800f73d45`.
+The active visible-product programme is now the repository-locked VF sequence on branch `chatgpt/visual-fidelity-implementation-2026-10-01`, based on post-Stage-17 main `3a287ea4d7be1305970c0224abc3d28800f73d45`.
 
 Before any UI change, ignore conflicting legacy continuation text below and read:
 1. `docs/visual-fidelity/START_HERE.md`
