@@ -1,7 +1,7 @@
 # CEAC OS Experience V2 — Decision Log
 
 Date started: 26 September 2026
-Status: ACTIVE
+Status: ACCEPTED AND COMPLETE
 
 This file records decisions that future Chat or Work sessions must not infer again from conversation history.
 
@@ -200,3 +200,17 @@ Telegram remains truthfully disconnected until CEAC supplies and verifies a real
 
 Reason:
 Stage 17 must combine the accepted V2 product with the secure Stage 12 provider boundary without weakening either. Exact-head automation, direct Connected Apps inspection and live deployment/security validation establish that boundary before merge.
+
+## D-026 — Stage 17 closes on the protected-main enterprise merge
+
+Decision:
+PR #71 was squash-merged to protected `main` at verified SHA `3a287ea4d7be1305970c0224abc3d28800f73d45`.
+
+The accepted PR head and merged main have the same Git tree `b7933e0cf41e9178f7556b462ce4ca9349026d44`, so the protected-main squash preserved the accepted enterprise tree exactly.
+
+Stage 17 is therefore ACCEPTED AND COMPLETE. The canonical application line is `main`.
+
+Telegram remains truthfully disconnected until an authorised CEAC administrator supplies and verifies a production bot credential and destination through Connected Apps. Payroll remains blocked until CEAC payroll rules are formally confirmed.
+
+Reason:
+The Experience V2 release, secure enterprise integration reconciliation, exact-head acceptance evidence, live Supabase deployment validation and protected-main merge are now one canonical history. A later provider activation is operational configuration, not unfinished Stage 17 implementation.
