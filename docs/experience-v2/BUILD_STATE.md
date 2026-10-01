@@ -1,3 +1,17 @@
+## POST-V2 CURRENT PROGRAMME NOTICE
+
+Stage 17 is COMPLETE and merged to protected `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`.
+
+Current visible-product programme: **Visual Fidelity & Interaction Closure (VF0–VF10)**.
+
+Active programme branch: `chatgpt/visual-fidelity-closure-2026-10-01`.
+
+Current state and next action live in `docs/visual-fidelity/BUILD_STATE.md`.
+
+The Experience V2 record below is retained as accepted historical evidence.
+
+---
+
 # CEAC OS Experience V2 — Build State
 
 Last updated: 1 October 2026

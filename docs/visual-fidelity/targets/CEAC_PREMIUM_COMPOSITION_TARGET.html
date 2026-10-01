@@ -1,0 +1,27 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CEAC OS Premium Composition Target</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Instrument Sans,system-ui,sans-serif;background:#f4f7fb;color:#14202b}
+.app{min-height:100vh;display:grid;grid-template-columns:220px 1fr}.nav{background:#10243a;color:#fff;padding:22px 16px}.brand{font-size:20px;font-weight:800}.nav p{color:#a9bbca;font-size:11px}.nav a{display:block;padding:10px 12px;margin:4px 0;border-radius:10px;color:#dce6ee}.nav .on{background:#245ca5;color:#fff}.main{padding:16px 18px}.top{height:52px;display:flex;gap:12px}.search,.card,.queue,.calendar,.dest{background:#fff;border:1px solid #dfe6ee;border-radius:15px}.search{flex:1;padding:11px 14px;color:#7a8895}.create{background:#2f7cf6;color:white;border:0;border-radius:10px;padding:0 16px}.hero{margin-top:10px;border-radius:18px;padding:20px;background:linear-gradient(135deg,#dfeaf5,#edf4fa);display:flex;justify-content:space-between;gap:18px}.hero h1{margin:0 0 6px;font-size:30px}.hero p{margin:0;color:#667482;font-size:13px}.hero aside{background:#ffffffb8;border-radius:14px;padding:13px;min-width:260px}.primary{display:grid;grid-template-columns:1.7fr .8fr 280px;gap:16px;margin-top:16px}.card,.calendar{padding:15px}.next{display:grid;grid-template-columns:150px 1fr;gap:16px}.visual{border-radius:12px;background:linear-gradient(135deg,#26384c,#647b91);min-height:150px}.eyebrow{font-size:11px;font-weight:800;color:#d85d5d}.card h2{font-size:20px;margin:7px 0}.meta{font-size:12px;color:#667482}.line{padding:9px 0;border-bottom:1px solid #e7edf3;font-size:12px}.line:last-child{border:0}.queues{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}.queue{padding:14px}.queue h3,.calendar h3,.dest h3{font-size:14px;margin:0 0 8px}.dest{margin-top:16px;padding:14px}.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.tile{border:1px solid #dfe6ee;border-radius:11px;padding:11px;font-size:12px}.mobile{display:none}
+@media(max-width:700px){.app{display:block}.nav{display:none}.main{padding:14px 14px 82px}.hero{display:block}.hero h1{font-size:24px}.hero aside{min-width:0;margin-top:12px}.primary,.queues{display:block}.card,.calendar,.queue{margin-top:12px}.next{display:block}.visual{min-height:120px;margin-bottom:12px}.tiles{grid-template-columns:1fr 1fr}.mobile{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #dfe6ee;padding:10px}.mobile span{text-align:center;font-size:10px}.mobile .on{color:#2f7cf6;font-weight:800}}
+</style>
+<div class="app">
+<nav class="nav"><div class="brand">CEAC OS</div><p>People. Work. Ministry. Impact.</p><a class="on">Home</a><a>Work</a><a>Team</a><a>Projects</a><a>Calendar</a><a>Money</a><a>Reports</a><a>More</a></nav>
+<main class="main">
+<div class="top"><div class="search">Search people, work, projects, meetings, files…</div><button class="create">Create</button></div>
+<section class="hero"><div><h1>Good morning</h1><p>Compact role context, strong hierarchy, no empty title-only canvas.</p></div><aside><b>Operating context</b><p>Use real CEAC responsibility, focus and status.</p></aside></section>
+<section class="primary">
+<div class="card next"><div class="visual"></div><div><div class="eyebrow">NEXT / DECISION</div><h2>One dominant current action</h2><div class="meta">Project or team context · due/status · owner</div><div class="line">Current step or evidence</div><div class="line">Next useful step →</div></div></div>
+<div class="card"><h3>Today’s schedule</h3><div class="line">10:00 · Operational meeting</div><div class="line">12:00 · Review</div><div class="line">14:00 · Project planning</div></div>
+<div class="calendar"><h3>Calendar context</h3><div class="line">Selected date and commitments</div><div class="line">Later this week →</div></div>
+</section>
+<section class="queues">
+<div class="queue"><h3>Needs your attention</h3><div class="line">Decision or returned work →</div><div class="line">Policy / approval →</div></div>
+<div class="queue"><h3>Waiting on others</h3><div class="line">Submission under review →</div><div class="line">Dependency →</div></div>
+<div class="queue"><h3>Coming up</h3><div class="line">Meeting / deadline →</div><div class="line">Commitment →</div></div>
+</section>
+<section class="dest"><h3>Explore CEAC OS</h3><div class="tiles"><div class="tile">Work</div><div class="tile">People</div><div class="tile">Projects</div><div class="tile">Money</div><div class="tile">Learning</div><div class="tile">Policies</div></div></section>
+</main></div>
+<div class="mobile"><span class="on">Today</span><span>Work</span><span>Team</span><span>Calendar</span><span>More</span></div>

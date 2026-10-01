@@ -1,3 +1,14 @@
+## Post-V2 Level C Product Fidelity extension
+
+For the Visual Fidelity programme, the existing Level A / Level B engineering protocol remains binding. Every VF substage also requires **Level C — Product Fidelity** from `docs/visual-fidelity/VISUAL_ACCEPTANCE_PROTOCOL.md`.
+
+Acceptance requires:
+`Level B technical PASS + Level C product-fidelity PASS`.
+
+A technically green screen that remains visually generic or materially below the CEAC target must not be accepted.
+
+---
+
 # CEAC OS Experience V2 — Verification Protocol
 
 Status: ACTIVE
