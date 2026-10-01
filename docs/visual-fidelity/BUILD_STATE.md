@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF2 — Staff
-Current substage: VF2B — Work (ACTIVE)
+Current substage: VF2C — Team / Record / Me / mobile navigation (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -131,23 +131,39 @@ Acceptance evidence:
 
 VF2A made Staff Today mobile-first and action-led: work-session state and next action dominate, while schedule and factual/ministry context are lighter supporting information.
 
-## Active: VF2B — Staff Work
+### VF2B — Staff Work: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`019affd137d57d2c17b1d1707bd9c8e6baf3b5f3`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF2B_ACCEPTANCE.md`
+- CI `36870143667`: PASS
+- Migration Replay `36870143661`: PASS
+- Account Security `36870143673`: PASS
+- Quality Gate `36870143634`: PASS
+- Level B browser shards 1–4: PASS
+- Vercel: PASS
+
+VF2B flattened Staff Work into an operational list, reduced creation/control dominance, removed duplicate project context from rows, and made Work Detail read as a working surface rather than a sequence of generic cards.
+
+## Active: VF2C — Team / Record / Me / mobile navigation
 
 Purpose:
-Turn Staff Work into a fast operational list and detail flow rather than a set of rounded task cards.
+Finish Staff role character across context, evidence and personal-workspace routes without turning Staff into an administrative dashboard.
 
 Required outcomes:
-1. preserve Assigned / Agreed / Private source semantics and all status filters;
-2. keep self-created/private work and project-proposal workflows intact;
-3. make active work scan quickly through compact grouped rows with clear state, due context and project relationship;
-4. reduce card framing on both phone and laptop while preserving touch targets and readable hierarchy;
-5. keep search/sort progressive rather than visually dominant;
-6. make work detail read as a working surface: identity/state → why it matters → finished result → instructions/type contract → checklist/action → history;
-7. preserve blocker, returned-review, request, decision, routine, case, deliverable and meeting-outcome behaviours;
-8. preserve all 320–430 responsive widths, context-preserving overlays and truthful empty/error states;
-9. pass Level A during implementation, then exact-head Level B + Level C before acceptance.
+1. Team reads as lightweight people/context: Unit Room, leadership, availability, directory and references;
+2. ordinary Team directory sections use flatter grouped rows instead of large card islands;
+3. Record remains evidence-first, with statistics visibly subordinate to completed work, feedback and factual history;
+4. My Hub becomes a compact personal workspace, not a six-card destination gallery;
+5. personal goals, reminders, leave and ordinary profile information remain self-focused and privacy-safe;
+6. preserve existing Staff bottom-navigation reachability, safe-area behaviour and More access without route/authority changes;
+7. keep truthful empty states and avoid scores, ranking or inferred productivity;
+8. preserve 320–430 responsive acceptance widths and existing People/Personal business contracts;
+9. pass targeted Level A during implementation, then exact-head Level B + Level C before family exit.
 
-Do not begin VF2C until VF2B is accepted.
+Do not begin VF3A until VF2C is accepted.
 
 ## Protected boundaries
 
