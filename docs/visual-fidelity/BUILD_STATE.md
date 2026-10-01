@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF3 — Manager
-Current substage: VF3C — Team and Person workspace (ACTIVE)
+Current substage: VF3D — Projects / Calendar / Money / Reports (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -201,21 +201,45 @@ Acceptance evidence:
 
 VF3B makes all four Manager Work modes immediately reachable on phone, keeps delegation/review as operational rows and preserves the complete Work Engine authority and review contract.
 
-## Active: VF3C — Team and Person workspace
+### VF3C — Manager Team and Person workspace: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`cb761b751f41a9f54b038b197dbe4f1861c843c0`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF3C_ACCEPTANCE.md`
+- CI `36904235362`: PASS
+- Migration Replay `36904235825`: PASS
+- Account Security `36904235461`: PASS
+- Quality Gate `36904235561`: PASS
+- Level B browser shards 1–4: PASS
+- Vercel: PASS
+- exact-head Manager Team + Person phone/laptop/desktop evidence: shard artifact `11184020120`
+- exact-head route-matrix evidence: `visual-parity-all-pages` artifact `11183601128`
+
+VF3C makes Team a factual operating roster with Work lanes as secondary context, keeps Person identity and operating context persistent on larger screens, preserves unit/private-work/feedback authority, and removes the material mobile vertical-waste defect by keeping the five factual drill-downs in one accessible horizontal evidence rail rather than multi-row blocks. No employee score, ranking or inferred productivity judgement was introduced.
+
+## Active: VF3D — Projects / Calendar / Money / Reports
 
 Purpose:
-Turn Manager Team and Person into a denser factual people-operating workspace with persistent person context, without introducing employee scoring or changing HR/work authority.
+Complete the Manager operating environment across projects, schedule, finance and reporting while preserving accepted V2 domain authority and factual semantics.
 
 Required outcomes:
-1. make Team read as an operating roster rather than a stack of dashboard cards;
-2. keep factual availability, responsibility, review and outcome context easy to scan without judging the person;
-3. make Work lanes useful context without competing with the People roster;
-4. reduce mobile vertical waste while preserving readable factual evidence;
-5. keep the selected person's identity and factual operating context persistent on laptop/desktop while work, outcomes, submissions, objectives, activity and visible feedback remain the detailed record;
-6. preserve unit scope, private-work exclusion, feedback visibility, role authority and all existing People/Work RLS/RPC boundaries;
-7. pass targeted Level A during implementation, then exact-head Level B + Level C before VF3D.
+1. Projects read as a compact operational portfolio/workspace rather than stacked generic cards;
+2. Calendar keeps schedule and selected-date context primary, with integrations as supporting context;
+3. Finance uses laptop/desktop width deliberately while keeping every currency separate and never implying conversion or a bank balance;
+4. Reports prioritise factual evidence, traceable drill-down and authoring without decorative charts or invented trends;
+5. phone layouts deliberately recompose and keep primary actions reachable;
+6. project/work, calendar/meeting, finance, reporting, RLS/RPC and audit contracts remain unchanged;
+7. pass exact-head Level B + Level C before VF4A.
 
-Do not begin VF3D until VF3C is accepted.
+Recovery note:
+- temporary Vercel-wait PR #80 contains provisional VF3D presentation preparation from the pre-acceptance VF3C ancestor;
+- its full provisional Level B Quality Gate `36903115314` passed;
+- reconcile only valid VF3D application changes forward onto this accepted boundary;
+- do not merge the provisional history or use it to bypass VF3D Level C acceptance.
+
+Do not begin VF4A until VF3D is accepted.
 
 ## Protected boundaries
 
