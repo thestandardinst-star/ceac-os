@@ -1,3 +1,17 @@
+## Post-V2 repository reference lock
+
+The active post-V2 visual source of truth is under `docs/visual-fidelity/`.
+
+Repository targets:
+- `docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg`
+- `docs/visual-fidelity/targets/CEAC_PREMIUM_COMPOSITION_TARGET.html`
+- `docs/visual-fidelity/VISUAL_FIDELITY_CONTRACT.md`
+- `docs/visual-fidelity/REFERENCE_MANIFEST.md`
+
+Use these instead of conversation memory for future visual work.
+
+---
+
 # CEAC OS Experience V2 — Reference Index
 
 Date: 26 September 2026
