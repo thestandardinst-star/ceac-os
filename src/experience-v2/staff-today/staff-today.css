@@ -676,3 +676,192 @@
     justify-self: start;
   }
 }
+
+
+/* VF2A — Staff Today fidelity
+   Staff remains a personal working surface: one clear next action, compact
+   work-session state, then progressively quieter factual context. */
+.staffv2-focus-card {
+  border-color: rgba(12, 93, 249, .16);
+  background:
+    linear-gradient(135deg, rgba(234, 241, 255, .72) 0%, rgba(255, 255, 255, .96) 62%, #fff 100%);
+}
+
+.staffv2-focus-card .ev2c-focus-title {
+  font-size: clamp(var(--ev2-type-card-desktop), 1.45vw, var(--ev2-type-section-desktop));
+  letter-spacing: -.018em;
+}
+
+.staffv2-focus-card .ev2c-focus-action .ev2c-button {
+  min-width: 8.5rem;
+}
+
+.staffv2-main-grid > .staffv2-attention {
+  grid-column: 1 / -1;
+}
+
+.staffv2-attention .ev2c-data-panel-body {
+  border-color: rgba(148, 96, 15, .20);
+}
+
+.staffv2-updates,
+.staffv2-waiting,
+.staffv2-coming,
+.staffv2-week,
+.staffv2-announcements {
+  align-self: start;
+}
+
+@media (min-width: 900px) {
+  .staffv2-main-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .staffv2-main-grid > .staffv2-attention {
+    grid-column: 1 / -1;
+  }
+
+  .staffv2-main-grid > .staffv2-updates,
+  .staffv2-main-grid > .staffv2-waiting,
+  .staffv2-main-grid > .staffv2-coming {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 599px) {
+  .staffv2 {
+    gap: 1.125rem;
+    padding-bottom: var(--ev2-space-8);
+  }
+
+  .staffv2-intro {
+    padding: 0 .125rem;
+  }
+
+  .staffv2-intro p {
+    max-width: 22rem;
+  }
+
+  .staffv2-session {
+    gap: var(--ev2-space-2) var(--ev2-space-3);
+    padding: var(--ev2-space-3);
+    box-shadow: 0 1px 2px rgba(15, 23, 35, .035);
+  }
+
+  .staffv2-session-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .staffv2-session:not(.is-active):not(.needs-review) .staffv2-session-copy > span {
+    display: none;
+  }
+
+  .staffv2-session-actions {
+    margin-top: var(--ev2-space-1);
+  }
+
+  .staffv2-focus-grid {
+    gap: var(--ev2-space-4);
+  }
+
+  .staffv2-focus-card {
+    padding: var(--ev2-space-5);
+    border-radius: var(--ev2-radius-feature);
+    box-shadow: 0 8px 24px rgba(15, 23, 35, .055);
+  }
+
+  .staffv2-focus-card .ev2c-focus-main {
+    gap: var(--ev2-space-3);
+  }
+
+  .staffv2-focus-card .ev2c-focus-title {
+    font-size: var(--ev2-type-section-mobile);
+    line-height: 1.2;
+  }
+
+  .staffv2-focus-card .ev2c-focus-action .ev2c-button {
+    width: 100%;
+    min-height: var(--ev2-control-min);
+  }
+
+  /* Secondary sections read as headings plus grouped rows instead of cards
+     nested inside cards. The list/body keeps the factual boundary. */
+  .staffv2-schedule-panel.ev2c-surface,
+  .staffv2-panel.ev2c-surface {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .staffv2-schedule-panel .ev2c-data-panel-head,
+  .staffv2-panel .ev2c-data-panel-head {
+    padding: 0 .125rem;
+    gap: var(--ev2-space-3);
+  }
+
+  .staffv2-schedule-panel .ev2c-data-title,
+  .staffv2-panel .ev2c-data-title {
+    margin-top: .2rem;
+    font-size: var(--ev2-type-card-mobile);
+  }
+
+  .staffv2-schedule-panel .ev2c-data-supporting,
+  .staffv2-panel .ev2c-data-supporting {
+    margin-top: var(--ev2-space-1);
+  }
+
+  .staffv2-schedule-panel .ev2c-data-panel-body,
+  .staffv2-panel .ev2c-data-panel-body {
+    border-radius: var(--ev2-radius-card);
+    box-shadow: 0 1px 2px rgba(15, 23, 35, .025);
+  }
+
+  .staffv2-main-grid,
+  .staffv2-secondary-grid {
+    gap: 1.25rem;
+  }
+
+  .staffv2-week-stats {
+    gap: 0;
+    padding: 0;
+  }
+
+  .staffv2-week-stats button {
+    min-height: 4.25rem;
+    padding: var(--ev2-space-3);
+    border: 0;
+    border-right: 1px solid var(--ev2-line);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .staffv2-week-stats button:last-child {
+    border-right: 0;
+  }
+
+  .staffv2-week-stats button:hover,
+  .staffv2-week-stats button:focus-visible {
+    background: var(--ev2-surface-soft);
+  }
+
+  .staffv2-week-stats strong {
+    font-size: 1.125rem;
+  }
+
+  .staffv2-ministry-record {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 359px) {
+  .staffv2-focus-card {
+    padding: var(--ev2-space-4);
+  }
+
+  .staffv2-week-stats button {
+    padding-inline: var(--ev2-space-2);
+  }
+}
