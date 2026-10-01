@@ -1744,6 +1744,10 @@
   margin-top: 0;
 }
 
+.ev2-person-workspace .ev2p-workspace-section {
+  scroll-margin-top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+}
+
 @media (min-width: 1000px) {
   .ev2-people-manager .ev2p-stack {
     grid-template-columns: minmax(0, 1.55fr) minmax(18rem, .45fr);
