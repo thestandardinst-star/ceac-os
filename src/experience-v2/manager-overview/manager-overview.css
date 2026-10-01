@@ -589,11 +589,11 @@
   }
 
   .managerv2-decisions {
-    order: 1;
+    order: 0;
   }
 
-  .managerv2-schedule {
-    order: 2;
+  .managerv2-delegated {
+    order: 1;
   }
 }
 

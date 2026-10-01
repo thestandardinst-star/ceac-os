@@ -98,6 +98,13 @@ for (const viewport of [
         buttons.map((button) => button.getBoundingClientRect().height)
       );
       for (const height of compactHeights) expect(height).toBeGreaterThanOrEqual(44);
+
+      const mobilePriority = await page.evaluate(() => {
+        const decisions = document.querySelector(".managerv2-decisions")?.getBoundingClientRect();
+        const delegated = document.querySelector(".managerv2-delegated")?.getBoundingClientRect();
+        return { decisionsTop: decisions?.top ?? 0, delegatedTop: delegated?.top ?? 0 };
+      });
+      expect(mobilePriority.decisionsTop).toBeLessThan(mobilePriority.delegatedTop);
     }
 
     await page.screenshot({
