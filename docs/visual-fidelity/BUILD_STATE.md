@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF10 — Product acceptance and release
-Current substage: VF10A — complete route-matrix visual audit (ACTIVE)
+Current substage: VF10B — complete exact-head Level B verification (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -746,21 +746,36 @@ VF9D proves that loading, error, configuration, informational and empty-history 
 
 VF9 family exit: ACCEPTED.
 
-## Active: VF10A — complete route-matrix visual audit
+### VF10A — complete route-matrix visual audit: COMPLETE / ACCEPTED
+
+Accepted application-equivalent SHA:
+`9d073c1da0f789654f690151b6d22a16ecadd9f9`
+
+Acceptance evidence:
+- `docs/visual-fidelity/VF10A_ROUTE_MATRIX_AUDIT.md`
+- `docs/visual-fidelity/acceptance/VF10A_ACCEPTANCE.md`
+- complete 57-route matrix: artifact `11240861271`
+- R7 product inspection: artifact `11240906264`
+- application-equivalent Level B `37035858726`: PASS
+
+VF10A inspected all 13 Staff, 17 Manager, 20 Administration and 7 Executive routes against the repository-owned CEAC target and Visual Fidelity Contract. No material route-level product-fidelity drift remains.
+
+## Active: VF10B — complete exact-head Level B verification
 
 Purpose:
-Audit the complete canonical role/route matrix against the repository-owned CEAC premium target before final release verification.
+Run the complete engineering, security, migration, browser and evidence gate on the final pre-release branch state.
 
 Required outcomes:
-1. inspect every canonical Staff, Manager, Administration and Executive route in the complete route matrix;
-2. compare actual rendered evidence against the Visual Fidelity Contract and repository-owned CEAC target, not screenshots in isolation;
-3. verify role character, primary-action clarity, hierarchy, composition, density, surface discipline, typography, iconography, semantic state, truthful visualisation, responsive intent and CEAC distinctiveness;
-4. record any material route drift and correct it before acceptance rather than hiding it behind a test exception;
-5. preserve factual/no-inference, accessibility, security and authority contracts;
-6. persist the exact route-matrix audit decision and evidence;
-7. pass the required verification and Level C product review before VF10B.
+1. freeze one exact branch head for final technical verification;
+2. pass CI/build and dependency safety;
+3. pass clean Migration Replay;
+4. pass Account Security and cumulative SQL/RLS/authority contracts;
+5. pass all four complete browser shards and merged product evidence;
+6. preserve the exact application state while the gate runs;
+7. record the exact run IDs and accepted verification SHA;
+8. advance to VF10C only after the complete gate is green.
 
-Do not begin VF10B canonically until VF10A is accepted.
+Do not begin VF10C canonically until VF10B is accepted.
 
 ## Protected boundaries
 
