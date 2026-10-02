@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF10 — Product acceptance and release
-Current substage: VF10E — acceptance record, merge and post-merge main verification (ACTIVE)
+Current substage: VF10E — post-merge verification (ACTIVE; production deployment pending)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -824,20 +824,23 @@ Decision:
 - TECHNICALLY ACCEPTED: YES
 - VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
-### Active: VF10E — acceptance record, merge and post-merge main verification
+### Active: VF10E — post-merge verification
 
-Purpose:
-Complete the release only after verifying the final PR head, required gates and protected-main merge conditions, then verify the resulting `main` state and production deployment.
+PR #79 was squash-merged to protected `main` at:
+`afe53e5b5d47747a963e791fdc5fc3eadfd2ba2d`
 
-Required outcomes:
-1. verify the final PR #79 head and mergeability against current protected `main`;
-2. confirm final release checks are green and no newer writer has advanced the branch;
-3. persist the VF10E pre-merge acceptance state;
-4. mark PR #79 ready and merge according to protected-main rules with expected-head protection;
-5. verify the resulting `main` commit, CI, Migration Replay, Account Security, Quality Gate and production Vercel deployment;
-6. persist final programme completion only after post-merge main verification passes.
+The accepted PR tree and merged-main tree are identical:
+`c773a9c23e6d016af1c0e3e299797cda827ef3fc`
 
-Do not declare the VF programme complete before post-merge verification is green.
+Verified after merge:
+- main CI run `37051751092`: PASS;
+- post-merge closure PR: #91;
+- closure-PR CI, Migration Replay, Account Security and Quality Gate have passed on the prior closure head and must remain green on the final docs-only head.
+
+Remaining release condition:
+- production Vercel deployment for the accepted protected-main tree is pending because the platform returned its daily deployment-cap status.
+
+VF10E remains active until the production deployment succeeds. The programme is not yet declared complete.
 
 ## Protected boundaries
 
