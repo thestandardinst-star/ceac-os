@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF7 — Motion and interaction closure
-Current substage: VF7D — reduced-motion verification (ACTIVE)
+Current stage: VF8 — Whole-system responsive closure
+Current substage: VF8A — 320–430 phone matrix (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -549,37 +549,50 @@ Acceptance evidence:
 
 VF7C converges legacy ProductNotice and V2 Toast feedback on the accepted semantic motion vocabulary while keeping error alerts assertive, success/status feedback polite and atomic, and reduced-motion output factually identical.
 
-## Active: VF7D — reduced-motion verification
+### VF7D — reduced-motion verification: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`0bb18af90f346686e482fa03ad3e15616caf4eb6`
+
+Application-equivalent deployed checkpoint:
+`bef7085685b3975a167418b872a8ead238e5a9de` — PASS
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF7D_ACCEPTANCE.md`
+- CI `37008866378`: PASS
+- Migration Replay `37008866425`: PASS
+- Account Security `37008866479`: PASS
+- Quality Gate `37008866381`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- reduced-motion phone/laptop evidence: shard artifact `11226608896`
+- application-equivalent Vercel deployment: PASS
+
+VF7D proves that route/context, Calendar selection/period state, Sheet dismissal/focus return, Room latest-message movement and success/error feedback retain the same factual state and actions with transform-heavy choreography removed. The only first-pass failure was a test-scoping error; no production behavior was weakened.
+
+VF7 family exit: ACCEPTED.
+
+## Active: VF8A — 320–430 phone matrix
 
 Purpose:
-Verify that the accepted interaction layer preserves all state, context, focus and operational actions when the user requests reduced motion.
+Close phone-width responsive behavior across the full role system before tablet/laptop/desktop acceptance.
 
 Required outcomes:
-1. global MotionConfig continues to respect the user reduced-motion preference;
-2. route/context changes retain destination and URL/back information with transform-heavy choreography removed;
-3. Calendar selection/period state remains visible and usable;
-4. Sheet/modal/drawer content, Escape dismissal and focus return remain unchanged;
-5. success/error feedback retains identical factual text and live-region semantics;
-6. no reduced-motion mode may hide information, actions, status or selected state;
-7. phone and laptop evidence must remain free of page overflow or desktop-compressed mobile layouts;
-8. pass affected Level A, exact-head Level B and Level C before VF8A.
+1. verify 320, 360, 375, 390, 414 and 430px widths across Staff, Manager, Administration and Executive;
+2. no document/body horizontal page overflow or clipped shell chrome;
+3. mobile navigation, labels and primary controls remain reachable at the CEAC touch floor;
+4. full-height supporting panels must not create artificial vertical whitespace merely because an off-screen carousel sibling is taller;
+5. mobile composition must be deliberate rather than desktop layouts compressed into narrow columns;
+6. preserve role hierarchy, factual/no-inference semantics and all authority/security contracts;
+7. representative phone evidence must cover all four role families and any corrected route;
+8. pass affected Level A, exact-head Level B and Level C before VF8B.
 
-Do not begin VF8A canonically until VF7D is accepted.
+Known evidence-driven gap entering VF8A:
+- Administration Overview uses horizontal full-panel rails below the command area; at narrow phone widths the flex row reserves the tallest off-screen panel height, creating large blank vertical gaps beneath shorter visible panels. Correct the phone composition without changing Administration data or authority.
 
-Current VF7D acceptance checkpoint:
-- technically green application SHA: `0bb18af90f346686e482fa03ad3e15616caf4eb6`;
-- CI `37008866378`: PASS;
-- Migration Replay `37008866425`: PASS;
-- Account Security `37008866479`: PASS;
-- Quality Gate `37008866381`: PASS;
-- SQL/RLS/security contracts: PASS;
-- browser shards 1–4: PASS;
-- merged exact-head product evidence: PASS;
-- role-and-RLS coordinator: PASS;
-- reduced-motion phone/laptop evidence: `quality-gate-browser-shard-4` artifact `11226608896`;
-- Level C inspection: PASS — route destination, Calendar period/selection, Sheet dismissal/focus return and factual state remain visible under reduced motion;
-- deployed-product acceptance: PENDING deliberate application-equivalent Vercel checkpoint.
-
+Do not begin VF8B canonically until VF8A is accepted.
 
 ## Protected boundaries
 
