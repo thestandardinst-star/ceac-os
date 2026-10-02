@@ -53,6 +53,7 @@ test("VF9A accessibility semantics and accepted colour tokens remain explicit", 
   const executive = readFileSync("src/experience-v2/executive-overview/ExecutiveOverviewV2.jsx", "utf8");
   const foundation = readFileSync("src/experience-v2.css", "utf8");
   const shell = readFileSync("src/experience-v2/shell/shell.css", "utf8");
+  const dataViz = readFileSync("src/experience-v2/data-viz/data-viz.css", "utf8");
 
   expect(interactions).toContain('role={state === "error" ? "alert" : undefined}');
   expect(interactions).toContain('aria-live={state === "error" ? "assertive" : undefined}');
@@ -72,6 +73,8 @@ test("VF9A accessibility semantics and accepted colour tokens remain explicit", 
 
   expect(shell).toContain(":focus-visible");
   expect(foundation).toContain("--ev2-control-min: 2.75rem");
+  expect(dataViz).not.toMatch(/font-size:\\s*(?:[0-9](?:\\.[0-9]+)?|1[01](?:\\.[0-9]+)?)px/);
+  expect(dataViz).toContain("min-height: var(--ev2-control-min);");
   expect(foundation).toContain("@media (prefers-reduced-motion: reduce)");
   expect(foundation).toContain("--ev2-duration-fast: 0ms");
 
