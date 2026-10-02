@@ -374,7 +374,7 @@ export function StatePanel({
   icon,
 }) {
   return (
-    <Surface variant="soft" padding="spacious" className={`ev2c-state ev2c-state-${state}`}>
+    <Surface\n      variant="soft"\n      padding="spacious"\n      className={`ev2c-state ev2c-state-${state}`}\n      role={state === "error" ? "alert" : undefined}\n      aria-live={state === "error" ? "assertive" : undefined}\n      aria-atomic={state === "error" ? "true" : undefined}\n    >
       <span className="ev2c-state-icon">
         <CeacIcon name={icon || STATE_ICONS[state] || "info"} size="empty" decorative />
       </span>
