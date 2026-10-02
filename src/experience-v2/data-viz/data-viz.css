@@ -96,7 +96,7 @@
 .ev2dv-axis-label {
   fill: var(--ev2-text-tertiary);
   font-family: var(--ev2-font-sans);
-  font-size: 11px;
+  font-size: var(--ev2-type-label);
 }
 
 .ev2dv-line {
@@ -117,7 +117,7 @@
 
 .ev2dv-record-button {
   width: 100%;
-  min-height: 2rem;
+  min-height: var(--ev2-control-min);
   padding: 0;
   border: 0;
   background: transparent;
@@ -180,7 +180,7 @@
 .ev2dv-donut-caption {
   fill: var(--ev2-text-secondary);
   font-family: var(--ev2-font-sans);
-  font-size: 10px;
+  font-size: var(--ev2-type-label);
 }
 
 .ev2dv-chart .ev2c-table-wrap {
@@ -211,7 +211,7 @@
   }
 
   .ev2dv-axis-label {
-    font-size: 10px;
+    font-size: var(--ev2-type-label);
   }
 }
 
