@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF6 — Cross-role workspaces
-Current substage: VF6A — Project workspace (ACTIVE)
+Current substage: VF6B — Money states and financial surfaces (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -385,24 +385,16 @@ Acceptance evidence:
 
 VF5C makes Executive Finance decision-first while keeping every currency separate and every balance claim factual, and makes Executive Reports coverage/exception-first beside named filing status without turning filing coverage into performance scoring. Phone uses intentional vertical composition and horizontal evidence rails rather than desktop compression. The first exact application SHA hit Vercel's external free-plan deployment limit; a documentation-only application-equivalent head then deployed successfully without changing application code.
 
-## Active: VF6A — Cross-role Project workspace
+### VF6A — Cross-role Project workspace: COMPLETE / ACCEPTED
 
-Purpose:
-Make the shared Project object feel like one coherent CEAC workspace across Manager, Administration and Executive while keeping role-specific authority and altitude intact.
+Accepted application SHA:
+`de3733c5ca084595c5442cd3d42e9ec23c62524f`
 
-Required outcomes:
-1. preserve Manager operating-ledger composition and project authority;
-2. flatten remaining shared project-detail card/shadow islands into coherent record/workspace zones;
-3. preserve list → selected-project context on laptop/desktop and deliberate project navigation on phone;
-4. keep Administration project context read-only and organisation-level;
-5. keep Executive Portfolio at leadership altitude while reducing long generic form/card stacking;
-6. preserve objectives, work, participants, custody, payment/remittance, milestones, dependencies, risks/issues, close/reopen and delivery-group authority;
-7. no hidden project score, inferred risk probability or fabricated timeline;
-8. retain factual row/table equivalents for any project visualisation;
-9. pass affected Level A, exact-head Level B and Level C before VF6B.
+Application-equivalent deployed checkpoint:
+`b257fb91acea1cba230c586868f399f1f92f6409`
 
-Current exact-head verification:
-- application SHA `de3733c5ca084595c5442cd3d42e9ec23c62524f`
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF6A_ACCEPTANCE.md`
 - CI `36989060407`: PASS
 - Migration Replay `36989060455`: PASS
 - Account Security `36989060489`: PASS
@@ -411,12 +403,28 @@ Current exact-head verification:
 - browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- Level C Project workspace inspection: PASS
-- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+- application-equivalent Vercel deployment: PASS
 
-A documentation-only application-equivalent deployment checkpoint is being used for the Vercel verification without changing VF6A application code.
+VF6A gives Manager, Administration and Executive one coherent Project workspace grammar while preserving role-specific authority, project/work/objective/register/collaboration/delivery/close semantics and factual/no-inference constraints.
 
-Do not begin VF6B canonically until VF6A is accepted.
+## Active: VF6B — Money states and financial surfaces
+
+Purpose:
+Make money and financial states read as one coherent CEAC evidence system across Manager, Administration and Executive without changing role authority, finance semantics or currency separation.
+
+Required outcomes:
+1. preserve the accepted Manager operating position and append-only unit spending/request workflow;
+2. preserve Administration request authority, organisation ledger, income/spend/transfers and reversal semantics;
+3. preserve Executive Group Pastor decision authority and leadership finance briefing;
+4. unify tabs, decision queues, currency position blocks, ledgers, empty states and supporting notes into one shared financial grammar;
+5. reduce remaining isolated card/shadow treatment where ledger or continuous evidence structure is more appropriate;
+6. currencies remain visibly separate with no conversion, invented combined total or inferred bank balance;
+7. approved requests remain commitments until fulfilled spend exists;
+8. missing budget remains missing, never silently zero;
+9. phone prioritises decisions and factual position without compressing desktop grids;
+10. pass affected Level A, exact-head Level B and Level C before VF6C.
+
+Do not begin VF6C canonically until VF6B is accepted.
 
 ## Protected boundaries
 
