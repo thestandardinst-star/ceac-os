@@ -48,3 +48,12 @@ Implementation contract:
 
 ## Protected foundations
 Experience V2 / Stage 17 remains the functional/security base. Preserve RLS, capability_grants, platform_audit_events, hr_private, Work Engine semantics, finance authority, integration security, accessibility, responsive foundations and real-data rules.
+
+
+## FPG2 / FPG3 acceptance checkpoint — exact-head Level B requested
+Candidate implementation head includes:
+- FPG2 literal Project/Task workspace + selected-record drawer;
+- FPG3 truthful Finexa-style Administration Finance overview;
+- authenticated browser evidence capture for both surfaces in `tests/acceptance-core.spec.js`.
+
+The previous affected-scope checks showed CI/Migration Replay/Account Security green where completed. This checkpoint explicitly requests the complete Level B browser/authority gate because FPG2/FPG3 are meaningful visual acceptance boundaries. Vercel deployment remains externally rate-limited and is not treated as a code defect.
