@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF5 — Executive
-Current substage: VF5A — Overview / executive briefing (ACTIVE)
+Current substage: VF5B — Delegated work / Ministry / goals (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -318,21 +318,43 @@ Acceptance evidence:
 
 VF4D makes Administration Finance, Reports, Units/Organisation and Control Center/Organisation settings read as factual operating ledgers and governance workspaces rather than card catalogues. Currencies remain separate, reporting provenance remains explicit, organisation/configuration scope remains authoritative, and unconfirmed payroll/salary policy remains visibly deferred.
 
-## Active: VF5A — Executive Overview / executive briefing
+### VF5A — Executive Overview / executive briefing: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`90712c2acf0af2273472ad2a660acf6e2a4c6c97`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF5A_ACCEPTANCE.md`
+- CI `36968057987`: PASS
+- Migration Replay `36968057959`: PASS
+- Account Security `36968057995`: PASS
+- Quality Gate `36968057972`, attempt 2: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Executive Overview product inspection: `redesign-r7-product-inspection` artifact `11210967320`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11211056863`
+
+VF5A makes Executive Home a senior briefing room rather than a reduced Administration dashboard: recorded exceptions lead, ministry movement stays factual and explicitly non-evaluative, reporting/finance/portfolio/meetings remain concise leadership context, and phone deliberately uses compact horizontal supporting rails instead of a long serial dashboard. The first full Quality Gate attempt had one external Supabase container-start failure on browser shard 3; the unchanged exact application head was retried and the complete gate passed. Executive read authority, reporting/finance provenance, ministry-record semantics, RLS/RPC and privacy boundaries remain unchanged.
+
+## Active: VF5B — Executive Delegated work / Ministry / goals
 
 Purpose:
-Make Executive Home read as a briefing room rather than Administration with fewer controls: summarise first, surface genuine exceptions, show recorded ministry movement where useful, and keep drill-down authoritative.
+Make the Executive primary operating surfaces read as leadership work and ministry direction rather than generic shared pages, while preserving the same authoritative Work and Strategy records.
 
 Required outcomes:
-1. senior attention and exceptions dominate before supporting ministry context;
-2. recorded ministry movement remains factual and never becomes a performance score or inferred explanation;
-3. reporting, finance, portfolio, organisation and meetings stay concise leadership context with drill-down rather than equal-weight operational modules;
-4. laptop/desktop uses the canvas as an executive briefing surface with stronger hierarchy and fewer repeated boxes;
-5. phone keeps senior attention and essential briefing context first without serial dashboard-card bloat;
-6. preserve Executive read authority, reporting/finance provenance, ministry-record semantics, RLS/RPC and privacy boundaries;
-7. pass affected Level A during implementation, then exact-head Level B + Level C before VF5B.
+1. Executive Work prioritises delegated work and leadership review before personal work;
+2. Work remains a factual delegation/review ledger with no invented delegation chain or performance inference;
+3. Ministry presents Ministry Direction → Ministry Objective → Unit Objective as a clear leadership hierarchy rather than nested generic cards;
+4. descriptive objectives remain descriptive and numeric objectives show recorded result beside target without generated progress scoring;
+5. project links, revisions and strategy change reasons remain attributable and authoritative;
+6. laptop/desktop uses deliberate leadership hierarchy while phone preserves the same priority without compressed desktop composition;
+7. preserve Work Engine, Strategy, project-link, RLS/RPC, capability, audit and privacy authority;
+8. pass affected Level A during implementation, then exact-head Level B + Level C before VF5C.
 
-Do not begin VF5B canonically until VF5A is accepted.
+Do not begin VF5C canonically until VF5B is accepted.
 
 ## Protected boundaries
 
