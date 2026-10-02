@@ -1,3 +1,24 @@
+# FINAL PRODUCT PARITY & GO-LIVE IS THE ACTIVE PRODUCT PROGRAMME
+
+Programme: CEAC OS — Final Product Parity & Go-Live (FPG)
+Active branch: `chatgpt/final-product-parity-go-live-2026-10-02`
+Canonical source: GitHub.
+
+This block supersedes conflicting older VF/V2 visual sequencing. Older Experience V2 / VF technical, security, RLS, data-integrity, audit, protected-HR, capability-authority, finance-authority, Work Engine, integration, accessibility and truthful-data contracts remain protected foundations.
+
+Mandatory rules:
+- Approved visual references are literal implementation authorities. Do not reinterpret them into abstract principles, “same feel”, or generic SaaS equivalents.
+- Any deliberate material visible deviation from a designated reference requires explicit product-owner approval recorded in `docs/final-product/PRODUCT_OWNER_DECISIONS.md` before implementation.
+- Build exact gold-standard screens before extracting reusable components.
+- One active writer only. If another writer advances this branch, stop writes, fetch canonical state, reconcile forward, and never erase newer work.
+- Never reset, force-push, revert, or overwrite newer canonical work.
+- Do not invent data, charts, departments, payroll formulae, employee scores, accounting scope, or permission boundaries to imitate a reference.
+- Protected HR/payroll information remains in protected architecture and may never be placed in ordinary public profiles.
+- Multi-currency amounts remain separate by currency. Never convert or sum currencies without explicit authoritative policy.
+- FPG sequence and live state are governed by `docs/final-product/START_HERE.md` and `docs/final-product/BUILD_STATE.md`.
+
+---
+
 # VISUAL FIDELITY & INTERACTION CLOSURE IS THE ACTIVE UI PROGRAMME
 
 Stage 17 is merged to `main` at `3a287ea4d7be1305970c0224abc3d28800f73d45`.
