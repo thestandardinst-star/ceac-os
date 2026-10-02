@@ -421,10 +421,19 @@ button.adminv2-action-main {
     display: none;
   }
 
+  .adminv2-inbox {
+    order: 1;
+  }
+
   .adminv2-mobile-actions {
+    order: 2;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--ev2-space-2);
+  }
+
+  .adminv2-setup {
+    order: 3;
   }
 
   .adminv2-mobile-actions .ev2c-button {
