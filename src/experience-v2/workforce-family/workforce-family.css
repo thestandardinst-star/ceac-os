@@ -610,3 +610,46 @@
     grid-column: 1;
   }
 }
+
+
+/* VF4C Level C correction — Administration Calendar mobile day rail.
+   All seven days and all factual workforce rows remain available; phone no longer
+   serialises the entire seven-day organisation matrix into one vertical page. */
+.ev2-workforce-admin .ev2wf-admin-calendar-week {
+  display: grid;
+  gap: 0;
+}
+
+.ev2-workforce-admin .ev2wf-admin-calendar-week > .ev2wf-section:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .ev2-workforce-admin .ev2wf-admin-calendar-week {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ev2-space-3);
+    margin-right: calc(var(--ev2-space-3) * -1);
+    padding-right: var(--ev2-space-3);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-calendar-week::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-calendar-week > .ev2wf-section {
+    flex: 0 0 calc(100% - 1.25rem);
+    margin-top: 0;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-workforce-admin .ev2wf-admin-calendar-week > .ev2wf-section {
+    flex-basis: calc(100% - .75rem);
+  }
+}

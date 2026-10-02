@@ -929,7 +929,7 @@ export default function Workforce({ me }) {
             options={[{value:"",label:"All visible people"},...people.filter((row)=>!calendarUnit||row.unit_id===calendarUnit).map((row)=>({value:row.profile_id,label:row.profiles?.full_name||"Employee"}))]}
           />
         </div>
-        {Array.from({length:7},(_,i)=>{
+        <div className="ev2wf-admin-calendar-week" aria-label="Seven-day workforce context">\n        {Array.from({length:7},(_,i)=>{
           const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
           const events=calendarEventsOn(date);
           return <WorkforceSection key={date} title={niceDay(date)} description="Configured schedule and recorded activity for the selected organisation scope." meta={calendarPeople.length+" people"}>
@@ -952,7 +952,7 @@ export default function Workforce({ me }) {
             {events.map((event)=><WorkforceRecordRow key={event.id} icon="meeting" eyebrow={event.label} title={event.title} meta={clock(event.at)} />)}
             {!calendarPeople.length&&!events.length&&<WorkforceEmpty compact title="No workforce context in this selection" description="Change the filters or choose another date."/>}
           </WorkforceSection>;
-        })}
+        })}\n        </div>
       </>}
 
       {tab==="sessions"&&<WorkforceSection title="Recorded sessions · last 31 days" description="Session history is factual activity context. It is not a performance score and it is not used as payroll time." meta={sessions.length+" records"}>

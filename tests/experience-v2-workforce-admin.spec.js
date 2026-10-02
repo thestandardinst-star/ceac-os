@@ -110,6 +110,26 @@ for (const viewport of [
         fullPage: true,
       });
       await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+      const calendarRail = page.locator(".ev2wf-admin-calendar-week");
+      await expect(calendarRail).toBeVisible();
+      await expect(calendarRail.locator(":scope > .ev2wf-section")).toHaveCount(7);
+      if (viewport.name === "phone-390") {
+        const railLayout = await calendarRail.evaluate((node) => ({
+          display: getComputedStyle(node).display,
+          scrollWidth: node.scrollWidth,
+          clientWidth: node.clientWidth,
+        }));
+        expect(railLayout.display).toBe("flex");
+        expect(railLayout.scrollWidth).toBeGreaterThan(railLayout.clientWidth + 20);
+        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
+          nodes.slice(0, 2).map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { left: rect.left, top: rect.top, height: rect.height };
+          })
+        );
+        expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
+        expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
+      }
       await page.screenshot({
         path: `test-artifacts/vf4c-admin-workforce-calendar-${viewport.name}.png`,
         fullPage: true,
