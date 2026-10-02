@@ -231,3 +231,87 @@ test("VF7C operational error and success feedback remain explicit and non-blocki
 
   await context.close();
 });
+
+
+test("VF7D reduced-motion contract is explicit across the accepted interaction layer", async () => {
+  const provider = readFileSync("src/experience-v2/ExperienceV2MotionProvider.jsx", "utf8");
+  const route = readFileSync("src/experience-v2/RouteTransition.jsx", "utf8");
+  const calendar = readFileSync("src/experience-v2/calendar/CalendarFamilyV2.jsx", "utf8");
+  const disclosure = readFileSync("src/experience-v2/components/MotionDisclosure.jsx", "utf8");
+  const bits = readFileSync("src/components/bits.jsx", "utf8");
+  const interactions = readFileSync("src/experience-v2/components/Interactions.jsx", "utf8");
+  const foundation = readFileSync("src/experience-v2.css", "utf8");
+  const premium = readFileSync("src/premium.css", "utf8");
+
+  expect(provider).toContain('reducedMotion="user"');
+  for (const source of [route, calendar, disclosure, bits]) {
+    expect(source).toContain("useReducedMotion");
+  }
+  expect(interactions).toContain("useReducedMotion");
+  expect(interactions).toContain("export function Toast");
+  expect(foundation).toContain("@media (prefers-reduced-motion: reduce)");
+  expect(foundation).toContain("--ev2-duration-fast: 0ms");
+  expect(foundation).toContain("--ev2-duration-surface: 0ms");
+  expect(premium).toContain("@media (prefers-reduced-motion: reduce)");
+});
+
+for (const viewport of [
+  { name: "phone-390", width: 390, height: 844 },
+  { name: "laptop-1366", width: 1366, height: 768 },
+]) {
+  test(`VF7D reduced motion preserves destination, Calendar and Sheet state at ${viewport.name}`, async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: viewport.width, height: viewport.height },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    await page.goto("/");
+    await page.getByPlaceholder("Work email").fill("manager@ceac.local.test");
+    await page.getByPlaceholder("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.locator(".manager-app")).toBeVisible({ timeout: 15000 });
+
+    expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
+
+    await page.goto("/?tab=projects");
+    const projectRoute = page.locator('.ev2-route-transition[data-route-key="tab:projects"]');
+    await expect(projectRoute).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
+    await expect(projectRoute).toHaveCSS("opacity", "1");
+
+    await page.goto("/?tab=calendar");
+    const calendar = page.locator(".ev2cal-manager-page");
+    await expect(calendar).toBeVisible({ timeout: 15000 });
+
+    const periodLabel = calendar.locator(".ev2cal-period-label");
+    const before = (await periodLabel.innerText()).trim();
+    await calendar.getByRole("button", { name: "Next period", exact: true }).click();
+    await expect.poll(async () => (await periodLabel.innerText()).trim()).not.toBe(before);
+
+    const day = calendar.locator(".ev2cal-day-button").nth(8);
+    await day.click();
+    await expect(day).toHaveAttribute("aria-pressed", "true");
+    await expect(day.locator(".ev2cal-selection-indicator")).toBeVisible();
+
+    const trigger = calendar.getByRole("button", { name: /View / }).first();
+    await trigger.click();
+    const sheet = page.locator(".sheet[role='dialog']");
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toHaveCSS("opacity", "1");
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+
+    const overflow = await page.evaluate(() =>
+      document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/vf7d-reduced-motion-manager-calendar-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    await context.close();
+  });
+}
