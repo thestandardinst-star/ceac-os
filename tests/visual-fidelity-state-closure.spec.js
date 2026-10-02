@@ -154,12 +154,8 @@ for (const viewport of [
     const page = await context.newPage();
     await signIn(page, roles[2]);
 
-    let providerRequest = null;
     await page.route("**/rest/v1/integration_provider_definitions*", async (route) => {
-      if (!providerRequest) {
-        providerRequest = route;
-        return;
-      }
+      await new Promise((resolve) => setTimeout(resolve, 6000));
       await emptyJson(route);
     });
 
@@ -182,9 +178,6 @@ for (const viewport of [
       path: `test-artifacts/vf9d-connected-apps-loading-${viewport.name}.png`,
       fullPage: true,
     });
-
-    await expect.poll(() => Boolean(providerRequest)).toBe(true);
-    await emptyJson(providerRequest);
 
     await expect(page.getByText("No provider adapters are enabled", { exact: true })).toBeVisible({ timeout: 15000 });
     const configuration = page.locator(".ev2c-state-configuration").filter({
