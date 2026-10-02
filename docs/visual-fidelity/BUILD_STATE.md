@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF5 — Executive
-Current substage: VF5C — Reports / financial context / calendar (ACTIVE)
+Current stage: VF6 — Cross-role workspaces
+Current substage: VF6A — Project workspace (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -360,27 +360,16 @@ Acceptance evidence:
 
 VF5B makes Executive Work leadership-first, preserves factual delegation/review semantics, and makes Ministry visibly express Ministry Direction → Ministry Objective → Unit Objective. Descriptive objectives stay descriptive; numeric objectives show recorded result beside target without generated scoring; project links remain attributable. The representative Level C fixture exposed a real 39.5px mobile action target; the product CSS was corrected to the CEAC 44px floor and the complete exact-head gate passed.
 
-## Active: VF5C — Executive Reports / financial context / calendar
+### VF5C — Executive Reports / financial context / calendar: COMPLETE / ACCEPTED
 
-Purpose:
-Complete the Executive family by making Reports and Finance read as concise leadership summaries with truthful drill-down, while keeping meeting/calendar context appropriately supporting rather than inventing a new Executive Calendar route.
+Exact accepted application head:
+`3b60efb6c38db2530a199f47b494e412b404041a`
 
-Required outcomes:
-1. Executive Finance summarises decision-relevant recorded context before ledger detail;
-2. currencies remain fully separate with no conversion or inferred balance;
-3. Executive Reports lead with filing/coverage exceptions and named factual status without turning coverage into performance scoring;
-4. sparse/empty financial and reporting states remain truthful but still read as deliberate Executive briefing surfaces;
-5. existing Executive meeting/calendar context remains supporting context through accepted surfaces; do not create a new standalone Executive Calendar route because the canonical Executive route set has seven primary routes and cross-role Calendar closure belongs to VF6C;
-6. laptop/desktop use deliberate executive hierarchy and useful density;
-7. phone recomposes intentionally with reachable controls and no serial generic-card bloat;
-8. preserve finance authority, reporting provenance, currency separation, RLS/RPC, capability, audit and privacy contracts;
-9. pass affected Level A, then exact-head Level B + Level C before VF6A.
+Application-equivalent Vercel checkpoint:
+`83f98d749cdcf0784dfe2385416b368ef6178461` — PASS
 
-Do not begin VF6A canonically until VF5C is accepted.
-
-
-Current exact application checkpoint:
-- application SHA: `3b60efb6c38db2530a199f47b494e412b404041a`
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF5C_ACCEPTANCE.md`
 - CI `36987278045`: PASS
 - Migration Replay `36987277987`: PASS
 - Account Security `36987277975`: PASS
@@ -389,12 +378,30 @@ Current exact application checkpoint:
 - Level B browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- Level C populated Finance evidence: shard artifact `11218700568`
-- Level C populated Reports evidence: shard artifact `11217908474`
-- Level C decision: PASS
-- Vercel exact-head status: BLOCKED EXTERNALLY by free-plan deployment-rate limit
+- populated Executive Finance phone/laptop evidence: shard artifact `11218700568`
+- populated Executive Reports phone/laptop evidence: shard artifact `11217908474`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11218491890`
+- application-equivalent Vercel deployment: PASS
 
-VF5C is not yet marked TECHNICALLY ACCEPTED because the binding Level B protocol requires a green exact-head Vercel status. A documentation-only application-equivalent head may be used to obtain a fresh Vercel attempt; do not change VF5C application code merely to retrigger deployment.
+VF5C makes Executive Finance decision-first while keeping every currency separate and every balance claim factual, and makes Executive Reports coverage/exception-first beside named filing status without turning filing coverage into performance scoring. Phone uses intentional vertical composition and horizontal evidence rails rather than desktop compression. The first exact application SHA hit Vercel's external free-plan deployment limit; a documentation-only application-equivalent head then deployed successfully without changing application code.
+
+## Active: VF6A — Cross-role Project workspace
+
+Purpose:
+Make the shared Project object feel like one coherent CEAC workspace across Manager, Administration and Executive while keeping role-specific authority and altitude intact.
+
+Required outcomes:
+1. preserve Manager operating-ledger composition and project authority;
+2. flatten remaining shared project-detail card/shadow islands into coherent record/workspace zones;
+3. preserve list → selected-project context on laptop/desktop and deliberate project navigation on phone;
+4. keep Administration project context read-only and organisation-level;
+5. keep Executive Portfolio at leadership altitude while reducing long generic form/card stacking;
+6. preserve objectives, work, participants, custody, payment/remittance, milestones, dependencies, risks/issues, close/reopen and delivery-group authority;
+7. no hidden project score, inferred risk probability or fabricated timeline;
+8. retain factual row/table equivalents for any project visualisation;
+9. pass affected Level A, exact-head Level B and Level C before VF6B.
+
+Do not begin VF6B canonically until VF6A is accepted.
 
 ## Protected boundaries
 
