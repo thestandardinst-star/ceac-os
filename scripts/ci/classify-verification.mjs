@@ -60,6 +60,9 @@ const levelB =
     databaseOrSecurityChanged);
 
 const scopeRules = [
+  ["vf9b", /visual-fidelity-css-cascade-closure\.spec\.js$/i],
+  ["vf9c", /visual-fidelity-performance-closure\.spec\.js$/i],
+  ["vf9d", /visual-fidelity-state-closure\.spec\.js$/i],
   ["stage15", /experience-v2-stage15-|premium(?:-(?:parity|staff|manager|admin|executive))?\.css$|\/styles\.css$|\/PremiumShell\.jsx$/i],
   ["stage14", /experience-v2-stage14-/i],
   ["personal", /personal-family|\/Me\.jsx$|\/AccountActivity\.jsx$|\/Performance\.jsx$|\/Learning\.jsx$|\/Assets\.jsx$|\/Compliance\.jsx$/i],
