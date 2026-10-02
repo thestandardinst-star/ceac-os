@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF4 — Administration & HR
-Current substage: VF4C — Attendance / Leave / Workforce (ACTIVE)
+Current substage: VF4D — Money / Reports / Organisation / Settings (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -277,22 +277,42 @@ Acceptance evidence:
 
 VF4B makes People a searchable factual directory/ledger, keeps employee identity and employment context persistent beside the detailed record on larger screens, and flattens employment, evidence, leave and protected-HR information into readable operations-console structures. Phone deliberately stacks the same factual record without creating employee scores, rankings, inferred productivity or payroll values. Protected-HR separation, audited employment changes and People/HR RLS/RPC authority remain unchanged.
 
-## Active: VF4C — Attendance / Leave / Workforce
+### VF4C — Administration Attendance / Leave / Workforce: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`aaddcc62bf3ecc8e77e818008c36040240b5d6a3`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF4C_ACCEPTANCE.md`
+- CI `36954442750`: PASS
+- Migration Replay `36954442781`: PASS
+- Account Security `36954442876`: PASS
+- Quality Gate `36954442778`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Administration Workforce phone/laptop/calendar/leave evidence: shard artifact `11206070786`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11205267361`
+
+VF4C makes Administration Workforce an evidence-and-workflow console: decision queues precede organisation context, workforce rows are denser, phone uses a deliberate horizontal seven-day calendar rail, and laptop/desktop uses a two-column weekly calendar canvas. A final Level B defect exposed literal JSX `\\n` text nodes becoming anonymous CSS-grid items at 1366px; removing only those text nodes restored the intended two-column calendar without changing workforce data, authority or tests. Attendance/session evidence remains descriptive, leave history stays attributable, no productivity/absence judgement is inferred, and payroll remains blocked.
+
+## Active: VF4D — Money / Reports / Organisation / Settings
 
 Purpose:
-Bring Administration Attendance, Leave and Workforce to a denser operational-console standard while preserving factual session/leave evidence and all workforce authority.
+Complete Administration & HR visual fidelity across Finance, Reports, Units/Organisation and Control Center/Organisation settings without changing accepted finance, reporting, organisation or governance authority.
 
 Required outcomes:
-1. make attendance/workforce read as operational records and queues rather than dashboard cards;
-2. keep leave decisions, work-session facts and workforce state easy to scan without implying productivity or performance judgement;
-3. use table/ledger/timeline patterns where they communicate better than repeated cards;
-4. reduce phone vertical waste while preserving touch ergonomics and clear decision points;
-5. keep factual attendance/session evidence separate from pay, performance and disciplinary conclusions;
-6. preserve leave/workforce authority, auditability, organisation scope and all workforce RLS/RPC boundaries;
-7. keep payroll blocked until CEAC payroll rules are explicitly confirmed;
-8. pass affected Level A during implementation, then exact-head Level B + Level C before VF4D.
+1. keep Finance as a factual ledger/decision surface with currencies always separate and no invented balance;
+2. keep Reports filing/period operations evidence-first and avoid equal-weight dashboard-card composition;
+3. make Units/Organisation read as an operating directory/ledger rather than large summary cards;
+4. make Control Center and Organisation settings read as governance/configuration workspaces rather than card catalogues;
+5. use laptop/desktop canvas deliberately while preserving purposeful phone recomposition and touch targets;
+6. preserve append-only finance/audit semantics, reporting provenance, organisation scope, invitations, capability authority, RLS/RPC and protected-HR boundaries;
+7. keep payroll and salary-policy surfaces truthfully deferred until CEAC rules are confirmed;
+8. pass affected Level A during implementation, then exact-head Level B + Level C before VF5A.
 
-Do not begin VF4D canonically until VF4C is accepted.
+Do not begin VF5A canonically until VF4D is accepted.
 
 ## Protected boundaries
 
