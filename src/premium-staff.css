@@ -165,3 +165,42 @@
   .staff-month-card{padding:9px}
   .inbox-row{padding:12px 10px}
 }
+
+
+/* VF6D — Messages operational-inbox closure.
+   Communication scope remains Rooms / Mentions / linked Work / Announcements; no DM capability is added. */
+.staff-app .inbox-page .premium-filter-row button {
+  min-height: 44px;
+}
+
+.staff-app .inbox-page .inbox-list {
+  overflow: hidden;
+  border-top: 1px solid var(--ceac-line);
+  border-bottom: 1px solid var(--ceac-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.staff-app .inbox-page .inbox-empty {
+  display: grid;
+  gap: 4px;
+  padding: 26px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #748497;
+  text-align: left;
+}
+
+.staff-app .inbox-page .inbox-empty strong {
+  color: #263a50;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.staff-app .inbox-page .inbox-empty span {
+  max-width: 62ch;
+  font-size: 12px;
+  line-height: 1.5;
+}
