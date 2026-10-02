@@ -781,21 +781,38 @@ Acceptance evidence:
 
 VF10B proves the final pre-release branch state at one exact application verification head. The branch Vercel status remains the known external free-plan rate limit; deployed-product acceptance is reserved for VF10D.
 
-## Active: VF10C — complete Level C Product Fidelity acceptance
+### VF10C — complete Level C Product Fidelity acceptance: COMPLETE / ACCEPTED
+
+Accepted application-equivalent SHA:
+`e3b468d24148dfe5cc69d8d6bcda91da7b7945be`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF10C_ACCEPTANCE.md`
+- complete 57-route matrix: artifact `11242555228`
+- R7 product inspection: artifact `11241399642`
+- laptop-density evidence: artifact `11241484559`
+- browser shards 1–4: exact-head PASS
+
+VF10C confirms final Product Fidelity across Staff, Manager, Administration and Executive with no material role-collapse, generic-dashboard regression, misleading data visualisation or unresolved visual blocker.
+
+Decision:
+- TECHNICALLY ACCEPTED: YES
+- VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
+
+## Active: VF10D — actual deployed-product inspection
 
 Purpose:
-Perform the final product-fidelity decision on the complete application-equivalent state before deployed-product inspection.
+Inspect the real deployed application-equivalent product before protected-main release.
 
 Required outcomes:
-1. inspect final route-matrix and R7 product evidence against the repository-owned CEAC target;
-2. confirm Staff, Manager, Administration and Executive retain their accepted role character;
-3. confirm hierarchy, composition, density, typography, iconography, semantic state, responsiveness and interaction remain materially accepted;
-4. confirm no generic-dashboard/card-wall regression, hidden primary context, fake metric, inferred judgement or misleading visualisation remains;
-5. record unresolved drift explicitly; any material blocker prevents acceptance;
-6. persist the VF10C acceptance record with explicit YES/YES decision;
-7. advance to VF10D only after final Product Fidelity acceptance is complete.
+1. identify a successful Vercel deployment that is application-equivalent to the accepted VF10C state, or create one deliberate `[vercel]` checkpoint when the external rate limit permits;
+2. verify the deployed shell and representative Staff, Manager, Administration and Executive surfaces;
+3. confirm no deployment-only configuration, asset, typography, responsive or runtime drift is visible;
+4. verify the deployed product is reachable and presents the accepted CEAC experience;
+5. record the exact deployed SHA/URL/evidence and any external limitation truthfully;
+6. advance to VF10E only after deployed-product inspection passes.
 
-Do not begin VF10D canonically until VF10C is accepted.
+Do not begin VF10E canonically until VF10D is accepted.
 
 ## Protected boundaries
 
