@@ -98,3 +98,86 @@ test("VF8A 320–430 phone matrix preserves all four role shells and deliberate 
     }
   }
 });
+
+
+test("VF8B 768–1024 tablet and small-laptop matrix preserves the shell breakpoint and usable role geometry", async ({ browser }) => {
+  test.setTimeout(300000);
+  const viewports = [
+    { name: "tablet-768", width: 768, height: 900 },
+    { name: "tablet-820", width: 820, height: 900 },
+    { name: "small-laptop-900", width: 900, height: 900 },
+    { name: "small-laptop-980", width: 980, height: 820 },
+    { name: "small-laptop-1024", width: 1024, height: 820 },
+  ];
+
+  for (const viewport of viewports) {
+    for (const role of roles) {
+      const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+      const page = await context.newPage();
+      await signIn(page, role);
+      await page.evaluate(() => document.fonts.ready);
+
+      const mobileShell = viewport.width <= 899;
+      if (mobileShell) {
+        await expect(page.locator(".ev2s-mobile-topbar")).toBeVisible();
+        await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+        await expect(page.locator(".ev2s-sidebar")).toBeHidden();
+        await expect(page.locator(".ev2s-topbar")).toBeHidden();
+      } else {
+        await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+        await expect(page.locator(".ev2s-topbar")).toBeVisible();
+        await expect(page.locator(".ev2s-mobile-topbar")).toBeHidden();
+        await expect(page.locator(".ev2s-mobile-nav")).toBeHidden();
+      }
+
+      const geometry = await page.evaluate(() => {
+        const body = document.querySelector(".app-content .body");
+        const workspace = document.querySelector(".ev2s-workspace");
+        const side = document.querySelector(".ev2s-sidebar");
+        const top = document.querySelector(".ev2s-topbar");
+        const bodyRect = body?.getBoundingClientRect();
+        const workspaceRect = workspace?.getBoundingClientRect();
+        return {
+          documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+          bodyLeft: bodyRect?.left ?? 0,
+          bodyRight: bodyRect ? bodyRect.right - window.innerWidth : 0,
+          workspaceRight: workspaceRect ? workspaceRect.right - window.innerWidth : 0,
+          sidebarOverflow: side ? side.scrollWidth - side.clientWidth : 0,
+          topbarOverflow: top ? top.scrollWidth - top.clientWidth : 0,
+        };
+      });
+
+      expect(geometry.documentOverflow, `${role.key} document overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.bodyOverflow, `${role.key} body overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.bodyLeft, `${role.key} body starts outside ${viewport.width}px`).toBeGreaterThanOrEqual(-1);
+      expect(geometry.bodyRight, `${role.key} body ends outside ${viewport.width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.workspaceRight, `${role.key} workspace ends outside ${viewport.width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.sidebarOverflow, `${role.key} sidebar overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+      expect(geometry.topbarOverflow, `${role.key} topbar overflow at ${viewport.width}px`).toBeLessThanOrEqual(1);
+
+      if (mobileShell) {
+        const navHeights = await page.locator(".ev2s-mobile-nav button").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+        expect(navHeights).toHaveLength(5);
+        expect(Math.min(...navHeights)).toBeGreaterThanOrEqual(44);
+      } else {
+        await expect(page.locator(".ev2s-sidebar-profile")).toBeVisible();
+        const sideGeometry = await page.locator(".ev2s-sidebar").evaluate((node) => ({
+          width: node.getBoundingClientRect().width,
+          right: node.getBoundingClientRect().right,
+        }));
+        expect(sideGeometry.width).toBeGreaterThan(180);
+        expect(sideGeometry.right).toBeLessThanOrEqual(viewport.width);
+      }
+
+      if (viewport.width === 768 || viewport.width === 1024) {
+        await page.screenshot({
+          path: `test-artifacts/vf8b-${role.key}-${viewport.name}.png`,
+          fullPage: true,
+        });
+      }
+
+      await context.close();
+    }
+  }
+});
