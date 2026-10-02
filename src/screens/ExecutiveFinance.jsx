@@ -121,63 +121,69 @@ export default function ExecutiveFinance({ me }) {
         statusTone={error ? "danger" : "neutral"}
       />
 
-      <div className="ev2fin-authority">
-        <FinanceRequestQueue me={me} authority="exec" title="Requests needing Group Pastor" />
+      <div className="ev2fin-executive-brief">
+        <div className="ev2fin-authority">
+          <FinanceRequestQueue me={me} authority="exec" title="Requests needing Group Pastor" />
+        </div>
+
+        <div className="ev2fin-executive-position">
+          {loading ? (
+            <div className="ev2fin-loading" aria-label="Loading financial context" aria-busy="true">
+              <Skeleton variant="block" height="8rem" />
+              <Skeleton variant="block" height="12rem" />
+            </div>
+          ) : error ? (
+            <div className="ev2fin-state">
+              <StatePanel
+                state="error"
+                title="Financial context could not be loaded"
+                description="No budget, spend or request totals are being shown because the current records could not be retrieved."
+                actionLabel="Try again"
+                onAction={load}
+                icon="finance"
+              />
+            </div>
+          ) : (
+            <FinanceSection
+              eyebrow="Recorded context"
+              title="Financial context by currency"
+              description="Recorded budget, actual spend and request context remain separate by currency. Approved requests are commitments, not actual spend."
+            >
+              <div className="ev2fin-card-grid">
+                {currencies.length === 0 ? (
+                  <FinanceEmpty
+                    title="No financial context recorded yet"
+                    description="Budget, spend and request records will build this leadership view when they exist."
+                  />
+                ) : null}
+                {currencies.map((currency) => {
+                  const hasBudget = budgets.some((budget) => (budget.currency || "GHS") === currency);
+                  return (
+                    <FinanceCurrencyCard
+                      key={currency}
+                      currency={currency}
+                      contextLabel="No currency conversion"
+                      facts={[
+                        {
+                          label: "Budget recorded",
+                          value: hasBudget ? money(budgetTotals[currency] || 0, currency) : "Not recorded",
+                          detail: hasBudget ? null : "No budget recorded for this currency",
+                        },
+                        { label: "Actual spend", value: money(spendTotals[currency] || 0, currency) },
+                        { label: "Approved requests", value: money(approvedTotals[currency] || 0, currency), detail: "Commitment, not actual spend" },
+                        { label: "Submitted requests", value: String(submittedByCurrency[currency] || 0), detail: "Organisation requests still submitted" },
+                      ]}
+                    />
+                  );
+                })}
+              </div>
+            </FinanceSection>
+          )}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="ev2fin-loading" aria-label="Loading financial context" aria-busy="true">
-          <Skeleton variant="block" height="8rem" />
-          <Skeleton variant="block" height="12rem" />
-        </div>
-      ) : error ? (
-        <div className="ev2fin-state">
-          <StatePanel
-            state="error"
-            title="Financial context could not be loaded"
-            description="No budget, spend or request totals are being shown because the current records could not be retrieved."
-            actionLabel="Try again"
-            onAction={load}
-            icon="finance"
-          />
-        </div>
-      ) : (
+      {!loading && !error ? (
         <>
-          <FinanceSection
-            eyebrow="Recorded context"
-            title="Financial context by currency"
-            description="Recorded budget, actual spend and request context remain separate by currency. Approved requests are commitments, not actual spend."
-          >
-            <div className="ev2fin-card-grid">
-              {currencies.length === 0 ? (
-                <FinanceEmpty
-                  title="No financial context recorded yet"
-                  description="Budget, spend and request records will build this leadership view when they exist."
-                />
-              ) : null}
-              {currencies.map((currency) => {
-                const hasBudget = budgets.some((budget) => (budget.currency || "GHS") === currency);
-                return (
-                  <FinanceCurrencyCard
-                    key={currency}
-                    currency={currency}
-                    contextLabel="No currency conversion"
-                    facts={[
-                      {
-                        label: "Budget recorded",
-                        value: hasBudget ? money(budgetTotals[currency] || 0, currency) : "Not recorded",
-                        detail: hasBudget ? null : "No budget recorded for this currency",
-                      },
-                      { label: "Actual spend", value: money(spendTotals[currency] || 0, currency) },
-                      { label: "Approved requests", value: money(approvedTotals[currency] || 0, currency), detail: "Commitment, not actual spend" },
-                      { label: "Submitted requests", value: String(submittedByCurrency[currency] || 0), detail: "Organisation requests still submitted" },
-                    ]}
-                  />
-                );
-              })}
-            </div>
-          </FinanceSection>
-
           <FinanceSection
             eyebrow="Units"
             title="Recorded spend by unit"
@@ -207,7 +213,7 @@ export default function ExecutiveFinance({ me }) {
             Recorded spend is not a bank balance. CEAC OS does not convert currencies or infer opening balances or unrecorded activity. Approved requests remain distinct from actual spend.
           </FinanceFootnote>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
