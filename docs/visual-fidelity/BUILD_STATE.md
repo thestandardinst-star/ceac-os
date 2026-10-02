@@ -760,22 +760,42 @@ Acceptance evidence:
 
 VF10A inspected all 13 Staff, 17 Manager, 20 Administration and 7 Executive routes against the repository-owned CEAC target and Visual Fidelity Contract. No material route-level product-fidelity drift remains.
 
-## Active: VF10B — complete exact-head Level B verification
+### VF10B — complete exact-head Level B verification: COMPLETE / ACCEPTED
+
+Accepted verification SHA:
+`e3b468d24148dfe5cc69d8d6bcda91da7b7945be`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF10B_ACCEPTANCE.md`
+- CI `37038292315`: PASS
+- Migration Replay `37038292250`: PASS
+- Account Security `37038292314`: PASS
+- Quality Gate `37038292327`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- complete route matrix: artifact `11242555228`
+- R7 product inspection: artifact `11241399642`
+- laptop density: artifact `11241484559`
+
+VF10B proves the final pre-release branch state at one exact application verification head. The branch Vercel status remains the known external free-plan rate limit; deployed-product acceptance is reserved for VF10D.
+
+## Active: VF10C — complete Level C Product Fidelity acceptance
 
 Purpose:
-Run the complete engineering, security, migration, browser and evidence gate on the final pre-release branch state.
+Perform the final product-fidelity decision on the complete application-equivalent state before deployed-product inspection.
 
 Required outcomes:
-1. freeze one exact branch head for final technical verification;
-2. pass CI/build and dependency safety;
-3. pass clean Migration Replay;
-4. pass Account Security and cumulative SQL/RLS/authority contracts;
-5. pass all four complete browser shards and merged product evidence;
-6. preserve the exact application state while the gate runs;
-7. record the exact run IDs and accepted verification SHA;
-8. advance to VF10C only after the complete gate is green.
+1. inspect final route-matrix and R7 product evidence against the repository-owned CEAC target;
+2. confirm Staff, Manager, Administration and Executive retain their accepted role character;
+3. confirm hierarchy, composition, density, typography, iconography, semantic state, responsiveness and interaction remain materially accepted;
+4. confirm no generic-dashboard/card-wall regression, hidden primary context, fake metric, inferred judgement or misleading visualisation remains;
+5. record unresolved drift explicitly; any material blocker prevents acceptance;
+6. persist the VF10C acceptance record with explicit YES/YES decision;
+7. advance to VF10D only after final Product Fidelity acceptance is complete.
 
-Do not begin VF10C canonically until VF10B is accepted.
+Do not begin VF10D canonically until VF10C is accepted.
 
 ## Protected boundaries
 
