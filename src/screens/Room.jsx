@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
 import { supabase } from "../lib/supabase";
 import VoiceInput from "../components/VoiceInput";
 import { humanError } from "../lib/productLanguage";
@@ -47,6 +48,7 @@ export default function Room({
   onRoomChange,
   startWorkFromMessage,
 }) {
+  const reduceMotion = useReducedMotion();
   const [room, setRoom] = useState(null);
   const [scopeRooms, setScopeRooms] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -327,7 +329,7 @@ export default function Room({
   }
 
   function jumpToLatest() {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    endRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
     atBottomRef.current = true;
     markRead();
   }
