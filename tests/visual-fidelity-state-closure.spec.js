@@ -206,3 +206,5 @@ for (const viewport of [
 // VF9D exact-head Level B checkpoint.
 
 // VF10B final exact-head Level B release checkpoint.
+
+// VF10B retry after documentation whitespace correction.
