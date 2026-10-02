@@ -1,7 +1,7 @@
 # CEAC OS — VF6C Acceptance Record
 
 Substage: VF6C — Calendar / schedule / meetings
-Accepted application candidate SHA: `de84712d9cfc81d7a6e22577c10959b0646b79c4`
+Accepted application SHA: `de84712d9cfc81d7a6e22577c10959b0646b79c4`
 Date: 2 October 2026
 
 ## Target
@@ -67,13 +67,15 @@ Unresolved material visual drift: none for VF6C.
 
 ## Deployment status
 
-- exact application SHA: Vercel blocked by external free-plan build-rate limit;
-- first documentation-only application-equivalent checkpoint `9985a44bdb7daad292c2d87680f2d5c544dfd0e7`: also rate-limited;
-- this file is a documentation-only retry and changes no application code.
+- exact application SHA initially hit the external free-plan build-rate limit;
+- first documentation-only checkpoint `9985a44bdb7daad292c2d87680f2d5c544dfd0e7` was also rate-limited;
+- documentation-only application-equivalent checkpoint `423e06ac60d481cdc265b6d8a012e12c18c1f07d`: Vercel PASS;
+- application code is unchanged between the accepted application SHA and deployed checkpoint.
 
 ## Decision
 
 TECHNICALLY ACCEPTED: YES
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
-DEPLOYMENT ACCEPTANCE: PENDING
-CANONICAL ADVANCE TO VF6D: NO until an application-equivalent Vercel checkpoint passes.
+DEPLOYMENT ACCEPTANCE: YES
+
+Next canonical substage: **VF6D — Connected Apps and other shared operational surfaces**.
