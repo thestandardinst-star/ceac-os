@@ -899,6 +899,16 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
     await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
+    await page.getByRole("tab", { name: /^Work/ }).click();
+    await expect(page.locator(".fpg-work-table")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg2-project-task-gold-desktop.png", fullPage: true });
+    const firstProjectWork = page.locator(".fpg-work-table tbody tr").first();
+    if (await firstProjectWork.count()) {
+      await firstProjectWork.click();
+      await expect(page.locator(".fpg-work-drawer")).toBeVisible();
+      await page.screenshot({ path: "test-artifacts/fpg2-project-task-drawer-desktop.png", fullPage: true });
+      await page.getByRole("button", { name: "Close work preview" }).click();
+    }
     await page.getByRole("tab", { name: /^Register/ }).click();
     await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
 
@@ -967,6 +977,8 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Finance");
+    await expect(page.locator(".fpg-finance-dashboard")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg3-finance-gold-desktop.png", fullPage: true });
     await page.getByRole("button", { name: "Between departments", exact: true }).click();
     const transferRow = page.locator(".row").filter({ hasText: /Stage 4 Browser Project register remittance/ }).first();
     await expect(transferRow).toBeVisible();
