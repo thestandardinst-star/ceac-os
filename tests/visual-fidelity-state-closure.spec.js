@@ -204,3 +204,5 @@ for (const viewport of [
 }
 
 // VF9D exact-head Level B checkpoint.
+
+// VF10B final exact-head Level B release checkpoint.
