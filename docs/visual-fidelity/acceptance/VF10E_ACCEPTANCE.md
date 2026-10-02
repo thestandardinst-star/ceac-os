@@ -2,7 +2,7 @@
 
 Substage: VF10E — acceptance record, merge and post-merge main verification
 Date: 2 October 2026
-Status: PRE-MERGE ACCEPTED — post-merge main verification pending
+Status: POST-MERGE GITHUB VERIFICATION ACCEPTED — production Vercel deployment pending
 
 ## Accepted release line
 
@@ -12,7 +12,7 @@ Final application-equivalent verification SHA:
 Accepted deployed-product checkpoint:
 `482ae8d65b65f0f0752b5683e9a041e3424eb05d`
 
-Accepted Vercel deployment:
+Accepted Vercel preview deployment:
 `6EfgmDuEHekcxjWjmUfdbSG8w1wn`
 
 VF10D acceptance:
@@ -25,43 +25,72 @@ VF10D acceptance:
 
 ## Final pre-merge branch state
 
-Canonical PR #79 head before this record:
-`36d418d4382eca3766917319562adcfdd6f3abf5`
+Canonical PR #79 accepted head:
+`c6ab00f542e329fe96af11cabfb04f156505f44e`
 
-Exact-head release verification:
-- CI `37051473880`: PASS
-- Migration Replay `37051473898`: PASS
-- Account Security `37051473919`: PASS
-- Quality Gate `37051473877`: PASS
+The prior exact-head release verification completed successfully:
+- CI `37051625114`: PASS
+- Migration Replay `37051625283`: PASS
+- Account Security `37051625160`: PASS
+- Quality Gate `37051625156`: PASS
 
-Protected `main` baseline immediately before release:
-`132cc4e3bd30374cc164ab425c41a79a2bd1e399`
+## Protected-main merge
 
-Protected-main required checks observed:
-- `build`
-- `role-and-rls`
-- `replay`
-- `invited-account-flow`
+PR #79 was squash-merged with expected-head protection.
 
-PR #79 is mergeable. No material application, security, authority, finance, privacy, role or visual-fidelity blocker remains.
+Protected `main` merge SHA:
+`afe53e5b5d47747a963e791fdc5fc3eadfd2ba2d`
 
-The Vercel status attached to later documentation-only branch heads may show the known free-plan deployment-rate limit. This does not invalidate VF10D because the deliberate application-equivalent deployment above completed successfully and was inspected across all four roles.
+Accepted PR-head tree:
+`c773a9c23e6d016af1c0e3e299797cda827ef3fc`
 
-## Pre-merge decision
+Merged-main tree:
+`c773a9c23e6d016af1c0e3e299797cda827ef3fc`
 
-PRE-MERGE RELEASE ACCEPTED: YES
+Tree equality:
+**PASS** — the squash merge preserved the accepted release tree exactly.
 
-The release may advance to protected-main merge only with expected-head protection after this record's own branch checks pass.
+## Post-merge main verification
 
-## Post-merge completion gate
+Completed:
+- protected `main` points to `afe53e5b5d47747a963e791fdc5fc3eadfd2ba2d`;
+- main tree equals the accepted PR tree;
+- main CI build run `37051751092`: PASS;
+- no merge-only application-code change exists.
 
-VF10E and the Visual Fidelity programme are NOT complete until the resulting protected `main` state is verified for:
-- expected merge commit and ancestry;
-- CI;
-- Migration Replay;
-- Account Security;
-- Quality Gate;
-- production Vercel deployment;
-- no post-merge application/runtime regression.
+Repository workflow design:
+- Migration Replay, Account Security and Quality Gate are PR / workflow-dispatch workflows, not automatic `main` push workflows;
+- this docs-only closure branch is based exactly on the merged main SHA so those gates can re-run against the merged main tree before closure.
 
-Final programme decision remains pending post-merge verification.
+## Production Vercel state
+
+The `main` merge attempted a production deployment but Vercel returned the known external free-plan daily deployment limit:
+
+`api-deployments-free-per-day`
+
+The current GitHub Vercel status for `afe53e5b5d47747a963e791fdc5fc3eadfd2ba2d` is therefore FAIL due to infrastructure rate limiting, not an application build/test failure.
+
+No repeated deployment commit is being created merely to probe the limit.
+
+The previously validated application-equivalent preview remains accepted evidence for VF10D, but it does not replace the VF10E requirement for a successful production deployment from protected `main`.
+
+## Remaining completion gate
+
+VF10E and the Visual Fidelity programme are not yet complete.
+
+Closure PR #91 exact-head verification:
+- CI `37052338562`: PASS;
+- Migration Replay `37052338676`: PASS;
+- Account Security `37052338542`: PASS;
+- Quality Gate `37052338670`: PASS.
+
+Still required:
+1. successful production Vercel deployment from the accepted protected-main tree;
+2. final closure record updated to ACCEPTED AND COMPLETE.
+
+## Decision
+
+POST-MERGE MAIN TREE: ACCEPTED
+POST-MERGE GITHUB VERIFICATION: ACCEPTED
+PRODUCTION VERCEL: PENDING — external daily deployment cap
+FINAL VF10E ACCEPTANCE: PENDING
