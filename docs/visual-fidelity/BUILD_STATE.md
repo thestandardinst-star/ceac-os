@@ -566,6 +566,21 @@ Required outcomes:
 
 Do not begin VF8A canonically until VF7D is accepted.
 
+Current VF7D acceptance checkpoint:
+- technically green application SHA: `0bb18af90f346686e482fa03ad3e15616caf4eb6`;
+- CI `37008866378`: PASS;
+- Migration Replay `37008866425`: PASS;
+- Account Security `37008866479`: PASS;
+- Quality Gate `37008866381`: PASS;
+- SQL/RLS/security contracts: PASS;
+- browser shards 1–4: PASS;
+- merged exact-head product evidence: PASS;
+- role-and-RLS coordinator: PASS;
+- reduced-motion phone/laptop evidence: `quality-gate-browser-shard-4` artifact `11226608896`;
+- Level C inspection: PASS — route destination, Calendar period/selection, Sheet dismissal/focus return and factual state remain visible under reduced motion;
+- deployed-product acceptance: PENDING deliberate application-equivalent Vercel checkpoint.
+
+
 ## Protected boundaries
 
 Do not rewrite accepted V2 business logic merely to improve appearance.
