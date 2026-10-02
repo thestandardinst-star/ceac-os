@@ -1400,7 +1400,7 @@
 .fpg-work-table th:first-child,.fpg-work-table td:first-child{width:54px;text-align:center}
 .fpg-work-table th:nth-child(3),.fpg-work-table td:nth-child(3){width:150px}
 .fpg-work-table th:nth-child(4),.fpg-work-table td:nth-child(4){width:260px}
-.fpg-done-cell{padding-inline:8px!important}
+.fpg-done-cell{padding-inline:8px}
 .fpg-readonly-check{
   width:18px;height:18px;display:inline-grid;place-items:center;
   border:1.5px solid #c9cdd3;border-radius:4px;background:#fff;color:#242930;
