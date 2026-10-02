@@ -191,3 +191,93 @@
     padding-top: var(--ev2-space-3);
   }
 }
+
+
+/* VF6B — Cross-role money-state and finance-surface closure.
+   Presentation only: currency separation, request authority, append-only spend,
+   transfer confirmation, reversal semantics and missing-budget truth remain unchanged. */
+.ev2fin-tabs {
+  gap: 0;
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2fin-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2fin-tabs button.is-active {
+  border-color: transparent;
+  border-bottom-color: var(--ev2-action);
+  background: transparent;
+  color: var(--ev2-action);
+  box-shadow: none;
+}
+
+.ev2fin-currency-card,
+.ev2fin-list,
+.ev2fin-drill,
+.ev2-finance-admin .ev2fin-authority,
+.ev2-finance-executive .ev2fin-authority,
+.ev2-finance-manager .finance-section {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2fin-empty,
+.ev2-finance-manager .empty-state {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2-finance-admin .ev2fin-admin-overview-grid {
+  display: grid;
+  gap: var(--ev2-space-4);
+  margin-top: var(--ev2-space-6);
+}
+
+.ev2-finance-admin .ev2fin-admin-overview-grid > .ev2fin-section {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.ev2-finance-admin .ev2fin-admin-overview-grid .ev2fin-card-grid {
+  grid-template-columns: 1fr;
+}
+
+.ev2-finance-admin .ev2fin-authority {
+  box-shadow: none;
+}
+
+@media (min-width: 1040px) {
+  .ev2-finance-admin {
+    width: min(100%, 86rem);
+  }
+
+  .ev2-finance-admin .ev2fin-admin-overview-grid {
+    grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+    align-items: start;
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-finance-admin .ev2fin-admin-overview-grid {
+    gap: var(--ev2-space-3);
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-finance-admin .ev2fin-tabs {
+    display: flex;
+    overflow-x: auto;
+    margin-inline: calc(var(--ev2-space-3) * -1);
+    padding-inline: var(--ev2-space-3);
+  }
+
+  .ev2-finance-admin .ev2fin-tabs button {
+    width: auto;
+    min-width: max-content;
+    padding-inline: var(--ev2-space-3);
+  }
+}
