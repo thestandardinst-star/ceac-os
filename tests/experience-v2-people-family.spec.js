@@ -645,3 +645,29 @@ test("VF3C Manager Team and Person workspace locks factual command composition",
   expect(css).toContain("grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr)");
   expect(css).not.toContain("!important");
 });
+
+
+test("VF4B Administration People and employee workspace lock operations-console composition", () => {
+  const screen = readFileSync("src/screens/People.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  expect(screen).toContain('className="ev2p-admin-control-band"');
+  expect(screen).toContain('className="ev2p-admin-person-layout"');
+  expect(screen).toContain('className="ev2p-admin-person-rail"');
+  expect(screen).toContain('className="ev2p-admin-person-detail"');
+  expect(screen).toContain('className="ev2p-admin-identity-section"');
+
+  expect(screen).toContain('rpc("admin_people_summary")');
+  expect(screen).toContain('rpc("admin_person_detail"');
+  expect(screen).toContain('rpc("admin_employment_detail"');
+  expect(screen).toContain('rpc("admin_update_employment"');
+  expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
+  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+
+  expect(css).toContain("/* VF4B — Administration People / Employee workspace fidelity.");
+  expect(css).toContain(".ev2p-admin-person-rail");
+  expect(css).toContain("position: sticky");
+  expect(css).toContain("grid-template-columns: minmax(15.5rem, 18rem) minmax(0, 1fr)");
+  expect(css).toContain(".ev2-people-admin > .ev2p-section");
+  expect(css).not.toContain("!important");
+});
