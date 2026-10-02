@@ -267,17 +267,4 @@
     gap: var(--ev2-space-3);
     margin-top: var(--ev2-space-4);
   }
-
-  .ev2-finance-admin .ev2fin-tabs {
-    display: flex;
-    overflow-x: auto;
-    margin-inline: calc(var(--ev2-space-3) * -1);
-    padding-inline: var(--ev2-space-3);
-  }
-
-  .ev2-finance-admin .ev2fin-tabs button {
-    width: auto;
-    min-width: max-content;
-    padding-inline: var(--ev2-space-3);
-  }
 }
