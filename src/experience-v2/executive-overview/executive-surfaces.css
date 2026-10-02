@@ -231,6 +231,10 @@
     min-height: 44px;
   }
 
+  .ev2-executive-ministry .btn {
+    min-height: 44px;
+  }
+
   .ev2-executive-ministry .ev2ex-ministry-direction {
     padding-block: var(--ev2-space-4);
   }
