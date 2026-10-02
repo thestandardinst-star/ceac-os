@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF8 — Whole-system responsive closure
-Current substage: VF8C — 1366×768 laptop matrix (ACTIVE)
+Current substage: VF8D — 1440×900+ desktop matrix (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -611,22 +611,42 @@ Acceptance evidence:
 
 VF8B closes the intermediate-width shell transition: 768/820 retain the tablet/mobile shell, while 900/980/1024 use compact desktop chrome without overflow or role-character collapse.
 
-## Active: VF8C — 1366×768 laptop matrix
+### VF8C — 1366×768 laptop matrix: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`6de970d5f4a19e8a4401ea291fda53bdd2cdecd9`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF8C_ACCEPTANCE.md`
+- CI `37019893736`: PASS
+- Migration Replay `37019893966`: PASS
+- Account Security `37019894087`: PASS
+- Quality Gate `37019893987`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head status: PASS
+- four-role 1366×768 evidence: shard artifact `11232584854`
+
+VF8C closes the canonical laptop viewport: shell seam, topbar, account chrome and role command surfaces remain stable with no material overflow or role-character drift.
+
+## Active: VF8D — 1440×900+ desktop matrix
 
 Purpose:
-Close the canonical laptop viewport across all four role families.
+Close large-desktop and wider-screen composition before accessibility/performance regression closure.
 
 Required outcomes:
-1. verify Staff, Manager, Administration and Executive at exactly 1366×768;
-2. sidebar, topbar, account chrome and destination search remain stable without horizontal overflow;
-3. page content uses the available laptop canvas deliberately, without excessive empty width or over-dense desktop assumptions;
-4. role hierarchy remains obvious within the first screenful;
-5. sticky/supporting regions do not hide primary work or create accidental scroll traps;
+1. verify Staff, Manager, Administration and Executive at 1440×900 and a wider desktop checkpoint;
+2. desktop shell remains stable with no document/body/sidebar/topbar horizontal overflow;
+3. content respects the established reading/working measure instead of stretching indefinitely;
+4. wide canvases use deliberate density and role-appropriate hierarchy without adding empty decorative space;
+5. primary actions, supporting context and long operational rows remain readable and reachable;
 6. preserve factual/no-inference, accessibility, security and authority contracts;
-7. persist four-role 1366×768 evidence;
-8. pass Level A, exact-head Level B and Level C before VF8D.
+7. persist representative four-role 1440 evidence plus a wide-screen reading-measure check;
+8. pass Level A, exact-head Level B and Level C before VF9A.
 
-Do not begin VF8D canonically until VF8C is accepted.
+Do not begin VF9A canonically until VF8D is accepted.
 
 ## Protected boundaries
 
