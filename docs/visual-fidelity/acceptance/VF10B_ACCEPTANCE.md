@@ -1,7 +1,7 @@
 # CEAC OS — VF10B Acceptance Record
 
-Substage: VF10B — complete exact-head Level B verification  
-Accepted verification SHA: `e3b468d24148dfe5cc69d8d6bcda91da7b7945be`  
+Substage: VF10B — complete exact-head Level B verification
+Accepted verification SHA: `e3b468d24148dfe5cc69d8d6bcda91da7b7945be`
 Date: 2 October 2026
 
 ## Target
