@@ -96,25 +96,6 @@
 /* VF5A — Executive briefing hierarchy.
    Executive stays exception-led: senior attention first, factual ministry movement second,
    while supporting leadership context becomes lighter and deliberately recomposes on phone. */
-@media (min-width: 961px) {
-  .executivev2 {
-    max-width: 82rem;
-  }
-
-  .executivev2-command-grid {
-    grid-template-columns: minmax(0, 1.42fr) minmax(21rem, .58fr);
-    gap: var(--ev2-space-5);
-  }
-
-  .executivev2-context-grid .executivev2-panel .ev2c-data-panel-body,
-  .executivev2-support-grid .executivev2-panel .ev2c-data-panel-body {
-    border-left: 0;
-    border-right: 0;
-    border-radius: 0;
-    background: transparent;
-  }
-}
-
 @media (max-width: 599px) {
   .executivev2-command-grid {
     gap: var(--ev2-space-3);
