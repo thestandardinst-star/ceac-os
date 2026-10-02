@@ -181,3 +181,62 @@ test("VF8B 768–1024 tablet and small-laptop matrix preserves the shell breakpo
     }
   }
 });
+
+
+test("VF8C exact 1366×768 laptop matrix preserves all four role command surfaces", async ({ browser }) => {
+  test.setTimeout(240000);
+  const viewport = { width: 1366, height: 768 };
+
+  for (const role of roles) {
+    const context = await browser.newContext({ viewport });
+    const page = await context.newPage();
+    await signIn(page, role);
+    await page.evaluate(() => document.fonts.ready);
+
+    await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+    await expect(page.locator(".ev2s-topbar")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-topbar")).toBeHidden();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeHidden();
+    await expect(page.locator(".ev2s-sidebar-profile")).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const body = document.querySelector(".app-content .body");
+      const side = document.querySelector(".ev2s-sidebar");
+      const top = document.querySelector(".ev2s-topbar");
+      const workspace = document.querySelector(".ev2s-workspace");
+      const profile = document.querySelector(".ev2s-sidebar-profile");
+      const bodyRect = body?.getBoundingClientRect();
+      const sideRect = side?.getBoundingClientRect();
+      const topRect = top?.getBoundingClientRect();
+      const workspaceRect = workspace?.getBoundingClientRect();
+      const profileRect = profile?.getBoundingClientRect();
+      return {
+        documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+        sidebarOverflow: side ? side.scrollWidth - side.clientWidth : 0,
+        topbarOverflow: top ? top.scrollWidth - top.clientWidth : 0,
+        bodyRight: bodyRect ? bodyRect.right - window.innerWidth : 0,
+        sidebarRight: sideRect?.right || 0,
+        workspaceLeft: workspaceRect?.left || 0,
+        topbarRight: topRect ? topRect.right - window.innerWidth : 0,
+        profileBottom: profileRect?.bottom || 0,
+        viewportHeight: window.innerHeight,
+      };
+    });
+
+    expect(geometry.documentOverflow, `${role.key} 1366 document overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.bodyOverflow, `${role.key} 1366 body overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.sidebarOverflow, `${role.key} 1366 sidebar overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.topbarOverflow, `${role.key} 1366 topbar overflow`).toBeLessThanOrEqual(1);
+    expect(geometry.bodyRight, `${role.key} 1366 body right edge`).toBeLessThanOrEqual(1);
+    expect(Math.abs(geometry.topbarRight), `${role.key} 1366 topbar right edge`).toBeLessThanOrEqual(1);
+    expect(Math.abs(geometry.sidebarRight - geometry.workspaceLeft), `${role.key} sidebar/workspace seam`).toBeLessThanOrEqual(1);
+    expect(geometry.profileBottom, `${role.key} profile chrome below viewport`).toBeLessThanOrEqual(geometry.viewportHeight + 1);
+
+    await page.screenshot({
+      path: `test-artifacts/vf8c-${role.key}-laptop-1366x768.png`,
+      fullPage: true,
+    });
+    await context.close();
+  }
+});
