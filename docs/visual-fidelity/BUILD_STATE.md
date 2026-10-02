@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF4 — Administration & HR
-Current substage: VF4D — Money / Reports / Organisation / Settings (ACTIVE)
+Current stage: VF5 — Executive
+Current substage: VF5A — Overview / executive briefing (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -297,22 +297,42 @@ Acceptance evidence:
 
 VF4C makes Administration Workforce an evidence-and-workflow console: decision queues precede organisation context, workforce rows are denser, phone uses a deliberate horizontal seven-day calendar rail, and laptop/desktop uses a two-column weekly calendar canvas. A final Level B defect exposed literal JSX `\\n` text nodes becoming anonymous CSS-grid items at 1366px; removing only those text nodes restored the intended two-column calendar without changing workforce data, authority or tests. Attendance/session evidence remains descriptive, leave history stays attributable, no productivity/absence judgement is inferred, and payroll remains blocked.
 
-## Active: VF4D — Money / Reports / Organisation / Settings
+### VF4D — Administration Money / Reports / Organisation / Settings: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`2558be1bc07a80677323ac9a48cfdac510035ec0`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF4D_ACCEPTANCE.md`
+- CI `36963969422`: PASS
+- Migration Replay `36963969408`: PASS
+- Account Security `36963969413`: PASS
+- Quality Gate `36963969424`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11209595260`
+- exact-head R7 product inspection artifact: `11209590222`
+
+VF4D makes Administration Finance, Reports, Units/Organisation and Control Center/Organisation settings read as factual operating ledgers and governance workspaces rather than card catalogues. Currencies remain separate, reporting provenance remains explicit, organisation/configuration scope remains authoritative, and unconfirmed payroll/salary policy remains visibly deferred.
+
+## Active: VF5A — Executive Overview / executive briefing
 
 Purpose:
-Complete Administration & HR visual fidelity across Finance, Reports, Units/Organisation and Control Center/Organisation settings without changing accepted finance, reporting, organisation or governance authority.
+Make Executive Home read as a briefing room rather than Administration with fewer controls: summarise first, surface genuine exceptions, show recorded ministry movement where useful, and keep drill-down authoritative.
 
 Required outcomes:
-1. keep Finance as a factual ledger/decision surface with currencies always separate and no invented balance;
-2. keep Reports filing/period operations evidence-first and avoid equal-weight dashboard-card composition;
-3. make Units/Organisation read as an operating directory/ledger rather than large summary cards;
-4. make Control Center and Organisation settings read as governance/configuration workspaces rather than card catalogues;
-5. use laptop/desktop canvas deliberately while preserving purposeful phone recomposition and touch targets;
-6. preserve append-only finance/audit semantics, reporting provenance, organisation scope, invitations, capability authority, RLS/RPC and protected-HR boundaries;
-7. keep payroll and salary-policy surfaces truthfully deferred until CEAC rules are confirmed;
-8. pass affected Level A during implementation, then exact-head Level B + Level C before VF5A.
+1. senior attention and exceptions dominate before supporting ministry context;
+2. recorded ministry movement remains factual and never becomes a performance score or inferred explanation;
+3. reporting, finance, portfolio, organisation and meetings stay concise leadership context with drill-down rather than equal-weight operational modules;
+4. laptop/desktop uses the canvas as an executive briefing surface with stronger hierarchy and fewer repeated boxes;
+5. phone keeps senior attention and essential briefing context first without serial dashboard-card bloat;
+6. preserve Executive read authority, reporting/finance provenance, ministry-record semantics, RLS/RPC and privacy boundaries;
+7. pass affected Level A during implementation, then exact-head Level B + Level C before VF5B.
 
-Do not begin VF5A canonically until VF4D is accepted.
+Do not begin VF5B canonically until VF5A is accepted.
 
 ## Protected boundaries
 
