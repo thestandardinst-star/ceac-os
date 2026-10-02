@@ -31,6 +31,9 @@ test("Stage 10 Family D4 preserves Administration Workforce authority and factua
   expect(workforce).toContain("will not calculate entitlement, accrual, carry-over or remaining balance");
   expect(workforce).toContain('leaveAction(row.id,"approval_reversed")');
   expect(css).toContain(".ev2-workforce-admin");
+  expect(css).toContain("/* VF4C — Administration Workforce operational console.");
+  expect(css).toContain(".ev2-workforce-admin .ev2wf-tabs");
+  expect(css).toContain(".ev2-workforce-admin .ev2wf-row-state");
   expect(css).not.toContain("!important");
 });
 
@@ -83,10 +86,35 @@ for (const viewport of [
     expect(smallest).toBeGreaterThanOrEqual(12);
 
     await page.getByRole("tab", { name: "Today", exact: true }).click();
+    const rootBox = await page.locator(".ev2-workforce-admin").boundingBox();
+    const stateBoxes = await page.locator(".ev2-workforce-admin .ev2wf-row-state:visible").evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { left: rect.left, right: rect.right };
+      })
+    );
+    for (const box of stateBoxes) {
+      expect(box.left).toBeGreaterThanOrEqual((rootBox?.x || 0) - 1);
+      expect(box.right).toBeLessThanOrEqual((rootBox?.x || 0) + (rootBox?.width || viewport.width) + 1);
+    }
+
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage10d4-admin-workforce-${viewport.name}.png`,
       fullPage: true,
     });
+
+    if (viewport.name === "phone-390" || viewport.name === "laptop-1366") {
+      await page.getByRole("tab", { name: "Leave", exact: true }).click();
+      await page.screenshot({
+        path: `test-artifacts/vf4c-admin-workforce-leave-${viewport.name}.png`,
+        fullPage: true,
+      });
+      await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+      await page.screenshot({
+        path: `test-artifacts/vf4c-admin-workforce-calendar-${viewport.name}.png`,
+        fullPage: true,
+      });
+    }
 
     await context.close();
   });
