@@ -838,3 +838,12 @@
     margin-left: 0;
   }
 }
+
+
+/* VF7A — route/context continuity.
+   Movement is intentionally minimal: geometry is already established by the accepted
+   role and workspace compositions. The wrapper must never become a layout constraint. */
+.ev2-route-transition {
+  min-width: 0;
+  width: 100%;
+}
