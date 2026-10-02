@@ -642,6 +642,31 @@
   white-space: nowrap;
 }
 
+/* VF4D acceptance correction — premium-parity.css intentionally carries
+   legacy !important card defaults. Neutralise them at the later V2 layer so
+   Control Center remains one governance ledger instead of separate cards. */
+.office-app .ev2-control-center .control-grid {
+  gap: 0 !important;
+}
+
+.office-app .ev2-control-center .control-card {
+  border: 0 !important;
+  border-bottom: 1px solid var(--ev2-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.office-app .ev2-control-center .control-card:last-child {
+  border-bottom: 0 !important;
+}
+
+.office-app .ev2-control-center .control-card:hover {
+  border-color: var(--ev2-line) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 @media (max-width: 760px) {
   .ev2-control-center-header {
     display: grid;

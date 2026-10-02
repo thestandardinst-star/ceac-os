@@ -80,20 +80,41 @@ test.describe("Premium redesign R3 Administration",()=>{
   });
 
   test("VF4D Control Center is a governance ledger",async({browser})=>{
-    const {context,page}=await openAdmin(browser,{width:1366,height:768});
-    await page.goto("/?tab=settings");
-    await expect(page.getByRole("heading",{name:"Control Center",exact:true})).toBeVisible();
-    const cards=page.locator(".ev2-control-center .control-grid > .control-card");
-    expect(await cards.count()).toBeGreaterThan(1);
-    const firstTwo=await cards.evaluateAll((nodes)=>nodes.slice(0,2).map((node)=>{
-      const rect=node.getBoundingClientRect();
-      return {left:rect.left,top:rect.top,width:rect.width};
-    }));
-    expect(Math.abs(firstTwo[0].left-firstTwo[1].left)).toBeLessThanOrEqual(2);
-    expect(firstTwo[1].top).toBeGreaterThan(firstTwo[0].top);
-    expect(Math.abs(firstTwo[0].width-firstTwo[1].width)).toBeLessThanOrEqual(2);
-    await page.screenshot({path:"test-artifacts/vf4d-admin-control-center-laptop.png",fullPage:true});
-    await context.close();
+    for(const viewport of [
+      {name:"laptop",width:1366,height:768},
+      {name:"phone",width:390,height:844},
+    ]){
+      const {context,page}=await openAdmin(browser,{width:viewport.width,height:viewport.height});
+      await page.goto("/?tab=settings");
+      await expect(page.getByRole("heading",{name:"Control Center",exact:true})).toBeVisible();
+      const grid=page.locator(".ev2-control-center .control-grid");
+      const cards=grid.locator(":scope > .control-card");
+      expect(await cards.count()).toBeGreaterThan(1);
+      const geometry=await cards.evaluateAll((nodes)=>nodes.slice(0,2).map((node)=>{
+        const rect=node.getBoundingClientRect();
+        const style=getComputedStyle(node);
+        return {
+          left:rect.left,
+          top:rect.top,
+          bottom:rect.bottom,
+          width:rect.width,
+          radius:style.borderRadius,
+          shadow:style.boxShadow,
+        };
+      }));
+      const gridGap=await grid.evaluate((node)=>Number.parseFloat(getComputedStyle(node).gap)||0);
+      expect(Math.abs(geometry[0].left-geometry[1].left)).toBeLessThanOrEqual(2);
+      expect(geometry[1].top).toBeGreaterThan(geometry[0].top);
+      expect(geometry[1].top-geometry[0].bottom).toBeLessThanOrEqual(2);
+      expect(Math.abs(geometry[0].width-geometry[1].width)).toBeLessThanOrEqual(2);
+      expect(gridGap).toBeLessThanOrEqual(1);
+      for(const row of geometry){
+        expect(row.radius).toBe("0px");
+        expect(row.shadow).toBe("none");
+      }
+      await page.screenshot({path:`test-artifacts/vf4d-admin-control-center-${viewport.name}.png`,fullPage:true});
+      await context.close();
+    }
   });
 
   test("VF4D Organisation settings uses one configuration workspace",async({browser})=>{
