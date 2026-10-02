@@ -4,6 +4,7 @@ import { openSession } from "./lib/session";
 import SignIn from "./screens/SignIn";
 import AccountPassword from "./screens/AccountPassword";
 import { AppTopBar, MobileTopBar, Tabs, SideNav } from "./experience-v2/shell";
+import RouteTransition from "./experience-v2/RouteTransition";
 import AuthFrame from "./components/AuthFrame";
 
 const Home = lazy(() => import("./screens/Home"));
@@ -312,6 +313,23 @@ export default function App() {
 
   const appModeClass = isExec ? "executive-app" : isUnitManager ? "manager-app" : (!isAdmin ? "staff-app" : "office-app");
   const roleLabel = isExec ? "Group Pastor" : isAdmin ? "Administration" : isUnitManager ? "Manager" : "Staff";
+  const routeTransitionKey = itemId
+    ? `item:${itemId}`
+    : assigning
+      ? "assign"
+      : projectId && isUnitManager
+        ? `project:${projectId}`
+        : goalId
+          ? `goal:${goalId}`
+          : person && isManager
+            ? `person:${person.id}:${person.focus || "current"}`
+            : roomContext
+              ? `room:${roomContext.kind}:${roomContext.unitId || roomContext.subTeamId || roomContext.projectId || ""}`
+              : meetingDraft
+                ? `meeting-draft:${meetingDraft.scope || "context"}`
+                : meetingId
+                  ? `meeting:${meetingId}`
+                  : `tab:${tab}`;
 
   return (
     <div className={`app ${appModeClass}`}>
@@ -349,6 +367,7 @@ export default function App() {
           onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
         />
         <main className="app-content ev2s-content">
+          <RouteTransition routeKey={routeTransitionKey}>
           <Suspense fallback={<RouteFallback />}>
           {itemId ? <Item id={itemId} me={me} session={session} isManager={isUnitManager} openRoom={openRoom} back={closeUrlOverlay} />
             : assigning ? <Assign me={me}
@@ -373,6 +392,7 @@ export default function App() {
             : meetingId ? <Meeting me={me} meetingId={meetingId} back={closeUrlOverlay} goAssign={startAssignment} openItem={openItem} openProject={openProject} openRoom={openRoom} />
             : pageForTab()}
           </Suspense>
+          </RouteTransition>
         </main>
         {!overlay && <Tabs tab={tab} setTab={go} isManager={isUnitManager} isExec={isExec} isAdmin={isAdmin} me={me} />}
       </div>
