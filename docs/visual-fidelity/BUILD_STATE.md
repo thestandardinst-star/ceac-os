@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF8 — Whole-system responsive closure
-Current substage: VF8A — 320–430 phone matrix (ACTIVE)
+Current substage: VF8B — 768–1024 tablet / small-laptop matrix (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -574,25 +574,40 @@ VF7D proves that route/context, Calendar selection/period state, Sheet dismissal
 
 VF7 family exit: ACCEPTED.
 
-## Active: VF8A — 320–430 phone matrix
+### VF8A — 320–430 phone matrix: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`298d2eed7630c58a053c337fb63e634cb5816e4c`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF8A_ACCEPTANCE.md`
+- CI `37011830159`: PASS
+- Migration Replay `37011830065`: PASS
+- Account Security `37011830075`: PASS
+- Quality Gate `37011830076`: PASS
+- browser shards 1–4: PASS
+- Vercel exact-head deployment: PASS
+- 320/430 four-role phone evidence: shard artifact `11227869913`
+- exact-head full route matrix: artifact `11228861531`
+
+VF8A closes the 320–430 phone matrix across Staff, Manager, Administration and Executive. Administration supporting panels now stack on narrow phones instead of reserving off-screen sibling height; all four role shells remain within the viewport with reachable five-action mobile navigation and no material phone-composition drift.
+
+## Active: VF8B — 768–1024 tablet / small-laptop matrix
 
 Purpose:
-Close phone-width responsive behavior across the full role system before tablet/laptop/desktop acceptance.
+Close intermediate-width recomposition across all four roles before the canonical 1366×768 laptop pass.
 
 Required outcomes:
-1. verify 320, 360, 375, 390, 414 and 430px widths across Staff, Manager, Administration and Executive;
-2. no document/body horizontal page overflow or clipped shell chrome;
-3. mobile navigation, labels and primary controls remain reachable at the CEAC touch floor;
-4. full-height supporting panels must not create artificial vertical whitespace merely because an off-screen carousel sibling is taller;
-5. mobile composition must be deliberate rather than desktop layouts compressed into narrow columns;
+1. verify 768, 820, 900, 980 and 1024px widths across Staff, Manager, Administration and Executive;
+2. shell breakpoint transitions must be deliberate: mobile/tablet chrome below the desktop-shell threshold and stable desktop chrome once that threshold is crossed;
+3. no document/body/sidebar horizontal overflow, clipped identity, or page geometry wider than the viewport;
+4. command surfaces must use available width without stretching mobile stacks into sparse full-width columns or prematurely forcing desktop multi-column density;
+5. primary controls, segmented controls and data rails remain reachable without hidden clipping;
 6. preserve role hierarchy, factual/no-inference semantics and all authority/security contracts;
-7. representative phone evidence must cover all four role families and any corrected route;
-8. pass affected Level A, exact-head Level B and Level C before VF8B.
+7. representative intermediate evidence must cover all four role families and any corrected route;
+8. pass affected Level A, exact-head Level B and Level C before VF8C.
 
-Known evidence-driven gap entering VF8A:
-- Administration Overview uses horizontal full-panel rails below the command area; at narrow phone widths the flex row reserves the tallest off-screen panel height, creating large blank vertical gaps beneath shorter visible panels. Correct the phone composition without changing Administration data or authority.
-
-Do not begin VF8B canonically until VF8A is accepted.
+Do not begin VF8C canonically until VF8B is accepted.
 
 ## Protected boundaries
 
