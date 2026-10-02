@@ -49,6 +49,15 @@ A technically green screen that remains generic, card-heavy, poorly composed, ro
 Compare actual screenshots against the repository-owned target and Visual Fidelity Contract at relevant canonical viewports.
 Persist evidence and exact SHA.
 
+VERCEL PREVIEW CONTROL:
+- `main` deploys normally;
+- non-main routine commits intentionally skip Vercel Preview through `scripts/vercel/ignore-build.mjs`;
+- do not put `[vercel]` on ordinary implementation, Level A correction or repeated Level B repair commits;
+- once the exact application state is technically green and deployed-product evidence is required, use one deliberate checkpoint commit containing `[vercel]`;
+- a documentation-only/application-equivalent checkpoint may be used only when it truthfully represents the already-tested application SHA;
+- an ignored build is not a deployment PASS;
+- if a deliberate checkpoint is externally rate-limited, do not spam deployment commits; continue safe GitHub-side verification/read-only preparation and retry only when needed.
+
 Do not stop because:
 - a commit was pushed;
 - CI/gates started;

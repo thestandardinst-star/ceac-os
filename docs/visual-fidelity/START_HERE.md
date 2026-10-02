@@ -52,6 +52,22 @@ Before every material write:
 - never reset, force-push or overwrite a newer writer;
 - reconcile forward.
 
+## Controlled Vercel preview deployment
+
+VF uses the repository-owned `scripts/vercel/ignore-build.mjs` through `vercel.json#ignoreCommand`.
+
+Deployment policy:
+- `main` always builds/deploys normally;
+- non-main branches skip routine Vercel Preview builds by default;
+- a non-main commit containing the exact marker `[vercel]` deliberately enables a Preview deployment;
+- if Vercel branch metadata is missing, the script fails safe by allowing the build.
+
+Routine implementation commits, Level A corrections and repeated Level B repair commits use GitHub verification only and do **not** include `[vercel]`.
+
+After an exact application state is technically green, create a deliberate `[vercel]` checkpoint only when the acceptance protocol requires deployed-product evidence. A documentation-only/application-equivalent checkpoint is permitted only when it truthfully points to the already-tested application SHA.
+
+An intentionally ignored Vercel build is not a deployment PASS and must never be recorded as one. Do not spam repeated deployment checkpoints when Vercel is externally rate-limited.
+
 ## Continuous execution rule
 
 Routine commits, test runs, successful gates, screenshots, accepted substages and stage transitions are continuation points, not stopping points.
