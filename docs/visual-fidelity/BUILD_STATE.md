@@ -502,22 +502,46 @@ Acceptance evidence:
 
 VF7A adds restrained route/context continuity using the accepted motion tokens while preserving URL/back semantics for tabs, Work items, Projects, Person, Room and Meeting contexts. The route wrapper remains geometry-neutral, and reduced-motion users retain the same destination/state information.
 
-## Active: VF7B — drawers / sheets / details
+### VF7B — drawers / sheets / details: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`0910e95cfae01d3722b3d4a3a6cb91d2fa472305`
+
+Exact verification head:
+`b66f7c3376d1221ebc61ac34fddf0b84c1115cac`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF7B_ACCEPTANCE.md`
+- CI `37003765206`: PASS
+- Migration Replay `37003765167`: PASS
+- Account Security `37003765268`: PASS
+- Quality Gate `37003765176`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- exact verification route matrix: artifact `11225392914`
+- exact verification R7 product inspection: artifact `11225238443`
+
+VF7B unifies legacy Sheet, V2 drawer/modal and operational disclosure interaction grammar around the accepted semantic motion vocabulary. Focus trap, Escape/backdrop dismissal, focus return and the CEAC touch floor remain intact. The prior Stage 12 regression assertions were updated because they still required retired CSS keyframes; application behavior was preserved.
+
+## Active: VF7C — state / success feedback
 
 Purpose:
-Unify focused secondary-work surfaces so legacy Sheets, V2 drawers/modals and expandable detail surfaces use one restrained interaction vocabulary without changing workflow semantics.
+Give consequential state changes one restrained, accessible acknowledgement vocabulary without turning routine operations into decorative animation.
 
 Required outcomes:
-1. legacy Sheet opening must use the accepted semantic motion tokens rather than a separate ad-hoc CSS animation path;
-2. Sheet focus trap, Escape/backdrop dismissal and focus return must remain intact;
-3. the Sheet close control must meet the CEAC 44px touch floor;
-4. V2 drawer/modal semantics remain the canonical focused-work reference;
-5. native details/disclosure controls remain immediate, reachable and at least 44px where used operationally;
-6. reduced-motion users must not depend on transform-heavy movement;
-7. no form, finance, calendar, Work, authority or data semantics may change;
-8. pass affected Level A, exact-head Level B and Level C before VF7C.
+1. shared success/status notices use semantic motion tokens rather than ad-hoc durations;
+2. success/status feedback remains brief, readable and dismissible where appropriate;
+3. error feedback retains alert semantics and must not be softened into success-style acknowledgement;
+4. live-region updates are atomic and retain the same factual message under reduced motion;
+5. motion must acknowledge state change without bouncing, celebration effects or hidden timing dependencies;
+6. existing product notices and V2 toasts must converge on the same restrained feedback behavior;
+7. no workflow, data, authority, finance, privacy, RLS/RPC or business semantics may change;
+8. pass affected Level A, exact-head Level B and Level C before VF7D.
 
-Do not begin VF7C canonically until VF7B is accepted.
+Do not begin VF7D canonically until VF7C is accepted.
 
 ## Protected boundaries
 
