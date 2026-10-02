@@ -204,6 +204,7 @@ export default function Finance({ me, openExpenses }) {
         {(unconfirmed.length > 0 || disputed.length > 0) && <ProductNotice tone="attention" title={disputed.length ? "Transfers need review" : "Transfers awaiting confirmation"}>
           {unconfirmed.length} transfer{unconfirmed.length === 1 ? "" : "s"} not yet confirmed{disputed.length ? " · "+disputed.length+" disputed" : ""}. Money is only treated as confirmed once the receiving department confirms it.
         </ProductNotice>}
+        <div className="ev2fin-admin-overview-grid">
         <FinanceSection eyebrow={String(year)} title="Financial position by currency" description="Confirmed income, recorded spend and recorded budgets remain separated by currency.">
         <div className="ev2fin-card-grid">
           {financeCurrencies.length === 0 && <FinanceEmpty title="No finance records yet" description="Income, spend and budget records will build this view automatically." />}
@@ -246,6 +247,7 @@ export default function Finance({ me, openExpenses }) {
         </div>
         {units.every((u) => !spend.some((s) => s.unit_id === u.id)) && <FinanceEmpty title="No department spend recorded" description="Expense entries will appear here once they are recorded against a department." />}
         </FinanceSection>
+        </div>
       </>)}
 
       {tab === "in" && (<>
