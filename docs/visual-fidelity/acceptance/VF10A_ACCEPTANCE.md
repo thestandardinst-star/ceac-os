@@ -1,7 +1,7 @@
 # CEAC OS — VF10A Acceptance Record
 
-Substage: VF10A — complete route-matrix visual audit  
-Accepted application-equivalent SHA: `9d073c1da0f789654f690151b6d22a16ecadd9f9`  
+Substage: VF10A — complete route-matrix visual audit
+Accepted application-equivalent SHA: `9d073c1da0f789654f690151b6d22a16ecadd9f9`
 Date: 2 October 2026
 
 ## Level A
@@ -51,7 +51,7 @@ Unresolved material drift: none.
 
 ## Decision
 
-TECHNICALLY ACCEPTED: YES  
+TECHNICALLY ACCEPTED: YES
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
 Next canonical substage: **VF10B — complete exact-head Level B verification**.
