@@ -289,7 +289,7 @@ export default function StaffTodayV2({
         ) : null}
 
         {loading ? (
-          <div className="staffv2-loading" aria-label="Loading Today">
+          <div className="staffv2-loading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading Today">
             <Surface variant="plain" padding="standard">
               <Skeleton width="38%" />
               <Skeleton width="82%" />
