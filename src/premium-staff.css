@@ -169,11 +169,11 @@
 
 /* VF6D — Messages operational-inbox closure.
    Communication scope remains Rooms / Mentions / linked Work / Announcements; no DM capability is added. */
-.staff-app .inbox-page .premium-filter-row button {
+.inbox-page .premium-filter-row button {
   min-height: 44px;
 }
 
-.staff-app .inbox-page .inbox-list {
+.inbox-page .inbox-list {
   overflow: hidden;
   border-top: 1px solid var(--ceac-line);
   border-bottom: 1px solid var(--ceac-line);
@@ -182,7 +182,7 @@
   box-shadow: none;
 }
 
-.staff-app .inbox-page .inbox-empty {
+.inbox-page .inbox-empty {
   display: grid;
   gap: 4px;
   padding: 26px 2px;
@@ -193,13 +193,13 @@
   text-align: left;
 }
 
-.staff-app .inbox-page .inbox-empty strong {
+.inbox-page .inbox-empty strong {
   color: #263a50;
   font-size: 14px;
   line-height: 1.35;
 }
 
-.staff-app .inbox-page .inbox-empty span {
+.inbox-page .inbox-empty span {
   max-width: 62ch;
   font-size: 12px;
   line-height: 1.5;
