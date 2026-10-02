@@ -95,7 +95,7 @@ body{color:var(--ceac-text)}
   margin-top:15px!important;margin-bottom:8px!important;padding:0 2px!important;
   color:#31465f!important;font-size:12px!important;font-weight:800!important;letter-spacing:.02em!important
 }
-.body>.card,.body>.panel,.body>.row,.premium-surface,.team-section,.personal-area,.finance-section,
+.body>.card,.body>.panel,.body>.row,.premium-surface,.team-section,.personal-area,
 .calendar-shell,.workforce-calendar,.report-leadership-overview,.report-outstanding-section,.exec-finance-panel,.exec-report-hero{
   background:#fff!important;border:1px solid var(--ceac-line)!important;border-radius:12px!important;
   box-shadow:0 4px 14px rgba(33,61,96,.04)!important
