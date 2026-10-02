@@ -1,7 +1,7 @@
 /* CEAC OS Experience V2 — secure Connected Apps reconciliation */
 .ev2i-page {
   width: 100%;
-  max-width: 74rem;
+  max-width: 82rem;
   display: grid;
   gap: var(--ev2-space-5);
 }
@@ -16,7 +16,7 @@
 
 .ev2i-provider-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
   gap: var(--ev2-space-4);
 }
 
@@ -213,5 +213,56 @@
 
   .ev2i-subscription-list > div {
     align-items: flex-start;
+  }
+}
+
+
+/* VF6D — Connected Apps operational-surface closure.
+   Presentation only: provider secrets, capability authority, subscriptions and
+   service-owned delivery state remain governed by the accepted Stage 12 contract. */
+.ev2i-provider-card {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2i-provider-facts {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-sm);
+  background: var(--ev2-line);
+}
+
+.ev2i-provider-facts > div {
+  border: 0;
+  border-radius: 0;
+  background: var(--ev2-surface-soft);
+}
+
+.ev2i-advanced {
+  margin-top: var(--ev2-space-1);
+  padding-top: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2i-advanced .ev2c-state {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+@media (min-width: 1000px) {
+  .ev2i-provider-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2i-provider-facts {
+    grid-template-columns: 1fr;
+    border-radius: var(--ev2-radius-control);
+  }
+
+  .ev2i-advanced {
+    padding-top: var(--ev2-space-3);
   }
 }
