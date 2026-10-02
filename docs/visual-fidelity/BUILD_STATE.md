@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF6 — Cross-role workspaces
-Current substage: VF6C — Calendar / schedule / meetings (ACTIVE)
+Current substage: VF6D — Connected Apps and other shared operational surfaces (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -430,25 +430,16 @@ Acceptance evidence:
 
 VF6B unifies Manager, Administration and Executive finance presentation into one factual ledger/evidence grammar while preserving role authority, currency separation, commitment-vs-spend semantics, missing-budget truth and two-sided transfer confirmation. A legacy parity `!important` shadow exposed by Level B was removed at its source instead of being masked by another override.
 
-## Active: VF6C — Calendar / schedule / meetings
+### VF6C — Calendar / schedule / meetings: COMPLETE / ACCEPTED
 
-Purpose:
-Close the shared Calendar / schedule / meeting composition across Staff, Manager and Administration without changing route authority, event provenance or the accepted role-specific calendar models.
+Accepted application SHA:
+`de84712d9cfc81d7a6e22577c10959b0646b79c4`
 
-Required outcomes:
-1. preserve Staff personal schedule and selected-date context;
-2. preserve Manager month/week views, filters, selected-date agenda, meeting scheduling and truthful Google Calendar state;
-3. preserve Administration 14/30/90-day organisation timeline rather than inventing a month grid;
-4. stop sparse calendar pages from stretching into oversized blank canvases;
-5. align month/timeline/agenda surfaces into one flatter operational calendar grammar;
-6. maintain selected-date, event and meeting context on phone and laptop;
-7. keep all calendar/meeting controls reachable at the CEAC touch floor;
-8. preserve meeting audience, provider, project/unit scope, leave/ministry provenance, RLS/RPC and capability authority;
-9. do not invent an Executive Calendar route;
-10. pass affected Level A, exact-head Level B and Level C before VF6D.
+Application-equivalent deployed checkpoint:
+`423e06ac60d481cdc265b6d8a012e12c18c1f07d` — PASS
 
-Current exact-head verification:
-- application SHA `de84712d9cfc81d7a6e22577c10959b0646b79c4`
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF6C_ACCEPTANCE.md`
 - CI `36993417864`: PASS
 - Migration Replay `36993417648`: PASS
 - Account Security `36993417782`: PASS
@@ -457,15 +448,28 @@ Current exact-head verification:
 - browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- Level C Staff / Manager / Administration Calendar phone + laptop inspection: PASS
-- exact Calendar evidence: shard artifact `11220737365`
-- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+- cross-role Calendar phone/laptop evidence: shard artifact `11220737365`
+- application-equivalent Vercel deployment: PASS
 
-The sparse Administration Calendar defect is closed: `.ev2cal-role-page` now anchors content at the start instead of stretching sparse rows through the available viewport. Staff personal schedule and Manager month/week context remain unchanged in meaning.
+VF6C removes sparse calendar stretching while preserving Staff personal schedule, Manager month/week + selected-date context, Administration 14/30/90-day organisation timeline, meeting authority and truthful external-calendar state. No Executive Calendar route was invented.
 
-A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6C application code.
+## Active: VF6D — Connected Apps and other shared operational surfaces
 
-Do not begin VF6D canonically until VF6C is accepted.
+Purpose:
+Close the remaining shared operational-surface drift, focusing on Connected Apps and Messages/communication entry surfaces without expanding provider capability, messaging scope or authority.
+
+Required outcomes:
+1. Connected Apps uses available canvas as an operational connection record rather than a small provider card beside unused space;
+2. provider identity, connection state, connected account, capability, granted permission and health remain factual and visibly grouped;
+3. advanced diagnostics stay clearly secondary to connection management;
+4. provider secrets remain server-bound and browser-invisible; `integration.manage` authority is unchanged;
+5. Messages retains Rooms / Mentions / linked Work / Announcements scope and does not become unrestricted DM;
+6. Messages empty and list states read as a deliberate operational inbox rather than an isolated generic card;
+7. phone filter/action controls meet the CEAC touch floor and both surfaces recompose without overflow;
+8. no new integration provider, provider claim, message audience or delivery capability is invented;
+9. pass affected Level A, exact-head Level B and Level C before VF7A.
+
+Do not begin VF7A canonically until VF6D is accepted.
 
 ## Protected boundaries
 
