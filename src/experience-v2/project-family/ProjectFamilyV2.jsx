@@ -259,6 +259,7 @@ export function ProjectEmpty({ title, description }) {
 }
 
 
+// FPG4 accepted Project/Task gold-standard primitives. Keep visual markup stable unless a new reference is approved.
 export function ProjectIssueTable({
   items = [],
   selectedId = null,
