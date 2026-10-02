@@ -652,6 +652,7 @@ test("VF4B Administration People and employee workspace lock operations-console 
   const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
 
   expect(screen).toContain('className="ev2p-admin-control-band"');
+  expect(screen).not.toContain('className="ev2p-admin-control-band">\\n');
   expect(screen).toContain('className="ev2p-admin-person-layout"');
   expect(screen).toContain('className="ev2p-admin-person-rail"');
   expect(screen).toContain('className="ev2p-admin-person-detail"');

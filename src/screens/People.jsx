@@ -509,7 +509,8 @@ export default function People({ me, openItem }) {
     {detailLoading && <LoadingState label="Opening employee record…" />}
     {!leavePolicy && <ProductNotice tone="attention" title="Leave policy not configured">People records show leave actually taken, but CEAC OS will not calculate entitlement or remaining leave until Administration confirms the policy.</ProductNotice>}
 
-    <div className="ev2p-admin-control-band">\n    <div className="ev2p-admin-toolbar">
+    <div className="ev2p-admin-control-band">
+    <div className="ev2p-admin-toolbar">
       <FieldGroup label="Find a person">
         <input
           className="field"
