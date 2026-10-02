@@ -96,6 +96,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   const [area, setArea] = useState("overview");
   const [selectedWorkId, setSelectedWorkId] = useState(null);
   const [workFilter, setWorkFilter] = useState("all");
+  const [phaseFilter, setPhaseFilter] = useState("all");
 
   useEffect(() => { loadList(); loadProposals(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
@@ -108,7 +109,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     if (selectedId) sessionStorage.setItem(`ceac-project-area:${me.id}:${selectedId}`, area);
   }, [selectedId, me.id, area]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
-  useEffect(() => { setSelectedWorkId(null); setWorkFilter("all"); }, [selectedId]);
+  useEffect(() => { setSelectedWorkId(null); setWorkFilter("all"); setPhaseFilter("all"); }, [selectedId]);
 
   async function loadProposals() {
     const result = await supabase.from("project_proposals")
@@ -201,7 +202,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           .select("id, project_id, unit_id, phase_id, ref, name, statement, measure, status, target_value, target_unit, achieved_value, closed_note, units!objectives_unit_id_fkey(name)")
           .eq("project_id", projectId).order("ref"),
         supabase.from("work_items")
-          .select("id, ref, title, kind, status, due_at, objective_id, phase_id, unit_id, assignee_id, profiles!work_items_assignee_id_fkey(full_name), checklist_items(id,label,position), submissions(id, submitted_at, note, submission_files(id, url))")
+          .select("id, ref, title, kind, status, due_at, purpose, instructions, expected_outcome, objective_id, phase_id, unit_id, assignee_id, profiles!work_items_assignee_id_fkey(full_name), checklist_items(id,label,position), submissions(id, submitted_at, note, submission_files(id, url))")
           .eq("project_id", projectId).neq("visibility", "private").order("due_at", { ascending: true, nullsFirst: false }),
         supabase.from("budgets").select("id, currency, amount_minor, year, note")
           .eq("project_id", projectId).eq("unit_id", me.unit_id),
@@ -280,10 +281,14 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     const unattached = detail.work.filter((item) => !item.objective_id);
     const selectedWork = detail.work.find((item) => item.id === selectedWorkId) || null;
     const visibleWork = detail.work.filter((item) => {
+      if (phaseFilter !== "all" && item.phase_id !== phaseFilter) return false;
       if (workFilter === "finished") return ["completed","self_certified"].includes(item.status);
       if (workFilter === "active") return !["completed","self_certified","cancelled"].includes(item.status);
       return true;
     });
+    const objectiveById = new Map(detail.objectives.map((objective) => [objective.id, objective]));
+    const phaseById = new Map(detail.phases.map((phase) => [phase.id, phase]));
+    const selectedDescription = selectedWork?.purpose || selectedWork?.instructions || selectedWork?.expected_outcome || null;
     return <div className="manager-projects ev2-project-page ev2-project-workspace fpg-project-gold">
       <aside className="fpg-project-tree" aria-label="Projects and stages">
         <div className="fpg-project-tree-brand"><span>Projects</span><b>{projects.length}</b></div>
@@ -307,6 +312,23 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         context={detail.units?.name || "Lead unit not recorded"}
         onBack={() => initialProjectId && back ? back() : setSelectedId(null)}
       />
+      <section className="fpg-project-facts" aria-label="Project facts">
+        <div><span>Lead unit</span><strong>{detail.units?.name || "Not recorded"}</strong></div>
+        <div><span>Start date</span><strong>{detail.starts_on ? dateOnly(`${detail.starts_on}T00:00:00`) : "Not recorded"}</strong></div>
+        <div><span>Issues</span><strong>{detail.work.length}</strong></div>
+        <div><span>Assignees</span><strong>{team.length}</strong></div>
+        <label className="fpg-project-stage">
+          <span>Project stage</span>
+          <select value={phaseFilter} onChange={(event) => { setPhaseFilter(event.target.value); setArea("work"); }}>
+            <option value="all">{detail.phases.length ? "All stages" : "No stage recorded"}</option>
+            {detail.phases.map((phase) => <option key={phase.id} value={phase.id}>{phase.name}</option>)}
+          </select>
+        </label>
+        <div className="fpg-project-assignees" aria-label="Assigned people">
+          {team.slice(0,6).map((name) => <span key={name} title={name}>{name.slice(0,1).toUpperCase()}</span>)}
+          {team.length > 6 && <b>+{team.length - 6}</b>}
+        </div>
+      </section>
       {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
 
       <ProjectTabs
@@ -368,19 +390,20 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         </div>
         <div className="fpg-work-table-wrap">
           <table className="fpg-work-table">
-            <thead><tr><th scope="col">Work item</th><th scope="col">Assignee</th><th scope="col">Due</th><th scope="col">Status</th><th scope="col">Evidence</th></tr></thead>
+            <thead><tr><th scope="col">Done</th><th scope="col">Issue</th><th scope="col">Date</th><th scope="col">Tags</th></tr></thead>
             <tbody>
               {visibleWork.map((item) => {
-                const files = (item.submissions || []).reduce((sum, submission) => sum + (submission.submission_files?.length || 0), 0);
+                const done = ["completed","self_certified"].includes(item.status);
+                const objective = objectiveById.get(item.objective_id);
+                const phase = phaseById.get(item.phase_id);
                 return <tr key={item.id} className={selectedWorkId === item.id ? "is-selected" : ""} onClick={() => setSelectedWorkId(item.id)}>
-                  <td><button type="button" className="fpg-work-title" onClick={(event) => { event.stopPropagation(); setSelectedWorkId(item.id); }}><i aria-hidden="true" /><span><strong>{item.title}</strong><small>{item.ref} · {item.kind?.replaceAll("_"," ") || "work"}</small></span></button></td>
-                  <td><span className="fpg-assignee"><b aria-hidden="true">{(item.profiles?.full_name || "?").slice(0,1).toUpperCase()}</b>{item.profiles?.full_name || "Unassigned"}</span></td>
+                  <td className="fpg-done-cell"><span className={done ? "fpg-readonly-check is-done" : "fpg-readonly-check"} aria-label={done ? "Completed" : "Not completed"}>{done ? "✓" : ""}</span></td>
+                  <td><button type="button" className="fpg-work-title" onClick={(event) => { event.stopPropagation(); setSelectedWorkId(item.id); }}><span><strong>{item.title}</strong><small>{item.ref} · {item.profiles?.full_name || "Unassigned"}</small></span></button></td>
                   <td>{dueLabel(item.due_at)}</td>
-                  <td>{statusPill(item.status)}</td>
-                  <td>{files ? files + " file" + (files === 1 ? "" : "s") : "—"}</td>
+                  <td><div className="fpg-tag-stack">{statusPill(item.status)}{phase && <span className="fpg-context-tag">{phase.name}</span>}{objective && <span className="fpg-context-tag">{objective.ref}</span>}</div></td>
                 </tr>;
               })}
-              {!visibleWork.length && <tr><td colSpan="5"><div className="fpg-table-empty">No project work matches this view.</div></td></tr>}
+              {!visibleWork.length && <tr><td colSpan="4"><div className="fpg-table-empty">No project work matches this view.</div></td></tr>}
             </tbody>
           </table>
         </div>
@@ -395,9 +418,11 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
             <dl className="fpg-drawer-meta">
               <div><dt>Status</dt><dd>{statusPill(selectedWork.status)}</dd></div>
               <div><dt>Assignee</dt><dd>{selectedWork.profiles?.full_name || "Unassigned"}</dd></div>
+              <div><dt>Created context</dt><dd>{detail.name}</dd></div>
               <div><dt>Due date</dt><dd>{dueLabel(selectedWork.due_at)}</dd></div>
               <div><dt>Type</dt><dd>{selectedWork.kind?.replaceAll("_"," ") || "Work"}</dd></div>
             </dl>
+            {selectedDescription && <section className="fpg-drawer-description"><p>{selectedDescription}</p></section>}
             <section className="fpg-drawer-section">
               <div className="fpg-drawer-section-head"><h3>Evidence</h3><span>{(selectedWork.submissions || []).reduce((sum, row) => sum + (row.submission_files?.length || 0), 0)}</span></div>
               {(selectedWork.submissions || []).length ? selectedWork.submissions.map((submission) => <div className="fpg-evidence-row" key={submission.id}><span><strong>Submission</strong><small>{submission.submitted_at ? dateOnly(submission.submitted_at) : "Date not recorded"}</small></span><b>{submission.submission_files?.length || 0} file{(submission.submission_files?.length || 0) === 1 ? "" : "s"}</b></div>) : <p className="fpg-drawer-empty">No submission or evidence is recorded.</p>}
