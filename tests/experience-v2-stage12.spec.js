@@ -168,11 +168,14 @@ test("Stage 12C applies shared motion to accepted operational flows without chan
   expect(bits).toContain("previousFocus?.focus?.()");
   expect(bits).toContain('role="dialog"');
   expect(bits).toContain('aria-modal="true"');
+  expect(bits).toContain('AnimatePresence, motion, useReducedMotion');
+  expect(bits).toContain('EV2_TRANSITIONS.fast');
+  expect(bits).toContain('EV2_TRANSITIONS.panel');
+  expect(bits).toContain('onExitComplete');
 
-  expect(legacyCss).toContain("ev2-sheet-backdrop-in var(--ev2-duration-fast,160ms)");
-  expect(legacyCss).toContain("ev2-sheet-surface-in var(--ev2-duration-surface,280ms)");
-  expect(legacyCss).toContain("@keyframes ev2-sheet-backdrop-in");
-  expect(legacyCss).toContain("@keyframes ev2-sheet-surface-in");
+  expect(legacyCss).not.toContain("ev2-sheet-backdrop-in");
+  expect(legacyCss).not.toContain("ev2-sheet-surface-in");
+  expect(legacyCss).toContain(".sheet-close{position:absolute;top:10px;right:12px;width:44px;height:44px");
 });
 
 for (const viewport of [
@@ -231,24 +234,26 @@ test("Stage 12C legacy Sheet keeps focus and Escape behaviour under reduced moti
   const motion = await page.evaluate(() => {
     const dialog = document.querySelector(".sheet");
     const backdrop = document.querySelector(".sheet-bg");
+    const dialogStyle = dialog ? getComputedStyle(dialog) : null;
+    const backdropStyle = backdrop ? getComputedStyle(backdrop) : null;
     return {
       reduce: matchMedia("(prefers-reduced-motion: reduce)").matches,
-      dialogName: dialog ? getComputedStyle(dialog).animationName : "",
-      dialogDuration: dialog ? getComputedStyle(dialog).animationDuration : "",
-      backdropName: backdrop ? getComputedStyle(backdrop).animationName : "",
-      backdropDuration: backdrop ? getComputedStyle(backdrop).animationDuration : "",
+      dialogAnimation: dialogStyle?.animationName || "none",
+      backdropAnimation: backdropStyle?.animationName || "none",
+      dialogTransform: dialogStyle?.transform || "none",
+      backdropTransform: backdropStyle?.transform || "none",
+      dialogOpacity: dialogStyle?.opacity || "0",
+      backdropOpacity: backdropStyle?.opacity || "0",
     };
   });
 
   expect(motion.reduce).toBeTruthy();
-  expect(motion.dialogName).toContain("ev2-sheet-surface-in");
-  expect(motion.backdropName).toContain("ev2-sheet-backdrop-in");
-
-  const durationMs = (value) => value.endsWith("ms")
-    ? Number.parseFloat(value)
-    : Number.parseFloat(value) * 1000;
-  expect(durationMs(motion.dialogDuration)).toBeLessThanOrEqual(1);
-  expect(durationMs(motion.backdropDuration)).toBeLessThanOrEqual(1);
+  expect(motion.dialogAnimation).toBe("none");
+  expect(motion.backdropAnimation).toBe("none");
+  expect(motion.dialogTransform).toBe("none");
+  expect(motion.backdropTransform).toBe("none");
+  expect(Number.parseFloat(motion.dialogOpacity)).toBeGreaterThan(0.99);
+  expect(Number.parseFloat(motion.backdropOpacity)).toBeGreaterThan(0.99);
 
   await page.screenshot({
     path:"test-artifacts/redesign-r7-stage12c-sheet-reduced-phone-390.png",
