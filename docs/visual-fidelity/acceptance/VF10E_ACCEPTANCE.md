@@ -2,7 +2,7 @@
 
 Substage: VF10E — acceptance record, merge and post-merge main verification
 Date: 2 October 2026
-Status: POST-MERGE VERIFICATION IN PROGRESS — production Vercel release blocked by daily deployment cap
+Status: POST-MERGE GITHUB VERIFICATION ACCEPTED — production Vercel deployment pending
 
 ## Accepted release line
 
@@ -78,16 +78,19 @@ The previously validated application-equivalent preview remains accepted evidenc
 
 VF10E and the Visual Fidelity programme are not yet complete.
 
+Closure PR #91 exact-head verification:
+- CI `37052338562`: PASS;
+- Migration Replay `37052338676`: PASS;
+- Account Security `37052338542`: PASS;
+- Quality Gate `37052338670`: PASS.
+
 Still required:
-1. closure-PR Migration Replay: PASS;
-2. closure-PR Account Security: PASS;
-3. closure-PR Quality Gate: PASS;
-4. successful production Vercel deployment from the accepted protected-main tree;
-5. final closure record updated to ACCEPTED AND COMPLETE.
+1. successful production Vercel deployment from the accepted protected-main tree;
+2. final closure record updated to ACCEPTED AND COMPLETE.
 
 ## Decision
 
 POST-MERGE MAIN TREE: ACCEPTED
-MAIN CI: ACCEPTED
-PRODUCTION VERCEL: BLOCKED — external daily deployment cap
+POST-MERGE GITHUB VERIFICATION: ACCEPTED
+PRODUCTION VERCEL: PENDING — external daily deployment cap
 FINAL VF10E ACCEPTANCE: PENDING
