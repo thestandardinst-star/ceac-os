@@ -101,3 +101,98 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF5C Executive Reports is coverage-first with factual named filing status", async ({ browser }) => {
+  for (const viewport of [
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "laptop-1366", width: 1366, height: 768 },
+  ]) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const page = await context.newPage();
+    await page.goto("/");
+    await page.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+    await page.getByPlaceholder("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+
+    const periodId = "00000000-0000-4000-8000-000000000701";
+    const units = [
+      { id: "00000000-0000-4000-8000-000000000702", name: "Media" },
+      { id: "00000000-0000-4000-8000-000000000703", name: "Technical" },
+      { id: "00000000-0000-4000-8000-000000000704", name: "First Timers" },
+    ];
+    await page.route("**/rest/v1/report_periods*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: periodId,
+          label: "September 2026",
+          status: "open",
+          starts_on: "2026-09-01",
+          ends_on: "2026-09-30",
+        }),
+      });
+    });
+    await page.route("**/rest/v1/units*", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(units) });
+    });
+    await page.route("**/rest/v1/reports*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          { unit_id: units[0].id, status: "submitted", version: 2, submitted_at: "2026-10-01T08:30:00Z" },
+          { unit_id: units[1].id, status: "draft", version: 1, submitted_at: null },
+        ]),
+      });
+    });
+
+    await page.goto("/?tab=exec-reports");
+    await expect(page.locator(".ev2-reporting-executive")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("September 2026", { exact: true })).toBeVisible();
+    await expect(page.getByText("1", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("submitted units", { exact: true })).toBeVisible();
+    await expect(page.getByText("drafts", { exact: true })).toBeVisible();
+    await expect(page.getByText("waiting", { exact: true })).toBeVisible();
+    await expect(page.getByText("Media", { exact: true })).toBeVisible();
+    await expect(page.getByText("Technical", { exact: true })).toBeVisible();
+    await expect(page.getByText("First Timers", { exact: true })).toBeVisible();
+    await expect(page.getByText("Filed", { exact: true })).toBeVisible();
+    await expect(page.getByText("Started", { exact: true })).toBeVisible();
+    await expect(page.getByText("Waiting", { exact: true })).toBeVisible();
+
+    const brief = page.locator(".ev2rep-executive-brief");
+    const layout = await brief.evaluate((node) => ({
+      display: getComputedStyle(node).display,
+      columns: getComputedStyle(node).gridTemplateColumns,
+    }));
+    expect(layout.display).toBe("grid");
+    if (viewport.width >= 961) {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(2);
+    } else {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(1);
+    }
+
+    if (viewport.width <= 760) {
+      const evidence = page.locator(".ev2rep-evidence-grid");
+      const rail = await evidence.evaluate((node) => ({
+        display: getComputedStyle(node).display,
+        scrollWidth: node.scrollWidth,
+        clientWidth: node.clientWidth,
+      }));
+      expect(rail.display).toBe("flex");
+      expect(rail.scrollWidth).toBeGreaterThan(rail.clientWidth);
+    }
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/vf5c-executive-reports-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  }
+});
