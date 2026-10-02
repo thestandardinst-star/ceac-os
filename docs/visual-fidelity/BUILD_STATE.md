@@ -424,6 +424,23 @@ Required outcomes:
 9. phone prioritises decisions and factual position without compressing desktop grids;
 10. pass affected Level A, exact-head Level B and Level C before VF6C.
 
+Current exact-head verification:
+- application SHA `5a119e448cac9255b493cd490c3d419a558dd3b2`
+- CI `36991711681`: PASS
+- Migration Replay `36991711634`: PASS
+- Account Security `36991711483`: PASS
+- Quality Gate `36991711587`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Level C Manager / Administration / Executive Finance phone + laptop inspection: PASS
+- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+
+The initial Level B run exposed one real cascade defect: a legacy parity `!important` shadow still owned Manager `.finance-section`. VF6B removed Finance from the legacy parity/Manager overrides rather than adding a new `!important`; the complete exact-head gate then passed.
+
+A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6B application code.
+
 Do not begin VF6C canonically until VF6B is accepted.
 
 ## Protected boundaries
