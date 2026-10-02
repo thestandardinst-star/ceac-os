@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CeacIcon } from "../icons";
 import { EV2_TRANSITIONS } from "../motion";
 import { Button, IconButton } from "./Button";
@@ -401,6 +401,10 @@ export function Toast({
   onAction,
   onClose,
 }) {
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.panel;
+  const initialState = reduceMotion ? { opacity: 1 } : { opacity: 0, y: 12, scale: 0.985 };
+  const exitState = reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.985 };
   if (typeof document === "undefined") return null;
 
   return createPortal(
@@ -410,10 +414,11 @@ export function Toast({
           className={`ev2c-toast ev2c-toast-${tone}`}
           role={tone === "danger" ? "alert" : "status"}
           aria-live={tone === "danger" ? "assertive" : "polite"}
-          initial={{ opacity: 0, y: 12, scale: 0.985 }}
+          aria-atomic="true"
+          initial={initialState}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 8, scale: 0.985 }}
-          transition={EV2_TRANSITIONS.panel}
+          exit={exitState}
+          transition={transition}
         >
           <span className="ev2c-toast-icon">
             <CeacIcon
