@@ -16,11 +16,21 @@ export function FieldGroup({ label, hint, children, className = "" }) {
 }
 
 export function ProductNotice({ tone = "info", title, children, action = null }) {
-  return <div className={`product-notice product-notice-${tone}`} role={tone === "error" ? "alert" : "status"}>
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.fast;
+  return <motion.div
+    className={`product-notice product-notice-${tone}`}
+    role={tone === "error" ? "alert" : "status"}
+    aria-live={tone === "error" ? "assertive" : "polite"}
+    aria-atomic="true"
+    initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 4 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={transition}
+  >
     {title && <strong>{title}</strong>}
     {children && <span>{children}</span>}
     {action}
-  </div>;
+  </motion.div>;
 }
 
 export function EmptyState({ title, children, action = null, compact = false }) {
