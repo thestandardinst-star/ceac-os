@@ -133,3 +133,101 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF7C feedback primitives use live-region semantics and the shared reduced-motion vocabulary", async () => {
+  const bits = readFileSync("src/components/bits.jsx", "utf8");
+  const interactions = readFileSync("src/experience-v2/components/Interactions.jsx", "utf8");
+
+  expect(bits).toContain("export function ProductNotice");
+  expect(bits).toContain("useReducedMotion");
+  expect(bits).toContain("EV2_TRANSITIONS.fast");
+  expect(bits).toContain('role={tone === "error" ? "alert" : "status"}');
+  expect(bits).toContain('aria-live={tone === "error" ? "assertive" : "polite"}');
+  expect(bits).toContain('aria-atomic="true"');
+
+  expect(interactions).toContain("export function Toast");
+  expect(interactions).toContain("useReducedMotion");
+  expect(interactions).toContain("EV2_TRANSITIONS.panel");
+  expect(interactions).toContain('role={tone === "danger" ? "alert" : "status"}');
+  expect(interactions).toContain('aria-live={tone === "danger" ? "assertive" : "polite"}');
+  expect(interactions).toContain('aria-atomic="true"');
+  expect(interactions).not.toMatch(/duration:\s*0\.[0-9]+/);
+});
+
+test("VF7C operational error and success feedback remain explicit and non-blocking", async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    reducedMotion: "reduce",
+  });
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByPlaceholder("Work email").fill("manager@ceac.local.test");
+  await page.getByPlaceholder("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".manager-app")).toBeVisible({ timeout: 15000 });
+
+  let failBudgets = true;
+  await page.route("**/rest/v1/budgets*", async (route) => {
+    if (failBudgets && route.request().method() === "GET") {
+      failBudgets = false;
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "fixture finance read failed" }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.goto("/?tab=manager-finance");
+  const errorNotice = page.locator(".product-notice[role='alert']").first();
+  await expect(errorNotice).toBeVisible({ timeout: 15000 });
+  await expect(errorNotice).toHaveAttribute("aria-live", "assertive");
+  await expect(errorNotice).toHaveCSS("opacity", "1");
+
+  await page.unroute("**/rest/v1/budgets*");
+  await page.goto("/?tab=manager-finance");
+  await expect(page.locator(".ev2-finance-manager")).toBeVisible({ timeout: 15000 });
+
+  await page.route("**/rest/v1/finance_requests*", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  const trigger = page.getByRole("button", { name: "Request funds", exact: true });
+  await trigger.click();
+  const sheet = page.locator(".sheet[role='dialog']");
+  await expect(sheet).toBeVisible();
+  await sheet.getByPlaceholder("Short request title").fill("VF7C fixture request");
+  await sheet.getByPlaceholder("e.g. 850.00").fill("25.00");
+  await sheet.getByRole("button", { name: "Submit request", exact: true }).click();
+
+  const successNotice = page.locator(".product-notice[role='status']").filter({
+    hasText: "Finance request updated",
+  });
+  await expect(successNotice).toBeVisible({ timeout: 15000 });
+  await expect(successNotice).toHaveAttribute("aria-live", "polite");
+  await expect(successNotice).toHaveCSS("opacity", "1");
+  await expect(page.locator(".sheet[role='dialog']")).toHaveCount(0);
+
+  const overflow = await page.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  await page.screenshot({
+    path: "test-artifacts/vf7c-manager-finance-success-phone-390.png",
+    fullPage: true,
+  });
+
+  await context.close();
+});
