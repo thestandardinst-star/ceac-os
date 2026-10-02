@@ -469,6 +469,22 @@ Required outcomes:
 8. no new integration provider, provider claim, message audience or delivery capability is invented;
 9. pass affected Level A, exact-head Level B and Level C before VF7A.
 
+Current exact-head verification:
+- accepted application candidate SHA `2d302007e2885a3d8def9418cbde9c14e06e28d2`
+- exact verification head `40b42272a7fe7d3bf3acebd2e458b8335df57149` (tests only after the application candidate)
+- CI `36995807825`: PASS
+- Migration Replay `36995807857`: PASS
+- Account Security `36995807931`: PASS
+- Quality Gate `36995807953`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Level C Connected Apps / Messages inspection: PASS
+- Vercel exact application sequence: blocked only by external free-plan build-rate limit
+
+A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6D application code.
+
 Do not begin VF7A canonically until VF6D is accepted.
 
 ## Protected boundaries
