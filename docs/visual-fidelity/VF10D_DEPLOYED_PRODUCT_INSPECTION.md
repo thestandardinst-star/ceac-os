@@ -1,7 +1,7 @@
 # CEAC OS — VF10D Deployed-Product Inspection State
 
-Substage: VF10D — actual deployed-product inspection  
-Date: 2 October 2026  
+Substage: VF10D — actual deployed-product inspection
+Date: 2 October 2026
 Status: IN PROGRESS — protected preview reachable; fresh application-equivalent deployment checkpoint requested
 
 ## Accepted pre-deployment state
@@ -45,7 +45,7 @@ Previously observed Vercel deployment identifier during protection-bypass inspec
 
 VF10D is NOT accepted yet.
 
-TECHNICALLY ACCEPTED: pending fresh deployment and deployed role inspection  
+TECHNICALLY ACCEPTED: pending fresh deployment and deployed role inspection
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: pending fresh deployment and deployed role inspection
 
 Do not merge PR #79 or begin VF10E until deployed-product inspection confirms:
