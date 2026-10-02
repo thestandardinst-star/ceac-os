@@ -447,6 +447,24 @@ Required outcomes:
 9. do not invent an Executive Calendar route;
 10. pass affected Level A, exact-head Level B and Level C before VF6D.
 
+Current exact-head verification:
+- application SHA `de84712d9cfc81d7a6e22577c10959b0646b79c4`
+- CI `36993417864`: PASS
+- Migration Replay `36993417648`: PASS
+- Account Security `36993417782`: PASS
+- Quality Gate `36993417723`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Level C Staff / Manager / Administration Calendar phone + laptop inspection: PASS
+- exact Calendar evidence: shard artifact `11220737365`
+- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+
+The sparse Administration Calendar defect is closed: `.ev2cal-role-page` now anchors content at the start instead of stretching sparse rows through the available viewport. Staff personal schedule and Manager month/week context remain unchanged in meaning.
+
+A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6C application code.
+
 Do not begin VF6D canonically until VF6C is accepted.
 
 ## Protected boundaries
