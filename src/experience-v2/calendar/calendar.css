@@ -708,3 +708,41 @@ button.ev2cal-event:hover {
     padding: var(--ev2-space-3);
   }
 }
+
+
+/* VF6C — Cross-role Calendar / schedule / meetings closure.
+   Presentation only: Staff personal schedule, Manager unit calendar and
+   Administration 14/30/90-day organisation timeline retain their accepted semantics. */
+.ev2cal-role-page {
+  align-content: start;
+}
+
+.ev2cal-agenda,
+.ev2cal-timeline-list {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2cal-admin-page {
+  width: min(100%, 82rem);
+}
+
+.ev2cal-admin-page > .ev2c-state,
+.ev2cal-admin-page > .empty-state,
+.ev2cal-admin-page > .spin {
+  align-self: start;
+}
+
+@media (min-width: 1040px) {
+  .ev2cal-admin-page .ev2cal-admin-range {
+    padding-bottom: var(--ev2-space-2);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2cal-agenda,
+  .ev2cal-timeline-list {
+    border-radius: var(--ev2-radius-control);
+  }
+}
