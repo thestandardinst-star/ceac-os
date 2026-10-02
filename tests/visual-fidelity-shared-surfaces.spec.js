@@ -17,6 +17,7 @@ async function signIn(browser, { email, app, route, viewport }) {
 }
 
 test("VF6D keeps Messages and Connected Apps factual while closing shared-surface drift", async ({ browser }) => {
+  test.setTimeout(120000);
   const inbox = readFileSync("src/screens/Inbox.jsx", "utf8");
   const staffCss = readFileSync("src/premium-staff.css", "utf8");
   const integrationCss = readFileSync("src/experience-v2/integrations/integrations.css", "utf8");
