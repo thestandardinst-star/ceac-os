@@ -72,6 +72,8 @@ test("VF9A accessibility semantics and accepted colour tokens remain explicit", 
 
   expect(shell).toContain(":focus-visible");
   expect(foundation).toContain("--ev2-control-min: 2.75rem");
+  expect(foundation).toContain("@media (prefers-reduced-motion: reduce)");
+  expect(foundation).toContain("--ev2-duration-fast: 0ms");
 
   const pairs = [
     ["ev2-text", "ev2-bg"],
