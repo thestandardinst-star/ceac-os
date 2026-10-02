@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF9 — Accessibility, performance and CSS regression closure
-Current substage: VF9C — bundle/performance regression (ACTIVE)
+Current substage: VF9D — final empty / loading / error / unconfigured state audit (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -701,21 +701,43 @@ Acceptance evidence:
 
 VF9B proves that the accepted Experience V2/VF low-specificity cascade wins over legacy compatibility CSS without new `!important` escalation or material role/shell regression. No production CSS rewrite was required because no material stale override was proven.
 
-## Active: VF9C — bundle/performance regression
+### VF9C — bundle / performance regression: COMPLETE / ACCEPTED
+
+Accepted application / verification SHA:
+`f3ee60a7aaabedf90db73eb18681ea97e1173d4d`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF9C_ACCEPTANCE.md`
+- CI `37031642067`: PASS
+- Migration Replay `37031641884`: PASS
+- Account Security `37031641786`: PASS
+- Quality Gate `37031641778`: PASS after one transient shard-1 timeout retry
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- full route matrix: artifact `11237749385`
+- R7 product inspection: artifact `11237914243`
+- laptop density: artifact `11238727667`
+
+VF9C locks measured production regression budgets without changing application code: core CSS remains 518.47 kB raw / 74.27 kB gzip, main JS 65.18 kB raw / 18.48 kB gzip, the largest route chunk is 91.59 kB, deliberate vendor splitting remains intact and the high-severity dependency audit reports zero vulnerabilities. The routine preview was intentionally skipped and is not recorded as deployment PASS; deployed-product acceptance remains mandatory at VF10D.
+
+## Active: VF9D — final empty / loading / error / unconfigured state audit
 
 Purpose:
-Close production-bundle and route-loading regressions against a measured exact-head baseline without weakening product capability or introducing risky late-stage architecture changes.
+Close the final product-state regression surface before whole-product release acceptance.
 
 Required outcomes:
-1. record the production Vite bundle baseline from the accepted VF9B application-equivalent state;
-2. preserve route-level React lazy loading and deliberate vendor splitting;
-3. enforce bounded core CSS, vendor and route-chunk sizes with measured headroom rather than arbitrary compression targets;
-4. confirm no new high-severity dependency vulnerability and no production build warning/error;
-5. verify the route fallback remains announced and the accepted product composition is unchanged;
-6. persist bundle/performance evidence and exact budgets;
-7. pass Level A, exact-head Level B and Level C before VF9D.
+1. verify the shared StatePanel contract distinguishes empty, error, configuration, success and informational states;
+2. verify Staff, Manager, Administration and Executive loading states remain announced and visually intentional;
+3. verify representative role failures render explicit recoverable error states rather than fake empty data;
+4. verify a real unconfigured operational surface remains truthful and actionable;
+5. verify representative empty-history states remain distinct from errors and configuration gaps;
+6. confirm phone and laptop state composition has no overflow, hidden recovery action or generic-card regression;
+7. persist exact-head state evidence;
+8. pass Level A, exact-head Level B and Level C before VF10A.
 
-Do not begin VF9D canonically until VF9C is accepted.
+Do not begin VF10A canonically until VF9D is accepted.
 
 ## Protected boundaries
 
