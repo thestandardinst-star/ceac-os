@@ -799,10 +799,18 @@ Decision:
 - TECHNICALLY ACCEPTED: YES
 - VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
-## Active: VF10D — actual deployed-product inspection
+## Active: VF10D — actual deployed-product inspection (BLOCKED: Vercel access authorization)
 
 Purpose:
 Inspect the real deployed application-equivalent product before protected-main release.
+
+Persisted blocker record:
+- `docs/visual-fidelity/VF10D_DEPLOYED_PRODUCT_INSPECTION.md`
+- branch preview is protected and returns `login_required`;
+- Vercel protection-bypass request returns HTTP 403 because the connected Vercel account is not authorized for the CEAC OS project/team scope;
+- this is an external access/credential blocker, not an application, security, visual or test failure;
+- VF10E merge remains prohibited until deployed inspection succeeds.
+
 
 Required outcomes:
 1. identify a successful Vercel deployment that is application-equivalent to the accepted VF10C state, or create one deliberate `[vercel]` checkpoint when the external rate limit permits;
