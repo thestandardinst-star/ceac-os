@@ -378,6 +378,24 @@ Required outcomes:
 
 Do not begin VF6A canonically until VF5C is accepted.
 
+
+Current exact application checkpoint:
+- application SHA: `3b60efb6c38db2530a199f47b494e412b404041a`
+- CI `36987278045`: PASS
+- Migration Replay `36987277987`: PASS
+- Account Security `36987277975`: PASS
+- Quality Gate `36987278046`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Level C populated Finance evidence: shard artifact `11218700568`
+- Level C populated Reports evidence: shard artifact `11217908474`
+- Level C decision: PASS
+- Vercel exact-head status: BLOCKED EXTERNALLY by free-plan deployment-rate limit
+
+VF5C is not yet marked TECHNICALLY ACCEPTED because the binding Level B protocol requires a green exact-head Vercel status. A documentation-only application-equivalent head may be used to obtain a fresh Vercel attempt; do not change VF5C application code merely to retrigger deployment.
+
 ## Protected boundaries
 
 Do not rewrite accepted V2 business logic merely to improve appearance.
