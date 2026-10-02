@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF6 — Cross-role workspaces
-Current substage: VF6B — Money states and financial surfaces (ACTIVE)
+Current substage: VF6C — Calendar / schedule / meetings (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -407,25 +407,16 @@ Acceptance evidence:
 
 VF6A gives Manager, Administration and Executive one coherent Project workspace grammar while preserving role-specific authority, project/work/objective/register/collaboration/delivery/close semantics and factual/no-inference constraints.
 
-## Active: VF6B — Money states and financial surfaces
+### VF6B — Money states and financial surfaces: COMPLETE / ACCEPTED
 
-Purpose:
-Make money and financial states read as one coherent CEAC evidence system across Manager, Administration and Executive without changing role authority, finance semantics or currency separation.
+Accepted application SHA:
+`5a119e448cac9255b493cd490c3d419a558dd3b2`
 
-Required outcomes:
-1. preserve the accepted Manager operating position and append-only unit spending/request workflow;
-2. preserve Administration request authority, organisation ledger, income/spend/transfers and reversal semantics;
-3. preserve Executive Group Pastor decision authority and leadership finance briefing;
-4. unify tabs, decision queues, currency position blocks, ledgers, empty states and supporting notes into one shared financial grammar;
-5. reduce remaining isolated card/shadow treatment where ledger or continuous evidence structure is more appropriate;
-6. currencies remain visibly separate with no conversion, invented combined total or inferred bank balance;
-7. approved requests remain commitments until fulfilled spend exists;
-8. missing budget remains missing, never silently zero;
-9. phone prioritises decisions and factual position without compressing desktop grids;
-10. pass affected Level A, exact-head Level B and Level C before VF6C.
+Application-equivalent deployed checkpoint:
+`424d532058a798fef2523aabc8d6ac6e9a0680b7` — PASS
 
-Current exact-head verification:
-- application SHA `5a119e448cac9255b493cd490c3d419a558dd3b2`
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF6B_ACCEPTANCE.md`
 - CI `36991711681`: PASS
 - Migration Replay `36991711634`: PASS
 - Account Security `36991711483`: PASS
@@ -434,14 +425,29 @@ Current exact-head verification:
 - browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- Level C Manager / Administration / Executive Finance phone + laptop inspection: PASS
-- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+- cross-role Finance phone/laptop evidence: shard artifact `11220665683`
+- application-equivalent Vercel deployment: PASS
 
-The initial Level B run exposed one real cascade defect: a legacy parity `!important` shadow still owned Manager `.finance-section`. VF6B removed Finance from the legacy parity/Manager overrides rather than adding a new `!important`; the complete exact-head gate then passed.
+VF6B unifies Manager, Administration and Executive finance presentation into one factual ledger/evidence grammar while preserving role authority, currency separation, commitment-vs-spend semantics, missing-budget truth and two-sided transfer confirmation. A legacy parity `!important` shadow exposed by Level B was removed at its source instead of being masked by another override.
 
-A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6B application code.
+## Active: VF6C — Calendar / schedule / meetings
 
-Do not begin VF6C canonically until VF6B is accepted.
+Purpose:
+Close the shared Calendar / schedule / meeting composition across Staff, Manager and Administration without changing route authority, event provenance or the accepted role-specific calendar models.
+
+Required outcomes:
+1. preserve Staff personal schedule and selected-date context;
+2. preserve Manager month/week views, filters, selected-date agenda, meeting scheduling and truthful Google Calendar state;
+3. preserve Administration 14/30/90-day organisation timeline rather than inventing a month grid;
+4. stop sparse calendar pages from stretching into oversized blank canvases;
+5. align month/timeline/agenda surfaces into one flatter operational calendar grammar;
+6. maintain selected-date, event and meeting context on phone and laptop;
+7. keep all calendar/meeting controls reachable at the CEAC touch floor;
+8. preserve meeting audience, provider, project/unit scope, leave/ministry provenance, RLS/RPC and capability authority;
+9. do not invent an Executive Calendar route;
+10. pass affected Level A, exact-head Level B and Level C before VF6D.
+
+Do not begin VF6D canonically until VF6C is accepted.
 
 ## Protected boundaries
 
