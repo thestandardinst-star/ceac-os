@@ -16,7 +16,7 @@ const roles = [
     key: "manager",
     email: "manager@ceac.local.test",
     app: ".manager-app",
-    failPattern: "**/rest/v1/unit_memberships*",
+    failPattern: "**/rest/v1/work_requests*",
     loadingLabel: "Loading Manager Overview",
     errorTitle: "Manager Overview could not finish loading",
   },
@@ -24,7 +24,7 @@ const roles = [
     key: "administration",
     email: "admin@ceac.local.test",
     app: ".office-app",
-    failPattern: "**/rest/v1/units*",
+    failPattern: "**/rest/v1/project_closes*",
     loadingLabel: "Loading Administration Overview",
     errorTitle: "Administration could not finish loading",
   },
@@ -32,7 +32,7 @@ const roles = [
     key: "executive",
     email: "exec@ceac.local.test",
     app: ".executive-app",
-    failPattern: "**/rest/v1/report_periods*",
+    failPattern: "**/rest/v1/recurring_operations*",
     loadingLabel: "Loading Executive Overview",
     errorTitle: "Executive Overview could not finish loading",
   },
@@ -175,7 +175,7 @@ for (const viewport of [
     }
 
     await page.goto("/?tab=integrations");
-    const loading = page.getByLabel("Loading Connected Apps");
+    const loading = page.locator('[aria-label="Loading Connected Apps"]');
     await expect(loading).toBeVisible({ timeout: 15000 });
     await expect(loading).toHaveAttribute("aria-busy", "true");
     await page.screenshot({
