@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF8 — Whole-system responsive closure
-Current substage: VF8D — 1440×900+ desktop matrix (ACTIVE)
+Current stage: VF9 — Accessibility, performance and CSS regression closure
+Current substage: VF9A — accessibility / focus / contrast / reflow / touch (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -631,22 +631,49 @@ Acceptance evidence:
 
 VF8C closes the canonical laptop viewport: shell seam, topbar, account chrome and role command surfaces remain stable with no material overflow or role-character drift.
 
-## Active: VF8D — 1440×900+ desktop matrix
+### VF8D — 1440×900+ desktop matrix: COMPLETE / ACCEPTED
+
+Accepted application / verification SHA:
+`56c43331f687e6114e839390366cb87143294922`
+
+Application-equivalent deployed SHA:
+`31049b36c432f585de3f624b44168c1c0678e5fe`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF8D_ACCEPTANCE.md`
+- CI `37021719619`: PASS
+- Migration Replay `37021718853`: PASS
+- Account Security `37021718843`: PASS
+- Quality Gate `37021719216`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- four-role 1440×900 evidence: shard artifact `11233178115`
+- full route matrix: artifact `11233343558`
+- R7 product inspection: artifact `11234053187`
+- application code unchanged from deployed VF8B state; exact-head Vercel failure is the external free-plan rate limit.
+
+VF8D closes the 1440×900+ desktop matrix. Staff, Manager, Administration and Executive retain distinct role hierarchy, stable shell geometry and bounded working measure at 1440/1600 without horizontal overflow or decorative wide-screen stretching.
+
+VF8 family exit: ACCEPTED.
+
+## Active: VF9A — accessibility / focus / contrast / reflow / touch
 
 Purpose:
-Close large-desktop and wider-screen composition before accessibility/performance regression closure.
+Close accessibility regressions at the accepted visual state before CSS and performance closure.
 
 Required outcomes:
-1. verify Staff, Manager, Administration and Executive at 1440×900 and a wider desktop checkpoint;
-2. desktop shell remains stable with no document/body/sidebar/topbar horizontal overflow;
-3. content respects the established reading/working measure instead of stretching indefinitely;
-4. wide canvases use deliberate density and role-appropriate hierarchy without adding empty decorative space;
-5. primary actions, supporting context and long operational rows remain readable and reachable;
-6. preserve factual/no-inference, accessibility, security and authority contracts;
-7. persist representative four-role 1440 evidence plus a wide-screen reading-measure check;
-8. pass Level A, exact-head Level B and Level C before VF9A.
+1. verify keyboard focus visibility and logical reachability on the shared shell and representative operational controls;
+2. verify the accepted CEAC text/action/status colour tokens meet their intended contrast floor;
+3. verify 320px reflow remains usable without horizontal page overflow;
+4. verify representative phone navigation and primary action controls retain the 44px touch floor;
+5. improve loading/error semantics where a visible state is not announced clearly;
+6. preserve reduced-motion, factual/no-inference, security and authority contracts;
+7. persist representative accessibility/reflow evidence;
+8. pass Level A, exact-head Level B and Level C before VF9B.
 
-Do not begin VF9A canonically until VF8D is accepted.
+Do not begin VF9B canonically until VF9A is accepted.
 
 ## Protected boundaries
 
