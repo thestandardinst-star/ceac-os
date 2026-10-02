@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF9 — Accessibility, performance and CSS regression closure
-Current substage: VF9A — accessibility / focus / contrast / reflow / touch (ACTIVE)
+Current substage: VF9B — CSS debt and cascade regression (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -658,22 +658,43 @@ VF8D closes the 1440×900+ desktop matrix. Staff, Manager, Administration and Ex
 
 VF8 family exit: ACCEPTED.
 
-## Active: VF9A — accessibility / focus / contrast / reflow / touch
+### VF9A — accessibility / focus / contrast / reflow / touch: COMPLETE / ACCEPTED
+
+Accepted application / verification SHA:
+`ad2b067866c3f4f55c8c32557dfd7f6d4b1b51ea`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF9A_ACCEPTANCE.md`
+- CI `37026170244`: PASS
+- Migration Replay `37026170742`: PASS
+- Account Security `37026170434`: PASS
+- Quality Gate `37026170280`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- 320px four-role reflow and laptop focus evidence: shard artifact `11234739351`
+- exact-head full route matrix: artifact `11236125888`
+- exact-head R7 product inspection: artifact `11236066020`
+- Vercel deployment status remains the external free-plan rate limit; no deployment PASS is claimed for VF9A and deployed-product inspection remains mandatory at VF10D.
+
+VF9A closes the accessibility regression surface without changing product authority or meaning: visible keyboard focus, 4.5:1 tested token contrast, 320px reflow, 44px primary/mobile targets, announced loading/error states and readable data-viz text are preserved across the four roles.
+
+## Active: VF9B — CSS debt and cascade regression
 
 Purpose:
-Close accessibility regressions at the accepted visual state before CSS and performance closure.
+Close proven cascade debt and legacy override conflicts without replacing the accepted CEAC design system or rewriting working product composition.
 
 Required outcomes:
-1. verify keyboard focus visibility and logical reachability on the shared shell and representative operational controls;
-2. verify the accepted CEAC text/action/status colour tokens meet their intended contrast floor;
-3. verify 320px reflow remains usable without horizontal page overflow;
-4. verify representative phone navigation and primary action controls retain the 44px touch floor;
-5. improve loading/error semantics where a visible state is not announced clearly;
-6. preserve reduced-motion, factual/no-inference, security and authority contracts;
-7. persist representative accessibility/reflow evidence;
-8. pass Level A, exact-head Level B and Level C before VF9B.
+1. inventory the live imported CSS cascade and identify material override debt rather than chasing raw counts;
+2. remove or neutralise stale legacy rules that materially override accepted VF/Experience V2 composition;
+3. prevent new `!important` escalation in the Experience V2 family layers and retain their existing low-specificity contract;
+4. verify shared shell, role surfaces, responsive breakpoints and accepted role character do not regress after cleanup;
+5. preserve typography, spacing, focus, reduced-motion, factual/no-inference, security and authority contracts;
+6. persist before/after cascade evidence and representative visual evidence;
+7. pass Level A, exact-head Level B and Level C before VF9C.
 
-Do not begin VF9B canonically until VF9A is accepted.
+Do not begin VF9C canonically until VF9B is accepted.
 
 ## Protected boundaries
 
