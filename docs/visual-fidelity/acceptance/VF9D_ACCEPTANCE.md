@@ -1,7 +1,7 @@
 # CEAC OS — VF9D Acceptance Record
 
-Substage: VF9D — final empty / loading / error / unconfigured state audit  
-Accepted application / verification SHA: `9d073c1da0f789654f690151b6d22a16ecadd9f9`  
+Substage: VF9D — final empty / loading / error / unconfigured state audit
+Accepted application / verification SHA: `9d073c1da0f789654f690151b6d22a16ecadd9f9`
 Date: 2 October 2026
 
 ## Target
@@ -74,8 +74,8 @@ Unresolved material drift: none for VF9D.
 
 ## Decision
 
-TECHNICALLY ACCEPTED: YES  
+TECHNICALLY ACCEPTED: YES
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
-VF9 family exit: ACCEPTED.  
+VF9 family exit: ACCEPTED.
 Next canonical substage: **VF10A — complete route-matrix visual audit**.
