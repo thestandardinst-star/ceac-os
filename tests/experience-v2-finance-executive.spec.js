@@ -157,3 +157,113 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF5C Executive Finance is decision-first with currency-safe populated context", async ({ browser }) => {
+  for (const viewport of [
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "laptop-1366", width: 1366, height: 768 },
+  ]) {
+    const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const page = await context.newPage();
+    await page.goto("/");
+    await page.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+    await page.getByPlaceholder("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+    await expect(page.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+
+    const requestId = "00000000-0000-4000-8000-000000000601";
+    await page.route("**/rest/v1/finance_requests*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: requestId,
+          org_id: "00000000-0000-4000-8000-000000000600",
+          unit_id: "00000000-0000-4000-8000-000000000602",
+          project_id: null,
+          requested_by: "00000000-0000-4000-8000-000000000603",
+          title: "Outreach transport",
+          justification: "Recorded request for ministry transport.",
+          amount_minor: 185000,
+          currency: "GHS",
+          needed_by: "2026-10-10",
+          state: "submitted",
+          created_at: "2026-10-01T08:00:00Z",
+          decided_at: null,
+          fulfilled_spend_id: null,
+          units: { name: "Outreach" },
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/finance_request_decisions*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: "00000000-0000-4000-8000-000000000604",
+          request_id: requestId,
+          stage: 1,
+          authority: "finance",
+          decision: "approved",
+          note: "Finance review recorded.",
+          decided_at: "2026-10-01T09:00:00Z",
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/finance_approval_rules*", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+    });
+    await page.route("**/rest/v1/budgets*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          { id: "00000000-0000-4000-8000-000000000605", amount_minor: 5000000, currency: "GHS", unit_id: null, project_id: null, units: null },
+          { id: "00000000-0000-4000-8000-000000000606", amount_minor: 250000, currency: "USD", unit_id: null, project_id: null, units: null },
+        ]),
+      });
+    });
+    await page.route("**/rest/v1/spend_lines*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          { id: "00000000-0000-4000-8000-000000000607", amount_minor: 1250000, currency: "GHS", unit_id: "00000000-0000-4000-8000-000000000602", units: { name: "Outreach" }, spent_on: "2026-09-30", reverses_id: null },
+          { id: "00000000-0000-4000-8000-000000000608", amount_minor: 45000, currency: "USD", unit_id: "00000000-0000-4000-8000-000000000609", units: { name: "Media" }, spent_on: "2026-09-29", reverses_id: null },
+        ]),
+      });
+    });
+
+    await page.goto("/?tab=exec-finance");
+    await expect(page.locator(".ev2-finance-executive")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Requests needing Group Pastor", { exact: true })).toBeVisible();
+    await expect(page.getByText("Outreach transport", { exact: true })).toBeVisible();
+    await expect(page.getByText("GHS", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("USD", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(/GHS 12,500.00 recorded spend/)).toBeVisible();
+    await expect(page.getByText(/USD 450.00 recorded spend/)).toBeVisible();
+    await expect(page.getByText(/No currency conversion/).first()).toBeVisible();
+
+    const brief = page.locator(".ev2fin-executive-brief");
+    const layout = await brief.evaluate((node) => ({
+      display: getComputedStyle(node).display,
+      columns: getComputedStyle(node).gridTemplateColumns,
+    }));
+    expect(layout.display).toBe("grid");
+    if (viewport.width >= 961) {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(2);
+    } else {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(1);
+    }
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await page.screenshot({
+      path: `test-artifacts/vf5c-executive-finance-${viewport.name}.png`,
+      fullPage: true,
+    });
+    await context.close();
+  }
+});
