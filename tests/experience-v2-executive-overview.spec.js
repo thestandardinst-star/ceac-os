@@ -194,4 +194,3 @@ for (const viewport of [
     await context.close();
   });
 }
-
