@@ -100,12 +100,17 @@ for (const viewport of [
       expect(inboxBox?.y || 0).toBeLessThan(shortcutsBox?.y || 0);
       expect(shortcutsBox?.y || 0).toBeLessThan(setupBox?.y || 0);
 
-      const firstContextRail = page.locator(".adminv2-context-grid").first();
-      const railWidths = await firstContextRail.evaluate((node) => ({
-        client: node.clientWidth,
-        scroll: node.scrollWidth,
-      }));
-      expect(railWidths.scroll).toBeGreaterThan(railWidths.client);
+      const contextGrids = page.locator(".adminv2-context-grid, .adminv2-support-grid");
+      const mobileLayouts = await contextGrids.evaluateAll((nodes) => nodes.map((node) => ({
+        display: getComputedStyle(node).display,
+        columns: getComputedStyle(node).gridTemplateColumns,
+        overflow: node.scrollWidth - node.clientWidth,
+      })));
+      for (const layout of mobileLayouts) {
+        expect(layout.display).toBe("grid");
+        expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(1);
+        expect(layout.overflow).toBeLessThanOrEqual(1);
+      }
     }
 
     await page.screenshot({
