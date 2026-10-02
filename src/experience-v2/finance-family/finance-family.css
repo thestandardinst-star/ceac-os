@@ -110,3 +110,84 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* VF5C — Executive finance briefing composition.
+   Leadership decision authority and currency-safe recorded context share the opening
+   canvas; unit spend remains factual drill-down. No currency conversion is introduced. */
+.ev2-finance-executive {
+  width: min(100%, 86rem);
+}
+
+.ev2-finance-executive .ev2fin-executive-brief {
+  display: grid;
+  grid-template-columns: minmax(20rem, .76fr) minmax(0, 1.24fr);
+  gap: var(--ev2-space-4);
+  align-items: start;
+  margin-top: var(--ev2-space-6);
+}
+
+.ev2-finance-executive .ev2fin-executive-brief .ev2fin-authority,
+.ev2-finance-executive .ev2fin-executive-position .ev2fin-section,
+.ev2-finance-executive .ev2fin-executive-position .ev2fin-loading,
+.ev2-finance-executive .ev2fin-executive-position .ev2fin-state {
+  margin-top: 0;
+}
+
+.ev2-finance-executive .ev2fin-authority,
+.ev2-finance-executive .ev2fin-currency-card,
+.ev2-finance-executive .ev2fin-list {
+  box-shadow: none;
+}
+
+.ev2-finance-executive .ev2fin-executive-position .ev2fin-card-grid {
+  grid-template-columns: 1fr;
+}
+
+.ev2-finance-executive .ev2fin-executive-position .ev2fin-empty {
+  min-height: 8.5rem;
+}
+
+.ev2-finance-executive > .ev2fin-section {
+  margin-top: var(--ev2-space-5);
+  padding-top: var(--ev2-space-4);
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2-finance-executive .ev2fin-list {
+  border-radius: var(--ev2-radius-sm);
+}
+
+@media (max-width: 960px) {
+  .ev2-finance-executive .ev2fin-executive-brief {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-finance-executive .ev2fin-executive-brief {
+    gap: var(--ev2-space-3);
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-finance-executive .ev2fin-authority {
+    order: 0;
+  }
+
+  .ev2-finance-executive .ev2fin-executive-position {
+    order: 1;
+  }
+
+  .ev2-finance-executive .ev2fin-executive-position .ev2fin-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ev2-finance-executive .ev2fin-authority .sec {
+    min-height: 44px;
+  }
+
+  .ev2-finance-executive > .ev2fin-section {
+    margin-top: var(--ev2-space-4);
+    padding-top: var(--ev2-space-3);
+  }
+}
