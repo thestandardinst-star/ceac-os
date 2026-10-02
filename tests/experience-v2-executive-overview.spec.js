@@ -174,10 +174,118 @@ for (const viewport of [
       fullPage: true,
     });
 
+    const ids = {
+      direction: "00000000-0000-4000-8000-000000000501",
+      ministry: "00000000-0000-4000-8000-000000000502",
+      unitObjective: "00000000-0000-4000-8000-000000000503",
+      unit: "00000000-0000-4000-8000-000000000504",
+      project: "00000000-0000-4000-8000-000000000505",
+      link: "00000000-0000-4000-8000-000000000506",
+    };
+    await page.route("**/rest/v1/strategy_nodes*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id: ids.direction,
+            node_type: "ministry_direction",
+            parent_id: null,
+            unit_id: null,
+            name: "Deepen ministry care and follow-up",
+            statement: "Strengthen the ministry's follow-up discipline while keeping outcomes attributable to recorded work.",
+            measurement_kind: "descriptive",
+            measure_label: null,
+            target_value: null,
+            target_unit: null,
+            current_value: null,
+            starts_on: "2026-01-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+          {
+            id: ids.ministry,
+            node_type: "ministry_objective",
+            parent_id: ids.direction,
+            unit_id: null,
+            name: "Improve first-timer follow-up coverage",
+            statement: "Create a consistent recorded follow-up path across ministry units.",
+            measurement_kind: "descriptive",
+            measure_label: null,
+            target_value: null,
+            target_unit: null,
+            current_value: null,
+            starts_on: "2026-07-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+          {
+            id: ids.unitObjective,
+            node_type: "unit_objective",
+            parent_id: ids.ministry,
+            unit_id: ids.unit,
+            name: "Complete recorded visitor follow-ups",
+            statement: "Record completed first-timer follow-ups handled by the unit.",
+            measurement_kind: "numeric",
+            measure_label: "Recorded follow-ups",
+            target_value: 600,
+            target_unit: "people",
+            current_value: 420,
+            starts_on: "2026-07-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+        ]),
+      });
+    });
+    await page.route("**/rest/v1/strategy_delivery_links*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.link,
+          org_id: "00000000-0000-4000-8000-000000000500",
+          strategy_node_id: ids.unitObjective,
+          project_id: ids.project,
+          status: "active",
+          change_reason: "Links the current follow-up delivery project.",
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/projects*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.project,
+          name: "First Timers follow-up system",
+          lead_unit_id: ids.unit,
+          status: "active",
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/units*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.unit,
+          name: "First Timers",
+          code: "FT",
+          active: true,
+        }]),
+      });
+    });
+
     await page.goto("/?tab=strategy");
     await expect(page.locator(".ev2-executive-ministry")).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole("heading", { name: "Ministry", exact: true })).toBeVisible();
     await expect(page.getByText("Strategic hierarchy", { exact: true })).toBeVisible();
+    await expect(page.getByText("Ministry Direction · active", { exact: true })).toBeVisible();
+    await expect(page.getByText("Ministry Objective · active", { exact: true })).toBeVisible();
+    await expect(page.getByText("First Timers · Complete recorded visitor follow-ups", { exact: true })).toBeVisible();
+    await expect(page.getByText(/current 420 people · target 600 people/i)).toBeVisible();
+    await expect(page.getByText("First Timers follow-up system", { exact: true })).toBeVisible();
     overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
 
