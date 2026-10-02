@@ -1,6 +1,6 @@
 # CEAC OS — Visual Fidelity & Interaction Closure — Build State
 
-Last updated: 1 October 2026
+Last updated: 2 October 2026
 
 ## Programme state
 
@@ -239,21 +239,40 @@ Acceptance evidence:
 
 VF3D makes Manager Projects a compact operational ledger/workspace, keeps Calendar and selected-date context primary over integrations, uses wide-screen Finance deliberately while preserving currency separation, and makes Reports evidence-first with traceable drill-down. A final phone correction kept the Manager Projects section title and count on one compact row instead of wasting vertical space. No finance conversion, fake KPI, employee score, ranking or authority change was introduced.
 
-## Active: VF4A — Administration Home operational inbox
+### VF4A — Administration Home operational inbox: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`1492c02743c212a5dc9a0208b7082a694629f6d3`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF4A_ACCEPTANCE.md`
+- CI `36946293039`: PASS
+- Migration Replay `36946293148`: PASS
+- Account Security `36946293040`: PASS
+- Quality Gate `36946293088`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Administration Home phone/laptop/desktop evidence: `redesign-r7-product-inspection` artifact `11202511570`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11202156969`
+
+VF4A makes Administration Home decision-first, keeps setup/configuration subordinate to the operational inbox, uses horizontal supporting-context rails on phone and a higher-density operations-console composition on laptop/desktop. A final 320px correction explicitly preserves the order Needs Administration → shortcuts → Configuration state rather than allowing CSS grid ordering to surface shortcuts first. Administration authority, invitations, leave decisions, reporting provenance, privacy and audit boundaries remain unchanged.
+
+## Active: VF4B — Administration People and Employee workspace
 
 Purpose:
-Make Administration Home read as a high-authority operations console: immediate decisions and exceptions first, configuration second, monitoring/supporting context after that.
+Turn Administration People and Employee into a denser factual people-operations workspace with strong record hierarchy, while preserving protected-HR separation and all Administration authority.
 
 Required outcomes:
-1. operational inbox dominates the route and preserves direct resolution;
-2. configuration/setup remains truthful but visually subordinate when no urgent setup action exists;
-3. reporting, organisation pulse, workforce, delivery, meetings and unit context remain factual supporting information rather than equal-weight dashboard cards;
-4. mobile keeps the highest-authority Administration actions in context without becoming a very long serial card feed;
-5. desktop/laptop uses the available canvas as an operations console rather than a generic dashboard;
-6. Administration authority, leave decisions, invitations, reporting provenance, privacy, RLS/RPC and audit boundaries remain unchanged;
-7. pass affected Level A during implementation, then exact-head Level B + Level C before VF4B.
+1. make People read as an operational directory/ledger rather than large repeated cards;
+2. use search and filters efficiently on laptop/desktop without weakening phone usability;
+3. keep employee identity and employment state persistent on larger screens while the detailed employment record remains the main workspace;
+4. present factual employment, evidence, leave and protected-HR context as readable records rather than a serial card stack;
+5. preserve protected-HR isolation, audited employment changes, organisation scope and all People/HR RLS/RPC boundaries;
+6. keep employee scoring, ranking, inferred productivity and payroll out of the experience;
+7. pass affected Level A during implementation, then exact-head Level B + Level C before VF4C.
 
-Do not begin VF4B until VF4A is accepted.
+Do not begin VF4C canonically until VF4B is accepted.
 
 ## Protected boundaries
 
