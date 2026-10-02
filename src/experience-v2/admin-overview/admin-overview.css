@@ -66,6 +66,10 @@
   align-items: center;
 }
 
+.adminv2-mobile-actions {
+  display: none;
+}
+
 .adminv2-loading {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(18rem, .6fr);
@@ -105,7 +109,7 @@
 
 .adminv2-panel {
   min-width: 0;
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .adminv2-panel .ev2c-data-panel-body {
@@ -414,12 +418,37 @@ button.adminv2-action-main {
   }
 
   .adminv2-intro-actions {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: none;
   }
 
-  .adminv2-intro-actions .ev2c-button {
+  .adminv2-inbox {
+    order: 1;
+  }
+
+  .adminv2-mobile-actions {
+    order: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ev2-space-2);
+  }
+
+  .adminv2-setup {
+    order: 3;
+  }
+
+  .adminv2-mobile-actions .ev2c-button {
     width: 100%;
+    min-width: 0;
+  }
+
+  .adminv2-context-grid,
+  .adminv2-support-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--ev2-space-4);
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .adminv2-action-main,
@@ -470,6 +499,10 @@ button.adminv2-action-main {
   .adminv2-context {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .adminv2-mobile-actions {
+    grid-template-columns: 1fr;
   }
 
   .adminv2-stat-grid.is-four {

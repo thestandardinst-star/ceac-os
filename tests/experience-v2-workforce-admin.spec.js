@@ -31,6 +31,9 @@ test("Stage 10 Family D4 preserves Administration Workforce authority and factua
   expect(workforce).toContain("will not calculate entitlement, accrual, carry-over or remaining balance");
   expect(workforce).toContain('leaveAction(row.id,"approval_reversed")');
   expect(css).toContain(".ev2-workforce-admin");
+  expect(css).toContain("/* VF4C — Administration Workforce operational console.");
+  expect(css).toContain(".ev2-workforce-admin .ev2wf-tabs");
+  expect(css).toContain(".ev2-workforce-admin .ev2wf-row-state");
   expect(css).not.toContain("!important");
 });
 
@@ -83,10 +86,71 @@ for (const viewport of [
     expect(smallest).toBeGreaterThanOrEqual(12);
 
     await page.getByRole("tab", { name: "Today", exact: true }).click();
+    const rootBox = await page.locator(".ev2-workforce-admin").boundingBox();
+    const stateBoxes = await page.locator(".ev2-workforce-admin .ev2wf-row-state:visible").evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { left: rect.left, right: rect.right };
+      })
+    );
+    for (const box of stateBoxes) {
+      expect(box.left).toBeGreaterThanOrEqual((rootBox?.x || 0) - 1);
+      expect(box.right).toBeLessThanOrEqual((rootBox?.x || 0) + (rootBox?.width || viewport.width) + 1);
+    }
+
     await page.screenshot({
       path: `test-artifacts/redesign-r7-stage10d4-admin-workforce-${viewport.name}.png`,
       fullPage: true,
     });
+
+    if (viewport.name === "phone-390" || viewport.name === "laptop-1366") {
+      await page.getByRole("tab", { name: "Leave", exact: true }).click();
+      await page.screenshot({
+        path: `test-artifacts/vf4c-admin-workforce-leave-${viewport.name}.png`,
+        fullPage: true,
+      });
+      await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+      const calendarRail = page.locator(".ev2wf-admin-calendar-week");
+      await expect(calendarRail).toBeVisible();
+      await expect(calendarRail.locator(":scope > .ev2wf-section")).toHaveCount(7);
+      if (viewport.name === "phone-390") {
+        const railLayout = await calendarRail.evaluate((node) => ({
+          display: getComputedStyle(node).display,
+          scrollWidth: node.scrollWidth,
+          clientWidth: node.clientWidth,
+        }));
+        expect(railLayout.display).toBe("flex");
+        expect(railLayout.scrollWidth).toBeGreaterThan(railLayout.clientWidth + 20);
+        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
+          nodes.slice(0, 2).map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { left: rect.left, top: rect.top, height: rect.height };
+          })
+        );
+        expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
+        expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
+      }
+      if (viewport.name === "laptop-1366") {
+        const railLayout = await calendarRail.evaluate((node) => ({
+          display: getComputedStyle(node).display,
+          columns: getComputedStyle(node).gridTemplateColumns,
+        }));
+        expect(railLayout.display).toBe("grid");
+        expect(railLayout.columns.split(" ").filter(Boolean)).toHaveLength(2);
+        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
+          nodes.slice(0, 2).map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { left: rect.left, top: rect.top };
+          })
+        );
+        expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
+        expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
+      }
+      await page.screenshot({
+        path: `test-artifacts/vf4c-admin-workforce-calendar-${viewport.name}.png`,
+        fullPage: true,
+      });
+    }
 
     await context.close();
   });

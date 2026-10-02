@@ -242,31 +242,34 @@ export default function Strategy({ me }) {
   if (loading) return <div className="body"><LoadingState label="Loading strategy…" /></div>;
 
   const executiveSurface=Boolean(me.is_exec);
-  return <div className="body">
-    <div style={{ paddingTop: 26 }}>
-      <div className="eyebrow">{executiveSurface ? "Ministry direction" : "Goals & strategy"}</div>
-      <h1 className="h1">{executiveSurface ? "Ministry" : "Strategy"}</h1>
-      <p className="screen-note">{executiveSurface ? "Direction, ministry objectives and the unit objectives carrying them forward. Results are shown only where they are explicitly recorded." : "Ministry Direction → Ministry Objective → Unit Objective. Descriptive goals stay descriptive; numeric goals always show the result beside its target."}</p>
+  return <div className={executiveSurface ? "body premium-exec-page ev2-executive-ministry" : "body"}>
+    <div className={executiveSurface ? "ev2ex-ministry-head" : ""} style={executiveSurface ? undefined : { paddingTop: 26 }}>
+      <div className={executiveSurface ? "ev2ex-ministry-head-copy" : ""}>
+        <div className="eyebrow">{executiveSurface ? "Ministry direction" : "Goals & strategy"}</div>
+        <h1 className="h1">{executiveSurface ? "Ministry" : "Strategy"}</h1>
+        <p className="screen-note">{executiveSurface ? "Direction, ministry objectives and the unit objectives carrying them forward. Results are shown only where they are explicitly recorded." : "Ministry Direction → Ministry Objective → Unit Objective. Descriptive goals stay descriptive; numeric goals always show the result beside its target."}</p>
+      </div>
+      {canGlobal && executiveSurface && <button className="btn wide-auto" onClick={() => openCreate("ministry_direction")}>Add Ministry Direction</button>}
     </div>
 
     {error && <ProductNotice tone="error" title="Strategy">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Strategy">{notice}</ProductNotice>}
 
-    {canGlobal && <div style={{ marginTop: 16 }}>
+    {canGlobal && !executiveSurface && <div style={{ marginTop: 16 }}>
       <button className="btn wide-auto" onClick={() => openCreate("ministry_direction")}>Add Ministry Direction</button>
     </div>}
 
-    <div className="sec"><span>Strategic hierarchy</span><span>{nodes.length}</span></div>
+    <div className={executiveSurface ? "sec ev2ex-ministry-section-title" : "sec"}><span>Strategic hierarchy</span><span>{nodes.length}</span></div>
     {directions.length === 0 && <EmptyState title="No Ministry Direction recorded">An authorised strategy owner can record the first Ministry Direction without inventing a numeric score.</EmptyState>}
 
-    {directions.map((direction) => <section className="card" key={direction.id} style={{ padding: 18, marginBottom: 14 }}>
+    {directions.map((direction) => <section className={executiveSurface ? "card ev2ex-ministry-direction" : "card"} key={direction.id} style={executiveSurface ? undefined : { padding: 18, marginBottom: 14 }}>
       <div className="eyebrow">{TYPE_LABELS[direction.node_type]} · {direction.status.replaceAll("_", " ")}</div>
       <h2 className="h2" style={{ marginTop: 5 }}>{direction.name}</h2>
       <p className="screen-note">{direction.statement}</p>
       {measurementLine(direction)}
       <NodeActions node={direction} allowChild="ministry" />
 
-      {(ministriesByParent[direction.id] || []).map((ministry) => <div key={ministry.id} style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line-soft)" }}>
+      {(ministriesByParent[direction.id] || []).map((ministry) => <div className={executiveSurface ? "ev2ex-ministry-objective" : ""} key={ministry.id} style={executiveSurface ? undefined : { marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--line-soft)" }}>
         <div className="eyebrow">{TYPE_LABELS[ministry.node_type]} · {ministry.status.replaceAll("_", " ")}</div>
         <h3 className="h2" style={{ marginTop: 4 }}>{ministry.name}</h3>
         <p className="screen-note">{ministry.statement}</p>
@@ -275,7 +278,7 @@ export default function Strategy({ me }) {
 
         {(unitsByParent[ministry.id] || []).map((unitObjective) => {
           const activeLinks = links.filter((link) => link.strategy_node_id === unitObjective.id && link.status === "active");
-          return <div className="row" key={unitObjective.id} style={{ marginTop: 12 }}>
+          return <div className={executiveSurface ? "row ev2ex-unit-objective" : "row"} key={unitObjective.id} style={executiveSurface ? undefined : { marginTop: 12 }}>
             <div className="row-t">{unitName(unitObjective.unit_id)} · {unitObjective.name}</div>
             <div className="row-m">{unitObjective.statement}</div>
             <div style={{ marginTop: 7 }}>{measurementLine(unitObjective)}</div>

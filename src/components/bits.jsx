@@ -1,4 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { EV2_TRANSITIONS } from "../experience-v2/motion";
 
 
 export function Pill({ tone, children }) {
@@ -14,11 +16,21 @@ export function FieldGroup({ label, hint, children, className = "" }) {
 }
 
 export function ProductNotice({ tone = "info", title, children, action = null }) {
-  return <div className={`product-notice product-notice-${tone}`} role={tone === "error" ? "alert" : "status"}>
+  const reduceMotion = useReducedMotion();
+  const transition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.fast;
+  return <motion.div
+    className={`product-notice product-notice-${tone}`}
+    role={tone === "error" ? "alert" : "status"}
+    aria-live={tone === "error" ? "assertive" : "polite"}
+    aria-atomic="true"
+    initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 4 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={transition}
+  >
     {title && <strong>{title}</strong>}
     {children && <span>{children}</span>}
     {action}
-  </div>;
+  </motion.div>;
 }
 
 export function EmptyState({ title, children, action = null, compact = false }) {
@@ -86,11 +98,18 @@ export function statusPill(status) {
 }
 export function Sheet({ children, onClose }) {
   const dialogRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const [open, setOpen] = useState(true);
+  const reduceMotion = useReducedMotion();
+  const requestClose = useCallback(() => setOpen(false), []);
+
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+
   useEffect(() => {
     const previousFocus = document.activeElement;
     dialogRef.current?.focus();
     function onKeyDown(event) {
-      if (event.key === "Escape") { onClose?.(); return; }
+      if (event.key === "Escape") { requestClose(); return; }
       if (event.key !== "Tab" || !dialogRef.current) return;
       const focusable = [...dialogRef.current.querySelectorAll("button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), a[href], [tabindex]:not([tabindex='-1'])")];
       if (!focusable.length) { event.preventDefault(); return; }
@@ -100,9 +119,43 @@ export function Sheet({ children, onClose }) {
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     }
     document.addEventListener("keydown", onKeyDown);
-    return () => { document.removeEventListener("keydown", onKeyDown); previousFocus?.focus?.(); };
-  }, [onClose]);
-  return (<><div className="sheet-bg" onClick={onClose} /><div ref={dialogRef} className="sheet" role="dialog" aria-modal="true" tabIndex={-1}>
-    <button className="sheet-close" aria-label="Close dialog" onClick={onClose}>×</button>{children}
-  </div></>);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      previousFocus?.focus?.();
+    };
+  }, [requestClose]);
+
+  const backdropTransition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.fast;
+  const panelTransition = reduceMotion ? { duration: 0 } : EV2_TRANSITIONS.panel;
+
+  return (
+    <AnimatePresence onExitComplete={() => onCloseRef.current?.()}>
+      {open ? [
+        <motion.div
+          key="sheet-backdrop"
+          className="sheet-bg"
+          onClick={requestClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={backdropTransition}
+        />,
+        <motion.div
+          key="sheet-panel"
+          ref={dialogRef}
+          className="sheet"
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={panelTransition}
+        >
+          <button className="sheet-close" aria-label="Close dialog" onClick={requestClose}>×</button>
+          {children}
+        </motion.div>,
+      ] : null}
+    </AnimatePresence>
+  );
 }

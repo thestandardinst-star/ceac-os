@@ -72,7 +72,7 @@ export default function ManagerWork({ me, openItem, goAssign }) {
     ["given", "Given out", activeGiven.length],
     ["reviews", "Needs review", reviews.length],
     ["team", "Team work", activeTeam.length],
-    ["mine", "Mine", activeMine.length],
+    ["mine", "My work", activeMine.length],
   ];
   const rows = view === "given" ? activeGiven : view === "team" ? activeTeam : activeMine;
   const groupTitle = view === "given" ? "Work you gave out" : view === "team" ? "Active team work" : "Your open work";

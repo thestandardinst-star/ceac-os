@@ -22,7 +22,11 @@ export function TableShell({
           {rows.map((row, rowIndex) => (
             <tr key={getRowKey(row, rowIndex)}>
               {columns.map((column) => (
-                <td key={column.key} className={column.align === "right" ? "is-right" : ""}>
+                <td
+                  key={column.key}
+                  data-label={column.label}
+                  className={column.align === "right" ? "is-right" : ""}
+                >
                   {column.render ? column.render(row) : row[column.key]}
                 </td>
               ))}

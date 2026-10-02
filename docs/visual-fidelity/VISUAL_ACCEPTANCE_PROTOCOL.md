@@ -28,6 +28,21 @@ Level B must continue to prove:
 
 Level B green is necessary but not sufficient.
 
+### Controlled Vercel acceptance deployment
+
+The VF branch intentionally skips routine Vercel Preview builds through `scripts/vercel/ignore-build.mjs`.
+
+Interpretation:
+- routine implementation, Level A correction and Level B repair commits on non-main branches: Vercel Preview is intentionally skipped;
+- a skipped build is **not** Vercel PASS and does not count as deployed-product evidence;
+- `main` always deploys normally;
+- when a technically green application state needs deployed-product inspection, create one deliberate checkpoint whose commit subject contains `[vercel]`;
+- the checkpoint may be documentation-only/application-equivalent only when it changes no application code and explicitly records the already-tested application SHA;
+- the actual Vercel deployment from that deliberate checkpoint must succeed before any acceptance criterion that requires deployed-product evidence is marked PASS;
+- if a deliberate deployment is rate-limited, record that external blocker truthfully, continue safe GitHub-side verification/read-only preparation, and do not create repeated deployment commits merely to probe the limit.
+
+The existing Level B and Level C quality requirements are unchanged. Controlled skipping reduces redundant previews; it does not waive required deployment evidence.
+
 ### Level C — Product Fidelity gate
 
 Level C is mandatory for every visual-fidelity substage and family.

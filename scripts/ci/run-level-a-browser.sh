@@ -4,6 +4,19 @@ set -euo pipefail
 scope="${1:-full}"
 
 case "$scope" in
+  vf9b)
+    tests=(
+      tests/visual-fidelity-css-cascade-closure.spec.js
+      tests/experience-v2-shell*.spec.js
+      tests/role-routing.spec.js
+    )
+    ;;
+  vf9c)
+    tests=(tests/visual-fidelity-performance-closure.spec.js tests/role-routing.spec.js)
+    ;;
+  vf9d)
+    tests=(tests/visual-fidelity-state-closure.spec.js tests/experience-v2-interactions.spec.js tests/role-routing.spec.js)
+    ;;
   stage15)
     tests=(
       tests/experience-v2-stage15-*.spec.js

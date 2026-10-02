@@ -90,6 +90,27 @@ for (const viewport of [
         buttons.map((button) => button.getBoundingClientRect().height)
       );
       for (const height of compactHeights) expect(height).toBeGreaterThanOrEqual(44);
+
+      await expect(page.locator(".adminv2-intro-actions")).toBeHidden();
+      await expect(page.locator(".adminv2-mobile-actions")).toBeVisible();
+
+      const inboxBox = await page.locator(".adminv2-inbox").boundingBox();
+      const shortcutsBox = await page.locator(".adminv2-mobile-actions").boundingBox();
+      const setupBox = await page.locator(".adminv2-setup").boundingBox();
+      expect(inboxBox?.y || 0).toBeLessThan(shortcutsBox?.y || 0);
+      expect(shortcutsBox?.y || 0).toBeLessThan(setupBox?.y || 0);
+
+      const contextGrids = page.locator(".adminv2-context-grid, .adminv2-support-grid");
+      const mobileLayouts = await contextGrids.evaluateAll((nodes) => nodes.map((node) => ({
+        display: getComputedStyle(node).display,
+        columns: getComputedStyle(node).gridTemplateColumns,
+        overflow: node.scrollWidth - node.clientWidth,
+      })));
+      for (const layout of mobileLayouts) {
+        expect(layout.display).toBe("grid");
+        expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(1);
+        expect(layout.overflow).toBeLessThanOrEqual(1);
+      }
     }
 
     await page.screenshot({

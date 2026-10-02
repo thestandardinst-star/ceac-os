@@ -929,6 +929,7 @@ export default function Workforce({ me }) {
             options={[{value:"",label:"All visible people"},...people.filter((row)=>!calendarUnit||row.unit_id===calendarUnit).map((row)=>({value:row.profile_id,label:row.profiles?.full_name||"Employee"}))]}
           />
         </div>
+        <div className="ev2wf-admin-calendar-week" aria-label="Seven-day workforce context">
         {Array.from({length:7},(_,i)=>{
           const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
           const events=calendarEventsOn(date);
@@ -953,6 +954,7 @@ export default function Workforce({ me }) {
             {!calendarPeople.length&&!events.length&&<WorkforceEmpty compact title="No workforce context in this selection" description="Change the filters or choose another date."/>}
           </WorkforceSection>;
         })}
+        </div>
       </>}
 
       {tab==="sessions"&&<WorkforceSection title="Recorded sessions · last 31 days" description="Session history is factual activity context. It is not a performance score and it is not used as payroll time." meta={sessions.length+" records"}>

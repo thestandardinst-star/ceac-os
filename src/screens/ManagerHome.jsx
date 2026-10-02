@@ -48,6 +48,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
   const [blockers, setBlockers] = useState([]);
   const [team, setTeam] = useState({ present: [], working: [], leave: [], notStarted: [], completed: [], submitted: [] });
   const [mine, setMine] = useState([]);
+  const [delegated, setDelegated] = useState([]);
   const [projects, setProjects] = useState([]);
   const [upcomingProjects, setUpcomingProjects] = useState([]);
   const [upcomingMeetings, setUpcomingMeetings] = useState([]);
@@ -83,7 +84,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       const nextWeek = new Date(weekStart); nextWeek.setDate(nextWeek.getDate() + 7);
 
       const recentSince = new Date(today); recentSince.setDate(recentSince.getDate() - 7);
-      const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult,
+      const [memberResult, submissionResult, leaveResult, incomingBlockerResult, outgoingBlockerResult, mineResult, delegatedResult,
         settingResult, sessionResult, weekResult, projectUnitResult, activeProjectResult,
         todayOutputResult, todaySubmissionResult, recentCompletedResult, recentSubmissionResult, followupAlertResult, meetingResult] = await Promise.all([
         supabase.from("unit_memberships")
@@ -109,6 +110,13 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         supabase.from("work_items")
           .select("id, ref, title, status, due_at").eq("assignee_id", me.id)
           .not("status", "in", "(completed,self_certified,cancelled)"),
+        supabase.from("work_items")
+          .select("id, ref, title, status, due_at, assignee_id, profiles!work_items_assignee_id_fkey(full_name)")
+          .eq("assigned_by", me.id)
+          .neq("assignee_id", me.id)
+          .not("status", "in", "(completed,self_certified,cancelled)")
+          .order("due_at", { ascending: true, nullsFirst: false })
+          .limit(6),
         supabase.from("leave_settings").select("manager_approval_limit").eq("org_id", me.org_id).maybeSingle(),
         supabase.from("work_sessions").select("profile_id, started_at, ended_at")
           .gte("started_at", today.toISOString()).lt("started_at", tomorrow.toISOString()),
@@ -174,6 +182,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
         const dueToday = item.due_at && new Date(item.due_at) >= today && new Date(item.due_at) < tomorrow;
         return dueToday || isOverdue(item.due_at) || item.status === "returned" || item.status === "waiting_on";
       }));
+      setDelegated(requireResult(delegatedResult, "Work you gave out"));
       if (settingResult.error) throw new Error(`Leave settings: ${settingResult.error.message}`);
       if (settingResult.data) setLeaveLimit(settingResult.data.manager_approval_limit);
 
@@ -429,6 +438,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       financePositions={financePositions}
       serviceDayData={serviceDayData}
       mine={mine}
+      delegated={delegated}
       week={week}
       upcomingMeetings={upcomingMeetings}
       upcomingProjects={upcomingProjects}
@@ -438,6 +448,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       drillRows={drillRows}
       onRetry={load}
       onGiveOutWork={goAssign}
+      onOpenWork={() => go?.("work")}
       onOpenItem={openItem}
       onOpenProject={openProject}
       onOpenMeeting={openMeeting}

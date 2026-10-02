@@ -177,12 +177,17 @@ for (const viewport of [
 
     const person = page.locator(".ev2p-evidence-person").filter({ hasText: "Staff Fixture" }).first();
     await expect(person).toBeVisible();
-    const factualButtons = person.locator(".ev2p-evidence-strip button");
+    const factualStrip = person.locator(".ev2p-evidence-strip");
+    const factualButtons = factualStrip.locator("button");
     expect(await factualButtons.count()).toBe(5);
     const count = await factualButtons.count();
     for (let index = 0; index < count; index += 1) {
       const box = await factualButtons.nth(index).boundingBox();
       expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+    }
+    if (viewport.width <= 760) {
+      const stripBox = await factualStrip.boundingBox();
+      expect(stripBox?.height || Number.POSITIVE_INFINITY).toBeLessThanOrEqual(72);
     }
 
     await page.screenshot({
@@ -617,4 +622,53 @@ test("Stage 10 Family B5C Administration People states stay factual and usable",
     fullPage: true,
   });
   await context.close();
+});
+
+
+test("VF3C Manager Team and Person workspace locks factual command composition", () => {
+  const team = readFileSync("src/screens/Team.jsx", "utf8");
+  const person = readFileSync("src/screens/PersonDetail.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  expect(team).toContain("They are not a score or judgement about a person.");
+  expect(team).toContain("PeopleEvidencePerson");
+  expect(person).toContain('className="ev2p-person-layout"');
+  expect(person).toContain('className="ev2p-person-context-rail"');
+  expect(person).toContain('className="ev2p-person-detail-stack"');
+  expect(person).toContain("They are not a productivity score, ranking or judgement about this person.");
+  expect(person).toContain("There are no private manager notes.");
+
+  expect(css).toContain("/* VF3C — Manager Team and Person workspace");
+  expect(css).toContain(".ev2-people-manager .ev2p-stack");
+  expect(css).toContain(".ev2p-person-context-rail");
+  expect(css).toContain("position: sticky");
+  expect(css).toContain("grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr)");
+  expect(css).not.toContain("!important");
+});
+
+
+test("VF4B Administration People and employee workspace lock operations-console composition", () => {
+  const screen = readFileSync("src/screens/People.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/people-family/people-family.css", "utf8");
+
+  expect(screen).toContain('className="ev2p-admin-control-band"');
+  expect(screen).not.toContain('className="ev2p-admin-control-band">\\n');
+  expect(screen).toContain('className="ev2p-admin-person-layout"');
+  expect(screen).toContain('className="ev2p-admin-person-rail"');
+  expect(screen).toContain('className="ev2p-admin-person-detail"');
+  expect(screen).toContain('className="ev2p-admin-identity-section"');
+
+  expect(screen).toContain('rpc("admin_people_summary")');
+  expect(screen).toContain('rpc("admin_person_detail"');
+  expect(screen).toContain('rpc("admin_employment_detail"');
+  expect(screen).toContain('rpc("admin_update_employment"');
+  expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
+  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+
+  expect(css).toContain("/* VF4B — Administration People / Employee workspace fidelity.");
+  expect(css).toContain(".ev2p-admin-person-rail");
+  expect(css).toContain("position: sticky");
+  expect(css).toContain("grid-template-columns: minmax(15.5rem, 18rem) minmax(0, 1fr)");
+  expect(css).toContain(".ev2-people-admin > .ev2p-section");
+  expect(css).not.toContain("!important");
 });

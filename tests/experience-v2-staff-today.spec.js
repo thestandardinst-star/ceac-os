@@ -90,6 +90,21 @@ for (const viewport of [
     const sessionActions = page.locator(".staffv2-session").getByRole("button", { name: /^(Start work|End work|Review)$/ });
     await expect(sessionActions).toHaveCount(1);
 
+    if (await page.locator(".staffv2-ministry-panel").count()) {
+      await expect(page.locator(".staffv2-secondary-grid .staffv2-ministry-record")).toHaveCount(1);
+    }
+
+    if (viewport.width <= 390) {
+      const secondarySurface = page.locator(".staffv2-week.ev2c-surface");
+      await expect(secondarySurface).toBeVisible();
+      const surfaceFrame = await secondarySurface.evaluate((node) => ({
+        borderTopWidth: getComputedStyle(node).borderTopWidth,
+        backgroundColor: getComputedStyle(node).backgroundColor,
+      }));
+      expect(surfaceFrame.borderTopWidth).toBe("0px");
+      expect(surfaceFrame.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    }
+
     const overflow = await page.evaluate(() =>
       document.documentElement.scrollWidth - document.documentElement.clientWidth
     );

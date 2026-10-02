@@ -924,3 +924,216 @@
     grid-column: auto;
   }
 }
+
+
+/* VF3D provisional — Manager Projects operational ledger.
+   Presentation-only: preserves project, work, objective and finance authority. */
+.ev2-project-manager .ev2p-list {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: var(--ev2-shadow-1);
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row {
+  min-height: 4.35rem;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2-project-manager .ev2p-list .ev2p-row:hover {
+  background: var(--ev2-surface-soft);
+}
+
+@media (min-width: 1040px) {
+  .ev2-project-manager {
+    width: min(100%, 80rem);
+  }
+
+  .ev2-project-manager .ev2p-list .ev2p-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr) minmax(8rem, auto);
+    padding-block: var(--ev2-space-2);
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-project-manager .ev2p-section-head {
+    align-items: flex-end;
+    flex-direction: row;
+    gap: var(--ev2-space-3);
+    margin-top: var(--ev2-space-5);
+  }
+
+  .ev2-project-manager .ev2p-section-head > div:first-child {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .ev2-project-manager .ev2p-section-actions {
+    width: auto;
+    flex: none;
+    margin-left: auto;
+  }
+
+  .ev2-project-manager .ev2p-list {
+    border-radius: var(--ev2-radius-control);
+  }
+}
+
+
+/* VF6A — Cross-role Project workspace closure.
+   Presentation only: the shared Project object keeps the same role, RLS, close,
+   custody, payment/remittance, objective and Delivery authority contracts. */
+.ev2-project-workspace {
+  width: min(100%, 84rem);
+}
+
+.ev2-project-workspace .ev2p-tabs {
+  gap: 0;
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2-project-workspace .ev2p-tabs button {
+  min-height: 44px;
+  padding-inline: var(--ev2-space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-project-workspace .ev2p-tabs button.is-selected {
+  border-bottom-color: var(--ev2-action);
+  background: transparent;
+  color: var(--ev2-action);
+}
+
+.ev2-project-workspace .project-overview-grid > .card,
+.ev2-project-workspace .project-objective-card,
+.ev2-project-workspace .project-workspace-area > .row,
+.ev2-project-workspace .project-workspace-area > .card,
+.ev2-project-workspace .project-room-entry {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2-project-workspace .project-overview-summary {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-sm);
+  background: var(--ev2-line);
+}
+
+.ev2-project-workspace .project-overview-summary > div {
+  border-radius: 0;
+  background: var(--ev2-surface-soft);
+}
+
+.ev2-project-workspace .project-area-head {
+  padding-bottom: var(--ev2-space-2);
+  border-bottom: 1px solid var(--ev2-line);
+}
+
+.ev2-project-admin .ev2p-summary,
+.ev2-project-delivery > .ev2p-summary {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-line);
+}
+
+.ev2-project-admin .ev2p-summary > div,
+.ev2-project-delivery > .ev2p-summary > div {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-project-admin .ev2p-context-list,
+.ev2-project-delivery .ev2p-list {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+  box-shadow: none;
+}
+
+.ev2-project-admin .ev2p-context-list .ev2p-context-row,
+.ev2-project-delivery .ev2p-list .ev2p-row {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-project-admin .ev2p-context-list .ev2p-context-row:last-child,
+.ev2-project-delivery .ev2p-list .ev2p-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2-project-delivery .ev2p-portfolio-card,
+.ev2-project-delivery .ev2p-delivery-main > .row,
+.ev2-project-delivery .ev2p-delivery-main > .card,
+.ev2-project-delivery .ev2p-delivery-side > .card {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+@media (min-width: 1040px) {
+  .ev2-project-workspace .project-overview-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(20rem, .55fr);
+  }
+
+  .ev2-project-admin,
+  .ev2-project-delivery {
+    width: min(100%, 86rem);
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-project-workspace .ev2p-tabs {
+    margin-inline: calc(var(--ev2-space-3) * -1);
+    padding-inline: var(--ev2-space-3);
+  }
+
+  .ev2-project-admin .ev2p-summary,
+  .ev2-project-delivery > .ev2p-summary {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .ev2-project-admin .ev2p-summary > div,
+  .ev2-project-delivery > .ev2p-summary > div {
+    flex: 0 0 min(76%, 16rem);
+  }
+
+  .ev2-project-admin .ev2p-context-facts {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .ev2-project-admin .ev2p-context-facts > span {
+    flex: 0 0 auto;
+  }
+
+  .ev2-project-admin .ev2p-context-list,
+  .ev2-project-delivery .ev2p-list {
+    border-radius: var(--ev2-radius-control);
+  }
+}

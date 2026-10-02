@@ -110,79 +110,88 @@ export default function ExecutiveReports({ me }) {
           />
         </div>
       ) : !period ? (
-        <ReportingSection
-          eyebrow="Latest period"
-          title="No reporting period is recorded"
-          description="Executive reporting remains empty until Administration records a reporting period."
-        >
-          <ReportingEmpty
-            title="No leadership reporting context yet"
-            description="CEAC OS will show factual unit filing status when a reporting period exists."
-          />
-        </ReportingSection>
-      ) : (
-        <>
+        <div className="ev2rep-executive-empty-brief">
           <ReportingSection
             eyebrow="Latest period"
-            title={period.label}
-            description={`${period.starts_on} — ${period.ends_on}. Administration controls period configuration.`}
-            meta={period.status === "open" ? "Open" : "Closed"}
+            title="No reporting period is recorded"
+            description="Executive reporting remains empty until Administration records a reporting period."
           >
-            <ReportingEvidenceGrid>
-              <ReportingEvidenceCard
-                value={String(filed.length)}
-                label="submitted units"
-                detail={`${filed.length} of ${units.length} units`}
-                tone="success"
-              />
-              <ReportingEvidenceCard
-                value={String(drafting.length)}
-                label="drafts"
-                detail="Started, not submitted"
-                tone="warning"
-              />
-              <ReportingEvidenceCard
-                value={String(waiting.length)}
-                label="waiting"
-                detail="No submitted report recorded"
-              />
-            </ReportingEvidenceGrid>
+            <ReportingEmpty
+              title="No leadership reporting context yet"
+              description="CEAC OS will show factual unit filing status when a reporting period exists."
+            />
           </ReportingSection>
+          <aside className="ev2rep-executive-authority" aria-label="Reporting authority context">
+            <span>Executive access</span>
+            <strong>Read-only leadership context</strong>
+            <p>Administration controls reporting periods and configuration. Filing coverage is evidence of reporting status only.</p>
+          </aside>
+        </div>
+      ) : (
+        <>
+          <div className="ev2rep-executive-brief">
+            <ReportingSection
+              eyebrow="Latest period"
+              title={period.label}
+              description={`${period.starts_on} — ${period.ends_on}. Administration controls period configuration.`}
+              meta={period.status === "open" ? "Open" : "Closed"}
+            >
+              <ReportingEvidenceGrid>
+                <ReportingEvidenceCard
+                  value={String(filed.length)}
+                  label="submitted units"
+                  detail={`${filed.length} of ${units.length} units`}
+                  tone="success"
+                />
+                <ReportingEvidenceCard
+                  value={String(drafting.length)}
+                  label="drafts"
+                  detail="Started, not submitted"
+                  tone="warning"
+                />
+                <ReportingEvidenceCard
+                  value={String(waiting.length)}
+                  label="waiting"
+                  detail="No submitted report recorded"
+                />
+              </ReportingEvidenceGrid>
+            </ReportingSection>
 
-          <ReportingSection
-            eyebrow="Named unit status"
-            title="Who has filed"
-            description="Named filing status remains visible for leadership context. It is not a ranking of units or people."
-          >
-            {units.length === 0 ? (
-              <ReportingEmpty
-                title="No active units are visible"
-                description="Unit reporting status will appear when active organisation units are available."
-              />
-            ) : (
-              <div className="ev2rep-list">
-                {units.map((unit) => {
-                  const report = reports.find((row) => row.unit_id === unit.id);
-                  const isFiled = report && report.status !== "draft";
-                  const isDraft = report?.status === "draft";
-                  return (
-                    <ReportingRecordRow
-                      key={unit.id}
-                      eyebrow={isFiled ? "Submitted" : isDraft ? "Draft" : "No submitted report"}
-                      title={unit.name}
-                      meta={isFiled && report.submitted_at
-                        ? `Submitted ${new Date(report.submitted_at).toLocaleDateString("en-GB")}`
-                        : isDraft
-                          ? "Draft exists but has not been submitted"
-                          : "No submitted report recorded"}
-                      statusLabel={isFiled ? "Filed" : isDraft ? "Started" : "Waiting"}
-                      statusTone={isFiled ? "success" : isDraft ? "warning" : "neutral"}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </ReportingSection>
+            <ReportingSection
+              eyebrow="Named unit status"
+              title="Who has filed"
+              description="Named filing status remains visible for leadership context. It is not a ranking of units or people."
+            >
+              {units.length === 0 ? (
+                <ReportingEmpty
+                  title="No active units are visible"
+                  description="Unit reporting status will appear when active organisation units are available."
+                />
+              ) : (
+                <div className="ev2rep-list">
+                  {units.map((unit) => {
+                    const report = reports.find((row) => row.unit_id === unit.id);
+                    const isFiled = report && report.status !== "draft";
+                    const isDraft = report?.status === "draft";
+                    return (
+                      <ReportingRecordRow
+                        key={unit.id}
+                        eyebrow={isFiled ? "Submitted" : isDraft ? "Draft" : "No submitted report"}
+                        title={unit.name}
+                        meta={isFiled && report.submitted_at
+                          ? `Submitted ${new Date(report.submitted_at).toLocaleDateString("en-GB")}`
+                          : isDraft
+                            ? "Draft exists but has not been submitted"
+                            : "No submitted report recorded"}
+                        statusLabel={isFiled ? "Filed" : isDraft ? "Started" : "Waiting"}
+                        statusTone={isFiled ? "success" : isDraft ? "warning" : "neutral"}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </ReportingSection>
+          </div>
 
           <ReportingFootnote>
             Executive Reports is read-only. Filing coverage describes reporting status only; CEAC OS does not infer unit performance, staff performance, achievement, score or ranking from it.

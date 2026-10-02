@@ -685,3 +685,64 @@ button.ev2cal-event:hover {
     width: 100%;
   }
 }
+
+
+/* VF3D provisional — Manager Calendar hierarchy.
+   Calendar and selected-date agenda are primary; Google linking is supporting context. */
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-google {
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: var(--ev2-space-3);
+}
+
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-link-row {
+  justify-content: flex-start;
+}
+
+.ev2cal-manager-page .ev2cal-side-stack .ev2cal-external-link {
+  flex: 1 1 9rem;
+}
+
+@media (max-width: 599px) {
+  .ev2cal-manager-page .ev2cal-side-stack .ev2cal-google {
+    padding: var(--ev2-space-3);
+  }
+}
+
+
+/* VF6C — Cross-role Calendar / schedule / meetings closure.
+   Presentation only: Staff personal schedule, Manager unit calendar and
+   Administration 14/30/90-day organisation timeline retain their accepted semantics. */
+.ev2cal-role-page {
+  align-content: start;
+}
+
+.ev2cal-agenda,
+.ev2cal-timeline-list {
+  border-radius: var(--ev2-radius-sm);
+  box-shadow: none;
+}
+
+.ev2cal-admin-page {
+  width: min(100%, 82rem);
+}
+
+.ev2cal-admin-page > .ev2c-state,
+.ev2cal-admin-page > .empty-state,
+.ev2cal-admin-page > .spin {
+  align-self: start;
+}
+
+@media (min-width: 1040px) {
+  .ev2cal-admin-page .ev2cal-admin-range {
+    padding-bottom: var(--ev2-space-2);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2cal-agenda,
+  .ev2cal-timeline-list {
+    border-radius: var(--ev2-radius-control);
+  }
+}

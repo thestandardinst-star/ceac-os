@@ -107,6 +107,7 @@ export default function ManagerFinance({me,openProject}){
   <div className="ev2fin-actions"><Button icon="create" onClick={()=>{setSheet("request");setError(null);setNotice(null);}}>Request funds</Button><Button variant="secondary" icon="finance" onClick={()=>{setSheet("expense");setError(null);setNotice(null);}}>Record expense</Button></div>
   {error&&<ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
   {notice&&<ProductNotice tone="success" title="Finance request updated">{notice}</ProductNotice>}
+  <div className="manager-finance-positions">
   <FinanceSection eyebrow="Actual records" title="Unit operating position" description="Confirmed incoming transfers, recorded spend and approved commitments for your unit, kept separate by currency.">
   <div className="manager-finance-position-grid">
     {operating.length===0&&<EmptyState compact title="No operating money recorded">Confirmed incoming transfers, spending and approved commitments will build this view automatically.</EmptyState>}
@@ -139,6 +140,7 @@ export default function ManagerFinance({me,openProject}){
   </div>
   {positions.some(row=>!budgetCurrencies.has(row.currency))&&<p className="ev2fin-note">A currency can have recorded spend or an approved request without a recorded budget. Missing budget is not treated as zero.</p>}
   </FinanceSection>
+  </div>
   {financeHandler&&<div className="ev2fin-authority"><FinanceRequestQueue me={me} authority="finance" canFulfil title="Requests needing Finance" /></div>}
   {drill&&<div className="ev2fin-drill">
    <div className="sec"><span>{drill.title}</span></div>

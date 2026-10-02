@@ -120,7 +120,7 @@ test("Staff and Manager complete the real work loop, including return and approv
     await expect(page.getByRole("button", { name: "End work" })).toBeVisible();
 
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     await expect(page.getByText("Why this matters")).toBeVisible();
     await expect(page.getByText("What finished looks like")).toBeVisible();
     await page.getByRole("button", { name: new RegExp(step) }).click();
@@ -156,7 +156,7 @@ test("Staff and Manager complete the real work loop, including return and approv
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     await expect(page.getByText("Sent back by your manager")).toBeVisible();
     await expect(page.getByText("Please correct the acceptance item.")).toBeVisible();
     await page.screenshot({ path: "test-artifacts/redesign-r7-stage10a3-returned-work.png", fullPage: true });
@@ -172,7 +172,7 @@ test("Staff and Manager complete the real work loop, including return and approv
       await dialog.getByRole("button", { name: "Start work", exact: true }).click();
       await expect(page.getByRole("button", { name: "End work" })).toBeVisible();
       await go(page, "Work");
-      await page.getByText(title, { exact: true }).click();
+      await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
       await page.getByRole("button", { name: new RegExp(step) }).click();
     }
 
@@ -227,7 +227,7 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
     await expect(page.getByRole("button", { name: "Start work", exact: true })).toBeVisible();
 
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     const waitingAction = page.getByRole("button", { name: "I am waiting on someone" });
     await expect(waitingAction).toBeEnabled();
     await waitingAction.click();
@@ -256,7 +256,7 @@ test("A blocker can be raised, acknowledged by the manager, and resolved", async
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     await expect(page.getByText(/Waiting on Test Unit A/)).toHaveCount(0);
     await page.getByRole("button", { name: "← Back" }).click();
     await go(page, "Home");
@@ -276,7 +276,7 @@ test("Nested Work navigation survives refresh and browser Back", async ({ browse
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test");
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     await expect(page).toHaveURL(/(?:\?|&)item=/);
     await expect(page.getByText(title, { exact: true }).first()).toBeVisible();
 
@@ -1029,7 +1029,7 @@ test("Experience Stage 7 keeps work capture simple, staff-owned and manager-conf
   {
     const { context, page } = await openAs(browser, "staff@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Work");
-    await page.getByText(title, { exact: true }).click();
+    await page.locator(".ev2w-row").filter({ hasText: title }).first().click();
     await page.getByLabel("Add my step").fill("Staff-owned breakdown step");
     await page.getByRole("button", { name: "Add step", exact: true }).click();
     await expect(page.getByRole("button", { name: /Staff-owned breakdown step/ })).toBeVisible();

@@ -10,6 +10,7 @@ async function signIn(browser, email, viewport) {
   await page.getByPlaceholder("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".app-content .body").first()).toBeVisible({ timeout: 15000 });
   return { context, page };
 }
 
@@ -35,7 +36,7 @@ for (const width of [1024, 1180, 1366]) {
     await expect(page.locator(".manager-app .managerv2-decisions")).toBeVisible();
 
     const geometry = await page.evaluate(() => {
-      const body = document.querySelector(".manager-app .app-content > .body");
+      const body = document.querySelector(".manager-app .app-content .body");
       const overview = document.querySelector(".manager-app .managerv2");
       const command = document.querySelector(".manager-app .managerv2-command-grid");
       const decisions = document.querySelector(".manager-app .managerv2-decisions");
@@ -74,7 +75,7 @@ test("Administration Learning remains centred and readable on a laptop", async (
   await expect(page.getByRole("heading", { name: "Learning", exact: true })).toBeVisible({ timeout: 15000 });
 
   const geometry = await page.evaluate(() => {
-    const body = document.querySelector(".office-app .app-content > .body");
+    const body = document.querySelector(".office-app .app-content .body");
     const heading = document.querySelector(".office-app .h1");
     return {
       bodyWidth: body?.getBoundingClientRect().width || 0,
@@ -92,7 +93,7 @@ test("Administration Learning remains centred and readable on a laptop", async (
 
 test("Wide desktop content still respects the 1280px reading measure", async ({ browser }) => {
   const { context, page } = await signIn(browser, "manager@ceac.local.test", { width: 1600, height: 900 });
-  const width = await page.locator(".manager-app .app-content > .body").evaluate((el) => el.getBoundingClientRect().width);
+  const width = await page.locator(".manager-app .app-content .body").evaluate((el) => el.getBoundingClientRect().width);
   expect(width).toBeLessThanOrEqual(1281);
   await expectNoPageOverflow(page);
   await context.close();

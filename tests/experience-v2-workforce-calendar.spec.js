@@ -200,3 +200,60 @@ for (const viewport of calendarViewports) {
     await admin.context.close();
   });
 }
+
+
+test("VF6C cross-role Calendar surfaces stay top-anchored and context-led", async ({ browser }) => {
+  const css = readFileSync("src/experience-v2/calendar/calendar.css", "utf8");
+  expect(css).toContain("/* VF6C — Cross-role Calendar / schedule / meetings closure.");
+  expect(css).not.toContain("!important");
+
+  const roles = [
+    { key: "staff", email: "staff@ceac.local.test", app: ".staff-app", route: "/?tab=staff-calendar", root: ".ev2cal-staff-page" },
+    { key: "manager", email: "manager@ceac.local.test", app: ".manager-app", route: "/?tab=calendar", root: ".ev2cal-manager-page" },
+    { key: "admin", email: "admin@ceac.local.test", app: ".office-app", route: "/?tab=admin-calendar", root: ".ev2cal-admin-page" },
+  ];
+
+  for (const viewport of [
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "laptop-1366", width: 1366, height: 768 },
+  ]) {
+    for (const role of roles) {
+      const { context, page } = await openAs(
+        browser,
+        role.email,
+        role.app,
+        role.route,
+        { width: viewport.width, height: viewport.height },
+      );
+
+      const root = page.locator(role.root);
+      await expect(root).toBeVisible({ timeout: 15000 });
+
+      const layout = await root.evaluate((node) => ({
+        alignContent: getComputedStyle(node).alignContent,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      }));
+      expect(layout.alignContent).toBe("start");
+      expect(layout.overflow).toBeLessThanOrEqual(1);
+
+      if (role.key === "staff" || role.key === "manager") {
+        const agenda = root.locator(".ev2cal-agenda").first();
+        await expect(agenda).toBeVisible({ timeout: 15000 });
+        expect(await agenda.evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
+      } else {
+        await expect(root.getByRole("tab", { name: "Next 30 days", exact: true })).toBeVisible();
+        const range = root.locator(".ev2cal-admin-range");
+        await expect(range).toBeVisible();
+        if (viewport.width >= 1040) {
+          expect(await range.evaluate((node) => getComputedStyle(node).borderBottomStyle)).toBe("solid");
+        }
+      }
+
+      await page.screenshot({
+        path: `test-artifacts/vf6c-${role.key}-calendar-${viewport.name}.png`,
+        fullPage: true,
+      });
+      await context.close();
+    }
+  }
+});

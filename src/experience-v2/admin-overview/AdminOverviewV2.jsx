@@ -174,7 +174,7 @@ export default function AdminOverviewV2({
 
       {message ? <Notice tone={/sent|saved|done/i.test(message) ? "success" : "attention"} title="Administration update">{message}</Notice> : null}
 
-      {loading ? <div className="adminv2-loading" aria-label="Loading Administration Overview">
+      {loading ? <div className="adminv2-loading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading Administration Overview">
         <Surface variant="plain" padding="standard"><Skeleton width="34%" /><Skeleton width="92%" /><Skeleton width="76%" /></Surface>
         <Surface variant="plain" padding="standard"><Skeleton width="30%" /><Skeleton width="100%" /><Skeleton width="80%" /></Surface>
         <Surface variant="plain" padding="standard"><Skeleton width="38%" /><Skeleton width="95%" /><Skeleton width="72%" /></Surface>
@@ -222,6 +222,11 @@ export default function AdminOverviewV2({
               onClick={alert.subject_type === "work_item" && alert.subject_id ? () => onOpenItem?.(alert.subject_id) : undefined}
             />)}
           </DataPanel>
+
+          <div className="adminv2-mobile-actions" aria-label="Administration shortcuts">
+            {canManagePeople ? <Button icon="people" variant="secondary" onClick={onOpenPeople}>Open People</Button> : null}
+            <Button icon="control" onClick={onOpenSettings}>Control Center</Button>
+          </div>
 
           <DataPanel
             className="adminv2-panel adminv2-setup"

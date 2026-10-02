@@ -22,6 +22,12 @@ The CEAC premium target is repository-addressable under `docs/visual-fidelity/re
 
 Continue through VF0–VF10 and their recorded substages until VF10E is accepted, unless a genuine stop condition in `docs/visual-fidelity/START_HERE.md` occurs.
 
+Vercel preview control for VF:
+- `main` always deploys;
+- routine non-main VF commits are intentionally ignored by Vercel via `scripts/vercel/ignore-build.mjs`;
+- use `[vercel]` only for deliberate acceptance/deployed-product checkpoints after the application SHA is technically green;
+- an ignored build is not a deployment PASS and does not waive Level B/Level C deployment evidence where required.
+
 ---
 
 # EXPERIENCE V2 IS MERGED — STAGE 17 ENTERPRISE RECONCILIATION IS ACTIVE

@@ -94,3 +94,213 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF5A Executive briefing locks senior-attention-first mobile composition", async ({ browser }) => {
+  const { context, page } = await openExecutive(browser, { width: 390, height: 844 });
+
+  const attention = page.locator(".executivev2-attention");
+  const movement = page.locator(".executivev2-movement");
+  const [attentionBox, movementBox] = await Promise.all([attention.boundingBox(), movement.boundingBox()]);
+  expect(attentionBox?.y || 0).toBeLessThan(movementBox?.y || Number.POSITIVE_INFINITY);
+
+  const movementMetrics = await page.locator(".executivev2-movement .executivev2-stat-grid").evaluate((node) => ({
+    scroll: node.scrollWidth,
+    client: node.clientWidth,
+    height: node.getBoundingClientRect().height,
+  }));
+  expect(movementMetrics.height).toBeLessThanOrEqual(120);
+
+  for (const selector of [".executivev2-context-grid", ".executivev2-support-grid"]) {
+    const rail = await page.locator(selector).evaluate((node) => ({
+      scroll: node.scrollWidth,
+      client: node.clientWidth,
+    }));
+    expect(rail.scroll).toBeGreaterThan(rail.client);
+  }
+
+  const delivery = await page.locator(".executivev2-delivery-grid").evaluate((node) => ({
+    scroll: node.scrollWidth,
+    client: node.clientWidth,
+  }));
+  expect(delivery.scroll).toBeGreaterThan(delivery.client);
+
+  await context.close();
+});
+
+test("VF5B Executive Work and Ministry keep leadership records factual and role-specific", async () => {
+  const work = fs.readFileSync("src/screens/ExecutiveWork.jsx", "utf8");
+  const strategy = fs.readFileSync("src/screens/Strategy.jsx", "utf8");
+  const css = fs.readFileSync("src/experience-v2/executive-overview/executive-surfaces.css", "utf8");
+  const main = fs.readFileSync("src/main.jsx", "utf8");
+
+  expect(work).toContain('eq("assigned_by", me.id)');
+  expect(work).toContain('eq("work_items.status", "in_review")');
+  expect(work).toContain('className="body executive-work premium-exec-page ev2-work-page ev2-work-executive"');
+  expect(strategy).toContain('supabase.from("strategy_nodes")');
+  expect(strategy).toContain('supabase.from("strategy_delivery_links")');
+  expect(strategy).toContain("Descriptive objective — no percentage is generated.");
+  expect(strategy).toContain("ev2-executive-ministry");
+  expect(strategy).toContain("ev2ex-ministry-direction");
+  expect(strategy).toContain("ev2ex-unit-objective");
+  expect(css).toContain("/* VF5B — Executive Work / Ministry */");
+  expect((css.match(/!important\\b/g) || []).length).toBe(0);
+
+  const workCss = main.indexOf('import "./experience-v2/work-family/work-family.css";');
+  const executiveSurfaceCss = main.indexOf('import "./experience-v2/executive-overview/executive-surfaces.css";');
+  expect(workCss).toBeGreaterThan(-1);
+  expect(executiveSurfaceCss).toBeGreaterThan(workCss);
+});
+
+for (const viewport of [
+  { width: 390, height: 844, name: "phone-390" },
+  { width: 1366, height: 768, name: "laptop-1366" },
+]) {
+  test(`VF5B Executive Work and Ministry compose as leadership surfaces at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openExecutive(browser, { width: viewport.width, height: viewport.height });
+
+    await page.goto("/?tab=work");
+    await expect(page.locator(".ev2-work-executive")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
+    const executiveTabs = page.getByRole("tablist", { name: "Executive work views" });
+    await expect(executiveTabs).toBeVisible();
+    await expect(executiveTabs.getByRole("tab", { name: /Given out/ })).toBeVisible();
+    await expect(executiveTabs.getByRole("tab", { name: /Needs review/ })).toBeVisible();
+    await expect(executiveTabs.getByRole("tab", { name: /Mine/ })).toBeVisible();
+    let overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `test-artifacts/vf5b-executive-work-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    const ids = {
+      direction: "00000000-0000-4000-8000-000000000501",
+      ministry: "00000000-0000-4000-8000-000000000502",
+      unitObjective: "00000000-0000-4000-8000-000000000503",
+      unit: "00000000-0000-4000-8000-000000000504",
+      project: "00000000-0000-4000-8000-000000000505",
+      link: "00000000-0000-4000-8000-000000000506",
+    };
+    await page.route("**/rest/v1/strategy_nodes*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id: ids.direction,
+            node_type: "ministry_direction",
+            parent_id: null,
+            unit_id: null,
+            name: "Deepen ministry care and follow-up",
+            statement: "Strengthen the ministry's follow-up discipline while keeping outcomes attributable to recorded work.",
+            measurement_kind: "descriptive",
+            measure_label: null,
+            target_value: null,
+            target_unit: null,
+            current_value: null,
+            starts_on: "2026-01-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+          {
+            id: ids.ministry,
+            node_type: "ministry_objective",
+            parent_id: ids.direction,
+            unit_id: null,
+            name: "Improve first-timer follow-up coverage",
+            statement: "Create a consistent recorded follow-up path across ministry units.",
+            measurement_kind: "descriptive",
+            measure_label: null,
+            target_value: null,
+            target_unit: null,
+            current_value: null,
+            starts_on: "2026-07-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+          {
+            id: ids.unitObjective,
+            node_type: "unit_objective",
+            parent_id: ids.ministry,
+            unit_id: ids.unit,
+            name: "Complete recorded visitor follow-ups",
+            statement: "Record completed first-timer follow-ups handled by the unit.",
+            measurement_kind: "numeric",
+            measure_label: "Recorded follow-ups",
+            target_value: 600,
+            target_unit: "people",
+            current_value: 420,
+            starts_on: "2026-07-01",
+            target_on: "2026-12-31",
+            status: "active",
+          },
+        ]),
+      });
+    });
+    await page.route("**/rest/v1/strategy_delivery_links*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.link,
+          org_id: "00000000-0000-4000-8000-000000000500",
+          strategy_node_id: ids.unitObjective,
+          project_id: ids.project,
+          status: "active",
+          change_reason: "Links the current follow-up delivery project.",
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/projects*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.project,
+          name: "First Timers follow-up system",
+          lead_unit_id: ids.unit,
+          status: "active",
+        }]),
+      });
+    });
+    await page.route("**/rest/v1/units*", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([{
+          id: ids.unit,
+          name: "First Timers",
+          code: "FT",
+          active: true,
+        }]),
+      });
+    });
+
+    await page.goto("/?tab=strategy");
+    await expect(page.locator(".ev2-executive-ministry")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Ministry", exact: true })).toBeVisible();
+    await expect(page.getByText("Strategic hierarchy", { exact: true })).toBeVisible();
+    await expect(page.getByText("Ministry Direction · active", { exact: true })).toBeVisible();
+    await expect(page.getByText("Ministry Objective · active", { exact: true })).toBeVisible();
+    await expect(page.getByText("First Timers · Complete recorded visitor follow-ups", { exact: true })).toBeVisible();
+    await expect(page.getByText(/current 420 people · target 600 people/i)).toBeVisible();
+    await expect(page.getByText("First Timers follow-up system", { exact: true })).toBeVisible();
+    overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    if (viewport.width <= 599) {
+      const actionHeights = await page.locator(".ev2-executive-ministry .btn:visible").evaluateAll((buttons) =>
+        buttons.map((button) => button.getBoundingClientRect().height)
+      );
+      for (const height of actionHeights) expect(height).toBeGreaterThanOrEqual(44);
+    }
+
+    await page.screenshot({
+      path: `test-artifacts/vf5b-executive-ministry-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    await context.close();
+  });
+}

@@ -241,6 +241,8 @@ export default function People({ me, openItem }) {
     return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
       <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" ariaLabel="← All people" />
 
+      <div className="ev2p-admin-person-layout">
+        <aside className="ev2p-admin-person-rail" aria-label="Employee context">
       <PeoplePersonHeader
         name={person.full_name}
         eyebrow={`${employmentCurrent?.unit_name || person.unit_name || "No unit"} · ${positionLabel}`}
@@ -255,6 +257,7 @@ export default function People({ me, openItem }) {
       <PeopleWorkspaceSection
         title="Identity & employment state"
         description="Authorised identity context for this employee record."
+        className="ev2p-admin-identity-section"
       >
         <div className="ev2p-admin-record-grid">
           <PeopleFactRow icon="people" title="Email" subtitle={person.email || "Not recorded"} />
@@ -264,7 +267,9 @@ export default function People({ me, openItem }) {
           {person.birthday && <PeopleFactRow icon="calendar" title="Birthday" subtitle={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
         </div>
       </PeopleWorkspaceSection>
+        </aside>
 
+        <div className="ev2p-admin-person-detail">
       <PeopleWorkspaceSection
         title="Employment record"
         description="The current authorised employment record. Recording a change creates a new historical snapshot rather than overwriting the past."
@@ -379,6 +384,8 @@ export default function People({ me, openItem }) {
         </div>
         <p className="ev2p-admin-protected-note">No salary, bank, identifier, contract or payslip value is inferred from role, attendance or work records. Stage 13 Payroll remains blocked.</p>
       </PeopleWorkspaceSection>
+        </div>
+      </div>
 
       {employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
         <div className="eyebrow">People & employment</div>
@@ -502,6 +509,7 @@ export default function People({ me, openItem }) {
     {detailLoading && <LoadingState label="Opening employee record…" />}
     {!leavePolicy && <ProductNotice tone="attention" title="Leave policy not configured">People records show leave actually taken, but CEAC OS will not calculate entitlement or remaining leave until Administration confirms the policy.</ProductNotice>}
 
+    <div className="ev2p-admin-control-band">
     <div className="ev2p-admin-toolbar">
       <FieldGroup label="Find a person">
         <input
@@ -527,6 +535,7 @@ export default function People({ me, openItem }) {
     <p className="ev2p-admin-directory-note">
       Work and submission counts are factual operating context only. They are not a performance score, ranking or disciplinary conclusion.
     </p>
+    </div>
 
     {groups.map((group) => <PeopleSection
       key={group.name}

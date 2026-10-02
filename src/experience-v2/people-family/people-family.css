@@ -629,19 +629,34 @@
   }
 
   .ev2p-evidence-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .ev2p-evidence-strip::-webkit-scrollbar {
+    display: none;
   }
 
   .ev2p-evidence-strip button {
-    border-bottom: 1px solid var(--ev2-line);
-  }
-
-  .ev2p-evidence-strip button:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    flex: 0 0 7.25rem;
+    min-height: 3.25rem;
+    padding-block: var(--ev2-space-1);
+    border-right: 1px solid var(--ev2-line);
     border-bottom: 0;
+    scroll-snap-align: start;
+  }
+
+  .ev2p-evidence-strip button:nth-child(2n),
+  .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 0;
+  }
+
+  .ev2p-evidence-strip button:last-child {
+    border-right: 0;
   }
 
   .ev2p-manager-lane-head,
@@ -664,19 +679,16 @@
     display: none;
   }
 
-  .ev2p-evidence-strip {
-    grid-template-columns: 1fr;
-  }
-
   .ev2p-evidence-strip button,
   .ev2p-evidence-strip button:nth-child(2n),
   .ev2p-evidence-strip button:nth-last-child(-n + 2) {
-    border-right: 0;
-    border-bottom: 1px solid var(--ev2-line);
+    flex-basis: 6.75rem;
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 0;
   }
 
   .ev2p-evidence-strip button:last-child {
-    border-bottom: 0;
+    border-right: 0;
   }
 }
 
@@ -1614,5 +1626,380 @@
   .ev2p-admin-protected-grid > div,
   .ev2p-admin-leave-card {
     padding-inline: var(--ev2-space-3);
+  }
+}
+
+
+/* VF2C — Staff Team fidelity
+   Staff Team is context and directory, not a management dashboard. */
+.ev2-people-staff {
+  width: min(100%, 68rem);
+}
+
+.ev2-people-staff .ev2p-header {
+  padding-bottom: var(--ev2-space-4);
+}
+
+.ev2-people-staff .ev2p-count {
+  min-width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: right;
+}
+
+.ev2-people-staff .ev2p-count strong {
+  font-size: var(--ev2-type-card-mobile);
+}
+
+.ev2-people-staff .ev2p-room {
+  min-height: 4rem;
+  border-radius: var(--ev2-radius-control);
+  box-shadow: none;
+}
+
+.ev2-people-staff .ev2p-stack {
+  gap: 0;
+  margin-top: var(--ev2-space-5);
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section {
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-head {
+  min-height: 3.75rem;
+  padding-inline: var(--ev2-space-1);
+}
+
+.ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-body {
+  border-top: 1px solid var(--ev2-line);
+}
+
+.ev2-people-staff .ev2p-stack .ev2p-person-row,
+.ev2-people-staff .ev2p-stack .ev2p-fact-row,
+.ev2-people-staff .ev2p-stack .ev2p-resource-row {
+  padding-inline: var(--ev2-space-1);
+}
+
+.ev2-people-staff .ev2p-attention-grid .ev2p-section {
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .ev2-people-staff {
+    padding-top: var(--ev2-space-2);
+  }
+
+  .ev2-people-staff .ev2p-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--ev2-space-3);
+    padding-top: var(--ev2-space-2);
+  }
+
+  .ev2-people-staff .ev2p-header-copy {
+    grid-column: 1 / -1;
+  }
+
+  .ev2-people-staff .ev2p-header-side {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .ev2-people-staff .ev2p-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ev2-space-1);
+  }
+
+  .ev2-people-staff .ev2p-stack > .ev2p-section .ev2p-section-head,
+  .ev2-people-staff .ev2p-stack .ev2p-person-row,
+  .ev2-people-staff .ev2p-stack .ev2p-fact-row,
+  .ev2-people-staff .ev2p-stack .ev2p-resource-row {
+    padding-inline: 0;
+  }
+}
+
+
+/* VF3C — Manager Team and Person workspace
+   Manager People surfaces use flatter operating composition and keep the
+   selected person's factual context persistent on larger workspaces. */
+.ev2-people-manager .ev2p-section {
+  box-shadow: none;
+}
+
+.ev2-people-manager .ev2p-room {
+  box-shadow: none;
+}
+
+.ev2-person-workspace .ev2p-evidence-summary-grid,
+.ev2-person-workspace .ev2p-link-list,
+.ev2-person-workspace .ev2p-outcome-grid {
+  box-shadow: none;
+}
+
+.ev2p-person-layout,
+.ev2p-person-detail-stack {
+  min-width: 0;
+}
+
+.ev2p-person-detail-stack > .ev2p-workspace-section:first-child {
+  margin-top: 0;
+}
+
+.ev2-person-workspace .ev2p-workspace-section {
+  scroll-margin-top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+}
+
+@media (min-width: 1000px) {
+  .ev2-people-manager .ev2p-stack {
+    grid-template-columns: minmax(0, 1.55fr) minmax(18rem, .45fr);
+    align-items: start;
+    gap: var(--ev2-space-5);
+  }
+
+  .ev2-people-manager .ev2p-stack .ev2p-section {
+    align-self: start;
+  }
+
+  .ev2p-person-layout {
+    display: grid;
+    grid-template-columns: minmax(15.5rem, 17.5rem) minmax(0, 1fr);
+    gap: var(--ev2-space-7);
+    align-items: start;
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2p-person-context-rail {
+    position: sticky;
+    top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+    align-self: start;
+    min-width: 0;
+  }
+
+  .ev2-person-workspace .ev2p-person-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 0 0 var(--ev2-space-4);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary {
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-item {
+    border-right: 0;
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-person-workspace .ev2p-evidence-summary-item:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 760px) {
+  .ev2-people-manager .ev2p-evidence-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button,
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(2n),
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(3n),
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-right: 0;
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 359px) {
+  .ev2-people-manager .ev2p-evidence-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button,
+  .ev2-people-manager .ev2p-evidence-strip button:nth-last-child(-n + 2) {
+    border-right: 1px solid var(--ev2-line);
+    border-bottom: 1px solid var(--ev2-line);
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:nth-child(2n),
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-right: 0;
+  }
+
+  .ev2-people-manager .ev2p-evidence-strip button:last-child {
+    border-bottom: 0;
+  }
+}
+
+
+/* VF4B — Administration People / Employee workspace fidelity.
+   Presentation only: preserves admin_people_summary, admin_person_detail,
+   audited employment RPCs and protected-HR authority. */
+.ev2-people-admin .ev2p-admin-control-band {
+  margin-top: var(--ev2-space-4);
+}
+
+.ev2-people-admin .ev2p-admin-control-band .ev2p-admin-toolbar,
+.ev2-people-admin .ev2p-admin-control-band .ev2p-admin-filters {
+  margin-top: 0;
+}
+
+.ev2-people-admin > .ev2p-section {
+  margin-top: var(--ev2-space-4);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ev2-people-admin > .ev2p-section .ev2p-section-head {
+  min-height: 3.25rem;
+  padding: var(--ev2-space-2) var(--ev2-space-1);
+}
+
+.ev2-people-admin > .ev2p-section .ev2p-section-body {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface);
+}
+
+.ev2-admin-person-workspace {
+  width: min(100%, 80rem);
+}
+
+.ev2p-admin-person-layout,
+.ev2p-admin-person-rail,
+.ev2p-admin-person-detail {
+  min-width: 0;
+}
+
+.ev2-admin-person-workspace .ev2p-admin-record-grid {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-line);
+}
+
+.ev2-admin-person-workspace .ev2p-admin-record-grid .ev2p-fact-row {
+  min-height: 4rem;
+  border: 0;
+  border-radius: 0;
+  background: var(--ev2-surface);
+  box-shadow: none;
+}
+
+.ev2-admin-person-workspace .ev2p-admin-history-list,
+.ev2-admin-person-workspace .ev2p-evidence-summary-grid,
+.ev2-admin-person-workspace .ev2p-outcome-grid,
+.ev2-admin-person-workspace .ev2p-admin-leave-card {
+  box-shadow: none;
+}
+
+.ev2-admin-person-workspace .ev2p-admin-leave-card {
+  border-radius: var(--ev2-radius-control);
+}
+
+.ev2-admin-person-workspace .ev2p-admin-protected-grid {
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ev2-warning) 24%, var(--ev2-line));
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-line);
+}
+
+.ev2-admin-person-workspace .ev2p-admin-protected-grid > div {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 1000px) {
+  .ev2-people-admin .ev2p-admin-control-band {
+    display: grid;
+    grid-template-columns: minmax(18rem, .8fr) minmax(0, 1.2fr);
+    gap: var(--ev2-space-3) var(--ev2-space-5);
+    align-items: end;
+  }
+
+  .ev2-people-admin .ev2p-admin-filters {
+    justify-content: flex-end;
+  }
+
+  .ev2-people-admin .ev2p-admin-directory-note {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .ev2p-admin-person-layout {
+    display: grid;
+    grid-template-columns: minmax(15.5rem, 18rem) minmax(0, 1fr);
+    gap: var(--ev2-space-7);
+    align-items: start;
+    margin-top: var(--ev2-space-3);
+  }
+
+  .ev2p-admin-person-rail {
+    position: sticky;
+    top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+    align-self: start;
+  }
+
+  .ev2-admin-person-workspace .ev2p-admin-person-rail .ev2p-person-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding-top: 0;
+    padding-bottom: var(--ev2-space-4);
+  }
+
+  .ev2-admin-person-workspace .ev2p-admin-person-rail .ev2p-admin-identity-section {
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-admin-person-workspace .ev2p-admin-person-rail .ev2p-admin-record-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ev2p-admin-person-detail > .ev2p-workspace-section:first-child {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-people-admin > .ev2p-section {
+    margin-top: var(--ev2-space-3);
+  }
+
+  .ev2-people-admin > .ev2p-section .ev2p-section-head {
+    padding-inline: 0;
+  }
+
+  .ev2-admin-person-workspace .ev2p-admin-record-grid,
+  .ev2-admin-person-workspace .ev2p-admin-protected-grid {
+    grid-template-columns: 1fr;
   }
 }
