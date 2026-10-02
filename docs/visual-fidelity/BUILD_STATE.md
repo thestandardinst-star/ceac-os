@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF8 — Whole-system responsive closure
-Current substage: VF8B — 768–1024 tablet / small-laptop matrix (ACTIVE)
+Current substage: VF8C — 1366×768 laptop matrix (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -592,22 +592,41 @@ Acceptance evidence:
 
 VF8A closes the 320–430 phone matrix across Staff, Manager, Administration and Executive. Administration supporting panels now stack on narrow phones instead of reserving off-screen sibling height; all four role shells remain within the viewport with reachable five-action mobile navigation and no material phone-composition drift.
 
-## Active: VF8B — 768–1024 tablet / small-laptop matrix
+### VF8B — 768–1024 tablet / small-laptop matrix: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`31049b36c432f585de3f624b44168c1c0678e5fe`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF8B_ACCEPTANCE.md`
+- CI `37018455085`: PASS
+- Migration Replay `37018456478`: PASS
+- Account Security `37018455503`: PASS
+- Quality Gate `37018454891`: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- 768/1024 four-role evidence: shard artifact `11232661835`
+
+VF8B closes the intermediate-width shell transition: 768/820 retain the tablet/mobile shell, while 900/980/1024 use compact desktop chrome without overflow or role-character collapse.
+
+## Active: VF8C — 1366×768 laptop matrix
 
 Purpose:
-Close intermediate-width recomposition across all four roles before the canonical 1366×768 laptop pass.
+Close the canonical laptop viewport across all four role families.
 
 Required outcomes:
-1. verify 768, 820, 900, 980 and 1024px widths across Staff, Manager, Administration and Executive;
-2. shell breakpoint transitions must be deliberate: mobile/tablet chrome below the desktop-shell threshold and stable desktop chrome once that threshold is crossed;
-3. no document/body/sidebar horizontal overflow, clipped identity, or page geometry wider than the viewport;
-4. command surfaces must use available width without stretching mobile stacks into sparse full-width columns or prematurely forcing desktop multi-column density;
-5. primary controls, segmented controls and data rails remain reachable without hidden clipping;
-6. preserve role hierarchy, factual/no-inference semantics and all authority/security contracts;
-7. representative intermediate evidence must cover all four role families and any corrected route;
-8. pass affected Level A, exact-head Level B and Level C before VF8C.
+1. verify Staff, Manager, Administration and Executive at exactly 1366×768;
+2. sidebar, topbar, account chrome and destination search remain stable without horizontal overflow;
+3. page content uses the available laptop canvas deliberately, without excessive empty width or over-dense desktop assumptions;
+4. role hierarchy remains obvious within the first screenful;
+5. sticky/supporting regions do not hide primary work or create accidental scroll traps;
+6. preserve factual/no-inference, accessibility, security and authority contracts;
+7. persist four-role 1366×768 evidence;
+8. pass Level A, exact-head Level B and Level C before VF8D.
 
-Do not begin VF8C canonically until VF8B is accepted.
+Do not begin VF8D canonically until VF8C is accepted.
 
 ## Protected boundaries
 
