@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF6 — Cross-role workspaces
-Current substage: VF6D — Connected Apps and other shared operational surfaces (ACTIVE)
+Current stage: VF7 — Motion and interaction closure
+Current substage: VF7A — navigation/context transitions (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -453,25 +453,19 @@ Acceptance evidence:
 
 VF6C removes sparse calendar stretching while preserving Staff personal schedule, Manager month/week + selected-date context, Administration 14/30/90-day organisation timeline, meeting authority and truthful external-calendar state. No Executive Calendar route was invented.
 
-## Active: VF6D — Connected Apps and other shared operational surfaces
+### VF6D — Connected Apps and other shared operational surfaces: COMPLETE / ACCEPTED
 
-Purpose:
-Close the remaining shared operational-surface drift, focusing on Connected Apps and Messages/communication entry surfaces without expanding provider capability, messaging scope or authority.
+Accepted application SHA:
+`2d302007e2885a3d8def9418cbde9c14e06e28d2`
 
-Required outcomes:
-1. Connected Apps uses available canvas as an operational connection record rather than a small provider card beside unused space;
-2. provider identity, connection state, connected account, capability, granted permission and health remain factual and visibly grouped;
-3. advanced diagnostics stay clearly secondary to connection management;
-4. provider secrets remain server-bound and browser-invisible; `integration.manage` authority is unchanged;
-5. Messages retains Rooms / Mentions / linked Work / Announcements scope and does not become unrestricted DM;
-6. Messages empty and list states read as a deliberate operational inbox rather than an isolated generic card;
-7. phone filter/action controls meet the CEAC touch floor and both surfaces recompose without overflow;
-8. no new integration provider, provider claim, message audience or delivery capability is invented;
-9. pass affected Level A, exact-head Level B and Level C before VF7A.
+Exact verification head:
+`40b42272a7fe7d3bf3acebd2e458b8335df57149`
 
-Current exact-head verification:
-- accepted application candidate SHA `2d302007e2885a3d8def9418cbde9c14e06e28d2`
-- exact verification head `40b42272a7fe7d3bf3acebd2e458b8335df57149` (tests only after the application candidate)
+Application-equivalent deployed checkpoint:
+`d926980774e02ef181eaee5e3a12f0ed828c51b2` — PASS
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF6D_ACCEPTANCE.md`
 - CI `36995807825`: PASS
 - Migration Replay `36995807857`: PASS
 - Account Security `36995807931`: PASS
@@ -480,12 +474,28 @@ Current exact-head verification:
 - browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- Level C Connected Apps / Messages inspection: PASS
-- Vercel exact application sequence: blocked only by external free-plan build-rate limit
+- cross-role Messages / Connected Apps phone + laptop evidence: artifact `11222186598`
+- Connected Apps inspection artifact `11221489543`
+- exact-head route matrix artifact `11222530408`
+- application-equivalent Vercel deployment: PASS
 
-A documentation-only application-equivalent deployment checkpoint is being used for Vercel verification without changing VF6D application code.
+VF6D makes Connected Apps a secure operational connection record, keeps advanced diagnostics secondary, and makes Messages a flat operational inbox across all four roles. Provider secrets remain server-bound, provider capability never broadens CEAC authority, and Rooms / mentions / linked Work / Announcements remain the communication scope; unrestricted DM was not introduced.
 
-Do not begin VF7A canonically until VF6D is accepted.
+## Active: VF7A — navigation/context transitions
+
+Purpose:
+Add restrained spatial continuity to destination and record-context changes after geometry is already stable.
+
+Required outcomes:
+1. primary destination changes should acknowledge context change without slowing routine work;
+2. work/item, person, project, Room and meeting context transitions must preserve the existing URL/back semantics;
+3. transition timing must use the accepted semantic motion tokens rather than ad-hoc durations;
+4. navigation motion must remain interruptible and must not animate unstable geometry;
+5. reduced-motion preference must retain the same state information and destination clarity;
+6. no routing, authority, data-fetch or business semantics may change;
+7. pass affected Level A, exact-head Level B and Level C before VF7B.
+
+Do not begin VF7B canonically until VF7A is accepted.
 
 ## Protected boundaries
 
