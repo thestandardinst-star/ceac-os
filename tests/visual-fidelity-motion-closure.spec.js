@@ -147,6 +147,8 @@ test("VF7C feedback primitives use live-region semantics and the shared reduced-
   expect(bits).toContain('aria-atomic="true"');
 
   expect(interactions).toContain("export function Toast");
+  expect(room).toContain("useReducedMotion");
+  expect(room).toContain('behavior: reduceMotion ? "auto" : "smooth"');
   expect(interactions).toContain("useReducedMotion");
   expect(interactions).toContain("EV2_TRANSITIONS.panel");
   expect(interactions).toContain('role={tone === "danger" ? "alert" : "status"}');
@@ -242,6 +244,7 @@ test("VF7D reduced-motion contract is explicit across the accepted interaction l
   const interactions = readFileSync("src/experience-v2/components/Interactions.jsx", "utf8");
   const foundation = readFileSync("src/experience-v2.css", "utf8");
   const premium = readFileSync("src/premium.css", "utf8");
+  const room = readFileSync("src/screens/Room.jsx", "utf8");
 
   expect(provider).toContain('reducedMotion="user"');
   for (const source of [route, calendar, disclosure, bits]) {
