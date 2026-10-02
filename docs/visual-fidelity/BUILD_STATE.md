@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF5 — Executive
-Current substage: VF5B — Delegated work / Ministry / goals (ACTIVE)
+Current substage: VF5C — Reports / financial context / calendar (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -339,22 +339,44 @@ Acceptance evidence:
 
 VF5A makes Executive Home a senior briefing room rather than a reduced Administration dashboard: recorded exceptions lead, ministry movement stays factual and explicitly non-evaluative, reporting/finance/portfolio/meetings remain concise leadership context, and phone deliberately uses compact horizontal supporting rails instead of a long serial dashboard. The first full Quality Gate attempt had one external Supabase container-start failure on browser shard 3; the unchanged exact application head was retried and the complete gate passed. Executive read authority, reporting/finance provenance, ministry-record semantics, RLS/RPC and privacy boundaries remain unchanged.
 
-## Active: VF5B — Executive Delegated work / Ministry / goals
+### VF5B — Executive Delegated work / Ministry / goals: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`29b02249fc284af77e526cc0ead2aa381f326279`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF5B_ACCEPTANCE.md`
+- CI `36985545333`: PASS
+- Migration Replay `36985545200`: PASS
+- Account Security `36985545231`: PASS
+- Quality Gate `36985545261`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Executive Work / Ministry phone + laptop evidence: shard artifact `11217522329`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11218036654`
+
+VF5B makes Executive Work leadership-first, preserves factual delegation/review semantics, and makes Ministry visibly express Ministry Direction → Ministry Objective → Unit Objective. Descriptive objectives stay descriptive; numeric objectives show recorded result beside target without generated scoring; project links remain attributable. The representative Level C fixture exposed a real 39.5px mobile action target; the product CSS was corrected to the CEAC 44px floor and the complete exact-head gate passed.
+
+## Active: VF5C — Executive Reports / financial context / calendar
 
 Purpose:
-Make the Executive primary operating surfaces read as leadership work and ministry direction rather than generic shared pages, while preserving the same authoritative Work and Strategy records.
+Complete the Executive family by making Reports and Finance read as concise leadership summaries with truthful drill-down, while keeping meeting/calendar context appropriately supporting rather than inventing a new Executive Calendar route.
 
 Required outcomes:
-1. Executive Work prioritises delegated work and leadership review before personal work;
-2. Work remains a factual delegation/review ledger with no invented delegation chain or performance inference;
-3. Ministry presents Ministry Direction → Ministry Objective → Unit Objective as a clear leadership hierarchy rather than nested generic cards;
-4. descriptive objectives remain descriptive and numeric objectives show recorded result beside target without generated progress scoring;
-5. project links, revisions and strategy change reasons remain attributable and authoritative;
-6. laptop/desktop uses deliberate leadership hierarchy while phone preserves the same priority without compressed desktop composition;
-7. preserve Work Engine, Strategy, project-link, RLS/RPC, capability, audit and privacy authority;
-8. pass affected Level A during implementation, then exact-head Level B + Level C before VF5C.
+1. Executive Finance summarises decision-relevant recorded context before ledger detail;
+2. currencies remain fully separate with no conversion or inferred balance;
+3. Executive Reports lead with filing/coverage exceptions and named factual status without turning coverage into performance scoring;
+4. sparse/empty financial and reporting states remain truthful but still read as deliberate Executive briefing surfaces;
+5. existing Executive meeting/calendar context remains supporting context through accepted surfaces; do not create a new standalone Executive Calendar route because the canonical Executive route set has seven primary routes and cross-role Calendar closure belongs to VF6C;
+6. laptop/desktop use deliberate executive hierarchy and useful density;
+7. phone recomposes intentionally with reachable controls and no serial generic-card bloat;
+8. preserve finance authority, reporting provenance, currency separation, RLS/RPC, capability, audit and privacy contracts;
+9. pass affected Level A, then exact-head Level B + Level C before VF6A.
 
-Do not begin VF5C canonically until VF5B is accepted.
+Do not begin VF6A canonically until VF5C is accepted.
 
 ## Protected boundaries
 
