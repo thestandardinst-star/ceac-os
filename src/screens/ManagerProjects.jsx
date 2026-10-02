@@ -284,7 +284,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       if (workFilter === "active") return !["completed","self_certified","cancelled"].includes(item.status);
       return true;
     });
-    return <div className="body manager-projects ev2-project-page ev2-project-workspace fpg-project-gold">
+    return <div className="manager-projects ev2-project-page ev2-project-workspace fpg-project-gold">
       <aside className="fpg-project-tree" aria-label="Projects and stages">
         <div className="fpg-project-tree-brand"><span>Projects</span><b>{projects.length}</b></div>
         <div className="fpg-project-tree-list">
