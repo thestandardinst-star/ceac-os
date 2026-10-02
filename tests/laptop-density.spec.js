@@ -10,6 +10,7 @@ async function signIn(browser, email, viewport) {
   await page.getByPlaceholder("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".app")).toBeVisible({ timeout: 15000 });
+  await expect(page.locator(".app-content > .body").first()).toBeVisible({ timeout: 15000 });
   return { context, page };
 }
 
