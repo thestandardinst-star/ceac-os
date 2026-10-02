@@ -115,14 +115,14 @@ body{color:var(--ceac-text)}
 .manager-work-tabs button.on,.admin-work-tabs button.on,.workforce-tabs button.on,.exec-tabs button.on,.status-filter button.on{
   background:#fff!important;color:#146af0!important;box-shadow:0 2px 8px rgba(43,70,104,.08)!important
 }
-.metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.control-grid,.exec-org-grid{
+.metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.exec-org-grid{
   gap:10px!important
 }
-.metric,.finance-currency-card,.finance-unit-card,.manager-finance-position-card,.exec-currency-card,.workforce-person,.control-card,.exec-org-grid article{
+.metric,.finance-currency-card,.finance-unit-card,.manager-finance-position-card,.exec-currency-card,.workforce-person,.exec-org-grid article{
   background:#fff!important;border:1px solid var(--ceac-line)!important;border-radius:11px!important;box-shadow:0 4px 12px rgba(33,61,96,.035)!important
 }
 .metric b,.finance-currency-card strong,.manager-finance-position-card strong,.exec-currency-card strong{color:#132840!important}
-.control-card{padding:13px!important;transition:.14s ease!important}.control-card:hover{transform:translateY(-1px);border-color:#cfdceb!important;box-shadow:0 8px 20px rgba(38,67,103,.07)!important}
+/* VF4D: Control Center presentation is owned by the later governance-workspace layer. */
 .control-card-icon{background:#edf5ff!important;color:#1677ff!important;border-radius:8px!important}
 .people-directory-name strong,.work-list-main strong,.manager-work-main strong,.admin-work-main strong,.inbox-copy>b{color:#172a41!important}
 .people-directory-context,.work-list-main span,.work-list-main small,.manager-work-main span,.manager-work-main small,.admin-work-main small,.inbox-context{color:#8490a0!important}
@@ -157,7 +157,7 @@ body{color:var(--ceac-text)}
   .person-identity-header,.project-detail-hero,.project-command-surface{padding:14px!important;border-radius:12px!important}
   .premium-page-head .h1,.premium-page-heading .h1,.staff-page-intro .h1,.manager-page-header .h1,.manager-page-intro .h1,
   .admin-page-header .h1,.exec-page-head .h1,.person-identity-header .h1,.project-detail-hero .h1{font-size:21px!important}
-  .metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.control-grid,.exec-org-grid{
+  .metric-grid,.finance-currency-grid,.finance-unit-grid,.manager-finance-position-grid,.exec-stat-grid,.exec-currency-grid,.workforce-grid,.exec-org-grid{
     grid-template-columns:1fr!important
   }
   .body table{display:block;overflow-x:auto;white-space:nowrap}
