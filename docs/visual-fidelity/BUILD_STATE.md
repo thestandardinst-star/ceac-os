@@ -401,6 +401,21 @@ Required outcomes:
 8. retain factual row/table equivalents for any project visualisation;
 9. pass affected Level A, exact-head Level B and Level C before VF6B.
 
+Current exact-head verification:
+- application SHA `de3733c5ca084595c5442cd3d42e9ec23c62524f`
+- CI `36989060407`: PASS
+- Migration Replay `36989060455`: PASS
+- Account Security `36989060489`: PASS
+- Quality Gate `36989060505`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Level C Project workspace inspection: PASS
+- Vercel exact application SHA: blocked only by external free-plan build-rate limit
+
+A documentation-only application-equivalent deployment checkpoint is being used for the Vercel verification without changing VF6A application code.
+
 Do not begin VF6B canonically until VF6A is accepted.
 
 ## Protected boundaries
