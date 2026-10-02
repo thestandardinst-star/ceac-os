@@ -27,7 +27,7 @@ jobs:
           VERIFICATION_EVENT_NAME: ${{ github.event_name }}
         run: node scripts/ci/classify-verification.mjs
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.classify.outputs.run_account_security == 'true'
         with:
           node-version: 22

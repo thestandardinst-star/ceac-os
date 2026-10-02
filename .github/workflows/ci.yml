@@ -35,7 +35,7 @@ jobs:
           VERIFICATION_EVENT_NAME: ${{ github.event_name }}
         run: node scripts/ci/classify-verification.mjs
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.classify.outputs.documentation_only != 'true'
         with:
           node-version: 22
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
