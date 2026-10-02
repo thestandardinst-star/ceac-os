@@ -484,3 +484,58 @@
     max-width: 6.75rem;
   }
 }
+
+
+/* VF4C — Administration Workforce decision-first console.
+   Presentation only: schedules, session evidence, leave lifecycle and
+   correction authority remain governed by the Stage 9 workforce contract. */
+.ev2-workforce-admin .ev2wf-admin-today-layout,
+.ev2-workforce-admin .ev2wf-admin-action-rail,
+.ev2-workforce-admin .ev2wf-admin-roster {
+  min-width: 0;
+}
+
+.ev2-workforce-admin .ev2wf-admin-today-layout {
+  display: grid;
+  gap: var(--ev2-space-4);
+}
+
+.ev2-workforce-admin .ev2wf-admin-today-layout .ev2wf-section {
+  margin-top: 0;
+}
+
+.ev2-workforce-admin .ev2wf-admin-today-layout .ev2wf-section-body {
+  box-shadow: none;
+  border-radius: var(--ev2-radius-control);
+}
+
+@media (min-width: 1000px) {
+  .ev2-workforce-admin {
+    width: min(100%, 82rem);
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-today-layout {
+    grid-template-columns: minmax(18rem, .62fr) minmax(0, 1.38fr);
+    align-items: start;
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-action-rail {
+    position: sticky;
+    top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-roster .ev2wf-row {
+    min-height: 4.15rem;
+    padding-block: var(--ev2-space-2);
+  }
+}
+
+@media (max-width: 999px) {
+  .ev2-workforce-admin .ev2wf-admin-action-rail {
+    order: 1;
+  }
+
+  .ev2-workforce-admin .ev2wf-admin-roster {
+    order: 2;
+  }
+}

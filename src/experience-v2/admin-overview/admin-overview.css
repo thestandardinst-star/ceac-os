@@ -527,3 +527,242 @@ button.adminv2-action-main {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* VF4D — Administration Organisation / Control Center closure.
+   Operational records become ledgers/split panes rather than repeated cards. */
+.ev2-control-center {
+  width: min(100%, 80rem);
+  margin-inline: auto;
+}
+
+.ev2-control-layout {
+  display: grid;
+  gap: var(--ev2-space-4);
+  align-items: start;
+}
+
+.ev2-control-primary {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+}
+
+.ev2-control-row {
+  width: 100%;
+  min-height: 4.75rem;
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0,1fr) auto;
+  gap: var(--ev2-space-3);
+  align-items: center;
+  padding: var(--ev2-space-3) var(--ev2-space-4);
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: var(--ev2-surface);
+  color: var(--ev2-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ev2-control-row:last-child {
+  border-bottom: 0;
+}
+
+.ev2-control-row:hover {
+  background: var(--ev2-surface-soft);
+}
+
+.ev2-control-row:focus-visible,
+.ev2-control-advanced button:focus-visible {
+  outline: 3px solid rgba(12,93,249,.20);
+  outline-offset: -3px;
+}
+
+.ev2-control-row-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-action-soft);
+  color: var(--ev2-action);
+}
+
+.ev2-control-row-copy {
+  min-width: 0;
+  display: grid;
+  gap: var(--ev2-space-1);
+}
+
+.ev2-control-row-copy strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-row-desktop);
+  line-height: 1.3;
+}
+
+.ev2-control-row-copy small,
+.ev2-control-advanced p,
+.ev2-control-advanced button small {
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.45;
+}
+
+.ev2-control-row-side {
+  display: grid;
+  justify-items: end;
+  gap: var(--ev2-space-1);
+}
+
+.ev2-control-row-side em,
+.ev2-control-advanced button b {
+  color: var(--ev2-action);
+  font-size: var(--ev2-type-supporting);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.ev2-control-advanced {
+  padding: var(--ev2-space-4);
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2-control-advanced h2 {
+  margin: var(--ev2-space-1) 0;
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-card-mobile);
+}
+
+.ev2-control-advanced p {
+  margin: 0 0 var(--ev2-space-3);
+}
+
+.ev2-control-advanced > div:last-child {
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-control);
+  background: var(--ev2-surface);
+}
+
+.ev2-control-advanced button {
+  width: 100%;
+  display: grid;
+  gap: var(--ev2-space-1);
+  padding: var(--ev2-space-3);
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: var(--ev2-surface);
+  color: var(--ev2-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ev2-control-advanced button:last-child {
+  border-bottom: 0;
+}
+
+.ev2-control-advanced button:hover {
+  background: var(--ev2-surface-soft);
+}
+
+.admin-units .admin-unit-list {
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-surface);
+}
+
+.admin-units .admin-unit-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(12rem,.68fr) minmax(0,1.32fr) minmax(10rem,.42fr);
+  gap: var(--ev2-space-3) var(--ev2-space-4);
+  align-items: center;
+  margin: 0;
+  padding: var(--ev2-space-4);
+  border: 0;
+  border-bottom: 1px solid var(--ev2-line);
+  border-radius: 0;
+  background: var(--ev2-surface);
+  box-shadow: none;
+}
+
+.admin-units .admin-unit-card:last-child {
+  border-bottom: 0;
+}
+
+.admin-units .admin-unit-card:hover {
+  background: var(--ev2-surface-soft);
+}
+
+.admin-units .admin-unit-card-head {
+  min-width: 0;
+  align-items: flex-start;
+}
+
+.admin-units .admin-unit-card-status {
+  margin: 0;
+}
+
+.admin-units .admin-unit-card .status-distribution {
+  grid-column: 2 / 4;
+  margin: 0;
+}
+
+.admin-units .admin-unit-card-foot {
+  align-self: stretch;
+  align-items: center;
+  margin: 0;
+  padding: 0 0 0 var(--ev2-space-3);
+  border-top: 0;
+  border-left: 1px solid var(--ev2-line);
+}
+
+@media (min-width: 1000px) {
+  .ev2-control-layout {
+    grid-template-columns: minmax(0,1.35fr) minmax(19rem,.65fr);
+  }
+
+  .ev2-control-advanced {
+    position: sticky;
+    top: calc(var(--ev2s-topbar-height) + var(--ev2-space-4));
+  }
+}
+
+@media (max-width: 819px) {
+  .admin-units .admin-unit-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-units .admin-unit-card .status-distribution {
+    grid-column: auto;
+  }
+
+  .admin-units .admin-unit-card-foot {
+    padding: var(--ev2-space-2) 0 0;
+    border-top: 1px solid var(--ev2-line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .ev2-control-row {
+    grid-template-columns: 2.25rem minmax(0,1fr);
+    align-items: start;
+    padding-inline: var(--ev2-space-3);
+  }
+
+  .ev2-control-row-side {
+    grid-column: 2;
+    justify-items: start;
+  }
+}

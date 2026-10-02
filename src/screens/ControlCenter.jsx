@@ -3,10 +3,10 @@ import { StatusBadge } from "../experience-v2/components";
 import { CeacIcon } from "../experience-v2/icons";
 
 function ControlCard({title,description,action,label,state="Ready",tone="",icon}){
-  return <button className={"control-card ev2-control-card "+tone} onClick={action}>
-    <span className="control-card-icon" aria-hidden="true"><CeacIcon name={icon || "control"} size="nav" decorative /></span>
-    <span className="control-card-copy"><strong>{title}</strong><small>{description}</small></span>
-    <span className="control-card-side"><StatusBadge tone="neutral" icon={false}>{state}</StatusBadge><em>{label||"Open"} →</em></span>
+  return <button className={"ev2-control-row "+tone} onClick={action}>
+    <span className="ev2-control-row-icon" aria-hidden="true"><CeacIcon name={icon || "control"} size="nav" decorative /></span>
+    <span className="ev2-control-row-copy"><strong>{title}</strong><small>{description}</small></span>
+    <span className="ev2-control-row-side"><StatusBadge tone="neutral" icon={false}>{state}</StatusBadge><em>{label||"Open"} →</em></span>
   </button>;
 }
 
@@ -29,7 +29,9 @@ export default function ControlCenter({me,go}){
       <div><span className="eyebrow">Administration</span><h1 className="h1">Control Center</h1><p className="screen-note">Configure how CEAC OS operates. Everyday employee and manager work stays outside this area.</p></div>
       <StatusBadge tone="neutral" icon={false}>Governance workspace</StatusBadge>
     </header>
-    <section className="control-grid">{cards.map(c=><ControlCard key={c.title}{...c}/>)}</section>
-    {advanced.length>0&&<section className="control-advanced"><div><span className="eyebrow">Advanced</span><h2>Technical & governance tools</h2><p>Use these only when diagnosing or governing the underlying platform.</p></div><div>{advanced.map(c=><button key={c.title} onClick={c.action}><strong>{c.title}</strong><small>{c.description}</small><b>Open →</b></button>)}</div></section>}
+    <div className="ev2-control-layout">
+      <section className="ev2-control-primary" aria-label="Administration controls">{cards.map(c=><ControlCard key={c.title}{...c}/>)}</section>
+      {advanced.length>0&&<section className="ev2-control-advanced"><div><span className="eyebrow">Advanced</span><h2>Technical & governance tools</h2><p>Use these only when diagnosing or governing the underlying platform.</p></div><div>{advanced.map(c=><button key={c.title} onClick={c.action}><strong>{c.title}</strong><small>{c.description}</small><b>Open →</b></button>)}</div></section>}
+    </div>
   </div>;
 }

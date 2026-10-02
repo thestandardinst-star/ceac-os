@@ -313,51 +313,62 @@ export default function Reports({ me }) {
 
       {msg && !sheet ? <ProductNotice tone="error" title="Reporting update">{msg}</ProductNotice> : null}
 
-      <div className="ev2rep-actions">
-        <Button onClick={() => { prefill("week"); setSheet("new"); setMsg(null); }}>Open reporting period</Button>
-      </div>
-
-      {openPeriods.length === 0 ? (
-        <div className="ev2rep-live-state">
-          <strong>No period is open</strong>
-          Managers cannot file or save a report against a missing reporting period. Open a week, month, project or year period when reporting should begin.
-        </div>
-      ) : null}
-
-      <ReportingSection
-        eyebrow="Period operations"
-        title="Reporting periods"
-        description="Open or close the periods Managers file against. Closing a period prevents further filing or changes for that period."
-        meta={String(periods.length)}
-      >
-        {periods.length === 0 ? (
-          <ReportingEmpty
-            title="No reporting periods recorded"
-            description="Open a reporting period to establish the filing window Managers will use."
-          />
-        ) : (
-          <div className="ev2rep-list">
-            {periods.map((period) => {
-              const byUnit = latestFor(period.id);
-              const filed = units.filter((unit) => byUnit[unit.id] && byUnit[unit.id].status !== "draft").length;
-              const drafting = units.filter((unit) => byUnit[unit.id] && byUnit[unit.id].status === "draft").length;
-              const missing = units.filter((unit) => !byUnit[unit.id]).length;
-              return (
-                <ReportingRecordRow
-                  key={period.id}
-                  eyebrow={(KINDS.find((row) => row[0] === period.kind) || ["",""])[1]}
-                  title={period.label}
-                  meta={`${dateOnly(period.starts_on)} — ${dateOnly(period.ends_on)} · ${filed} submitted · ${drafting} draft · ${missing} nothing yet`}
-                  statusLabel={period.status === "open" ? "Open" : "Closed"}
-                  statusTone={period.status === "open" ? "success" : "neutral"}
-                >
-                  <Button variant="secondary" size="sm" onClick={() => setOpen(period.id)}>Open report</Button>
-                </ReportingRecordRow>
-              );
-            })}
+      <div className="ev2rep-admin-landing-layout">
+        <aside className="ev2rep-admin-period-control">
+          <div className="ev2rep-actions">
+            <Button onClick={() => { prefill("week"); setSheet("new"); setMsg(null); }}>Open reporting period</Button>
           </div>
-        )}
-      </ReportingSection>
+
+          {openPeriods.length === 0 ? (
+            <div className="ev2rep-live-state">
+              <strong>No period is open</strong>
+              Managers cannot file or save a report against a missing reporting period. Open a week, month, project or year period when reporting should begin.
+            </div>
+          ) : (
+            <div className="ev2rep-live-state">
+              <strong>{openPeriods.length} open period{openPeriods.length === 1 ? "" : "s"}</strong>
+              Filing remains available only inside the recorded open periods shown in the ledger.
+            </div>
+          )}
+        </aside>
+
+        <div className="ev2rep-admin-period-ledger">
+          <ReportingSection
+            eyebrow="Period operations"
+            title="Reporting periods"
+            description="Open or close the periods Managers file against. Closing a period prevents further filing or changes for that period."
+            meta={String(periods.length)}
+          >
+            {periods.length === 0 ? (
+              <ReportingEmpty
+                title="No reporting periods recorded"
+                description="Open a reporting period to establish the filing window Managers will use."
+              />
+            ) : (
+              <div className="ev2rep-list">
+                {periods.map((period) => {
+                  const byUnit = latestFor(period.id);
+                  const filed = units.filter((unit) => byUnit[unit.id] && byUnit[unit.id].status !== "draft").length;
+                  const drafting = units.filter((unit) => byUnit[unit.id] && byUnit[unit.id].status === "draft").length;
+                  const missing = units.filter((unit) => !byUnit[unit.id]).length;
+                  return (
+                    <ReportingRecordRow
+                      key={period.id}
+                      eyebrow={(KINDS.find((row) => row[0] === period.kind) || ["",""])[1]}
+                      title={period.label}
+                      meta={`${dateOnly(period.starts_on)} — ${dateOnly(period.ends_on)} · ${filed} submitted · ${drafting} draft · ${missing} nothing yet`}
+                      statusLabel={period.status === "open" ? "Open" : "Closed"}
+                      statusTone={period.status === "open" ? "success" : "neutral"}
+                    >
+                      <Button variant="secondary" size="sm" onClick={() => setOpen(period.id)}>Open report</Button>
+                    </ReportingRecordRow>
+                  );
+                })}
+              </div>
+            )}
+          </ReportingSection>
+        </div>
+      </div>
 
       <ReportingFootnote>
         Reporting completeness is not a performance score. Submitted, draft and missing states describe filing status only, and outstanding units remain named for follow-up.
