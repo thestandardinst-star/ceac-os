@@ -8,8 +8,8 @@ Programme: Visual Fidelity & Interaction Closure
 Namespace: VF
 Status: ACTIVE
 
-Current stage: VF9 — Accessibility, performance and CSS regression closure
-Current substage: VF9D — final empty / loading / error / unconfigured state audit (ACTIVE)
+Current stage: VF10 — Product acceptance and release
+Current substage: VF10A — complete route-matrix visual audit (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -722,22 +722,45 @@ Acceptance evidence:
 
 VF9C locks measured production regression budgets without changing application code: core CSS remains 518.47 kB raw / 74.27 kB gzip, main JS 65.18 kB raw / 18.48 kB gzip, the largest route chunk is 91.59 kB, deliberate vendor splitting remains intact and the high-severity dependency audit reports zero vulnerabilities. The routine preview was intentionally skipped and is not recorded as deployment PASS; deployed-product acceptance remains mandatory at VF10D.
 
-## Active: VF9D — final empty / loading / error / unconfigured state audit
+### VF9D — final empty / loading / error / unconfigured state audit: COMPLETE / ACCEPTED
+
+Accepted application / verification SHA:
+`9d073c1da0f789654f690151b6d22a16ecadd9f9`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF9D_ACCEPTANCE.md`
+- Level A CI `37035403539`: PASS
+- Level B CI `37035858657`: PASS
+- Migration Replay `37035858653`: PASS
+- Account Security `37035858764`: PASS
+- Quality Gate `37035858726`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- VF9D state evidence: shard artifact `11240276880`
+- full route matrix: artifact `11240861271`
+- R7 product inspection: artifact `11240906264`
+
+VF9D proves that loading, error, configuration, informational and empty-history states remain truthful and visually distinct across role surfaces. Recoverable read failures do not masquerade as empty data; Connected Apps preserves secure configuration truth and attributable empty history at phone and laptop widths.
+
+VF9 family exit: ACCEPTED.
+
+## Active: VF10A — complete route-matrix visual audit
 
 Purpose:
-Close the final product-state regression surface before whole-product release acceptance.
+Audit the complete canonical role/route matrix against the repository-owned CEAC premium target before final release verification.
 
 Required outcomes:
-1. verify the shared StatePanel contract distinguishes empty, error, configuration, success and informational states;
-2. verify Staff, Manager, Administration and Executive loading states remain announced and visually intentional;
-3. verify representative role failures render explicit recoverable error states rather than fake empty data;
-4. verify a real unconfigured operational surface remains truthful and actionable;
-5. verify representative empty-history states remain distinct from errors and configuration gaps;
-6. confirm phone and laptop state composition has no overflow, hidden recovery action or generic-card regression;
-7. persist exact-head state evidence;
-8. pass Level A, exact-head Level B and Level C before VF10A.
+1. inspect every canonical Staff, Manager, Administration and Executive route in the complete route matrix;
+2. compare actual rendered evidence against the Visual Fidelity Contract and repository-owned CEAC target, not screenshots in isolation;
+3. verify role character, primary-action clarity, hierarchy, composition, density, surface discipline, typography, iconography, semantic state, truthful visualisation, responsive intent and CEAC distinctiveness;
+4. record any material route drift and correct it before acceptance rather than hiding it behind a test exception;
+5. preserve factual/no-inference, accessibility, security and authority contracts;
+6. persist the exact route-matrix audit decision and evidence;
+7. pass the required verification and Level C product review before VF10B.
 
-Do not begin VF10A canonically until VF9D is accepted.
+Do not begin VF10B canonically until VF10A is accepted.
 
 ## Protected boundaries
 
