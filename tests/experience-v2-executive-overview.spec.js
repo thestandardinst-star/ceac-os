@@ -127,3 +127,71 @@ test("VF5A Executive briefing locks senior-attention-first mobile composition", 
 
   await context.close();
 });
+
+test("VF5B Executive Work and Ministry keep leadership records factual and role-specific", async () => {
+  const work = fs.readFileSync("src/screens/ExecutiveWork.jsx", "utf8");
+  const strategy = fs.readFileSync("src/screens/Strategy.jsx", "utf8");
+  const css = fs.readFileSync("src/experience-v2/executive-overview/executive-surfaces.css", "utf8");
+  const main = fs.readFileSync("src/main.jsx", "utf8");
+
+  expect(work).toContain('eq("assigned_by", me.id)');
+  expect(work).toContain('eq("work_items.status", "in_review")');
+  expect(work).toContain('className="body executive-work premium-exec-page ev2-work-page ev2-work-executive"');
+  expect(strategy).toContain('supabase.from("strategy_nodes")');
+  expect(strategy).toContain('supabase.from("strategy_delivery_links")');
+  expect(strategy).toContain("Descriptive objective — no percentage is generated.");
+  expect(strategy).toContain("ev2-executive-ministry");
+  expect(strategy).toContain("ev2ex-ministry-direction");
+  expect(strategy).toContain("ev2ex-unit-objective");
+  expect(css).toContain("/* VF5B — Executive Work / Ministry */");
+  expect((css.match(/!important\\b/g) || []).length).toBe(0);
+
+  const workCss = main.indexOf('import "./experience-v2/work-family/work-family.css";');
+  const executiveSurfaceCss = main.indexOf('import "./experience-v2/executive-overview/executive-surfaces.css";');
+  expect(workCss).toBeGreaterThan(-1);
+  expect(executiveSurfaceCss).toBeGreaterThan(workCss);
+});
+
+for (const viewport of [
+  { width: 390, height: 844, name: "phone-390" },
+  { width: 1366, height: 768, name: "laptop-1366" },
+]) {
+  test(`VF5B Executive Work and Ministry compose as leadership surfaces at ${viewport.name}`, async ({ browser }) => {
+    const { context, page } = await openExecutive(browser, { width: viewport.width, height: viewport.height });
+
+    await page.goto("/?tab=work");
+    await expect(page.locator(".ev2-work-executive")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Given out/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Needs review/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Mine/ })).toBeVisible();
+    let overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: `test-artifacts/vf5b-executive-work-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    await page.goto("/?tab=strategy");
+    await expect(page.locator(".ev2-executive-ministry")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Ministry", exact: true })).toBeVisible();
+    await expect(page.getByText("Strategic hierarchy", { exact: true })).toBeVisible();
+    overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    if (viewport.width <= 599) {
+      const actionHeights = await page.locator(".ev2-executive-ministry .btn:visible").evaluateAll((buttons) =>
+        buttons.map((button) => button.getBoundingClientRect().height)
+      );
+      for (const height of actionHeights) expect(height).toBeGreaterThanOrEqual(44);
+    }
+
+    await page.screenshot({
+      path: `test-artifacts/vf5b-executive-ministry-${viewport.name}.png`,
+      fullPage: true,
+    });
+
+    await context.close();
+  });
+}
+
