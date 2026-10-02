@@ -1209,7 +1209,7 @@
   border-bottom:1px solid var(--fpg-line);border-radius:0;background:transparent;padding:0;gap:20px
 }
 .fpg-project-gold .ev2p-tabs button{
-  min-height:42px;padding:0 1px;border-radius:0;border-bottom:2px solid transparent;background:transparent;
+  min-height:44px;padding:0 1px;border-radius:0;border-bottom:2px solid transparent;background:transparent;
   box-shadow:none
 }
 .fpg-project-gold .ev2p-tabs button.is-selected{border-bottom-color:#15181d;color:#15181d}
