@@ -1,7 +1,7 @@
 # CEAC OS — VF10C Acceptance Record
 
-Substage: VF10C — complete Level C Product Fidelity acceptance  
-Accepted application-equivalent SHA: `e3b468d24148dfe5cc69d8d6bcda91da7b7945be`  
+Substage: VF10C — complete Level C Product Fidelity acceptance
+Accepted application-equivalent SHA: `e3b468d24148dfe5cc69d8d6bcda91da7b7945be`
 Date: 2 October 2026
 
 ## Target
@@ -41,7 +41,7 @@ Unresolved material drift: none.
 
 ## Decision
 
-TECHNICALLY ACCEPTED: YES  
+TECHNICALLY ACCEPTED: YES
 VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
 Next canonical substage: **VF10D — inspect the actual deployed product**.
