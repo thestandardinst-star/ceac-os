@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF10 — Product acceptance and release
-Current substage: VF10B — complete exact-head Level B verification (ACTIVE)
+Current substage: VF10D — actual deployed-product inspection (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -799,26 +799,24 @@ Decision:
 - TECHNICALLY ACCEPTED: YES
 - VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
-## Active: VF10D — actual deployed-product inspection (BLOCKED: Vercel access authorization)
+## Active: VF10D — actual deployed-product inspection (AUTHENTICATED ROLE INSPECTION PENDING)
 
 Purpose:
 Inspect the real deployed application-equivalent product before protected-main release.
 
-Persisted blocker record:
+Current deployed-product evidence:
 - `docs/visual-fidelity/VF10D_DEPLOYED_PRODUCT_INSPECTION.md`
-- branch preview is protected and returns `login_required`;
-- Vercel protection-bypass request returns HTTP 403 because the connected Vercel account is not authorized for the CEAC OS project/team scope;
-- this is an external access/credential blocker, not an application, security, visual or test failure;
-- VF10E merge remains prohibited until deployed inspection succeeds.
-
+- deliberate application-equivalent Vercel checkpoint `482ae8d65b65f0f0752b5683e9a041e3424eb05d`: PASS / Ready;
+- protected preview bypass: working;
+- deployed CEAC authentication shell: rendered successfully with branding, typography, assets and sign-in controls;
+- the later canonical heads through this BUILD_STATE update are documentation-only/application-equivalent;
+- the remaining gate is a genuinely authenticated deployed-role inspection; repository passwords/recovery material are intentionally absent and auth will not be weakened to manufacture a pass.
 
 Required outcomes:
-1. identify a successful Vercel deployment that is application-equivalent to the accepted VF10C state, or create one deliberate `[vercel]` checkpoint when the external rate limit permits;
-2. verify the deployed shell and representative Staff, Manager, Administration and Executive surfaces;
-3. confirm no deployment-only configuration, asset, typography, responsive or runtime drift is visible;
-4. verify the deployed product is reachable and presents the accepted CEAC experience;
-5. record the exact deployed SHA/URL/evidence and any external limitation truthfully;
-6. advance to VF10E only after deployed-product inspection passes.
+1. inspect representative authenticated Staff, Manager, Administration and Executive surfaces on the successful application-equivalent deployment;
+2. confirm no deployment-only configuration, asset, typography, responsive or runtime drift is visible after authentication;
+3. persist VF10D YES/YES acceptance only after that four-role deployed inspection passes;
+4. advance immediately to VF10E, mark PR #79 ready, merge with expected-head protection, and verify protected `main` after merge.
 
 Do not begin VF10E canonically until VF10D is accepted.
 
