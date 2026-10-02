@@ -57,3 +57,36 @@ Candidate implementation head includes:
 - authenticated browser evidence capture for both surfaces in `tests/acceptance-core.spec.js`.
 
 The previous affected-scope checks showed CI/Migration Replay/Account Security green where completed. This checkpoint explicitly requests the complete Level B browser/authority gate because FPG2/FPG3 are meaningful visual acceptance boundaries. Vercel deployment remains externally rate-limited and is not treated as a code defect.
+
+
+## FPG2 — Project/Task gold standard: ACCEPTED
+
+Accepted exact head: `433334304e66212a65ab565e1354ee12c96be8fc`
+
+Evidence:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- full Level B Quality Gate PASS
+- exact-head Project desktop and selected-record drawer screenshots inspected against PROJECT-A / PROJECT-B.
+
+The accepted surface preserves CEAC data/authority truth. Reference-only fields without authoritative CEAC data are not invented.
+
+## FPG3 — Finance gold standard: ACCEPTED
+
+Accepted exact head: `433334304e66212a65ab565e1354ee12c96be8fc`
+
+Evidence:
+- same exact-head full gate PASS;
+- exact-head Finance screenshot inspected against FINANCE-A;
+- multi-currency separation, operational-finance boundary and factual empty states preserved.
+
+## Current stage
+
+FPG4 — Extract only proven reusable components: ACTIVE
+
+Next:
+1. extract the accepted Project issue-table and selected-record drawer composition into the existing Project Family V2 layer without changing data queries or authority;
+2. keep the accepted ManagerProjects screen visually unchanged;
+3. run affected tests/build;
+4. proceed directly to FPG5 Payroll domain/security after FPG4 is green.
