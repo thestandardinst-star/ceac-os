@@ -1,8 +1,8 @@
 # CEAC OS — VF10A Complete Route-Matrix Visual Audit
 
-Status: COMPLETE / PASS  
-Date: 2 October 2026  
-Application-equivalent SHA audited: `9d073c1da0f789654f690151b6d22a16ecadd9f9`  
+Status: COMPLETE / PASS
+Date: 2 October 2026
+Application-equivalent SHA audited: `9d073c1da0f789654f690151b6d22a16ecadd9f9`
 Exact route-matrix artifact: `11240861271`
 
 ## Audit basis
