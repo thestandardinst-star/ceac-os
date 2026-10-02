@@ -125,6 +125,7 @@ for (const viewport of [
     const finance = page.locator(".ev2-finance-manager");
     await expect(finance).toBeVisible({ timeout: 15000 });
     const summaries = finance.locator("details.finance-section > summary");
+    await expect(summaries.first()).toBeVisible({ timeout: 15000 });
     expect(await summaries.count()).toBeGreaterThan(0);
     const heights = await summaries.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
     expect(Math.min(...heights)).toBeGreaterThanOrEqual(44);
