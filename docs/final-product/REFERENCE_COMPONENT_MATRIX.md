@@ -1,25 +1,29 @@
 # Reference Component Matrix
 
-Status legend: LOCKED = repository-addressable literal reference; DESCRIBED = owner specification exists but source image still needs repository-safe address; IMPLEMENTED/PASS requires direct comparison.
+Reference status:
+- LOCKED-REPO: source bytes are repository-addressable.
+- LOCKED-ASSET: exact source is locked by immutable Library file ID and exact filename and has been directly inspected.
+- IMPLEMENTED/PASS requires direct visual comparison; source identity alone is not acceptance.
 
 | ID | Surface | Component | Reference status | Acceptance |
 |---|---|---|---|---|
-| HOME-01 | Home | shell/navigation/top command | LOCKED | pending FPG9 |
-| HOME-02 | Home | hero/greeting/imagery | LOCKED | pending FPG9 |
-| HOME-03 | Home | schedule/Needs attention/Waiting/Coming up | LOCKED | pending FPG9 |
-| PROJECT-01 | Work | left project/stage tree | DESCRIBED | pending FPG1/FPG2 |
-| PROJECT-02 | Work | project/task header + controls | DESCRIBED | pending |
-| PROJECT-03 | Work | board/table/calendar switch | DESCRIBED | pending |
-| PROJECT-04 | Work | task table density/columns/checkboxes | DESCRIBED | pending |
-| PROJECT-05 | Work | status/tag/assignee treatment | DESCRIBED | pending |
-| PROJECT-06 | Work | selected-record right drawer | DESCRIBED | pending |
-| PROJECT-07 | Work | attachments/subtasks/comments/progress | DESCRIBED | pending |
-| FINANCE-01 | Finance | metric card anatomy/icons | DESCRIBED | pending FPG3 |
-| FINANCE-02 | Finance | chart geometry/axes/labels | DESCRIBED | pending |
-| FINANCE-03 | Finance | ledger/table/tabs/filters | DESCRIBED | pending |
-| PEOPLE-01 | People | employee list/cards/avatars | DESCRIBED | pending FPG7 |
-| PEOPLE-02 | People | employee workspace/detail panel | DESCRIBED | pending |
-| PEOPLE-03 | Workforce | leave/workforce calendar | DESCRIBED | pending |
-| PEOPLE-04 | Workforce | schedule/absence/event/status blocks | DESCRIBED | pending |
+| HOME-01 | Home | shell/navigation/top command | LOCKED-REPO | pending FPG9 |
+| HOME-02 | Home | hero/greeting/imagery | LOCKED-REPO | pending FPG9 |
+| HOME-03 | Home | schedule/Needs attention/Waiting/Coming up | LOCKED-REPO | pending FPG9 |
+| PROJECT-01 | Work | dark left project/stage tree | LOCKED-ASSET PROJECT-A | FPG2 active |
+| PROJECT-02 | Work | project/task header + real stage/status controls | LOCKED-ASSET PROJECT-A | FPG2 active |
+| PROJECT-03 | Work | board/table/calendar switch | LOCKED-ASSET PROJECT-A | FPG2 active |
+| PROJECT-04 | Work | dense task table/columns/row geometry | LOCKED-ASSET PROJECT-A | FPG2 active |
+| PROJECT-05 | Work | status/tag/assignee treatment | LOCKED-ASSET PROJECT-A | FPG2 active |
+| PROJECT-06 | Work | selected-record right drawer | LOCKED-ASSET PROJECT-B | FPG2 active |
+| PROJECT-07 | Work | evidence/subtasks/activity treatment | LOCKED-ASSET PROJECT-B | FPG2 active; truth-limited |
+| PROJECT-08 | Work | auxiliary schedule/progress visual treatment | LOCKED-ASSET PROJECT-C | optional truthful use |
+| FINANCE-01 | Finance | metric card anatomy/icons | LOCKED-ASSET FINANCE-A | pending FPG3 |
+| FINANCE-02 | Finance | chart geometry/axes/labels | LOCKED-ASSET FINANCE-A | pending FPG3 |
+| FINANCE-03 | Finance | ledger/table/tabs/filters | LOCKED-ASSET FINANCE-A | pending FPG3 |
+| PEOPLE-01 | People | employee list/cards/avatars | LOCKED-ASSET PEOPLE-A | pending FPG7 |
+| PEOPLE-02 | People | employee workspace/detail panel | LOCKED-ASSET PEOPLE-A | pending FPG7 |
+| PEOPLE-03 | Workforce | leave/workforce calendar | LOCKED-ASSET PEOPLE-A | pending FPG7 |
+| PEOPLE-04 | Workforce | schedule/absence/event/status blocks | LOCKED-ASSET PEOPLE-A | pending FPG7 |
 
 Acceptance requires FUNCTIONAL CONTRACT PRESERVED=YES; SECURITY/AUTHORITY PRESERVED=YES; REFERENCE COMPONENT PARITY=YES; RESPONSIVE ACCEPTANCE=YES.
