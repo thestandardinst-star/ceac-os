@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF9 — Accessibility, performance and CSS regression closure
-Current substage: VF9B — CSS debt and cascade regression (ACTIVE)
+Current substage: VF9C — bundle/performance regression (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -680,21 +680,42 @@ Acceptance evidence:
 
 VF9A closes the accessibility regression surface without changing product authority or meaning: visible keyboard focus, 4.5:1 tested token contrast, 320px reflow, 44px primary/mobile targets, announced loading/error states and readable data-viz text are preserved across the four roles.
 
-## Active: VF9B — CSS debt and cascade regression
+### VF9B — CSS debt and cascade regression: COMPLETE / ACCEPTED
+
+Accepted verification SHA:
+`e4d920b8851bc9afa00c882478714f98776d7645`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF9B_ACCEPTANCE.md`
+- CI `37029835677`: PASS
+- Migration Replay `37029835330`: PASS
+- Account Security `37029835275`: PASS
+- Quality Gate `37029835243`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- cascade evidence: shard artifact `11236199752`
+- full route matrix: artifact `11237223091`
+- R7 product inspection: artifact `11236973231`
+
+VF9B proves that the accepted Experience V2/VF low-specificity cascade wins over legacy compatibility CSS without new `!important` escalation or material role/shell regression. No production CSS rewrite was required because no material stale override was proven.
+
+## Active: VF9C — bundle/performance regression
 
 Purpose:
-Close proven cascade debt and legacy override conflicts without replacing the accepted CEAC design system or rewriting working product composition.
+Close production-bundle and route-loading regressions against a measured exact-head baseline without weakening product capability or introducing risky late-stage architecture changes.
 
 Required outcomes:
-1. inventory the live imported CSS cascade and identify material override debt rather than chasing raw counts;
-2. remove or neutralise stale legacy rules that materially override accepted VF/Experience V2 composition;
-3. prevent new `!important` escalation in the Experience V2 family layers and retain their existing low-specificity contract;
-4. verify shared shell, role surfaces, responsive breakpoints and accepted role character do not regress after cleanup;
-5. preserve typography, spacing, focus, reduced-motion, factual/no-inference, security and authority contracts;
-6. persist before/after cascade evidence and representative visual evidence;
-7. pass Level A, exact-head Level B and Level C before VF9C.
+1. record the production Vite bundle baseline from the accepted VF9B application-equivalent state;
+2. preserve route-level React lazy loading and deliberate vendor splitting;
+3. enforce bounded core CSS, vendor and route-chunk sizes with measured headroom rather than arbitrary compression targets;
+4. confirm no new high-severity dependency vulnerability and no production build warning/error;
+5. verify the route fallback remains announced and the accepted product composition is unchanged;
+6. persist bundle/performance evidence and exact budgets;
+7. pass Level A, exact-head Level B and Level C before VF9D.
 
-Do not begin VF9C canonically until VF9B is accepted.
+Do not begin VF9D canonically until VF9C is accepted.
 
 ## Protected boundaries
 
