@@ -94,3 +94,36 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF5A Executive briefing locks senior-attention-first mobile composition", async ({ browser }) => {
+  const { context, page } = await openExecutive(browser, { width: 390, height: 844 });
+
+  const attention = page.locator(".executivev2-attention");
+  const movement = page.locator(".executivev2-movement");
+  const [attentionBox, movementBox] = await Promise.all([attention.boundingBox(), movement.boundingBox()]);
+  expect(attentionBox?.y || 0).toBeLessThan(movementBox?.y || Number.POSITIVE_INFINITY);
+
+  const movementMetrics = await page.locator(".executivev2-movement .executivev2-stat-grid").evaluate((node) => ({
+    scroll: node.scrollWidth,
+    client: node.clientWidth,
+    height: node.getBoundingClientRect().height,
+  }));
+  expect(movementMetrics.height).toBeLessThanOrEqual(120);
+
+  for (const selector of [".executivev2-context-grid", ".executivev2-support-grid"]) {
+    const rail = await page.locator(selector).evaluate((node) => ({
+      scroll: node.scrollWidth,
+      client: node.clientWidth,
+    }));
+    expect(rail.scroll).toBeGreaterThan(rail.client);
+  }
+
+  const delivery = await page.locator(".executivev2-delivery-grid").evaluate((node) => ({
+    scroll: node.scrollWidth,
+    client: node.clientWidth,
+  }));
+  expect(delivery.scroll).toBeGreaterThan(delivery.client);
+
+  await context.close();
+});
