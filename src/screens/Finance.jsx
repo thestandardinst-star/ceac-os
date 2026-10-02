@@ -105,6 +105,21 @@ export default function Finance({ me, openExpenses }) {
   const unconfirmed = transfers.filter((t) => t.state === "sent");
   const disputed = transfers.filter((t) => t.state === "disputed");
   const financeCurrencies = [...new Set([...Object.keys(inBy), ...Object.keys(outBy), ...Object.keys(budBy)])].sort();
+  const focalCurrency = financeCurrencies[0] || "GHS";
+  const movement = Array.from({ length: 12 }, (_, month) => ({ month, received: 0, spent: 0 }));
+  income.filter((row) => (row.currency || "GHS") === focalCurrency).forEach((row) => {
+    const month = Number(String(row.received_on || "").slice(5, 7)) - 1;
+    if (month >= 0 && month < 12) movement[month].received += Number(row.amount_minor || 0);
+  });
+  spend.filter((row) => (row.currency || "GHS") === focalCurrency).forEach((row) => {
+    const month = Number(String(row.spent_on || "").slice(5, 7)) - 1;
+    if (month >= 0 && month < 12) movement[month].spent += row.reverses_id ? -Number(row.amount_minor || 0) : Number(row.amount_minor || 0);
+  });
+  const movementMax = Math.max(1, ...movement.flatMap((row) => [Math.abs(row.received), Math.abs(row.spent)]));
+  const recentFinance = [
+    ...income.map((row) => ({ id: "in-" + row.id, date: row.received_on, label: row.description, kind: "Received", amount: row.amount_minor, currency: row.currency || "GHS" })),
+    ...spend.map((row) => ({ id: "out-" + row.id, date: row.spent_on, label: row.description, kind: row.reverses_id ? "Spend correction" : "Spent", amount: row.reverses_id ? -Number(row.amount_minor || 0) : row.amount_minor, currency: row.currency || "GHS" })),
+  ].filter((row) => row.date).sort((a,b) => String(b.date).localeCompare(String(a.date))).slice(0, 7);
 
   async function saveIncome() {
     setBusy(true); setMsg(null);
@@ -200,6 +215,60 @@ export default function Finance({ me, openExpenses }) {
       <FinanceTabs items={TABS} value={tab} onChange={setTab} label="Administration finance sections" />
 
       {tab === "overview" && (<>
+        <section className="fpg-finance-dashboard" aria-label="Recorded finance overview">
+          <div className="fpg-finance-metrics">
+            {financeCurrencies.length ? financeCurrencies.map((currency) => {
+              const received = Number(inBy[currency] || 0);
+              const spent = Number(outBy[currency] || 0);
+              const budgeted = Number(budBy[currency] || 0);
+              return <article className="fpg-finance-metric" key={currency}>
+                <div><span>{currency}</span><small>{year}</small></div>
+                <strong>{money(received - spent, currency)}</strong>
+                <p>Recorded in minus recorded out</p>
+                <dl><div><dt>Received</dt><dd>{money(received,currency)}</dd></div><div><dt>Spent</dt><dd>{money(spent,currency)}</dd></div><div><dt>Budget</dt><dd>{budgeted ? money(budgeted,currency) : "Not recorded"}</dd></div></dl>
+              </article>;
+            }) : <article className="fpg-finance-metric is-empty"><span>No recorded finance position yet.</span></article>}
+          </div>
+
+          <div className="fpg-finance-grid">
+            <article className="fpg-finance-panel fpg-finance-trend">
+              <header><div><span>Recorded movement</span><h2>{focalCurrency} monthly activity</h2></div><small>{year}</small></header>
+              <div className="fpg-finance-legend"><span><i className="is-in" />Received</span><span><i className="is-out" />Spent</span></div>
+              <div className="fpg-finance-bars" role="img" aria-label={"Monthly recorded received and spent amounts in " + focalCurrency}>
+                {movement.map((row) => <div className="fpg-finance-month" key={row.month}>
+                  <div className="fpg-finance-bar-pair">
+                    <i className="is-in" style={{height: Math.max(2, Math.round(Math.abs(row.received) / movementMax * 100)) + "%"}} />
+                    <i className="is-out" style={{height: Math.max(2, Math.round(Math.abs(row.spent) / movementMax * 100)) + "%"}} />
+                  </div>
+                  <span>{["J","F","M","A","M","J","J","A","S","O","N","D"][row.month]}</span>
+                </div>)}
+              </div>
+              <p>Truthful recorded activity only. This is not a bank balance and currencies are never combined.</p>
+            </article>
+
+            <article className="fpg-finance-panel fpg-finance-budget">
+              <header><div><span>Budget overview</span><h2>Spend against recorded budget</h2></div></header>
+              <div className="fpg-budget-list">
+                {financeCurrencies.map((currency) => {
+                  const budgeted = Number(budBy[currency] || 0);
+                  const spent = Number(outBy[currency] || 0);
+                  const pct = budgeted > 0 ? Math.min(100, Math.round(spent / budgeted * 100)) : 0;
+                  return <div key={currency}><div><strong>{currency}</strong><span>{budgeted ? pct + "%" : "No budget"}</span></div><i><b style={{width:pct + "%"}} /></i><small>{budgeted ? money(spent,currency) + " of " + money(budgeted,currency) : "No authoritative budget recorded"}</small></div>;
+                })}
+                {!financeCurrencies.length && <p className="fpg-finance-empty">No budget records are available.</p>}
+              </div>
+            </article>
+
+            <article className="fpg-finance-panel fpg-finance-recent">
+              <header><div><span>Ledger</span><h2>Recent records</h2></div></header>
+              <div className="fpg-recent-table">
+                <div className="fpg-recent-head"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span></div>
+                {recentFinance.map((row) => <div className="fpg-recent-row" key={row.id}><span>{dateOnly(row.date)}</span><strong>{row.label}</strong><span>{row.kind}</span><b>{money(row.amount,row.currency)}</b></div>)}
+                {!recentFinance.length && <p className="fpg-finance-empty">No recent finance records.</p>}
+              </div>
+            </article>
+          </div>
+        </section>
         <div className="ev2fin-authority"><FinanceRequestQueue me={me} authority="admin" canFulfil title="Requests needing Administration" /></div>
         {(unconfirmed.length > 0 || disputed.length > 0) && <ProductNotice tone="attention" title={disputed.length ? "Transfers need review" : "Transfers awaiting confirmation"}>
           {unconfirmed.length} transfer{unconfirmed.length === 1 ? "" : "s"} not yet confirmed{disputed.length ? " · "+disputed.length+" disputed" : ""}. Money is only treated as confirmed once the receiving department confirms it.
