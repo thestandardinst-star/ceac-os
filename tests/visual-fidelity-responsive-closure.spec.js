@@ -240,3 +240,70 @@ test("VF8C exact 1366×768 laptop matrix preserves all four role command surface
     await context.close();
   }
 });
+
+
+test("VF8D 1440×900+ desktop matrix preserves role hierarchy and bounded working measure", async ({ browser }) => {
+  test.setTimeout(300000);
+  const viewports = [
+    { name: "desktop-1440x900", width: 1440, height: 900, capture: true },
+    { name: "wide-1600x900", width: 1600, height: 900, capture: false },
+  ];
+
+  for (const viewport of viewports) {
+    for (const role of roles) {
+      const context = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+      const page = await context.newPage();
+      await signIn(page, role);
+      await page.evaluate(() => document.fonts.ready);
+
+      await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+      await expect(page.locator(".ev2s-topbar")).toBeVisible();
+      await expect(page.locator(".ev2s-mobile-topbar")).toBeHidden();
+      await expect(page.locator(".ev2s-mobile-nav")).toBeHidden();
+      await expect(page.locator(".ev2s-sidebar-profile")).toBeVisible();
+
+      const geometry = await page.evaluate(() => {
+        const body = document.querySelector(".app-content .body");
+        const side = document.querySelector(".ev2s-sidebar");
+        const top = document.querySelector(".ev2s-topbar");
+        const workspace = document.querySelector(".ev2s-workspace");
+        const bodyRect = body?.getBoundingClientRect();
+        const sideRect = side?.getBoundingClientRect();
+        const topRect = top?.getBoundingClientRect();
+        const workspaceRect = workspace?.getBoundingClientRect();
+        return {
+          documentOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          bodyOverflow: document.body.scrollWidth - document.body.clientWidth,
+          sidebarOverflow: side ? side.scrollWidth - side.clientWidth : 0,
+          topbarOverflow: top ? top.scrollWidth - top.clientWidth : 0,
+          bodyWidth: bodyRect?.width || 0,
+          bodyLeft: bodyRect?.left || 0,
+          bodyRight: bodyRect ? bodyRect.right - window.innerWidth : 0,
+          sidebarRight: sideRect?.right || 0,
+          workspaceLeft: workspaceRect?.left || 0,
+          workspaceRight: workspaceRect ? workspaceRect.right - window.innerWidth : 0,
+          topbarRight: topRect ? topRect.right - window.innerWidth : 0,
+        };
+      });
+
+      expect(geometry.documentOverflow, `${role.key} ${viewport.width} document overflow`).toBeLessThanOrEqual(1);
+      expect(geometry.bodyOverflow, `${role.key} ${viewport.width} body overflow`).toBeLessThanOrEqual(1);
+      expect(geometry.sidebarOverflow, `${role.key} ${viewport.width} sidebar overflow`).toBeLessThanOrEqual(1);
+      expect(geometry.topbarOverflow, `${role.key} ${viewport.width} topbar overflow`).toBeLessThanOrEqual(1);
+      expect(geometry.bodyWidth, `${role.key} ${viewport.width} unbounded body measure`).toBeLessThanOrEqual(1281);
+      expect(geometry.bodyLeft, `${role.key} ${viewport.width} body starts before workspace`).toBeGreaterThanOrEqual(geometry.workspaceLeft - 1);
+      expect(geometry.bodyRight, `${role.key} ${viewport.width} body ends beyond viewport`).toBeLessThanOrEqual(1);
+      expect(geometry.workspaceRight, `${role.key} ${viewport.width} workspace ends beyond viewport`).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.topbarRight), `${role.key} ${viewport.width} topbar right edge`).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.sidebarRight - geometry.workspaceLeft), `${role.key} ${viewport.width} sidebar/workspace seam`).toBeLessThanOrEqual(1);
+
+      if (viewport.capture) {
+        await page.screenshot({
+          path: `test-artifacts/vf8d-${role.key}-desktop-1440x900.png`,
+          fullPage: true,
+        });
+      }
+      await context.close();
+    }
+  }
+});
