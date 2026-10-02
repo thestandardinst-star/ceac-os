@@ -12,5 +12,5 @@ These do not block FPG0–FPG4 or non-dependent Payroll architecture:
 - reimbursement timing;
 - leave-entitlement arithmetic including annual-day quantity, accrual, carry-forward and unpaid-leave formula.
 
-## Reference asset addressing
-The original CEAC premium mockup is already repository-addressable. The literal Task/Project, Finance and Employee Management/Workforce source images must be stored under a repository-safe reference path before their components can receive REFERENCE COMPONENT PARITY=YES. Their owner-specified component coverage is already locked in REFERENCE_COMPONENT_MATRIX.md; prose alone is not visual acceptance.
+## Reference assets
+No owner reference re-upload is currently required. The exact Task/Project, Finance and Employee Management/Workforce images have been recovered and locked by immutable Library file IDs in REFERENCE_SURFACE_MAP.md. The remaining repository-continuity task is technical: copy those exact binaries into GitHub when a binary-capable repository write path is available. Do not substitute other images in the meantime.
