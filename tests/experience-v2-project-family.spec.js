@@ -324,3 +324,81 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF6A cross-role Project surfaces share one factual workspace grammar", async ({ browser }) => {
+  const css = readFileSync("src/experience-v2/project-family/project-family.css", "utf8");
+  expect(css).toContain("/* VF6A — Cross-role Project workspace closure.");
+  expect(css).not.toContain("!important");
+
+  for (const viewport of [
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "laptop-1366", width: 1366, height: 768 },
+  ]) {
+    {
+      const { context, page } = await openManagerProjects(browser, { width: viewport.width, height: viewport.height });
+      await page.locator(".ev2p-row:visible").first().click();
+      await expect(page.locator(".ev2-project-workspace")).toBeVisible();
+      const tabs = page.locator(".ev2-project-workspace .ev2p-tabs");
+      const selected = tabs.locator("button.is-selected");
+      await expect(selected).toBeVisible();
+      const selectedStyle = await selected.evaluate((node) => ({
+        radius: getComputedStyle(node).borderRadius,
+        shadow: getComputedStyle(node).boxShadow,
+        height: node.getBoundingClientRect().height,
+      }));
+      expect(selectedStyle.radius).toBe("0px");
+      expect(selectedStyle.shadow).toBe("none");
+      expect(selectedStyle.height).toBeGreaterThanOrEqual(44);
+      await page.screenshot({ path: `test-artifacts/vf6a-manager-project-workspace-${viewport.name}.png`, fullPage: true });
+      await context.close();
+    }
+
+    {
+      const { context, page } = await openAdminProjects(browser, { width: viewport.width, height: viewport.height });
+      const list = page.locator(".ev2-project-admin .ev2p-context-list");
+      await expect(list).toBeVisible();
+      const rows = list.locator(":scope > .ev2p-context-row");
+      expect(await rows.count()).toBeGreaterThan(1);
+      const geometry = await rows.evaluateAll((nodes) => nodes.slice(0, 2).map((node) => {
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        return { left: rect.left, top: rect.top, bottom: rect.bottom, radius: style.borderRadius, shadow: style.boxShadow };
+      }));
+      expect(Math.abs(geometry[0].left - geometry[1].left)).toBeLessThanOrEqual(2);
+      expect(geometry[1].top - geometry[0].bottom).toBeLessThanOrEqual(2);
+      expect(geometry[0].radius).toBe("0px");
+      expect(geometry[0].shadow).toBe("none");
+      if (viewport.width <= 760) {
+        const summary = page.locator(".ev2-project-admin .ev2p-summary");
+        const rail = await summary.evaluate((node) => ({ display: getComputedStyle(node).display, scroll: node.scrollWidth, client: node.clientWidth }));
+        expect(rail.display).toBe("flex");
+        expect(rail.scroll).toBeGreaterThan(rail.client);
+      }
+      await page.screenshot({ path: `test-artifacts/vf6a-admin-projects-${viewport.name}.png`, fullPage: true });
+      await context.close();
+    }
+
+    {
+      const { context, page } = await openExecutivePortfolio(browser, { width: viewport.width, height: viewport.height });
+      const list = page.locator(".ev2-project-delivery .ev2p-list");
+      await expect(list).toBeVisible();
+      const rows = list.locator(":scope > .ev2p-row");
+      expect(await rows.count()).toBeGreaterThan(1);
+      const firstStyle = await rows.first().evaluate((node) => ({
+        radius: getComputedStyle(node).borderRadius,
+        shadow: getComputedStyle(node).boxShadow,
+      }));
+      expect(firstStyle.radius).toBe("0px");
+      expect(firstStyle.shadow).toBe("none");
+      if (viewport.width <= 760) {
+        const summary = page.locator(".ev2-project-delivery > .ev2p-summary");
+        const rail = await summary.evaluate((node) => ({ display: getComputedStyle(node).display, scroll: node.scrollWidth, client: node.clientWidth }));
+        expect(rail.display).toBe("flex");
+        expect(rail.scroll).toBeGreaterThan(rail.client);
+      }
+      await page.screenshot({ path: `test-artifacts/vf6a-executive-portfolio-${viewport.name}.png`, fullPage: true });
+      await context.close();
+    }
+  }
+});
