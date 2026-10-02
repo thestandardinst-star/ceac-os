@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF10 — Product acceptance and release
-Current substage: VF10D — actual deployed-product inspection (ACTIVE)
+Current substage: VF10E — acceptance record, merge and post-merge main verification (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -799,26 +799,45 @@ Decision:
 - TECHNICALLY ACCEPTED: YES
 - VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
 
-## Active: VF10D — actual deployed-product inspection (AUTHENTICATED ROLE INSPECTION PENDING)
+## VF10D — actual deployed-product inspection: COMPLETE / ACCEPTED
+
+Accepted application-equivalent SHA:
+`e3b468d24148dfe5cc69d8d6bcda91da7b7945be`
+
+Deliberate deployed checkpoint:
+`482ae8d65b65f0f0752b5683e9a041e3424eb05d`
+
+Vercel deployment:
+`6EfgmDuEHekcxjWjmUfdbSG8w1wn`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF10D_ACCEPTANCE.md`
+- protected preview: reachable;
+- Staff authenticated deployed inspection: PASS;
+- Manager authenticated deployed inspection: PASS;
+- Administration authenticated deployed inspection: PASS;
+- Executive authenticated deployed inspection: PASS;
+- shell, branding, typography and assets: PASS;
+- deployment-only runtime/configuration defects: none observed.
+
+Decision:
+- TECHNICALLY ACCEPTED: YES
+- VISUALLY / PRODUCT-EXPERIENCE ACCEPTED: YES
+
+### Active: VF10E — acceptance record, merge and post-merge main verification
 
 Purpose:
-Inspect the real deployed application-equivalent product before protected-main release.
-
-Current deployed-product evidence:
-- `docs/visual-fidelity/VF10D_DEPLOYED_PRODUCT_INSPECTION.md`
-- deliberate application-equivalent Vercel checkpoint `482ae8d65b65f0f0752b5683e9a041e3424eb05d`: PASS / Ready;
-- protected preview bypass: working;
-- deployed CEAC authentication shell: rendered successfully with branding, typography, assets and sign-in controls;
-- the later canonical heads through this BUILD_STATE update are documentation-only/application-equivalent;
-- the remaining gate is a genuinely authenticated deployed-role inspection; repository passwords/recovery material are intentionally absent and auth will not be weakened to manufacture a pass.
+Complete the release only after verifying the final PR head, required gates and protected-main merge conditions, then verify the resulting `main` state and production deployment.
 
 Required outcomes:
-1. inspect representative authenticated Staff, Manager, Administration and Executive surfaces on the successful application-equivalent deployment;
-2. confirm no deployment-only configuration, asset, typography, responsive or runtime drift is visible after authentication;
-3. persist VF10D YES/YES acceptance only after that four-role deployed inspection passes;
-4. advance immediately to VF10E, mark PR #79 ready, merge with expected-head protection, and verify protected `main` after merge.
+1. verify the final PR #79 head and mergeability against current protected `main`;
+2. confirm final release checks are green and no newer writer has advanced the branch;
+3. persist the VF10E pre-merge acceptance state;
+4. mark PR #79 ready and merge according to protected-main rules with expected-head protection;
+5. verify the resulting `main` commit, CI, Migration Replay, Account Security, Quality Gate and production Vercel deployment;
+6. persist final programme completion only after post-merge main verification passes.
 
-Do not begin VF10E canonically until VF10D is accepted.
+Do not declare the VF programme complete before post-merge verification is green.
 
 ## Protected boundaries
 
