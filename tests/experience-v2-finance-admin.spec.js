@@ -140,3 +140,70 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF6B cross-role finance surfaces use one flat factual grammar", async ({ browser }) => {
+  const css = readFileSync("src/experience-v2/finance-family/finance-family.css", "utf8");
+  expect(css).toContain("/* VF6B — Cross-role money-state and finance-surface closure.");
+  expect(css).not.toContain("!important");
+
+  for (const viewport of [
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "laptop-1366", width: 1366, height: 768 },
+  ]) {
+    const admin = await openAdminFinance(browser, { width: viewport.width, height: viewport.height });
+    const activeTab = admin.page.locator(".ev2fin-tabs button.is-active");
+    const activeStyle = await activeTab.evaluate((node) => ({
+      radius: getComputedStyle(node).borderRadius,
+      shadow: getComputedStyle(node).boxShadow,
+    }));
+    expect(activeStyle.radius).toBe("0px");
+    expect(activeStyle.shadow).toBe("none");
+
+    const overview = admin.page.locator(".ev2fin-admin-overview-grid");
+    const layout = await overview.evaluate((node) => ({
+      display: getComputedStyle(node).display,
+      columns: getComputedStyle(node).gridTemplateColumns,
+    }));
+    expect(layout.display).toBe("grid");
+    if (viewport.width >= 1040) {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(2);
+    } else {
+      expect(layout.columns.split(" ").filter(Boolean)).toHaveLength(1);
+    }
+
+    const authorityShadow = await admin.page.locator(".ev2fin-authority").evaluate((node) => getComputedStyle(node).boxShadow);
+    expect(authorityShadow).toBe("none");
+    await admin.page.screenshot({ path: `test-artifacts/vf6b-admin-finance-${viewport.name}.png`, fullPage: true });
+    await admin.context.close();
+
+    const managerContext = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const managerPage = await managerContext.newPage();
+    await managerPage.goto("/");
+    await managerPage.getByPlaceholder("Work email").fill("manager@ceac.local.test");
+    await managerPage.getByPlaceholder("Password").fill(password);
+    await managerPage.getByRole("button", { name: "Sign in" }).click();
+    await expect(managerPage.locator(".manager-app")).toBeVisible({ timeout: 15000 });
+    await managerPage.goto("/?tab=manager-finance");
+    await expect(managerPage.locator(".ev2-finance-manager")).toBeVisible({ timeout: 15000 });
+    const managerSection = managerPage.locator(".finance-section").first();
+    if (await managerSection.count()) {
+      expect(await managerSection.evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
+    }
+    await managerPage.screenshot({ path: `test-artifacts/vf6b-manager-finance-${viewport.name}.png`, fullPage: true });
+    await managerContext.close();
+
+    const executiveContext = await browser.newContext({ viewport: { width: viewport.width, height: viewport.height } });
+    const executivePage = await executiveContext.newPage();
+    await executivePage.goto("/");
+    await executivePage.getByPlaceholder("Work email").fill("exec@ceac.local.test");
+    await executivePage.getByPlaceholder("Password").fill(password);
+    await executivePage.getByRole("button", { name: "Sign in" }).click();
+    await expect(executivePage.locator(".executive-app")).toBeVisible({ timeout: 15000 });
+    await executivePage.goto("/?tab=exec-finance");
+    await expect(executivePage.locator(".ev2-finance-executive")).toBeVisible({ timeout: 15000 });
+    expect(await executivePage.locator(".ev2fin-authority").evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
+    await executivePage.screenshot({ path: `test-artifacts/vf6b-executive-finance-${viewport.name}.png`, fullPage: true });
+    await executiveContext.close();
+  }
+});
