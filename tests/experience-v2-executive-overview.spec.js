@@ -162,9 +162,9 @@ for (const viewport of [
     await page.goto("/?tab=work");
     await expect(page.locator(".ev2-work-executive")).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Given out/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Needs review/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Mine/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Given out/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Needs review/ })).toBeVisible();
+    await expect(page.getByRole("tab", { name: /Mine/ })).toBeVisible();
     let overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({
