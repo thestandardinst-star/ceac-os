@@ -25,6 +25,9 @@ test("VF6D keeps Messages and Connected Apps factual while closing shared-surfac
   expect(inbox).not.toContain('className="premium-surface inbox-list"');
   expect(inbox).toContain("Rooms, mentions, linked work and announcements");
   expect(staffCss).toContain("/* VF6D — Messages operational-inbox closure.");
+  expect(staffCss).toContain(".inbox-page .premium-filter-row button");
+  expect(staffCss).toContain(".inbox-page .inbox-empty");
+  expect(staffCss).not.toContain(".staff-app .inbox-page .premium-filter-row button");
   expect(integrationCss).toContain("/* VF6D — Connected Apps operational-surface closure.");
   expect(integrationCss).not.toContain("!important");
   expect(integrations).toContain('type="password"');
@@ -35,15 +38,21 @@ test("VF6D keeps Messages and Connected Apps factual while closing shared-surfac
     { name: "phone-390", width: 390, height: 844 },
     { name: "laptop-1366", width: 1366, height: 768 },
   ]) {
-    {
+    for (const role of [
+      { key: "staff", email: "staff@ceac.local.test", app: ".staff-app" },
+      { key: "manager", email: "manager@ceac.local.test", app: ".manager-app" },
+      { key: "administration", email: "admin@ceac.local.test", app: ".office-app" },
+      { key: "executive", email: "exec@ceac.local.test", app: ".executive-app" },
+    ]) {
       const { context, page } = await signIn(browser, {
-        email: "staff@ceac.local.test",
-        app: ".staff-app",
+        email: role.email,
+        app: role.app,
         route: "/?tab=messages",
         viewport: { width: viewport.width, height: viewport.height },
       });
       const inboxPage = page.locator(".inbox-page");
       await expect(inboxPage.getByRole("heading", { name: "Messages", exact: true })).toBeVisible();
+      await expect(inboxPage.getByText(/does not provide unrestricted direct messages/i)).toBeVisible();
 
       const filters = inboxPage.locator(".premium-filter-row button");
       const heights = await filters.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
@@ -58,8 +67,19 @@ test("VF6D keeps Messages and Connected Apps factual while closing shared-surfac
       expect(listStyle.shadow).toBe("none");
       expect(listStyle.overflow).toBeLessThanOrEqual(1);
 
+      const empty = inboxPage.locator(".inbox-empty");
+      if (await empty.count()) {
+        const emptyStyle = await empty.evaluate((node) => ({
+          borderTopWidth: getComputedStyle(node).borderTopWidth,
+          borderRadius: getComputedStyle(node).borderRadius,
+          backgroundColor: getComputedStyle(node).backgroundColor,
+        }));
+        expect(emptyStyle.borderTopWidth).toBe("0px");
+        expect(emptyStyle.borderRadius).toBe("0px");
+      }
+
       await page.screenshot({
-        path: `test-artifacts/vf6d-staff-messages-${viewport.name}.png`,
+        path: `test-artifacts/vf6d-${role.key}-messages-${viewport.name}.png`,
         fullPage: true,
       });
       await context.close();
