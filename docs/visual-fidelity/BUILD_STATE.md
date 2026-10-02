@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF4 — Administration & HR
-Current substage: VF4A — Home operational inbox (ACTIVE)
+Current substage: VF4C — Attendance / Leave / Workforce (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -258,21 +258,41 @@ Acceptance evidence:
 
 VF4A makes Administration Home decision-first, keeps setup/configuration subordinate to the operational inbox, uses horizontal supporting-context rails on phone and a higher-density operations-console composition on laptop/desktop. A final 320px correction explicitly preserves the order Needs Administration → shortcuts → Configuration state rather than allowing CSS grid ordering to surface shortcuts first. Administration authority, invitations, leave decisions, reporting provenance, privacy and audit boundaries remain unchanged.
 
-## Active: VF4B — Administration People and Employee workspace
+### VF4B — Administration People and Employee workspace: COMPLETE / ACCEPTED
+
+Exact accepted application head:
+`1348923a3dc11938a92f52440af6fee8df467c31`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF4B_ACCEPTANCE.md`
+- CI `36948553087`: PASS
+- Migration Replay `36948553203`: PASS
+- Account Security `36948553125`: PASS
+- Quality Gate `36948553171`: PASS
+- SQL/RLS/security contracts: PASS
+- Level B browser shards 1–4: PASS
+- Vercel exact-head deployment: PASS
+- exact-head Administration People / Employee phone, laptop and desktop evidence: `redesign-r7-product-inspection` artifact `11203088816`
+- exact-head full route matrix: `visual-parity-all-pages` artifact `11203297774`
+
+VF4B makes People a searchable factual directory/ledger, keeps employee identity and employment context persistent beside the detailed record on larger screens, and flattens employment, evidence, leave and protected-HR information into readable operations-console structures. Phone deliberately stacks the same factual record without creating employee scores, rankings, inferred productivity or payroll values. Protected-HR separation, audited employment changes and People/HR RLS/RPC authority remain unchanged.
+
+## Active: VF4C — Attendance / Leave / Workforce
 
 Purpose:
-Turn Administration People and Employee into a denser factual people-operations workspace with strong record hierarchy, while preserving protected-HR separation and all Administration authority.
+Bring Administration Attendance, Leave and Workforce to a denser operational-console standard while preserving factual session/leave evidence and all workforce authority.
 
 Required outcomes:
-1. make People read as an operational directory/ledger rather than large repeated cards;
-2. use search and filters efficiently on laptop/desktop without weakening phone usability;
-3. keep employee identity and employment state persistent on larger screens while the detailed employment record remains the main workspace;
-4. present factual employment, evidence, leave and protected-HR context as readable records rather than a serial card stack;
-5. preserve protected-HR isolation, audited employment changes, organisation scope and all People/HR RLS/RPC boundaries;
-6. keep employee scoring, ranking, inferred productivity and payroll out of the experience;
-7. pass affected Level A during implementation, then exact-head Level B + Level C before VF4C.
+1. make attendance/workforce read as operational records and queues rather than dashboard cards;
+2. keep leave decisions, work-session facts and workforce state easy to scan without implying productivity or performance judgement;
+3. use table/ledger/timeline patterns where they communicate better than repeated cards;
+4. reduce phone vertical waste while preserving touch ergonomics and clear decision points;
+5. keep factual attendance/session evidence separate from pay, performance and disciplinary conclusions;
+6. preserve leave/workforce authority, auditability, organisation scope and all workforce RLS/RPC boundaries;
+7. keep payroll blocked until CEAC payroll rules are explicitly confirmed;
+8. pass affected Level A during implementation, then exact-head Level B + Level C before VF4D.
 
-Do not begin VF4C canonically until VF4B is accepted.
+Do not begin VF4D canonically until VF4C is accepted.
 
 ## Protected boundaries
 
