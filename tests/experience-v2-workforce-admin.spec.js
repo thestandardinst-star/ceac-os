@@ -130,6 +130,22 @@ for (const viewport of [
         expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
         expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
       }
+      if (viewport.name === "laptop-1366") {
+        const railLayout = await calendarRail.evaluate((node) => ({
+          display: getComputedStyle(node).display,
+          columns: getComputedStyle(node).gridTemplateColumns,
+        }));
+        expect(railLayout.display).toBe("grid");
+        expect(railLayout.columns.split(" ").filter(Boolean)).toHaveLength(2);
+        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
+          nodes.slice(0, 2).map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { left: rect.left, top: rect.top };
+          })
+        );
+        expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
+        expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
+      }
       await page.screenshot({
         path: `test-artifacts/vf4c-admin-workforce-calendar-${viewport.name}.png`,
         fullPage: true,
