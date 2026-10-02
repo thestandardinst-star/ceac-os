@@ -91,3 +91,28 @@ for (const viewport of [
     await context.close();
   });
 }
+
+
+test("VF4C Administration Workforce keeps decisions first and roster dense without authority drift", () => {
+  const workforce = readFileSync("src/screens/Workforce.jsx", "utf8");
+  const css = readFileSync("src/experience-v2/workforce-family/workforce-family.css", "utf8");
+
+  expect(workforce).toContain('className="ev2wf-admin-today-layout"');
+  expect(workforce).toContain('className="ev2wf-admin-action-rail"');
+  expect(workforce).toContain('className="ev2wf-admin-roster"');
+
+  const actions = workforce.indexOf('className="ev2wf-admin-action-rail"');
+  const roster = workforce.indexOf('className="ev2wf-admin-roster"');
+  expect(actions).toBeGreaterThan(-1);
+  expect(roster).toBeGreaterThan(actions);
+
+  expect(workforce).toContain('caps.includes("workforce.manage")');
+  expect(workforce).toContain('caps.includes("attendance.correct")');
+  expect(workforce).toContain("No session recorded");
+  expect(workforce).toContain("never an automatic absence finding or performance judgement");
+
+  expect(css).toContain("/* VF4C — Administration Workforce decision-first console.");
+  expect(css).toContain("grid-template-columns: minmax(18rem, .62fr) minmax(0, 1.38fr)");
+  expect(css).toContain("position: sticky");
+  expect(css).not.toContain("!important");
+});

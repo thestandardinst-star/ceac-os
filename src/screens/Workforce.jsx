@@ -883,34 +883,38 @@ export default function Workforce({ me }) {
 
       {!activePolicy&&<ProductNotice tone="attention" title="Leave policy not configured">Leave requests remain available. CEAC OS will not calculate entitlement, accrual, carry-over or remaining balance from the old seeded defaults.</ProductNotice>}
 
-      {tab==="today"&&<>
-        <WorkforceSection title="Administration actions" description="Leave items requiring a recorded decision are presented before organisation context. Existing policy routes and server authority remain decisive." meta={waitingLeave.length+" waiting"}>
-          {waitingLeave.map(adminLeaveRow)}
-          {!waitingLeave.length&&<WorkforceEmpty compact title="No leave requests are waiting" description="New requests will appear here with their recorded route and history."/>}
-        </WorkforceSection>
+      {tab==="today"&&<div className="ev2wf-admin-today-layout">
+        <div className="ev2wf-admin-action-rail">
+          <WorkforceSection title="Administration actions" description="Leave items requiring a recorded decision are presented before organisation context. Existing policy routes and server authority remain decisive." meta={waitingLeave.length+" waiting"}>
+            {waitingLeave.map(adminLeaveRow)}
+            {!waitingLeave.length&&<WorkforceEmpty compact title="No leave requests are waiting" description="New requests will appear here with their recorded route and history."/>}
+          </WorkforceSection>
+        </div>
 
-        <WorkforceSection title="Today across the organisation" description="Configured schedule context and recorded activity remain separate facts. No missing record becomes an attendance or performance finding." meta={people.length+" people"}>
-          {people.map((row)=>{
-            const ctx=contextFor(row.profile_id);
-            const schedule=latestSchedule(row.profile_id);
-            const dayType=currentDayType(row.profile_id);
-            const facts=sessionFacts(row.profile_id);
-            const time=schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"No clock context";
-            return <WorkforceRecordRow
-              key={row.profile_id}
-              className="workforce-person"
-              icon="person"
-              eyebrow={dayType?.name||"Schedule not configured"}
-              title={row.profiles?.full_name||"Employee"}
-              meta={(row.units?.name||"Unit not recorded")+" · "+(row.profiles?.job_title||"Position not recorded")+" · "+time}
-              note={(facts.first?"First recorded "+clock(facts.first.started_at):"No session recorded")+" · "+ctx.detail}
-              statusLabel={ctx.label}
-              statusTone={ctx.tone}
-            />;
-          })}
-          {!people.length&&<WorkforceEmpty compact title="No workforce records in scope" description="Authorised organisation workforce records will appear here."/>}
-        </WorkforceSection>
-      </>}
+        <div className="ev2wf-admin-roster">
+          <WorkforceSection title="Today across the organisation" description="Configured schedule context and recorded activity remain separate facts. No missing record becomes an attendance or performance finding." meta={people.length+" people"}>
+            {people.map((row)=>{
+              const ctx=contextFor(row.profile_id);
+              const schedule=latestSchedule(row.profile_id);
+              const dayType=currentDayType(row.profile_id);
+              const facts=sessionFacts(row.profile_id);
+              const time=schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"No clock context";
+              return <WorkforceRecordRow
+                key={row.profile_id}
+                className="workforce-person"
+                icon="person"
+                eyebrow={dayType?.name||"Schedule not configured"}
+                title={row.profiles?.full_name||"Employee"}
+                meta={(row.units?.name||"Unit not recorded")+" · "+(row.profiles?.job_title||"Position not recorded")+" · "+time}
+                note={(facts.first?"First recorded "+clock(facts.first.started_at):"No session recorded")+" · "+ctx.detail}
+                statusLabel={ctx.label}
+                statusTone={ctx.tone}
+              />;
+            })}
+            {!people.length&&<WorkforceEmpty compact title="No workforce records in scope" description="Authorised organisation workforce records will appear here."/>}
+          </WorkforceSection>
+        </div>
+      </div>}
 
       {tab==="calendar"&&<>
         <div className="ev2wf-filter-grid">
