@@ -9,7 +9,7 @@ Namespace: VF
 Status: ACTIVE
 
 Current stage: VF7 — Motion and interaction closure
-Current substage: VF7C — state / success feedback (DEPLOYMENT CHECKPOINT)
+Current substage: VF7D — reduced-motion verification (ACTIVE)
 
 Designated implementation branch:
 `chatgpt/visual-fidelity-implementation-2026-10-01`
@@ -526,12 +526,16 @@ Acceptance evidence:
 
 VF7B unifies legacy Sheet, V2 drawer/modal and operational disclosure interaction grammar around the accepted semantic motion vocabulary. Focus trap, Escape/backdrop dismissal, focus return and the CEAC touch floor remain intact. The prior Stage 12 regression assertions were updated because they still required retired CSS keyframes; application behavior was preserved.
 
-## Active: VF7C — state / success feedback
+### VF7C — state / success feedback: COMPLETE / ACCEPTED
 
-Exact application head:
+Accepted application SHA:
 `82ce30cfd95dfbbf7fe2bb571592e84069fc0ccd`
 
-Gate and Level C state:
+Application-equivalent deployed checkpoint:
+`1c8dd6ca2a661ea37ca342b5bb9e8d7438d00882` — PASS
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF7C_ACCEPTANCE.md`
 - CI `37005467024`: PASS
 - Migration Replay `37005467045`: PASS
 - Account Security `37005467022`: PASS
@@ -540,14 +544,27 @@ Gate and Level C state:
 - browser shards 1–4: PASS
 - merged exact-head product evidence: PASS
 - role-and-RLS coordinator: PASS
-- VF7C success/reduced-motion evidence: `vf7c-manager-finance-success-phone-390.png` in shard artifact `11225762808`
-- Level C: PASS — compact factual success acknowledgement remains non-blocking; alert/status live-region semantics remain distinct; reduced motion retains identical message/state.
+- success/reduced-motion evidence: `vf7c-manager-finance-success-phone-390.png` in shard artifact `11225762808`
+- application-equivalent Vercel deployment: PASS
 
-Deployment state:
-- exact application head: Vercel integration hit the external free-plan build-rate limit;
-- this documentation-only commit is the application-equivalent deployment checkpoint because it changes no application code.
+VF7C converges legacy ProductNotice and V2 Toast feedback on the accepted semantic motion vocabulary while keeping error alerts assertive, success/status feedback polite and atomic, and reduced-motion output factually identical.
 
-VF7C is not advanced to VF7D until this application-equivalent checkpoint receives Vercel PASS and the final acceptance record is persisted.
+## Active: VF7D — reduced-motion verification
+
+Purpose:
+Verify that the accepted interaction layer preserves all state, context, focus and operational actions when the user requests reduced motion.
+
+Required outcomes:
+1. global MotionConfig continues to respect the user reduced-motion preference;
+2. route/context changes retain destination and URL/back information with transform-heavy choreography removed;
+3. Calendar selection/period state remains visible and usable;
+4. Sheet/modal/drawer content, Escape dismissal and focus return remain unchanged;
+5. success/error feedback retains identical factual text and live-region semantics;
+6. no reduced-motion mode may hide information, actions, status or selected state;
+7. phone and laptop evidence must remain free of page overflow or desktop-compressed mobile layouts;
+8. pass affected Level A, exact-head Level B and Level C before VF8A.
+
+Do not begin VF8A canonically until VF7D is accepted.
 
 ## Protected boundaries
 
