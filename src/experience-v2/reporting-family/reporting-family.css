@@ -127,3 +127,117 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* VF5C — Executive reporting briefing composition.
+   Coverage remains filing-status evidence, never a unit or employee score. */
+.ev2-reporting-executive {
+  width: min(100%, 86rem);
+}
+
+.ev2-reporting-executive .ev2rep-executive-brief {
+  display: grid;
+  grid-template-columns: minmax(21rem, .8fr) minmax(0, 1.2fr);
+  gap: var(--ev2-space-4);
+  align-items: start;
+  margin-top: var(--ev2-space-6);
+}
+
+.ev2-reporting-executive .ev2rep-executive-brief > .ev2rep-section {
+  margin-top: 0;
+}
+
+.ev2-reporting-executive .ev2rep-evidence-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ev2-line);
+  border-radius: var(--ev2-radius-card);
+  background: var(--ev2-line);
+}
+
+.ev2-reporting-executive .ev2rep-evidence {
+  min-height: 7rem;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ev2-reporting-executive .ev2rep-list {
+  box-shadow: none;
+  border-radius: var(--ev2-radius-sm);
+}
+
+.ev2-reporting-executive .ev2rep-executive-empty-brief {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(18rem, .7fr);
+  gap: var(--ev2-space-4);
+  align-items: stretch;
+  margin-top: var(--ev2-space-6);
+}
+
+.ev2-reporting-executive .ev2rep-executive-empty-brief > .ev2rep-section {
+  margin-top: 0;
+}
+
+.ev2-reporting-executive .ev2rep-executive-authority {
+  display: grid;
+  align-content: center;
+  gap: var(--ev2-space-2);
+  padding: var(--ev2-space-5);
+  border-left: 3px solid var(--ev2-identity);
+  background: var(--ev2-surface-soft);
+}
+
+.ev2-reporting-executive .ev2rep-executive-authority > span {
+  color: var(--ev2-text-tertiary);
+  font-size: var(--ev2-type-label);
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.ev2-reporting-executive .ev2rep-executive-authority > strong {
+  color: var(--ev2-text);
+  font-size: var(--ev2-type-card-mobile);
+  line-height: 1.25;
+}
+
+.ev2-reporting-executive .ev2rep-executive-authority > p {
+  margin: 0;
+  color: var(--ev2-text-secondary);
+  font-size: var(--ev2-type-supporting);
+  line-height: 1.5;
+}
+
+@media (max-width: 960px) {
+  .ev2-reporting-executive .ev2rep-executive-brief,
+  .ev2-reporting-executive .ev2rep-executive-empty-brief {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .ev2-reporting-executive .ev2rep-executive-brief,
+  .ev2-reporting-executive .ev2rep-executive-empty-brief {
+    gap: var(--ev2-space-3);
+    margin-top: var(--ev2-space-4);
+  }
+
+  .ev2-reporting-executive .ev2rep-evidence-grid {
+    display: flex;
+    gap: 1px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  .ev2-reporting-executive .ev2rep-evidence {
+    flex: 0 0 min(78%, 17rem);
+    min-height: 6.5rem;
+  }
+
+  .ev2-reporting-executive .ev2rep-executive-authority {
+    padding: var(--ev2-space-4);
+  }
+}
