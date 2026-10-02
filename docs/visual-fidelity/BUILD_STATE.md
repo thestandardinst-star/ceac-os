@@ -481,21 +481,43 @@ Acceptance evidence:
 
 VF6D makes Connected Apps a secure operational connection record, keeps advanced diagnostics secondary, and makes Messages a flat operational inbox across all four roles. Provider secrets remain server-bound, provider capability never broadens CEAC authority, and Rooms / mentions / linked Work / Announcements remain the communication scope; unrestricted DM was not introduced.
 
-## Active: VF7A — navigation/context transitions
+### VF7A — Navigation / context transitions: COMPLETE / ACCEPTED
+
+Accepted application SHA:
+`e97ec131d6b4f743499b480e18b46033788f7380`
+
+Acceptance evidence:
+- `docs/visual-fidelity/acceptance/VF7A_ACCEPTANCE.md`
+- CI `37000628001`: PASS
+- Migration Replay `37000627967`: PASS
+- Account Security `37000628009`: PASS
+- Quality Gate `37000627850`: PASS
+- SQL/RLS/security contracts: PASS
+- browser shards 1–4: PASS
+- merged exact-head product evidence: PASS
+- role-and-RLS coordinator: PASS
+- Vercel exact-head deployment: PASS
+- route/context evidence: `vf7a-route-context-laptop-1366.png` in artifact `11224037096`
+- exact-head route matrix: artifact `11223764196`
+
+VF7A adds restrained route/context continuity using the accepted motion tokens while preserving URL/back semantics for tabs, Work items, Projects, Person, Room and Meeting contexts. The route wrapper remains geometry-neutral, and reduced-motion users retain the same destination/state information.
+
+## Active: VF7B — drawers / sheets / details
 
 Purpose:
-Add restrained spatial continuity to destination and record-context changes after geometry is already stable.
+Unify focused secondary-work surfaces so legacy Sheets, V2 drawers/modals and expandable detail surfaces use one restrained interaction vocabulary without changing workflow semantics.
 
 Required outcomes:
-1. primary destination changes should acknowledge context change without slowing routine work;
-2. work/item, person, project, Room and meeting context transitions must preserve the existing URL/back semantics;
-3. transition timing must use the accepted semantic motion tokens rather than ad-hoc durations;
-4. navigation motion must remain interruptible and must not animate unstable geometry;
-5. reduced-motion preference must retain the same state information and destination clarity;
-6. no routing, authority, data-fetch or business semantics may change;
-7. pass affected Level A, exact-head Level B and Level C before VF7B.
+1. legacy Sheet opening must use the accepted semantic motion tokens rather than a separate ad-hoc CSS animation path;
+2. Sheet focus trap, Escape/backdrop dismissal and focus return must remain intact;
+3. the Sheet close control must meet the CEAC 44px touch floor;
+4. V2 drawer/modal semantics remain the canonical focused-work reference;
+5. native details/disclosure controls remain immediate, reachable and at least 44px where used operationally;
+6. reduced-motion users must not depend on transform-heavy movement;
+7. no form, finance, calendar, Work, authority or data semantics may change;
+8. pass affected Level A, exact-head Level B and Level C before VF7C.
 
-Do not begin VF7B canonically until VF7A is accepted.
+Do not begin VF7C canonically until VF7B is accepted.
 
 ## Protected boundaries
 
