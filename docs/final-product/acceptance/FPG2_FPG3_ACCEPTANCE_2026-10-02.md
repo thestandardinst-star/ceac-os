@@ -17,9 +17,9 @@ Exact-head evidence:
 - Project selected-record drawer: `fpg2-project-task-drawer-desktop.png`
 - Finance desktop screenshot: `fpg3-finance-gold-desktop.png`
 
-FUNCTIONAL CONTRACT PRESERVED: YES  
-SECURITY/AUTHORITY PRESERVED: YES  
-REFERENCE COMPONENT PARITY: YES  
+FUNCTIONAL CONTRACT PRESERVED: YES
+SECURITY/AUTHORITY PRESERVED: YES
+REFERENCE COMPONENT PARITY: YES
 RESPONSIVE ACCEPTANCE: YES
 
 ## Notes
