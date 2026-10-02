@@ -22,7 +22,7 @@ jobs:
       level_b: ${{ steps.classify.outputs.level_b }}
       scope: ${{ steps.classify.outputs.scope }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Verify visual fidelity source of truth
@@ -42,7 +42,7 @@ jobs:
     if: needs.classify.outputs.documentation_only == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Verify documentation-only checkpoint
@@ -60,7 +60,7 @@ jobs:
     env:
       ROLE_FIXTURE_PASSWORD: Local-role-fixture-2026!
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -90,7 +90,7 @@ jobs:
     env:
       ROLE_FIXTURE_PASSWORD: Local-role-fixture-2026!
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
