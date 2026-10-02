@@ -195,7 +195,7 @@ export default function ManagerOverviewV2({
         <div><strong>Could not complete that</strong><span>{error}</span></div>
       </Surface> : null}
 
-      {loading ? <div className="managerv2-loading" aria-label="Loading Manager Overview">
+      {loading ? <div className="managerv2-loading" role="status" aria-live="polite" aria-busy="true" aria-label="Loading Manager Overview">
         <Surface variant="plain" padding="standard"><Skeleton width="32%" /><Skeleton width="88%" /><Skeleton width="72%" /></Surface>
         <Surface variant="plain" padding="standard"><Skeleton width="28%" /><Skeleton width="100%" /><Skeleton width="82%" /></Surface>
         <Surface variant="plain" padding="standard"><Skeleton width="36%" /><Skeleton width="94%" /><Skeleton width="76%" /></Surface>
