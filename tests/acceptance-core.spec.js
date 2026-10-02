@@ -1,3 +1,4 @@
+// FPG2/FPG3 exact-head Level B parity evidence checkpoint.
 import { test, expect } from "@playwright/test";
 
 const rolePassword = process.env.ROLE_FIXTURE_PASSWORD;
