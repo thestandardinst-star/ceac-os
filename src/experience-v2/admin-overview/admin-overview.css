@@ -443,25 +443,12 @@ button.adminv2-action-main {
 
   .adminv2-context-grid,
   .adminv2-support-grid {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--ev2-space-3);
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-    padding-bottom: var(--ev2-space-2);
-  }
-
-  .adminv2-context-grid::-webkit-scrollbar,
-  .adminv2-support-grid::-webkit-scrollbar {
-    display: none;
-  }
-
-  .adminv2-context-grid > .adminv2-panel,
-  .adminv2-support-grid > .adminv2-panel {
-    flex: 0 0 calc(100% - 2rem);
-    scroll-snap-align: start;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--ev2-space-4);
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .adminv2-action-main,
@@ -516,11 +503,6 @@ button.adminv2-action-main {
 
   .adminv2-mobile-actions {
     grid-template-columns: 1fr;
-  }
-
-  .adminv2-context-grid > .adminv2-panel,
-  .adminv2-support-grid > .adminv2-panel {
-    flex-basis: calc(100% - 1rem);
   }
 
   .adminv2-stat-grid.is-four {
