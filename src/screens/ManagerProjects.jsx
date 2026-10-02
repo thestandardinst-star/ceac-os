@@ -14,6 +14,8 @@ import {
   ProjectSectionHeader,
   ProjectTabs,
   ProjectWorkspaceHeader,
+  ProjectIssueTable,
+  ProjectWorkDrawer,
 } from "../experience-v2/project-family/ProjectFamilyV2";
 
 const OBJECTIVE_STATUSES = [
@@ -388,51 +390,26 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
             <button type="button" className={workFilter === "finished" ? "is-active" : ""} onClick={() => setWorkFilter("finished")}>Finished</button>
           </div>
         </div>
-        <div className="fpg-work-table-wrap">
-          <table className="fpg-work-table">
-            <thead><tr><th scope="col">Done</th><th scope="col">Issue</th><th scope="col">Date</th><th scope="col">Tags</th></tr></thead>
-            <tbody>
-              {visibleWork.map((item) => {
-                const done = ["completed","self_certified"].includes(item.status);
-                const objective = objectiveById.get(item.objective_id);
-                const phase = phaseById.get(item.phase_id);
-                return <tr key={item.id} className={selectedWorkId === item.id ? "is-selected" : ""} onClick={() => setSelectedWorkId(item.id)}>
-                  <td className="fpg-done-cell"><span className={done ? "fpg-readonly-check is-done" : "fpg-readonly-check"} aria-label={done ? "Completed" : "Not completed"}>{done ? "✓" : ""}</span></td>
-                  <td><button type="button" className="fpg-work-title" onClick={(event) => { event.stopPropagation(); setSelectedWorkId(item.id); }}><span><strong>{item.title}</strong><small>{item.ref} · {item.profiles?.full_name || "Unassigned"}</small></span></button></td>
-                  <td>{dueLabel(item.due_at)}</td>
-                  <td><div className="fpg-tag-stack">{statusPill(item.status)}{phase && <span className="fpg-context-tag">{phase.name}</span>}{objective && <span className="fpg-context-tag">{objective.ref}</span>}</div></td>
-                </tr>;
-              })}
-              {!visibleWork.length && <tr><td colSpan="4"><div className="fpg-table-empty">No project work matches this view.</div></td></tr>}
-            </tbody>
-          </table>
-        </div>
+        <ProjectIssueTable
+          items={visibleWork}
+          selectedId={selectedWorkId}
+          objectiveById={objectiveById}
+          phaseById={phaseById}
+          onSelect={setSelectedWorkId}
+          formatDue={dueLabel}
+          renderStatus={statusPill}
+        />
         {unattached.length > 0 && <p className="context-note">{unattached.length} item{unattached.length === 1 ? "" : "s"} are not attached to an objective. CEAC does not force a false objective relationship for administrative work.</p>}
-        {selectedWork && <div className="fpg-work-drawer-bg" role="presentation" onClick={() => setSelectedWorkId(null)}>
-          <aside className="fpg-work-drawer" role="dialog" aria-modal="true" aria-label={selectedWork.title} onClick={(event) => event.stopPropagation()}>
-            <div className="fpg-drawer-top">
-              <button type="button" className="fpg-drawer-close" aria-label="Close work preview" onClick={() => setSelectedWorkId(null)}>×</button>
-              <button type="button" className="fpg-drawer-open" onClick={() => openItem(selectedWork.id)}>Open full record ↗</button>
-            </div>
-            <div className="fpg-drawer-title"><span>{selectedWork.ref}</span><h2>{selectedWork.title}</h2></div>
-            <dl className="fpg-drawer-meta">
-              <div><dt>Status</dt><dd>{statusPill(selectedWork.status)}</dd></div>
-              <div><dt>Assignee</dt><dd>{selectedWork.profiles?.full_name || "Unassigned"}</dd></div>
-              <div><dt>Created context</dt><dd>{detail.name}</dd></div>
-              <div><dt>Due date</dt><dd>{dueLabel(selectedWork.due_at)}</dd></div>
-              <div><dt>Type</dt><dd>{selectedWork.kind?.replaceAll("_"," ") || "Work"}</dd></div>
-            </dl>
-            {selectedDescription && <section className="fpg-drawer-description"><p>{selectedDescription}</p></section>}
-            <section className="fpg-drawer-section">
-              <div className="fpg-drawer-section-head"><h3>Evidence</h3><span>{(selectedWork.submissions || []).reduce((sum, row) => sum + (row.submission_files?.length || 0), 0)}</span></div>
-              {(selectedWork.submissions || []).length ? selectedWork.submissions.map((submission) => <div className="fpg-evidence-row" key={submission.id}><span><strong>Submission</strong><small>{submission.submitted_at ? dateOnly(submission.submitted_at) : "Date not recorded"}</small></span><b>{submission.submission_files?.length || 0} file{(submission.submission_files?.length || 0) === 1 ? "" : "s"}</b></div>) : <p className="fpg-drawer-empty">No submission or evidence is recorded.</p>}
-            </section>
-            <section className="fpg-drawer-section">
-              <div className="fpg-drawer-tabs"><button type="button" className="is-active">Subtasks</button><button type="button" disabled title="Project discussion remains in the Project Room">Comments</button><button type="button" disabled title="Open the full record for authoritative activity history">Activity</button></div>
-              {(selectedWork.checklist_items || []).length ? <div className="fpg-subtask-list">{[...(selectedWork.checklist_items || [])].sort((a,b) => a.position-b.position).map((step) => <div key={step.id}><i aria-hidden="true" /><span>{step.label}</span></div>)}</div> : <p className="fpg-drawer-empty">No checklist steps are recorded for this work item.</p>}
-            </section>
-          </aside>
-        </div>}
+        <ProjectWorkDrawer
+          item={selectedWork}
+          projectName={detail.name}
+          description={selectedDescription}
+          onClose={() => setSelectedWorkId(null)}
+          onOpen={openItem}
+          formatDue={dueLabel}
+          formatDate={dateOnly}
+          renderStatus={statusPill}
+        />
       </section>}
 
       {area === "objectives" && <section className="project-workspace-area">
