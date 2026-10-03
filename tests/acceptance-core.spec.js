@@ -2442,3 +2442,26 @@ test("FPG9 Manager Home and shell follow the locked original CEAC reference", as
     await context.close();
   }
 });
+
+
+test("FPG10 propagates the accepted Work, Finance and People reference grammar across roles", async ({ browser }) => {
+  test.setTimeout(180000);
+  const checks = [
+    ["staff@ceac.local.test", [["Work", ".ev2-work-page"]]],
+    ["manager@ceac.local.test", [["Work", ".ev2-work-page"], ["Team", ".ev2-people-page"], ["Finance", ".ev2-finance-page"]]],
+    ["admin@ceac.local.test", [["Work", ".ev2-work-page"], ["People", ".fpg-people-roster"], ["Finance", ".fpg-finance-dashboard"]]],
+    ["exec@ceac.local.test", [["Work", ".ev2-work-page"], ["Finance", ".ev2-finance-page"]]],
+  ];
+  for (const [email, surfaces] of checks) {
+    const { context, page } = await openAs(browser, email, { width: 1366, height: 768 });
+    for (const [route, selector] of surfaces) {
+      await go(page, route);
+      await expect(page.locator(selector).first()).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    }
+    const role = email.split("@")[0];
+    await page.screenshot({ path: `test-artifacts/fpg10-${role}-propagation.png`, fullPage: true });
+    await context.close();
+  }
+});
