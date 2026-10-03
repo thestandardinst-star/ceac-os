@@ -174,10 +174,10 @@ export default function People({ me, openItem }) {
     let protectedResult = { data: null, error: null };
 
     const linkedRequests = summary.profile_id
-      ? [
+      ? Promise.all([
           supabase.rpc("admin_person_detail", { p_profile_id: summary.profile_id }),
           supabase.rpc("admin_employment_detail", { p_profile_id: summary.profile_id }),
-        ]
+        ])
       : Promise.resolve([{ data: { work: [], sessions: [], leave: [] }, error: null }, { data: { current: null, history: [] }, error: null }]);
 
     setProtectedHrLoading(canManageProtectedHr);
