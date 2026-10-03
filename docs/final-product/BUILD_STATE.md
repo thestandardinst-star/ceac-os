@@ -124,3 +124,30 @@ The available tools provide GitHub repository reads/writes and Actions retries, 
 The repository has payroll.prepare/payroll.approve capability definitions and separation-of-duty checks, protected compensation_history/payment_details under hr_private, protected-HR RPCs/private storage, and platform_audit_events. No Payroll run implementation was found in the canonical tree. Latest migration filename before this checkpoint is `20261001101500_100_integration_table_privilege_hardening.sql`; recheck repository and applied production history before selecting a new migration version.
 
 Reuse these foundations. Preserve explicit capability authority while implementing the owner-confirmed Administration prepare / Group Pastor approve boundary and protected-HR read visibility. Unconfirmed formulas remain manual-authoritative/configurable, and approved runs must be immutable with attributable correction/reversal.
+
+
+## FPG4 — Proven reusable components: ACCEPTED
+
+Accepted application SHA: `900120578b318e70152d38c93de0b8d2b9a0a7c7`.
+
+Evidence:
+- CI PASS;
+- Migration Replay PASS after unchanged-head retry of transient runner port conflict;
+- Account Security PASS;
+- full Level B Quality Gate PASS;
+- exact-head Project desktop, selected-record drawer and Finance screenshots are pixel-identical to the previously accepted FPG2/FPG3 captures.
+
+No query, mutation, authority, data or visual behavior changed through extraction.
+
+## Current stage
+
+FPG5 — Stage 13 Payroll domain/security implementation: ACTIVE
+
+Implementation rules:
+- Administration prepares; Group Pastor/CEO approves;
+- preparation and approval remain mutually exclusive capabilities;
+- protected salary/payment/payroll data remains behind `hr_private`;
+- no automatic approval;
+- no deductions inferred from attendance/work sessions;
+- unconfirmed formulas remain explicit manual-authoritative inputs;
+- approved payroll runs are immutable; corrections create attributable successor records.
