@@ -856,8 +856,7 @@
 .ev2s-sidebar-group+.ev2s-sidebar-group{padding-top:0;border-top:0}
 .ev2s-sidebar-group-label{display:none}
 .fpg9-sidebar-quick{
-  margin:.55rem .25rem 0;padding:.65rem .5rem;border:1px solid rgba(255,255,255,.08);
-  border-radius:var(--ev2-radius-control);background:rgba(255,255,255,.025)
+  margin:.55rem .25rem 0;padding:.65rem .5rem;border-radius:var(--ev2-radius-control)
 }
 .fpg9-sidebar-quick>span{
   display:block;margin:0 .25rem .45rem;color:#8ea0b5;font-size:var(--ev2-type-label);
@@ -879,7 +878,4 @@
 .fpg9-topbar-message:hover{border-color:var(--ev2-line);background:var(--ev2-surface);color:var(--ev2-text)}
 @media (min-width:1200px) and (max-width:1399px){
   .ev2s-topbar{grid-template-columns:minmax(18rem,1fr) auto}
-}
-@media (max-width:1199px){
-  .ev2s-topbar{grid-template-columns:minmax(12rem,1fr) auto}
 }
