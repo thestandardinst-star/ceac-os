@@ -308,12 +308,19 @@ export default function People({ me, openItem }) {
   }
 
   if (person) {
+    const hasLinkedProfile = Boolean(person.profile_id);
     const employmentCurrent = person.employment?.current || null;
     const employmentHistory = Array.isArray(person.employment?.history) ? person.employment.history : [];
     const taken = Number(person.balance?.annual_taken || 0);
     const entitlement = leavePolicy ? Number(leavePolicy.annual_days || 0) + Number(person.balance?.carryover_from_last_year || 0) : null;
-    const employmentState = (employmentCurrent?.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ");
-    const positionLabel = person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff";
+    const employmentState = (employmentCurrent?.employment_status || person.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ");
+    const rosterUnitNames = (person.roster_units || []).map((unit) => unit.unit_name).filter(Boolean);
+    const positionLabel = hasLinkedProfile
+      ? (person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff")
+      : (person.source_position || "Roster employee");
+    const identityLabel = person.identity_state === "needs_review"
+      ? "Identity review required"
+      : hasLinkedProfile ? "Account linked" : "Roster only · no account linked";
 
     return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
       <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" ariaLabel="← All people" />
@@ -324,7 +331,12 @@ export default function People({ me, openItem }) {
         name={person.full_name}
         eyebrow={`${employmentCurrent?.unit_name || person.unit_name || "No unit"} · ${positionLabel}`}
         subtitle={employmentCurrent?.job_title || person.job_title || "No job title recorded"}
-        context={[person.email, person.phone, `Employment ${employmentState}`].filter(Boolean).join(" · ")}
+        context={[
+          person.email || identityLabel,
+          person.phone,
+          person.source_department_text,
+          `Employment ${employmentState}`,
+        ].filter(Boolean).join(" · ")}
       />
 
       {error && <ProductNotice tone="error" title="Employee record">{error}</ProductNotice>}
@@ -337,10 +349,14 @@ export default function People({ me, openItem }) {
         className="ev2p-admin-identity-section"
       >
         <div className="ev2p-admin-record-grid">
-          <PeopleFactRow icon="people" title="Email" subtitle={person.email || "Not recorded"} />
+          <PeopleFactRow icon="people" title="Account" subtitle={person.email || identityLabel} />
           {person.phone && <PeopleFactRow icon="info" title="Phone" subtitle={person.phone} />}
-          <PeopleFactRow icon="people" title="Position" subtitle={positionLabel} />
-          <PeopleFactRow icon="info" title="Status" subtitle={person.active ? "Active" : "Inactive"} />
+          <PeopleFactRow icon="people" title={hasLinkedProfile ? "Authority context" : "Source position"} subtitle={positionLabel} />
+          <PeopleFactRow icon="info" title="Employee status" subtitle={person.active ? "Active" : "Inactive"} />
+          <PeopleFactRow icon="info" title="Identity state" subtitle={identityLabel} />
+          {!hasLinkedProfile && person.source_department_text && <PeopleFactRow icon="people" title="Source department" subtitle={person.source_department_text} />}
+          {!hasLinkedProfile && rosterUnitNames.length > 0 && <PeopleFactRow icon="people" title="Recorded units" subtitle={rosterUnitNames.join(" · ")} />}
+          {!hasLinkedProfile && person.responsibility_context?.length > 0 && <PeopleFactRow icon="work" title="Programme / responsibility context" subtitle={person.responsibility_context.join(" · ")} />}
           {person.birthday && <PeopleFactRow icon="calendar" title="Birthday" subtitle={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
         </div>
       </PeopleWorkspaceSection>
@@ -350,15 +366,15 @@ export default function People({ me, openItem }) {
       <PeopleWorkspaceSection
         title="Employment record"
         description="The current authorised employment record. Recording a change creates a new historical snapshot rather than overwriting the past."
-        meta={<button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button>}
+        meta={hasLinkedProfile ? <button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button> : "Roster context"}
       >
         <div className="ev2p-admin-record-grid">
-          <PeopleFactRow icon="people" title="Employment type" subtitle={employmentCurrent?.employment_type || person.contract_type || "Not recorded"} />
-          <PeopleFactRow icon="work" title="Title" subtitle={employmentCurrent?.job_title || person.job_title || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Primary unit" subtitle={employmentCurrent?.unit_name || person.unit_name || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Manager" subtitle={employmentCurrent?.manager_name || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Role" subtitle={(employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ")} />
-          <PeopleFactRow icon="calendar" title="Working pattern" subtitle={(employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ")} />
+          <PeopleFactRow icon="people" title="Employment type" subtitle={employmentCurrent?.employment_type || person.employment_type || person.contract_type || "Not recorded"} />
+          <PeopleFactRow icon="work" title={hasLinkedProfile ? "Title" : "Source position"} subtitle={employmentCurrent?.job_title || person.job_title || person.source_position || "Not recorded"} />
+          <PeopleFactRow icon="people" title={hasLinkedProfile ? "Primary unit" : "Recorded units"} subtitle={employmentCurrent?.unit_name || (rosterUnitNames.length ? rosterUnitNames.join(" · ") : "Not recorded")} />
+          <PeopleFactRow icon="people" title="Manager" subtitle={hasLinkedProfile ? (employmentCurrent?.manager_name || "Not recorded") : "Not recorded · no authority inferred"} />
+          <PeopleFactRow icon="people" title="Role / authority" subtitle={hasLinkedProfile ? (employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ") : "Not inferred from workbook title"} />
+          <PeopleFactRow icon="calendar" title="Working pattern" subtitle={hasLinkedProfile ? (employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ") : "Not recorded"} />
           <PeopleFactRow icon="calendar" title="Joined" subtitle={employmentCurrent?.joined_on ? dateOnly(employmentCurrent.joined_on) : "Not recorded"} />
           <PeopleFactRow icon="info" title="Employment status" subtitle={employmentState} />
           {employmentCurrent?.exited_on && <PeopleFactRow icon="calendar" title="Exit date" subtitle={dateOnly(employmentCurrent.exited_on)} />}
@@ -367,29 +383,35 @@ export default function People({ me, openItem }) {
 
       <PeopleWorkspaceSection
         title="Employment history"
-        description="Audited employment snapshots in effective-date order."
-        meta={`${employmentHistory.length} recorded`}
+        description={hasLinkedProfile ? "Audited employment snapshots in effective-date order." : "A roster-only employee has no linked account employment history yet."}
+        meta={hasLinkedProfile ? `${employmentHistory.length} recorded` : "Not linked"}
       >
-        {employmentHistory.length === 0
-          ? <PeopleEmpty title="No employment history yet" description="Employment changes recorded here will preserve their effective date, reason and audit context." />
-          : <div className="ev2p-admin-history-list">{employmentHistory.slice(0, 12).map((event) => <article className="ev2p-admin-history-row" key={event.id}>
-              <div>
-                <strong>{employmentChangeLabel(event.change_type)}</strong>
-                <span>
-                  Effective {dateOnly(event.effective_on)}
-                  {event.job_title ? " · " + event.job_title : ""}
-                  {event.unit_name ? " · " + event.unit_name : ""}
-                </span>
-                {event.reason && <small>{event.reason}</small>}
-              </div>
-              <span>{event.actor_name ? `Recorded by ${event.actor_name}` : "System baseline"}</span>
-            </article>)}</div>}
+        {!hasLinkedProfile
+          ? <PeopleEmpty title="No linked employment history" description="The employee remains fully represented in the roster. Account and employment-history linking can happen later without recreating this employee." />
+          : employmentHistory.length === 0
+            ? <PeopleEmpty title="No employment history yet" description="Employment changes recorded here will preserve their effective date, reason and audit context." />
+            : <div className="ev2p-admin-history-list">{employmentHistory.slice(0, 12).map((event) => <article className="ev2p-admin-history-row" key={event.id}>
+                <div>
+                  <strong>{employmentChangeLabel(event.change_type)}</strong>
+                  <span>
+                    Effective {dateOnly(event.effective_on)}
+                    {event.job_title ? " · " + event.job_title : ""}
+                    {event.unit_name ? " · " + event.unit_name : ""}
+                  </span>
+                  {event.reason && <small>{event.reason}</small>}
+                </div>
+                <span>{event.actor_name ? `Recorded by ${event.actor_name}` : "System baseline"}</span>
+              </article>)}</div>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
         title="Work & activity context"
-        description="Factual authorised work and session evidence only. These records are not a productivity score, ranking, pay input or disciplinary conclusion."
+        description={hasLinkedProfile
+          ? "Factual authorised work and session evidence only. These records are not a productivity score, ranking, pay input or disciplinary conclusion."
+          : "Operational work and session evidence appears only when this employee is linked to a real CEAC account."}
       >
+        {!hasLinkedProfile && <PeopleEmpty title="No linked operational account" description="The employee is present in the roster, but CEAC will not invent work, attendance or submission records for someone without a linked account." />}
+        {hasLinkedProfile && <>
         <div className="ev2p-outcome-grid ev2p-admin-work-grid">
           <button type="button" onClick={() => setDrill({ label: "Finished work — given to them", kind: "work", rows: person.assigned })}>
             <b>{person.assigned.length}</b><span>finished — given to them</span>
@@ -427,12 +449,17 @@ export default function People({ me, openItem }) {
           </span>
           <span className="ev2p-link-row-tail">›</span>
         </button>
+        </>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
         title="Leave"
-        description={leavePolicy ? "Recorded leave against the currently configured leave policy." : "Leave actually taken is shown, but entitlement is not calculated because Administration has not configured the policy."}
+        description={hasLinkedProfile
+          ? (leavePolicy ? "Recorded leave against the currently configured leave policy." : "Leave actually taken is shown, but entitlement is not calculated because Administration has not configured the policy.")
+          : "Leave history appears only when this employee is linked to an operational CEAC account."}
       >
+        {!hasLinkedProfile && <PeopleEmpty title="No linked leave record" description="The employee remains represented in the roster without fabricated leave or attendance data." />}
+        {hasLinkedProfile && <>
         <div className="ev2p-admin-leave-card">
           {leavePolicy
             ? <ProgressMeter value={taken} max={entitlement} label="Annual leave used" detail={taken + " of " + entitlement + " configured days"} />
@@ -446,6 +473,7 @@ export default function People({ me, openItem }) {
           </span>
           <span className="ev2p-link-row-tail">›</span>
         </button>
+        </>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
@@ -464,7 +492,7 @@ export default function People({ me, openItem }) {
         </div>
       </div>
 
-      {employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
+      {hasLinkedProfile && employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
         <div className="eyebrow">People & employment</div>
         <div className="h2">Record employment change</div>
         <p className="screen-note">This writes a new historical snapshot. Earlier employment history is not overwritten.</p>
