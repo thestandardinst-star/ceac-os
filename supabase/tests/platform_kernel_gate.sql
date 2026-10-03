@@ -133,8 +133,6 @@ begin
      or has_function_privilege('authenticated','public.submit_report(uuid,jsonb)','EXECUTE') then
     raise exception 'Platform Kernel gate failure: an internal-only privileged helper remains directly executable by authenticated.';
   end if;
-end
-$definer_surface$;
 
   if to_regprocedure('public.payroll_list_runs()') is null
      or to_regprocedure('public.payroll_run_detail(uuid)') is null
@@ -155,6 +153,9 @@ $definer_surface$;
      or has_function_privilege('anon','public.payroll_create_correction(uuid,text)','EXECUTE') then
     raise exception 'Platform Kernel gate failure: anon can execute a protected Payroll RPC.';
   end if;
+end
+$definer_surface$;
+
 
 -- Protected HR is deliberately outside browser-exposed public data.
 do $hr_boundary$
