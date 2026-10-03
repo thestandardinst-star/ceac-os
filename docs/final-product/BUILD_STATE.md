@@ -302,3 +302,32 @@ Dry-run preparation completed outside Git:
 - 0 new auth accounts proposed before reviewed input.
 
 Production mutation remains prohibited until the reviewed apply step resolves identity, real-email, unit-membership and primary-unit decisions. Safe read-only preparation may continue meanwhile.
+
+
+## FPG8 — implementation verification checkpoint: GREEN / OWNER REVIEW REQUIRED
+
+Verified application SHA: `7717ddc22644443a69bdbbf2372a7edfc8a8dec5`.
+
+Implementation-side evidence:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Level B SQL and authority contracts PASS;
+- browser shards 1/4, 2/4, 3/4 and 4/4 PASS;
+- exact-head evidence merge PASS;
+- role-and-RLS closure PASS;
+- Quality Gate PASS.
+
+The reconciliation engine is intentionally dry-run only and exports no production-apply function. No source job-title wording grants capabilities, no fake email/auth identity is generated, and private workbook rows remain outside Git.
+
+FPG8 is NOT accepted yet because the programme requires a reviewed apply step. The private review must resolve:
+- confirmation of exact identity matches;
+- possible duplicate identity review;
+- real work-email availability for any account activation;
+- the unresolved primary office unit for the programme-only source row;
+- creation of the three approved-but-not-yet-live units;
+- proposed multiple-unit memberships;
+- job-title/employment context separately from authority;
+- explicit production apply scope.
+
+Until those decisions are reviewed, production mutation remains prohibited. FPG9 read-only preparation is permitted, but the canonical write sequence does not cross the FPG8 → FPG9 boundary.
