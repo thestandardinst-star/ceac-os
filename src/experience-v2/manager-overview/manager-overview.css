@@ -15,7 +15,7 @@
 .fpg9-home-context span{color:#2e756d}
 .fpg9-home-hero h1{margin:0;color:#111923;font-size:32px;line-height:1.06;letter-spacing:-.04em}
 .fpg9-home-hero h1 span{font-size:.82em}
-.fpg9-home-hero p{margin:7px 0 0;color:#354652;font-size:12px}
+.fpg9-home-hero p{margin:7px 0 0;color:#354652;font-size:12px}\n.fpg9-home-hero-action{margin-top:12px}
 .fpg9-home-impact{
   width:min(325px,38%);flex:none;padding:12px 14px;border:1px solid rgba(255,255,255,.5);
   border-radius:13px;background:rgba(22,45,44,.22);backdrop-filter:blur(10px);color:#fff
@@ -145,6 +145,6 @@ button.fpg9-home-row:hover{background:#f8fafb}
 }
 @media(max-width:599px){
   .managerv2{gap:12px;padding-bottom:28px}.fpg9-next-card{grid-template-columns:100px minmax(0,1fr);min-height:170px}.fpg9-module-strip>div{grid-template-columns:1fr 1fr}.fpg9-module-strip button{grid-template-columns:30px minmax(0,1fr);min-height:58px}.fpg9-module-strip button>svg{display:none}
-  .managerv2-decision-row{grid-template-columns:30px minmax(0,1fr)}.managerv2-decision-actions{grid-column:1/-1;justify-content:flex-start}.managerv2-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .managerv2-decision-row{grid-template-columns:2rem minmax(0,1fr)}.managerv2-decision-actions{grid-column:1/-1;justify-content:flex-start}.managerv2-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:340px){.fpg9-module-strip>div,.managerv2-finance-facts,.managerv2-pulse-grid{grid-template-columns:1fr}}
