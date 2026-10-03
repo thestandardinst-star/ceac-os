@@ -2365,3 +2365,42 @@ test("FPG6 Payroll gives Administration preparation and Executive protected revi
     await context.close();
   }
 });
+
+
+test("FPG7 People and Workforce follow the locked employee-management reference without invented HR data", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "People");
+    await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-people-roster")).toBeVisible();
+    await expect(page.locator(".fpg-people-roster-row").first()).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg7-people-roster-desktop.png", fullPage: true });
+
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Planned absences", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-absence-board")).toBeVisible();
+    await expect(page.getByLabel("Workforce calendar unit filter")).toBeVisible();
+    await expect(page.getByLabel("Workforce calendar person filter")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg7-workforce-absence-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "People");
+    await expect(page.locator(".fpg-people-roster")).toBeVisible();
+    let overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+    await expect(page.locator(".fpg-absence-scroll")).toBeVisible();
+    overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg7-people-workforce-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
