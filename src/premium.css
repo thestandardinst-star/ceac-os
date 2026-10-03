@@ -158,7 +158,6 @@ button,input,select,textarea{font:inherit}
 /* FPG6 — protected Payroll workspace.
    Reuses accepted FPG3 financial hierarchy and People-style employee context.
    No payroll formula or output policy is inferred by this layer. */
-.fpg-payroll{max-width:1380px!important}
 .fpg-payroll-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin:4px 0 18px}
 .fpg-payroll-head>div:first-child{max-width:760px}
 .fpg-payroll-head>div:first-child>span{display:block;color:#8b929d;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
