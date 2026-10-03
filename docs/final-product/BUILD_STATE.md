@@ -198,3 +198,47 @@ Visual authority:
 - use locked People/Workforce treatment for employee rows/context;
 - no invented payroll reference, figures, employee scores or formulas;
 - all visible actions must map to the accepted protected Payroll RPCs.
+
+
+## FPG6 — Payroll visual implementation: ACCEPTED
+
+Accepted application SHA: `e891944ae818201f0dc51391bf27ba3837d08b2f`.
+
+Implemented and verified:
+- capability-gated Payroll navigation for Administration (`payroll.prepare`) and Group Pastor/CEO (`payroll.approve`);
+- protected Payroll workspace backed only by the accepted FPG5 RPCs;
+- draft creation, employee-level authoritative additions/deductions, submission, approval, review and attributable correction entry points;
+- accepted FPG3 financial-summary hierarchy reused for totals;
+- People-style employee row treatment reused for protected employee Payroll context;
+- responsive Administration desktop and Executive mobile acceptance;
+- explicit truthful message that payslip distribution, payment export and statutory formula automation remain unavailable until policy is confirmed;
+- premium 12px operational typography floor restored;
+- shell acceptance contract updated to reflect Payroll capability visibility.
+
+Exact-head evidence:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Level B SQL and authority contracts PASS;
+- browser shards 1/4, 2/4, 3/4 and 4/4 PASS;
+- exact-head evidence merge PASS;
+- role-and-RLS closure PASS;
+- Vercel status: success.
+
+FUNCTIONAL CONTRACT PRESERVED: YES
+SECURITY/AUTHORITY PRESERVED: YES
+REFERENCE COMPONENT PARITY: YES — Finance hierarchy + People employee treatment reused from locked/accepted references
+RESPONSIVE ACCEPTANCE: YES
+
+## Current stage
+
+FPG7 — People / HR / Workforce exact-reference implementation: ACTIVE
+
+Literal authority: PEOPLE-A (`file_00000000d6988210aec6b733d9fb089d`).
+Primary target components:
+- employee rows with avatar, name and role/title;
+- planned-absence horizontal employee-by-date calendar;
+- compact date/filter controls;
+- truthful colored approved/pending leave blocks;
+- lower contextual cards only where authoritative CEAC records exist.
+Do not invent onboarding tasks, future events, AI assistant content or HR scoring to imitate reference-only material.
