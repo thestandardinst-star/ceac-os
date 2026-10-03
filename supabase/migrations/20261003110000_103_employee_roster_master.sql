@@ -136,67 +136,9 @@ create trigger audit_employee_unit_memberships
 after insert or update or delete on public.employee_unit_memberships
 for each row execute function public.platform_audit_capture('employee_unit_membership','id','');
 
--- Existing authenticated people become linked employees. This backfill is idempotent
--- and does not change any account, membership, capability or authority.
-insert into public.employee_roster(
-  org_id,profile_id,full_name,preferred_name,job_title,employment_type,
-  employment_status,identity_state,source_system,source_row_key
-)
-select
-  p.org_id,
-  p.id,
-  p.full_name,
-  p.preferred_name,
-  p.job_title,
-  case
-    when lower(replace(coalesce(p.contract_type,''),'-','_'))='permanent' then 'permanent'
-    when lower(replace(coalesce(p.contract_type,''),'-','_')) in ('fixed_term','fixed term') then 'fixed_term'
-    when lower(coalesce(p.contract_type,''))='volunteer' then 'volunteer'
-    else 'not_recorded'
-  end,
-  case when p.active then 'active' else 'inactive' end,
-  'linked',
-  'profile_backfill',
-  p.id::text
-from public.profiles p
-on conflict(profile_id) do update set
-  full_name=excluded.full_name,
-  preferred_name=excluded.preferred_name,
-  job_title=excluded.job_title,
-  employment_type=excluded.employment_type,
-  employment_status=excluded.employment_status,
-  identity_state='linked',
-  updated_at=now();
-
-with ranked as (
-  select
-    er.org_id,
-    er.id employee_id,
-    um.unit_id,
-    row_number() over (
-      partition by er.id
-      order by
-        case when emp.unit_id=um.unit_id then 0 else 1 end,
-        case when um.role='manager' then 0 else 1 end,
-        um.created_at,
-        um.id
-    ) as rn
-  from public.employee_roster er
-  join public.unit_memberships um
-    on um.profile_id=er.profile_id and um.org_id=er.org_id
-  left join public.employment_records emp
-    on emp.profile_id=er.profile_id and emp.org_id=er.org_id
-  where er.profile_id is not null
-)
-insert into public.employee_unit_memberships(
-  org_id,employee_id,unit_id,is_primary,context_label
-)
-select org_id,employee_id,unit_id,(rn=1),'Linked profile membership'
-from ranked
-on conflict(employee_id,unit_id) do update set
-  is_primary=excluded.is_primary,
-  context_label=excluded.context_label,
-  updated_at=now();
+-- Profiles are intentionally NOT auto-backfilled into the employee roster.
+-- Authentication accounts are not proof of employment. ERC2 performs the explicit
+-- reviewed staff reconciliation and links only confirmed employee/profile identities.
 
 create or replace function public.admin_employee_roster_summary()
 returns jsonb
