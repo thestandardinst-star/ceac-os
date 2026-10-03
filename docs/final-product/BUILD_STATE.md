@@ -151,3 +151,50 @@ Implementation rules:
 - no deductions inferred from attendance/work sessions;
 - unconfirmed formulas remain explicit manual-authoritative inputs;
 - approved payroll runs are immutable; corrections create attributable successor records.
+
+
+## FPG5 — Stage 13 Payroll domain/security: ACCEPTED
+
+Accepted application SHA: `3ad256094f7c01e585fc5c40c657ac2fed084817`.
+
+Implemented and verified:
+- protected `hr_private.payroll_periods`, `payroll_runs`, `payroll_entries`, and `payroll_entry_lines`;
+- Administration-only `payroll.prepare` and Group Pastor/CEO-only `payroll.approve` separation, including conflicting-grant prevention;
+- explicit protected-HR visibility for the Group Pastor/CEO;
+- draft → in review → approved lifecycle;
+- approved-run/entry/line/period immutability;
+- attributable correction-run successor flow;
+- manual-authoritative additions/deductions; no attendance-derived or unconfirmed statutory formula;
+- protected read/create/edit/submit/approve/correction RPC surface with audit evidence;
+- dedicated `payroll_stage13_gate.sql` added to the cumulative SQL/security runner.
+
+Exact-head evidence:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Level B SQL and authority contracts PASS, including the dedicated Payroll gate;
+- browser shards 1/4, 2/4, 3/4 and 4/4 PASS;
+- evidence merge PASS;
+- role-and-RLS closure PASS;
+- Vercel PASS.
+
+Deferred because owner policy is still unconfirmed:
+- statutory SSNIT/PAYE formula automation;
+- part-month prorating;
+- final payday/pay-cycle policy;
+- payslip distribution method;
+- transport-allowance values;
+- December-bonus formula/value;
+- loan/advance repayment formula;
+- reimbursement timing.
+These must not be invented in FPG6.
+
+## Current stage
+
+FPG6 — Payroll visual implementation: ACTIVE
+
+Visual authority:
+- use the accepted FPG3 Finance composition for financial summary hierarchy;
+- use locked People/Workforce treatment for employee rows/context;
+- no invented payroll reference, figures, employee scores or formulas;
+- all visible actions must map to the accepted protected Payroll RPCs.
