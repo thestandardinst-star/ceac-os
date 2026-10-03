@@ -1,3 +1,4 @@
+// FPG9 exact-head Level B original CEAC Home shell parity checkpoint.
 // FPG8 exact-head Level B staff reconciliation safety checkpoint.
 // FPG7 exact-head Level B People Workforce parity checkpoint — final 12px repair.
 // FPG7 exact-head Level B People Workforce parity checkpoint — CSS budget repair.
@@ -2404,6 +2405,40 @@ test("FPG7 People and Workforce follow the locked employee-management reference 
     overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
     await page.screenshot({ path: "test-artifacts/fpg7-people-workforce-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
+
+
+test("FPG9 Manager Home and shell follow the locked original CEAC reference", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1440, height: 900 });
+    await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+    await expect(page.locator(".fpg9-sidebar-quick")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Open messages", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg9-home-hero")).toBeVisible();
+    await expect(page.locator(".fpg9-next-card")).toBeVisible();
+    await expect(page.locator(".fpg9-schedule-card")).toBeVisible();
+    await expect(page.locator(".fpg9-calendar-card")).toBeVisible();
+    await expect(page.locator(".fpg9-attention-card")).toBeVisible();
+    await expect(page.locator(".fpg9-waiting-card")).toBeVisible();
+    await expect(page.locator(".fpg9-coming-card")).toBeVisible();
+    await expect(page.locator(".fpg9-module-strip")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg9-manager-home-shell-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await expect(page.locator(".ev2s-sidebar")).toBeHidden();
+    await expect(page.locator(".fpg9-home-hero")).toBeVisible();
+    await expect(page.locator(".fpg9-home-reference")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg9-manager-home-shell-mobile.png", fullPage: true });
     await context.close();
   }
 });
