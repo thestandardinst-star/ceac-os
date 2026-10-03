@@ -55,7 +55,7 @@ const routeByLabel = {
   Workforce:"attendance", "Time & Leave":"attendance",
   People:"people", "Employee lifecycle":"lifecycle", "Protected HR":"protected-hr",
   Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
-  Reports:"reporting", Cost:"cost", Finance:"finance",
+  Reports:"reporting", Cost:"cost", Finance:"finance", Payroll:"payroll",
   Audit:"audit", Events:"events", Workflows:"workflows", Checks:"workflows", Authority:"authority",
   "System rules":"policies", Integrations:"integrations", "Connected Apps":"integrations", "Control Center":"settings", Settings:"settings",
   Announcements:"announcements"
@@ -2321,6 +2321,47 @@ test("Role shells stay within the phone viewport", async ({ browser }) => {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${email} / ${destination} overflowed the phone viewport`).toBeLessThanOrEqual(1);
     }
+    await context.close();
+  }
+});
+
+
+test("FPG6 Payroll gives Administration preparation and Executive protected review surfaces", async ({ browser }) => {
+  test.setTimeout(120000);
+  const payrollLabel = "FPG6 July 2026 Payroll";
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Payroll");
+    await expect(page.getByRole("heading", { name: "Payroll", exact: true })).toBeVisible();
+    await expect(page.getByText("Administration prepares", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Create payroll run", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Period label").fill(payrollLabel);
+    await dialog.getByLabel("Period start").fill("2026-07-01");
+    await dialog.getByLabel("Period end").fill("2026-07-31");
+    await dialog.getByLabel("Currency").selectOption("GHS");
+    await dialog.getByLabel("Preparation note").fill("FPG6 visual acceptance fixture");
+    await dialog.getByRole("button", { name: "Create draft Payroll", exact: true }).click();
+
+    await expect(page.getByText("Draft payroll run created from protected employee records.", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: payrollLabel, exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-payroll-table")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg6-payroll-admin-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "Payroll");
+    await expect(page.getByRole("heading", { name: "Payroll", exact: true })).toBeVisible();
+    await expect(page.getByText("Group Pastor approves", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: payrollLabel, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Create payroll run", exact: true })).toHaveCount(0);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg6-payroll-executive-mobile.png", fullPage: true });
     await context.close();
   }
 });
