@@ -8,6 +8,7 @@ const premiumCssFiles = [
   "src/premium-admin.css",
   "src/premium-executive.css",
   "src/premium-parity.css",
+  "src/final-product/fpg7-people-workforce.css",
 ];
 
 test("issue 70 runtime typography fixes stay at the approved floor", async () => {
