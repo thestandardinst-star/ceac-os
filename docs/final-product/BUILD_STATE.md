@@ -96,7 +96,7 @@ PR #93 remains OPEN / DRAFT. Both refs were fetched again immediately before thi
 - Exact error: Docker could not bind host port `0.0.0.0:54322` for `supabase_db_ceac-os`: `address already in use`.
 - Legacy-artifact restoration and application migration replay were skipped.
 - Classified as a runner/container startup port conflict, not an application migration failure. The accepted-to-current comparison contains no workflow, Supabase configuration, or migration changes.
-- Failed jobs were rerun through GitHub Actions without a code change. Retry job: `111112127510`. Last observation: IN PROGRESS at clean Supabase startup. Re-fetch its final result; do not treat this checkpoint as a green replay gate.
+- Failed jobs were rerun through GitHub Actions without a code change. Retry job: `111112127510`: PASS, including clean Supabase startup, legacy-artifact restoration, immutable application migration replay and migration-state reporting. The successful unchanged-head retry confirms the original failure was transient infrastructure. All four technical workflows are now green at application HEAD.
 - No application or migration fix was invented; canonical migration history is unchanged.
 
 ### Extraction review
@@ -114,8 +114,8 @@ FPG4 remains ACTIVE / acceptance pending. Source preservation is established; th
 The available tools provide GitHub repository reads/writes and Actions retries, but no shell, checkout execution, browser, image viewer, or ZIP extraction. Consequently this session cannot run npm ci/build or affected browser checks, nor inspect the screenshot artifacts and literal references. This is an indispensable execution/evidence-access blocker, not an owner-policy question. Do not push unverified Payroll implementation through the contents API to bypass it.
 
 ### Exact next action
-1. Fetch main, FPG HEAD, PR #93 and final retry result for run `37074006563`.
-2. If the retry fails, inspect its new logs and classify the concrete cause before changing anything.
+1. Fetch main, FPG HEAD, PR #93 and current workflows; verify the green retry for run `37074006563` still applies to application HEAD.
+2. Preserve the successful unchanged-head retry evidence; no migration or workflow fix is required for the transient port conflict.
 3. In an execution-enabled checkout, run the required affected build/checks and inspect exact-head desktop/drawer/mobile evidence against the accepted composition and designated references.
 4. Record FPG4 acceptance only when all required gates and visual evidence genuinely pass; push the documentation checkpoint.
 5. Continue immediately into FPG5, then the remaining FPG sequence.
