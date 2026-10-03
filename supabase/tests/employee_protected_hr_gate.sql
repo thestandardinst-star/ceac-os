@@ -125,6 +125,19 @@ begin
     raise exception 'Employee protected-HR gate failure: roster-only protected summary omitted records.';
   end if;
 
+  perform set_config('ceac.test.employee_compensation',v_comp::text,true);
+  perform set_config('ceac.test.employee_payment',v_payment::text,true);
+end
+$admin_records_roster_only$;
+
+reset role;
+
+do $stored_subjects$
+declare
+  v_employee uuid:=current_setting('ceac.test.employee_protected_hr')::uuid;
+  v_comp uuid:=current_setting('ceac.test.employee_compensation')::uuid;
+  v_payment uuid:=current_setting('ceac.test.employee_payment')::uuid;
+begin
   if not exists(
     select 1 from hr_private.compensation_history
     where id=v_comp and employee_id=v_employee and profile_id is null
@@ -139,9 +152,7 @@ begin
     raise exception 'Employee protected-HR gate failure: payment detail still requires profile_id.';
   end if;
 end
-$admin_records_roster_only$;
-
-reset role;
+$stored_subjects$;
 
 do $audit$
 declare
