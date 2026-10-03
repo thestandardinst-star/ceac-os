@@ -6,45 +6,55 @@ Status: ACTIVE
 Branch: `chatgpt/employee-roster-payroll-completeness-2026-10-03`
 Baseline protected main: `a46232edff481868d764a3ece9c241e36b5282fb`
 
-## Verified starting state
+## Verified baseline
 
-- supplied staff rows: 18
-- live profiles: 6
-- exact source/profile matches from prior reconciliation: 2
-- ambiguous identity rows: 1
-- no exact profile match rows: 15
-- source rows with email: 0
+- staff source rows: 18
+- live auth profiles at baseline: 6
+- confirmed exact employee/profile links: 2
+- identity-review rows: 1
+- unmatched rows: 15
+- staff source rows with email: 0
 - payroll periods/runs/entries/lines: 0
 - compensation records: 0
 - payment-detail records: 0
 
-Root cause: authenticated profiles are being used as the effective employee master in Administration People and Payroll population logic. Employees without linked accounts therefore disappear from operational surfaces.
-
 ## ERC0 — ACCEPTED
 
-- corrective branch created from exact protected main;
-- staged implementation sequence committed;
-- completeness invariant locked at 18 source staff rows and 0 unaccounted rows;
-- no-fabrication and no-authority-inference rules locked.
+Control lock and staged repair sequence committed.
+
+## ERC1 — ACCEPTED
+
+Accepted head: `d3fbea4fef3e07aed309727644a4553ab9fe58ff`
+
+Implemented:
+- employee roster independent of auth;
+- optional linked profile;
+- linked / roster_only / needs_review identity states;
+- employee unit membership separate from capability authority;
+- Administration-only RLS read path;
+- no automatic profile-to-employee backfill;
+- source context fields for reconciliation;
+- platform audit coverage;
+- employee roster completeness/security gate.
+
+Exact-head verification:
+- CI PASS
+- Migration Replay PASS
+- Account Security PASS
+- Quality Gate PASS
+- SQL/authority contracts PASS
+- browser shards 1–4 PASS
 
 ## Current stage
 
-ERC1 — Employee master roster independent of auth: IMPLEMENTED / GATES PENDING
+ERC2 — Staff reconciliation into employee roster: ACTIVE
 
-Implemented:
-- `public.employee_roster` with optional linked `profile_id`;
-- explicit identity states: `linked`, `roster_only`, `needs_review`;
-- `public.employee_unit_memberships` independent of capability authority;
-- RLS + no direct browser table access;
-- backfill of existing profiles as linked employee records;
-- backfill of existing organisational memberships;
-- Administration roster summary/detail/save/link/unit RPCs;
-- platform audit triggers;
-- SQL security/completeness gate wired into the cumulative contract suite.
-
-Pending:
-1. open the corrective PR;
-2. pass CI, Migration Replay, Account Security and Quality Gate;
-3. only then advance to ERC2 private workbook reconciliation.
-
-No workbook employee rows are committed to Git.
+Rules:
+- represent all 18 staff rows;
+- link only confirmed profile matches;
+- keep ambiguous identity visible as needs_review;
+- keep staff without account as roster_only;
+- do not invent email or auth users;
+- do not infer system authority from workbook titles;
+- preserve unit/programme/responsibility distinctions;
+- unaccounted source rows must equal 0.
