@@ -118,6 +118,18 @@ const capabilityGrants = await service.from("capability_grants").insert(
 );
 assert.equal(capabilityGrants.error, null, capabilityGrants.error?.message);
 
+const executiveCapabilityGrants = await service.from("capability_grants").insert(
+  ["hr_private.access", "payroll.approve"].map((capability) => ({
+    org_id: orgId,
+    profile_id: users[3].id,
+    capability,
+    scope_unit_id: null,
+    granted_by: users[3].id,
+    grant_reason: "Local acceptance fixture executive payroll authority.",
+  }))
+);
+assert.equal(executiveCapabilityGrants.error, null, executiveCapabilityGrants.error?.message);
+
 const subTeamA = "22000000-0000-4000-8000-000000000011";
 const subTeam = await service.from("sub_teams").insert({
   id: subTeamA,
