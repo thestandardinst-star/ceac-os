@@ -17,3 +17,7 @@ Every visual acceptance record must state:
 
 ## Final closure
 Complete cumulative Quality Gate, production deployment, authenticated Staff/Manager/Administration/Executive smoke, desktop/mobile inspection, and security/database verification. Do not weaken final acceptance.
+
+
+## Explicit Level B override
+An exact commit subject containing `[level-b]` must force Level B verification even when the changed files are documentation-only. Explicit acceptance intent takes precedence over the documentation-only fast path.
