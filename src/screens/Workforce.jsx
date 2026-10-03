@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import "../final-product/fpg7-people-workforce.css";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
