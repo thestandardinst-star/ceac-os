@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 
 const people = fs.readFileSync(new URL("../src/screens/People.jsx", import.meta.url), "utf8");
 const payroll = fs.readFileSync(new URL("../src/screens/AdminPayroll.jsx", import.meta.url), "utf8");
-const rosterMigration = fs.readFileSync(new URL("../supabase/migrations/20261003110000_103_employee_roster_master.sql", import.meta.url), "utf8");
+const rosterMigration = fs.readFileSync(new URL("../supabase/migrations/20261003120215_employee_roster_master.sql", import.meta.url), "utf8");
 const protectedHrMigration = fs.readFileSync(new URL("../supabase/migrations/20261003122000_104_employee_protected_hr_subject.sql", import.meta.url), "utf8");
 const payrollMigration = fs.readFileSync(new URL("../supabase/migrations/20261003130000_105_payroll_employee_population.sql", import.meta.url), "utf8");
 const readinessMigration = fs.readFileSync(new URL("../supabase/migrations/20261003133000_106_payroll_readiness_summary.sql", import.meta.url), "utf8");
