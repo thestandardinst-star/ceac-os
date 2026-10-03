@@ -46,11 +46,21 @@ end
 $rpc_surface$;
 
 do $auth_is_not_employment$
-declare
-  n integer;
 begin
-  select count(*) into n from public.employee_roster;
-  if n<>0 then
+  if exists(
+    select 1
+    from public.employee_roster
+    where profile_id is not null
+      and source_system is null
+  ) then
+    raise exception 'Employee roster gate failure: a linked account lacks explicit employee provenance.';
+  end if;
+
+  if exists(
+    select 1
+    from public.employee_roster
+    where source_system='profile_backfill'
+  ) then
     raise exception 'Employee roster gate failure: auth profiles were automatically treated as employees.';
   end if;
 end
