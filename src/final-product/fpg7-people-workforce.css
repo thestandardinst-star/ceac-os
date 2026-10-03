@@ -6,6 +6,7 @@
   background:var(--ev2-surface);color:var(--ev2-text);font-size:12px
 }
 .fpg-people-roster{margin-top:var(--ev2-space-5)}
+.fpg-people-roster small,.fpg-absence-board small{font-size:12px}
 .fpg-people-roster-head,
 .fpg-absence-board-head{
   display:flex;justify-content:space-between;gap:var(--ev2-space-4);
