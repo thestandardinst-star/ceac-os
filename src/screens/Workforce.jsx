@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { Avatar, EmptyState, FieldGroup, LoadingState, Pill, ProductNotice, Sheet } from "../components/bits";
 import { humanError } from "../lib/productLanguage";
@@ -952,7 +952,7 @@ export default function Workforce({ me }) {
                 <span>{dateObject.toLocaleDateString("en-GB",{weekday:"short"})}</span>
                 <b>{dateObject.getDate()}</b>
               </div>)}
-              {calendarPeople.map((person)=><React.Fragment key={person.profile_id}>
+              {calendarPeople.map((person)=><Fragment key={person.profile_id}>
                 <div className="fpg-absence-person">
                   <span className="fpg-absence-avatar" aria-hidden="true">{(person.profiles?.full_name||"?").slice(0,1).toUpperCase()}</span>
                   <span><strong>{person.profiles?.full_name||"Employee"}</strong><small>{person.profiles?.job_title||person.units?.name||"Position not recorded"}</small></span>
@@ -970,7 +970,7 @@ export default function Workforce({ me }) {
                     {isStart&&<span>{human(row.kind)} leave</span>}
                   </div>;
                 })}
-              </React.Fragment>)}
+              </Fragment>)}
             </div>
           </div>
           {!calendarPeople.length&&<WorkforceEmpty compact title="No employees match this selection" description="Change the unit or person filter."/>}
