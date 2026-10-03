@@ -40,6 +40,21 @@ function avgStartLabel(minutes) {
   return String(Math.floor(value / 60)).padStart(2, "0") + ":" + String(value % 60).padStart(2, "0");
 }
 
+function protectedMoney(minor, currency = "GHS") {
+  if (minor == null) return "Not recorded";
+  return new Intl.NumberFormat("en-GH", {
+    style: "currency",
+    currency,
+    currencyDisplay: "code",
+    maximumFractionDigits: 2,
+  }).format(Number(minor) / 100);
+}
+
+function amountToMinor(value) {
+  const number = Number(String(value || "").replace(/,/g, ""));
+  return Number.isFinite(number) ? Math.round(number * 100) : 0;
+}
+
 export default function People({ me, openItem }) {
   const [rows, setRows] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -50,23 +65,30 @@ export default function People({ me, openItem }) {
   const [employmentEditor, setEmploymentEditor] = useState(false);
   const [employmentForm, setEmploymentForm] = useState(null);
   const [savingEmployment, setSavingEmployment] = useState(false);
+  const [protectedHr, setProtectedHr] = useState(null);
+  const [protectedHrLoading, setProtectedHrLoading] = useState(false);
+  const [protectedEditor, setProtectedEditor] = useState(null);
+  const [savingProtected, setSavingProtected] = useState(false);
   const [drill, setDrill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const canManageProtectedHr = (me.capabilities || []).includes("hr_private.access");
 
   useEffect(() => { load(); }, [me.id]);
 
   async function load() {
     setLoading(true);
     setError(null);
-    const [peopleResult, leaveResult, unitsResult] = await Promise.all([
+    const [rosterResult, peopleResult, leaveResult, unitsResult] = await Promise.all([
+      supabase.rpc("admin_employee_roster_summary"),
       supabase.rpc("admin_people_summary"),
       supabase.from("leave_settings").select("annual_days,sick_days,max_carryover,updated_by,updated_at").eq("org_id", me.org_id).maybeSingle(),
       supabase.from("units").select("id,name").eq("org_id", me.org_id).eq("active", true).order("name"),
     ]);
-    if (peopleResult.error) {
-      setError(humanError(peopleResult.error, "The People record could not load."));
+    if (rosterResult.error || peopleResult.error) {
+      setError(humanError(rosterResult.error || peopleResult.error, "The People record could not load."));
       setLoading(false);
       return;
     }
@@ -80,7 +102,56 @@ export default function People({ me, openItem }) {
       setLoading(false);
       return;
     }
-    setRows(Array.isArray(peopleResult.data) ? peopleResult.data : []);
+    const operationalByProfile = new Map((Array.isArray(peopleResult.data) ? peopleResult.data : []).map((entry) => [entry.id, entry]));
+    const rosterRows = (Array.isArray(rosterResult.data) ? rosterResult.data : []).map((employee) => {
+      const operational = employee.profile_id ? operationalByProfile.get(employee.profile_id) : null;
+      const rosterUnits = Array.isArray(employee.units) ? employee.units : [];
+      const primaryUnit = rosterUnits.find((unit) => unit.is_primary) || rosterUnits[0] || null;
+      return {
+        ...(operational || {}),
+        id: employee.id,
+        employee_id: employee.id,
+        profile_id: employee.profile_id || null,
+        full_name: employee.full_name,
+        preferred_name: employee.preferred_name || null,
+        source_display_name: employee.source_display_name || null,
+        source_department_text: employee.source_department_text || null,
+        source_position: employee.source_position || null,
+        job_title: employee.job_title || operational?.job_title || null,
+        employment_type: employee.employment_type || "not_recorded",
+        employment_status: employee.employment_status || "active",
+        identity_state: employee.identity_state,
+        responsibility_context: Array.isArray(employee.responsibility_context) ? employee.responsibility_context : [],
+        review_note: employee.review_note || null,
+        roster_units: rosterUnits,
+        email: employee.account_email || operational?.email || null,
+        account_active: employee.account_active ?? operational?.active ?? false,
+        active: employee.employment_status === "active",
+        unit_id: operational?.unit_id || primaryUnit?.unit_id || null,
+        unit_name: operational?.unit_name || primaryUnit?.unit_name || null,
+        role: operational?.role || null,
+        is_admin: employee.is_admin || operational?.is_admin || false,
+        is_exec: employee.is_exec || operational?.is_exec || false,
+        on_leave_now: operational?.on_leave_now || false,
+        quiet: operational?.quiet || false,
+        done_count: operational?.done_count || 0,
+        assigned_done_count: operational?.assigned_done_count || 0,
+        self_done_count: operational?.self_done_count || 0,
+        on_time_count: operational?.on_time_count || 0,
+        first_time_count: operational?.first_time_count || 0,
+        open_count: operational?.open_count || 0,
+        days_this_month: operational?.days_this_month || 0,
+        avg_start_minutes: operational?.avg_start_minutes ?? null,
+        annual_taken: operational?.annual_taken || 0,
+        sick_taken: operational?.sick_taken || 0,
+        carryover_from_last_year: operational?.carryover_from_last_year || 0,
+        started_on: operational?.started_on || null,
+        contract_type: operational?.contract_type || employee.employment_type || "not_recorded",
+        birthday: operational?.birthday || null,
+        phone: operational?.phone || null,
+      };
+    });
+    setRows(rosterRows);
     setLeavePolicy(leaveResult.data?.updated_by ? leaveResult.data : null);
     setUnits(unitsResult.data || []);
     setLoading(false);
@@ -90,15 +161,45 @@ export default function People({ me, openItem }) {
     setDetailLoading(true);
     setError(null);
     setDrill(null);
-    const [detailResult, employmentResult] = await Promise.all([
-      supabase.rpc("admin_person_detail", { p_profile_id: summary.id }),
-      supabase.rpc("admin_employment_detail", { p_profile_id: summary.id }),
-    ]);
-    setDetailLoading(false);
-    if (detailResult.error || employmentResult.error) {
-      setError(humanError(detailResult.error || employmentResult.error, "That employee record could not load."));
+
+    const rosterDetailResult = await supabase.rpc("admin_employee_roster_detail", { p_employee_id: summary.id });
+    if (rosterDetailResult.error) {
+      setDetailLoading(false);
+      setError(humanError(rosterDetailResult.error, "That employee record could not load."));
       return;
     }
+
+    let detailResult = { data: { work: [], sessions: [], leave: [] }, error: null };
+    let employmentResult = { data: { current: null, history: [] }, error: null };
+    let protectedResult = { data: null, error: null };
+
+    const linkedRequests = summary.profile_id
+      ? Promise.all([
+          supabase.rpc("admin_person_detail", { p_profile_id: summary.profile_id }),
+          supabase.rpc("admin_employment_detail", { p_profile_id: summary.profile_id }),
+        ])
+      : Promise.resolve([{ data: { work: [], sessions: [], leave: [] }, error: null }, { data: { current: null, history: [] }, error: null }]);
+
+    setProtectedHrLoading(canManageProtectedHr);
+    const [linkedResults, protectedResponse] = await Promise.all([
+      linkedRequests,
+      canManageProtectedHr
+        ? supabase.rpc("hr_employee_protected_summary", { p_employee_id: summary.id })
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+    [detailResult, employmentResult] = linkedResults;
+    protectedResult = protectedResponse;
+    setProtectedHrLoading(false);
+    setDetailLoading(false);
+
+    if (detailResult.error || employmentResult.error || protectedResult.error) {
+      setError(humanError(detailResult.error || employmentResult.error || protectedResult.error, "That employee record could not load."));
+      return;
+    }
+
+    setProtectedHr(protectedResult.data || null);
+
     const data = detailResult.data;
     const work = Array.isArray(data?.work) ? data.work.map((item) => ({
       ...item,
@@ -107,9 +208,22 @@ export default function People({ me, openItem }) {
     const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
     const leave = Array.isArray(data?.leave) ? data.leave : [];
     const done = work.filter((item) => ["completed","self_certified"].includes(item.status));
+    const rosterDetail = rosterDetailResult.data || {};
+    const rosterEmployee = rosterDetail.employee || {};
+    const rosterUnits = Array.isArray(rosterDetail.units) ? rosterDetail.units : summary.roster_units || [];
+
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    setProtectedEditor(null);
     setPerson({
       ...summary,
+      ...rosterEmployee,
+      id: summary.id,
+      employee_id: summary.id,
+      profile_id: summary.profile_id || rosterEmployee.profile_id || null,
+      roster_units: rosterUnits,
+      email: rosterEmployee.account_email || summary.email || null,
+      phone: rosterEmployee.account_phone || summary.phone || null,
+      operational_data_available: Boolean(rosterDetail.operational_data_available),
       items: work,
       done,
       assigned: done.filter((item) => item.origin === "assigned"),
@@ -125,6 +239,35 @@ export default function People({ me, openItem }) {
         carryover_from_last_year: summary.carryover_from_last_year || 0,
       },
     });
+  }
+
+  async function saveProtectedRecord(form) {
+    if (!person?.employee_id) return;
+    setSavingProtected(true);
+    setError(null);
+    const { error: saveError } = await supabase.rpc("hr_employee_protected_record", {
+      p_employee_id: person.employee_id,
+      p_record_type: form.recordType,
+      p_payload: form.payload,
+      p_replaces_id: null,
+      p_reason: form.reason,
+    });
+    if (saveError) {
+      setSavingProtected(false);
+      setError(humanError(saveError, "Protected HR data could not be recorded."));
+      return;
+    }
+
+    const { data, error: refreshError } = await supabase.rpc("hr_employee_protected_summary", {
+      p_employee_id: person.employee_id,
+    });
+    setSavingProtected(false);
+    if (refreshError) {
+      setError(humanError(refreshError, "Protected HR data was recorded but could not be refreshed."));
+      return;
+    }
+    setProtectedHr(data || null);
+    setProtectedEditor(null);
   }
 
   function openEmploymentEditor() {
@@ -153,7 +296,7 @@ export default function People({ me, openItem }) {
     setSavingEmployment(true);
     setError(null);
     const { data, error: saveError } = await supabase.rpc("admin_update_employment", {
-      p_profile_id: person.id,
+      p_profile_id: person.profile_id,
       p_employment_type: employmentForm.employmentType,
       p_job_title: employmentForm.jobTitle || null,
       p_unit_id: employmentForm.unitId || null,
@@ -232,12 +375,19 @@ export default function People({ me, openItem }) {
   }
 
   if (person) {
+    const hasLinkedProfile = Boolean(person.profile_id);
     const employmentCurrent = person.employment?.current || null;
     const employmentHistory = Array.isArray(person.employment?.history) ? person.employment.history : [];
     const taken = Number(person.balance?.annual_taken || 0);
     const entitlement = leavePolicy ? Number(leavePolicy.annual_days || 0) + Number(person.balance?.carryover_from_last_year || 0) : null;
-    const employmentState = (employmentCurrent?.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ");
-    const positionLabel = person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff";
+    const employmentState = (employmentCurrent?.employment_status || person.employment_status || (person.active ? "active" : "inactive")).replaceAll("_", " ");
+    const rosterUnitNames = (person.roster_units || []).map((unit) => unit.unit_name).filter(Boolean);
+    const positionLabel = hasLinkedProfile
+      ? (person.is_exec ? "Group Pastor" : person.is_admin ? "Administration & HR" : person.role === "manager" ? "Unit head" : person.role === "sub_team_lead" ? "Team lead" : "Staff")
+      : (person.source_position || "Roster employee");
+    const identityLabel = person.identity_state === "needs_review"
+      ? "Identity review required"
+      : hasLinkedProfile ? "Account linked" : "Roster only · no account linked";
 
     return <div className="body ev2-people-page ev2-person-workspace ev2-admin-person-workspace">
       <PeopleBackButton onClick={() => { setPerson(null); setDrill(null); }} label="All people" ariaLabel="← All people" />
@@ -248,7 +398,12 @@ export default function People({ me, openItem }) {
         name={person.full_name}
         eyebrow={`${employmentCurrent?.unit_name || person.unit_name || "No unit"} · ${positionLabel}`}
         subtitle={employmentCurrent?.job_title || person.job_title || "No job title recorded"}
-        context={[person.email, person.phone, `Employment ${employmentState}`].filter(Boolean).join(" · ")}
+        context={[
+          person.email || identityLabel,
+          person.phone,
+          person.source_department_text,
+          `Employment ${employmentState}`,
+        ].filter(Boolean).join(" · ")}
       />
 
       {error && <ProductNotice tone="error" title="Employee record">{error}</ProductNotice>}
@@ -261,10 +416,14 @@ export default function People({ me, openItem }) {
         className="ev2p-admin-identity-section"
       >
         <div className="ev2p-admin-record-grid">
-          <PeopleFactRow icon="people" title="Email" subtitle={person.email || "Not recorded"} />
+          <PeopleFactRow icon="people" title="Account" subtitle={person.email || identityLabel} />
           {person.phone && <PeopleFactRow icon="info" title="Phone" subtitle={person.phone} />}
-          <PeopleFactRow icon="people" title="Position" subtitle={positionLabel} />
-          <PeopleFactRow icon="info" title="Status" subtitle={person.active ? "Active" : "Inactive"} />
+          <PeopleFactRow icon="people" title={hasLinkedProfile ? "Authority context" : "Source position"} subtitle={positionLabel} />
+          <PeopleFactRow icon="info" title="Employee status" subtitle={person.active ? "Active" : "Inactive"} />
+          <PeopleFactRow icon="info" title="Identity state" subtitle={identityLabel} />
+          {!hasLinkedProfile && person.source_department_text && <PeopleFactRow icon="people" title="Source department" subtitle={person.source_department_text} />}
+          {!hasLinkedProfile && rosterUnitNames.length > 0 && <PeopleFactRow icon="people" title="Recorded units" subtitle={rosterUnitNames.join(" · ")} />}
+          {!hasLinkedProfile && person.responsibility_context?.length > 0 && <PeopleFactRow icon="work" title="Programme / responsibility context" subtitle={person.responsibility_context.join(" · ")} />}
           {person.birthday && <PeopleFactRow icon="calendar" title="Birthday" subtitle={new Date(person.birthday).toLocaleDateString("en-GB", { day: "numeric", month: "long" })} />}
         </div>
       </PeopleWorkspaceSection>
@@ -274,15 +433,15 @@ export default function People({ me, openItem }) {
       <PeopleWorkspaceSection
         title="Employment record"
         description="The current authorised employment record. Recording a change creates a new historical snapshot rather than overwriting the past."
-        meta={<button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button>}
+        meta={hasLinkedProfile ? <button type="button" className="ev2p-admin-record-change" onClick={openEmploymentEditor}>Record change</button> : "Roster context"}
       >
         <div className="ev2p-admin-record-grid">
-          <PeopleFactRow icon="people" title="Employment type" subtitle={employmentCurrent?.employment_type || person.contract_type || "Not recorded"} />
-          <PeopleFactRow icon="work" title="Title" subtitle={employmentCurrent?.job_title || person.job_title || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Primary unit" subtitle={employmentCurrent?.unit_name || person.unit_name || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Manager" subtitle={employmentCurrent?.manager_name || "Not recorded"} />
-          <PeopleFactRow icon="people" title="Role" subtitle={(employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ")} />
-          <PeopleFactRow icon="calendar" title="Working pattern" subtitle={(employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ")} />
+          <PeopleFactRow icon="people" title="Employment type" subtitle={employmentCurrent?.employment_type || person.employment_type || person.contract_type || "Not recorded"} />
+          <PeopleFactRow icon="work" title={hasLinkedProfile ? "Title" : "Source position"} subtitle={employmentCurrent?.job_title || person.job_title || person.source_position || "Not recorded"} />
+          <PeopleFactRow icon="people" title={hasLinkedProfile ? "Primary unit" : "Recorded units"} subtitle={employmentCurrent?.unit_name || (rosterUnitNames.length ? rosterUnitNames.join(" · ") : "Not recorded")} />
+          <PeopleFactRow icon="people" title="Manager" subtitle={hasLinkedProfile ? (employmentCurrent?.manager_name || "Not recorded") : "Not recorded · no authority inferred"} />
+          <PeopleFactRow icon="people" title="Role / authority" subtitle={hasLinkedProfile ? (employmentCurrent?.membership_role || person.role || "staff").replaceAll("_", " ") : "Not inferred from workbook title"} />
+          <PeopleFactRow icon="calendar" title="Working pattern" subtitle={hasLinkedProfile ? (employmentCurrent?.working_pattern?.kind || "not recorded").replaceAll("_", " ") : "Not recorded"} />
           <PeopleFactRow icon="calendar" title="Joined" subtitle={employmentCurrent?.joined_on ? dateOnly(employmentCurrent.joined_on) : "Not recorded"} />
           <PeopleFactRow icon="info" title="Employment status" subtitle={employmentState} />
           {employmentCurrent?.exited_on && <PeopleFactRow icon="calendar" title="Exit date" subtitle={dateOnly(employmentCurrent.exited_on)} />}
@@ -291,29 +450,35 @@ export default function People({ me, openItem }) {
 
       <PeopleWorkspaceSection
         title="Employment history"
-        description="Audited employment snapshots in effective-date order."
-        meta={`${employmentHistory.length} recorded`}
+        description={hasLinkedProfile ? "Audited employment snapshots in effective-date order." : "A roster-only employee has no linked account employment history yet."}
+        meta={hasLinkedProfile ? `${employmentHistory.length} recorded` : "Not linked"}
       >
-        {employmentHistory.length === 0
-          ? <PeopleEmpty title="No employment history yet" description="Employment changes recorded here will preserve their effective date, reason and audit context." />
-          : <div className="ev2p-admin-history-list">{employmentHistory.slice(0, 12).map((event) => <article className="ev2p-admin-history-row" key={event.id}>
-              <div>
-                <strong>{employmentChangeLabel(event.change_type)}</strong>
-                <span>
-                  Effective {dateOnly(event.effective_on)}
-                  {event.job_title ? " · " + event.job_title : ""}
-                  {event.unit_name ? " · " + event.unit_name : ""}
-                </span>
-                {event.reason && <small>{event.reason}</small>}
-              </div>
-              <span>{event.actor_name ? `Recorded by ${event.actor_name}` : "System baseline"}</span>
-            </article>)}</div>}
+        {!hasLinkedProfile
+          ? <PeopleEmpty title="No linked employment history" description="The employee remains fully represented in the roster. Account and employment-history linking can happen later without recreating this employee." />
+          : employmentHistory.length === 0
+            ? <PeopleEmpty title="No employment history yet" description="Employment changes recorded here will preserve their effective date, reason and audit context." />
+            : <div className="ev2p-admin-history-list">{employmentHistory.slice(0, 12).map((event) => <article className="ev2p-admin-history-row" key={event.id}>
+                <div>
+                  <strong>{employmentChangeLabel(event.change_type)}</strong>
+                  <span>
+                    Effective {dateOnly(event.effective_on)}
+                    {event.job_title ? " · " + event.job_title : ""}
+                    {event.unit_name ? " · " + event.unit_name : ""}
+                  </span>
+                  {event.reason && <small>{event.reason}</small>}
+                </div>
+                <span>{event.actor_name ? `Recorded by ${event.actor_name}` : "System baseline"}</span>
+              </article>)}</div>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
         title="Work & activity context"
-        description="Factual authorised work and session evidence only. These records are not a productivity score, ranking, pay input or disciplinary conclusion."
+        description={hasLinkedProfile
+          ? "Factual authorised work and session evidence only. These records are not a productivity score, ranking, pay input or disciplinary conclusion."
+          : "Operational work and session evidence appears only when this employee is linked to a real CEAC account."}
       >
+        {!hasLinkedProfile && <PeopleEmpty title="No linked operational account" description="The employee is present in the roster, but CEAC will not invent work, attendance or submission records for someone without a linked account." />}
+        {hasLinkedProfile && <>
         <div className="ev2p-outcome-grid ev2p-admin-work-grid">
           <button type="button" onClick={() => setDrill({ label: "Finished work — given to them", kind: "work", rows: person.assigned })}>
             <b>{person.assigned.length}</b><span>finished — given to them</span>
@@ -351,12 +516,17 @@ export default function People({ me, openItem }) {
           </span>
           <span className="ev2p-link-row-tail">›</span>
         </button>
+        </>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
         title="Leave"
-        description={leavePolicy ? "Recorded leave against the currently configured leave policy." : "Leave actually taken is shown, but entitlement is not calculated because Administration has not configured the policy."}
+        description={hasLinkedProfile
+          ? (leavePolicy ? "Recorded leave against the currently configured leave policy." : "Leave actually taken is shown, but entitlement is not calculated because Administration has not configured the policy.")
+          : "Leave history appears only when this employee is linked to an operational CEAC account."}
       >
+        {!hasLinkedProfile && <PeopleEmpty title="No linked leave record" description="The employee remains represented in the roster without fabricated leave or attendance data." />}
+        {hasLinkedProfile && <>
         <div className="ev2p-admin-leave-card">
           {leavePolicy
             ? <ProgressMeter value={taken} max={entitlement} label="Annual leave used" detail={taken + " of " + entitlement + " configured days"} />
@@ -370,25 +540,65 @@ export default function People({ me, openItem }) {
           </span>
           <span className="ev2p-link-row-tail">›</span>
         </button>
+        </>}
       </PeopleWorkspaceSection>
 
       <PeopleWorkspaceSection
         title="Protected HR"
-        description="Protected HR is deliberately separated from the ordinary employee record. These areas remain unavailable until CEAC confirms the required policy and data fields."
+        description="Salary, identifiers, payment details and documents stay behind the protected-HR capability boundary. Roster-only employees can hold these records without a login account."
         className="ev2p-admin-protected-section"
       >
-        <div className="ev2p-admin-protected-grid">
-          <div><span>Salary & payroll</span><strong>Awaiting CEAC salary structure</strong></div>
-          <div><span>Identifiers & bank details</span><strong>Protected storage ready · fields not yet confirmed</strong></div>
-          <div><span>Contracts & documents</span><strong>Protected storage ready · access rules not yet configured</strong></div>
-          <div><span>Payslips</span><strong>Available after payroll is configured</strong></div>
-        </div>
-        <p className="ev2p-admin-protected-note">No salary, bank, identifier, contract or payslip value is inferred from role, attendance or work records. Stage 13 Payroll remains blocked.</p>
+        {protectedHrLoading && <LoadingState label="Loading protected HR…" />}
+        {!canManageProtectedHr && <PeopleEmpty title="Protected HR unavailable" description="Your account does not hold protected-HR access." />}
+        {canManageProtectedHr && !protectedHrLoading && (() => {
+          const compensation = (protectedHr?.compensation || []).find((row) => row.status === "active") || null;
+          const payment = (protectedHr?.payment_details || []).find((row) => row.status === "active") || null;
+          const identifiers = (protectedHr?.identifiers || []).filter((row) => row.status === "active");
+          const documents = (protectedHr?.documents || []).filter((row) => row.status === "active");
+          return <>
+            <div className="ev2p-admin-protected-grid">
+              <div>
+                <span>Salary & payroll</span>
+                <strong>{compensation ? `${protectedMoney(compensation.amount_minor, compensation.currency)} · ${compensation.basis_label}` : "Not recorded"}</strong>
+                <button type="button" className="ev2p-admin-record-change" onClick={() => setProtectedEditor("compensation")}>{compensation ? "Record change" : "Record salary"}</button>
+              </div>
+              <div>
+                <span>Payment details</span>
+                <strong>{payment ? `${payment.provider_name} · ${payment.account_name} · ${payment.account_reference}` : "Not recorded"}</strong>
+                <button type="button" className="ev2p-admin-record-change" onClick={() => setProtectedEditor("payment_detail")}>{payment ? "Record change" : "Record payment details"}</button>
+              </div>
+              <div>
+                <span>Protected identifiers</span>
+                <strong>{identifiers.length ? `${identifiers.length} active record${identifiers.length === 1 ? "" : "s"}` : "Not recorded"}</strong>
+                <button type="button" className="ev2p-admin-record-change" onClick={() => setProtectedEditor("identifier")}>Record identifier</button>
+              </div>
+              <div>
+                <span>Contracts & documents</span>
+                <strong>{documents.length ? `${documents.length} active document${documents.length === 1 ? "" : "s"}` : "No protected document recorded"}</strong>
+              </div>
+            </div>
+            {identifiers.length > 0 && <div className="ev2p-admin-history-list">
+              {identifiers.map((row) => <article className="ev2p-admin-history-row" key={row.id}>
+                <div><strong>{row.identifier_type}</strong><span>{row.identifier_value}</span></div>
+                <span>{row.expires_on ? `Expires ${dateOnly(row.expires_on)}` : "Active"}</span>
+              </article>)}
+            </div>}
+            <p className="ev2p-admin-protected-note">No salary, bank, identifier or Payroll value is inferred from role, attendance, performance or work records. Missing data remains explicitly missing until Administration records an authoritative value.</p>
+          </>;
+        })()}
       </PeopleWorkspaceSection>
         </div>
       </div>
 
-      {employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
+      {protectedEditor && <ProtectedHrSheet
+        type={protectedEditor}
+        employee={person}
+        busy={savingProtected}
+        onClose={() => { if (!savingProtected) setProtectedEditor(null); }}
+        onSave={saveProtectedRecord}
+      />}
+
+      {hasLinkedProfile && employmentEditor && employmentForm && <Sheet onClose={() => { if (!savingEmployment) { setEmploymentEditor(false); setEmploymentForm(null); } }}>
         <div className="eyebrow">People & employment</div>
         <div className="h2">Record employment change</div>
         <p className="screen-note">This writes a new historical snapshot. Earlier employment history is not overwritten.</p>
@@ -423,8 +633,8 @@ export default function People({ me, openItem }) {
         <FieldGroup label="Manager">
           <select className="field" aria-label="Manager" value={employmentForm.managerId} onChange={(event) => setEmploymentForm({ ...employmentForm, managerId: event.target.value })}>
             <option value="">No manager recorded</option>
-            {rows.filter((entry) => entry.id !== person.id && entry.active && entry.unit_id === employmentForm.unitId)
-              .map((entry) => <option key={entry.id} value={entry.id}>{entry.full_name}</option>)}
+            {rows.filter((entry) => entry.profile_id && entry.profile_id !== person.profile_id && entry.active && entry.unit_id === employmentForm.unitId)
+              .map((entry) => <option key={entry.employee_id || entry.id} value={entry.profile_id}>{entry.full_name}</option>)}
           </select>
         </FieldGroup>
         <FieldGroup label="Working pattern">
@@ -463,11 +673,16 @@ export default function People({ me, openItem }) {
       filter === "on_leave" ? p.on_leave_now :
       filter === "quiet" ? p.quiet :
       filter === "no_unit" ? !p.unit_id : true;
-    const matchesSearch = !cleanSearch || [p.full_name,p.email,p.job_title,p.unit_name].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanSearch));
+    const matchesSearch = !cleanSearch || [
+      p.full_name,p.source_display_name,p.email,p.job_title,p.source_position,p.source_department_text,p.unit_name,
+      ...(p.roster_units || []).map((unit) => unit.unit_name),
+      ...(p.responsibility_context || []),
+    ].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanSearch));
     return matchesFilter && matchesSearch;
   });
 
   function rank(p) {
+    if (!p.profile_id) return 4;
     if (p.is_exec) return 0;
     if (p.is_admin) return 1;
     if (p.role === "manager") return 2;
@@ -475,6 +690,7 @@ export default function People({ me, openItem }) {
     return 4;
   }
   function rankLabel(p) {
+    if (!p.profile_id) return p.source_position || "Roster employee";
     if (p.is_exec) return "Group Pastor";
     if (p.is_admin) return "Administration & HR";
     if (p.role === "manager") return "Unit head";
@@ -554,12 +770,14 @@ export default function People({ me, openItem }) {
             <span><strong>{p.full_name}</strong><small>{rankLabel(p)}{p.job_title ? ` · ${p.job_title}` : ""}</small></span>
           </span>
           <span className="fpg-people-roster-unit">{p.unit_name || "No unit assigned"}</span>
-          <span className={p.on_leave_now ? "fpg-people-roster-status is-leave" : !p.active ? "fpg-people-roster-status is-inactive" : "fpg-people-roster-status is-active"}>
-            {p.on_leave_now ? "On leave" : !p.active ? "Inactive" : "Active"}
+          <span className={p.identity_state === "needs_review" ? "fpg-people-roster-status is-leave" : !p.active ? "fpg-people-roster-status is-inactive" : "fpg-people-roster-status is-active"}>
+            {p.identity_state === "needs_review" ? "Identity review" : p.identity_state === "roster_only" ? "Roster only" : p.on_leave_now ? "On leave" : !p.active ? "Inactive" : "Active"}
           </span>
           <span className="fpg-people-roster-facts">
-            <strong>{p.quiet ? "Review context" : `${p.open_count || 0} open`}</strong>
-            <small>{p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}</small>
+            <strong>{!p.profile_id ? "No account linked" : p.quiet ? "Review context" : `${p.open_count || 0} open`}</strong>
+            <small>{!p.profile_id
+              ? `${(p.roster_units || []).length} unit membership${(p.roster_units || []).length === 1 ? "" : "s"} recorded`
+              : p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}</small>
           </span>
           <span className="fpg-people-roster-open" aria-hidden="true">›</span>
         </button>)}
@@ -570,4 +788,99 @@ export default function People({ me, openItem }) {
       <PeopleEmpty title="Nobody matches" description="Try a different filter or search term." />
     </div>}
   </div>;
+}
+
+
+function ProtectedHrSheet({ type, employee, busy, onClose, onSave }) {
+  const [amount,setAmount]=useState("");
+  const [currency,setCurrency]=useState("GHS");
+  const [basisLabel,setBasisLabel]=useState("Monthly salary");
+  const [effectiveOn,setEffectiveOn]=useState(new Date().toISOString().slice(0,10));
+  const [providerName,setProviderName]=useState("");
+  const [accountName,setAccountName]=useState("");
+  const [accountReference,setAccountReference]=useState("");
+  const [branchReference,setBranchReference]=useState("");
+  const [identifierType,setIdentifierType]=useState("Ghana Card");
+  const [identifierValue,setIdentifierValue]=useState("");
+  const [issuedOn,setIssuedOn]=useState("");
+  const [expiresOn,setExpiresOn]=useState("");
+  const [reason,setReason]=useState("");
+
+  const valid = reason.trim().length >= 3 && (
+    type === "compensation" ? amountToMinor(amount) > 0 && basisLabel.trim() && effectiveOn :
+    type === "payment_detail" ? providerName.trim() && accountName.trim() && accountReference.trim() :
+    type === "identifier" ? identifierType.trim() && identifierValue.trim() :
+    false
+  );
+
+  function submit() {
+    if (!valid) return;
+    if (type === "compensation") {
+      onSave({
+        recordType:"compensation",
+        reason:reason.trim(),
+        payload:{
+          amount_minor:amountToMinor(amount),
+          currency,
+          basis_label:basisLabel.trim(),
+          effective_on:effectiveOn,
+        },
+      });
+      return;
+    }
+    if (type === "payment_detail") {
+      onSave({
+        recordType:"payment_detail",
+        reason:reason.trim(),
+        payload:{
+          payment_type:"bank",
+          provider_name:providerName.trim(),
+          account_name:accountName.trim(),
+          account_reference:accountReference.trim(),
+          branch_reference:branchReference.trim() || null,
+        },
+      });
+      return;
+    }
+    onSave({
+      recordType:"identifier",
+      reason:reason.trim(),
+      payload:{
+        identifier_type:identifierType.trim(),
+        identifier_value:identifierValue.trim(),
+        issued_on:issuedOn || null,
+        expires_on:expiresOn || null,
+      },
+    });
+  }
+
+  return <Sheet onClose={onClose}>
+    <div className="eyebrow">Protected HR · {employee.full_name}</div>
+    <div className="h2">{type === "compensation" ? "Record salary / compensation" : type === "payment_detail" ? "Record payment details" : "Record protected identifier"}</div>
+    <p className="screen-note">This writes an attributable protected-HR record. Existing history is not silently overwritten.</p>
+
+    {type === "compensation" && <>
+      <FieldGroup label="Amount"><input className="field" inputMode="decimal" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" /></FieldGroup>
+      <FieldGroup label="Currency"><select className="field" value={currency} onChange={(e)=>setCurrency(e.target.value)}>{["GHS","USD","GBP","EUR","NGN","ZAR","CAD"].map((value)=><option key={value}>{value}</option>)}</select></FieldGroup>
+      <FieldGroup label="Basis"><input className="field" value={basisLabel} onChange={(e)=>setBasisLabel(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Effective date"><input className="field" type="date" value={effectiveOn} onChange={(e)=>setEffectiveOn(e.target.value)} /></FieldGroup>
+    </>}
+
+    {type === "payment_detail" && <>
+      <FieldGroup label="Bank / provider"><input className="field" value={providerName} onChange={(e)=>setProviderName(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Account name"><input className="field" value={accountName} onChange={(e)=>setAccountName(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Account number / reference"><input className="field" value={accountReference} onChange={(e)=>setAccountReference(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Branch / routing reference" hint="Optional"><input className="field" value={branchReference} onChange={(e)=>setBranchReference(e.target.value)} /></FieldGroup>
+    </>}
+
+    {type === "identifier" && <>
+      <FieldGroup label="Identifier type"><select className="field" value={identifierType} onChange={(e)=>setIdentifierType(e.target.value)}><option>Ghana Card</option><option>SSNIT</option><option>TIN</option><option>Other identifier</option></select></FieldGroup>
+      <FieldGroup label="Identifier value"><input className="field" value={identifierValue} onChange={(e)=>setIdentifierValue(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Issued on" hint="Optional"><input className="field" type="date" value={issuedOn} onChange={(e)=>setIssuedOn(e.target.value)} /></FieldGroup>
+      <FieldGroup label="Expires on" hint="Optional"><input className="field" type="date" value={expiresOn} onChange={(e)=>setExpiresOn(e.target.value)} /></FieldGroup>
+    </>}
+
+    <FieldGroup label="Reason / source"><textarea className="field" rows="3" value={reason} onChange={(e)=>setReason(e.target.value)} placeholder="Why this value is authoritative" /></FieldGroup>
+    <button className="btn" disabled={busy || !valid} onClick={submit}>{busy ? "Recording…" : "Record protected HR"}</button>
+  </Sheet>;
 }

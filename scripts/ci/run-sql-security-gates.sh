@@ -16,7 +16,9 @@ tests=(
   integration_gateway_gate.sql
   employee_lifecycle_gate.sql
   protected_hr_stage3_gate.sql
+  employee_protected_hr_gate.sql
   payroll_stage13_gate.sql
+  employee_roster_completeness_gate.sql
   goals_strategy_stage4_gate.sql
   work_management_stage5_gate.sql
   resource_workload_stage6_gate.sql

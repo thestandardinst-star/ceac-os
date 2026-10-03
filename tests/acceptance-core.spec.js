@@ -1949,7 +1949,8 @@ test("Administration surfaces use policy-safe HR states and real employee record
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
   const peopleMain = page.getByRole("main");
   await expect(peopleMain.getByText("Protected HR", { exact: true })).toBeVisible();
-  await expect(peopleMain.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
+  await expect(peopleMain.getByRole("button", { name: "Record salary", exact: true })).toBeVisible();
+  await expect(peopleMain.getByRole("button", { name: "Record payment details", exact: true })).toBeVisible();
   await expect(page.getByText(/entitlement not configured/i)).toBeVisible();
   await expect(page.getByText("Employment record", { exact: true })).toBeVisible();
   await expect(page.getByText("Employment history", { exact: true })).toBeVisible();

@@ -74,6 +74,38 @@ for (const user of users) {
   }
 }
 
+// Employee-roster fixtures mirror production semantics: authentication is not
+// itself proof of employment, so test employees are explicitly represented in
+// the employee master and then linked to their known test accounts.
+const employeeByProfile = new Map();
+for (const user of users) {
+  const employee = await service.from("employee_roster").insert({
+    org_id: orgId,
+    profile_id: user.id,
+    full_name: user.name,
+    source_display_name: user.name,
+    source_department_text: user.unit === unitA ? "Test Unit A" : "Test Unit B",
+    source_position: user.role === "manager" ? "Manager" : user.isAdmin ? "Administration" : user.isExec ? "Executive" : "Staff",
+    job_title: user.role === "manager" ? "Manager" : user.isAdmin ? "Administration" : user.isExec ? "Executive" : "Staff",
+    employment_type: "not_recorded",
+    employment_status: "active",
+    identity_state: "linked",
+    source_system: "role_fixture",
+    source_row_key: user.id,
+  }).select("id").single();
+  assert.equal(employee.error, null, employee.error?.message);
+  employeeByProfile.set(user.id, employee.data.id);
+
+  const rosterMembership = await service.from("employee_unit_memberships").insert({
+    org_id: orgId,
+    employee_id: employee.data.id,
+    unit_id: user.unit,
+    is_primary: true,
+    context_label: "Local acceptance fixture membership",
+  });
+  assert.equal(rosterMembership.error, null, rosterMembership.error?.message);
+}
+
 const employmentFixtures = [
   { id: users[0].id, manager: users[1].id, role: "staff" },
   { id: users[1].id, manager: users[2].id, role: "manager" },

@@ -350,7 +350,9 @@ test("Stage 10 Family B5A Administration People directory preserves HR authority
   expect(screen).toContain("They are not a performance score, ranking or disciplinary conclusion.");
   expect(screen).toContain("No submissions in 14 days");
   expect(screen).toContain("Record employment change");
-  expect(screen).toContain("Awaiting CEAC salary structure");
+  expect(screen).toContain('rpc("admin_employee_roster_summary")');
+  expect(screen).toContain('rpc("hr_employee_protected_summary"');
+  expect(screen).toContain("Missing data remains explicitly missing until Administration records an authoritative value.");
   expect(css).toContain("/* Stage 10B5 — Administration People / employee workspace */");
   expect(css).toContain(".ev2p-admin-person-row");
   expect(css).not.toContain("!important");
@@ -455,8 +457,9 @@ test("Stage 10 Family B5B Administration employee workspace preserves employment
   expect(protectedHr).toBeGreaterThan(leave);
 
   expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
-  expect(screen).toContain("Awaiting CEAC salary structure");
-  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+  expect(screen).toContain('rpc("hr_employee_protected_summary"');
+  expect(screen).toContain('rpc("hr_employee_protected_record"');
+  expect(screen).toContain("Missing data remains explicitly missing until Administration records an authoritative value.");
   expect(screen).toContain('employmentForm.changeType === "correction"');
   expect(screen).toContain('employmentForm.status === "exited"');
   expect(screen).toContain("Record employment change");
@@ -484,7 +487,8 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: "Work & activity context", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Leave", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Protected HR", exact: true })).toBeVisible();
-    await expect(page.getByText("Awaiting CEAC salary structure", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Record salary", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Record payment details", exact: true })).toBeVisible();
     await expect(page.getByText(/not a productivity score, ranking, pay input or disciplinary conclusion/i)).toBeVisible();
 
     const headings = await page.locator(".ev2p-workspace-section h2").evaluateAll((nodes) =>
@@ -663,7 +667,9 @@ test("VF4B Administration People and employee workspace lock operations-console 
   expect(screen).toContain('rpc("admin_employment_detail"');
   expect(screen).toContain('rpc("admin_update_employment"');
   expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
-  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+  expect(screen).toContain('rpc("admin_employee_roster_summary")');
+  expect(screen).toContain('rpc("hr_employee_protected_summary"');
+  expect(screen).toContain("Missing data remains explicitly missing until Administration records an authoritative value.");
 
   expect(css).toContain("/* VF4B — Administration People / Employee workspace fidelity.");
   expect(css).toContain(".ev2p-admin-person-rail");

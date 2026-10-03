@@ -54,6 +54,7 @@ export default function AdminPayroll({ me }) {
   const canPrepare = capabilities.has("payroll.prepare");
   const canApprove = capabilities.has("payroll.approve");
   const [runs, setRuns] = useState([]);
+  const [readiness, setReadiness] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -68,11 +69,18 @@ export default function AdminPayroll({ me }) {
 
   async function loadRuns(preferId = null) {
     setLoading(true); setError(null);
-    const { data, error: loadError } = await supabase.rpc("payroll_list_runs");
+    const [runsResult, readinessResult] = await Promise.all([
+      supabase.rpc("payroll_list_runs"),
+      supabase.rpc("payroll_readiness_summary"),
+    ]);
     setLoading(false);
-    if (loadError) { setError(loadError.message || "Payroll could not load."); return; }
-    const rows = Array.isArray(data) ? data : [];
+    if (runsResult.error || readinessResult.error) {
+      setError((runsResult.error || readinessResult.error)?.message || "Payroll could not load.");
+      return;
+    }
+    const rows = Array.isArray(runsResult.data) ? runsResult.data : [];
     setRuns(rows);
+    setReadiness(readinessResult.data || null);
     const next = preferId || selectedId || rows[0]?.id || null;
     setSelectedId(next && rows.some((row) => row.id === next) ? next : rows[0]?.id || null);
   }
@@ -103,11 +111,11 @@ export default function AdminPayroll({ me }) {
   }
 
   async function saveLine(form) {
-    if (!detail?.run?.id || !form.profileId) return;
+    if (!detail?.run?.id || !form.employeeId) return;
     setBusy(true); setError(null); setNotice(null);
     const { error: lineError } = await supabase.rpc("payroll_set_line", {
       p_run_id: detail.run.id,
-      p_profile_id: form.profileId,
+      p_profile_id: form.employeeId,
       p_line_id: form.lineId || null,
       p_category: form.category,
       p_direction: form.direction,
@@ -127,7 +135,7 @@ export default function AdminPayroll({ me }) {
     setBusy(true); setError(null); setNotice(null);
     const { error: removeError } = await supabase.rpc("payroll_set_line", {
       p_run_id: detail.run.id,
-      p_profile_id: entry.profile_id,
+      p_profile_id: entry.employee_id || entry.profile_id,
       p_line_id: line.id,
       p_category: line.category,
       p_direction: line.direction,
@@ -198,6 +206,22 @@ export default function AdminPayroll({ me }) {
     {error && <ProductNotice tone="error" title="Payroll">{error}</ProductNotice>}
     {notice && <ProductNotice tone="success" title="Payroll">{notice}</ProductNotice>}
 
+    {readiness && <section className="fpg-payroll-table-card">
+      <div className="fpg-payroll-table-head">
+        <div><span>Payroll readiness</span><h3>{readiness.employee_count || 0} active employee{readiness.employee_count === 1 ? "" : "s"} in the roster</h3></div>
+        <small>{readiness.linked_count || 0} linked account{readiness.linked_count === 1 ? "" : "s"} · {readiness.roster_only_count || 0} roster only</small>
+      </div>
+      <section className="fpg-payroll-metrics">
+        <article><span>Employees</span><strong>{readiness.employee_count || 0}</strong><small>Complete active roster population</small></article>
+        <article className={readiness.compensation_missing_count ? "has-flags" : ""}><span>Compensation recorded</span><strong>{readiness.compensation_recorded_count || 0}</strong><small>{readiness.compensation_missing_count || 0} still missing</small></article>
+        <article className={readiness.payment_missing_count ? "has-flags" : ""}><span>Payment details recorded</span><strong>{readiness.payment_recorded_count || 0}</strong><small>{readiness.payment_missing_count || 0} still missing</small></article>
+        <article className={readiness.identity_review_count ? "has-flags" : ""}><span>Identity review</span><strong>{readiness.identity_review_count || 0}</strong><small>Employees awaiting account-link confirmation</small></article>
+      </section>
+      {(readiness.compensation_missing_count > 0 || readiness.payment_missing_count > 0) && <ProductNotice tone="attention" title="Payroll setup is incomplete">
+        Every active employee is represented. Missing salary or payment information is shown as missing and is not invented. A draft run will include the complete roster and flag incomplete employee records for review.
+      </ProductNotice>}
+    </section>}
+
     <div className="fpg-payroll-layout">
       <aside className="fpg-payroll-runs" aria-label="Payroll runs">
         <div className="fpg-payroll-side-title"><span>Payroll periods</span><b>{runs.length}</b></div>
@@ -206,11 +230,11 @@ export default function AdminPayroll({ me }) {
           <span className={"fpg-payroll-status " + statusTone(row.status)}>{statusLabel(row.status)}</span>
           <b>{money(row.total_net_minor, row.currency)}</b>
         </button>)}
-        {!runs.length && <EmptyState compact title="No payroll runs">Administration can create the first protected payroll run.</EmptyState>}
+        {!runs.length && <EmptyState compact title="No payroll runs">The employee roster is available. Administration can create the first protected payroll run when ready.</EmptyState>}
       </aside>
 
       <main className="fpg-payroll-main">
-        {!selectedId && <EmptyState title="No payroll run selected">Create or select a payroll period to begin.</EmptyState>}
+        {!selectedId && <EmptyState title="No payroll run selected">Create or select a payroll period. The first draft will include every active employee in the roster, including employees without login accounts.</EmptyState>}
         {selectedId && detailLoading && <LoadingState label="Opening Payroll run…" />}
         {run && !detailLoading && <>
           <section className="fpg-payroll-run-head">
@@ -313,7 +337,7 @@ function EntrySheet({ entry, busy, onClose, onSave, onRemove }) {
     <FieldGroup label="Label"><input className="field" value={label} onChange={(e)=>setLabel(e.target.value)} /></FieldGroup>
     <FieldGroup label={"Amount ("+entry.currency+")"}><input className="field" inputMode="decimal" value={amount} onChange={(e)=>setAmount(e.target.value)} placeholder="0.00" /></FieldGroup>
     <FieldGroup label="Reason / source note"><textarea className="field" rows="3" value={note} onChange={(e)=>setNote(e.target.value)} placeholder="Why this line is authoritative" /></FieldGroup>
-    <button className="btn" disabled={busy || !label.trim() || amountToMinor(amount)<=0} onClick={()=>onSave({profileId:entry.profile_id,category,direction,label,amount,note})}>{busy ? "Saving…" : "Add Payroll line"}</button>
+    <button className="btn" disabled={busy || !label.trim() || amountToMinor(amount)<=0} onClick={()=>onSave({employeeId:entry.employee_id || entry.profile_id,category,direction,label,amount,note})}>{busy ? "Saving…" : "Add Payroll line"}</button>
   </Sheet>;
 }
 
