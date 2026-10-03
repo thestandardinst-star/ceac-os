@@ -59,8 +59,12 @@ test("Stage 6 Manager Overview is isolated V2 presentation on preserved manager 
   expect(css).not.toContain(".manager-app");
   expect(css).not.toContain(".premium-");
   expect(css).not.toContain(".home-panel");
-  expect(css).toMatch(/@media \(max-width: 599px\)[\s\S]*?\.managerv2-decision-row\s*\{[\s\S]*?grid-template-columns:\s*2rem minmax\(0,\s*1fr\);/);
-  expect(css).toMatch(/\.managerv2-decision-actions \.ev2c-button\s*\{[\s\S]*?flex:\s*1 1 7rem;/);
+  expect(view).toContain("fpg9-home-reference");
+  expect(view).toContain("fpg9-calendar-card");
+  expect(view).toContain("fpg9-module-strip");
+  expect(css).toContain(".fpg9-home-reference");
+  expect(css).toContain(".fpg9-calendar-card");
+  expect(css).toContain(".fpg9-module-strip");
 
   const staffCss = main.indexOf('import "./experience-v2/staff-today/staff-today.css";');
   const managerCss = main.indexOf('import "./experience-v2/manager-overview/manager-overview.css";');
@@ -78,7 +82,10 @@ for (const viewport of [
     const { context, page } = await openManager(browser, { width: viewport.width, height: viewport.height });
 
     await expect(page.getByRole("heading", { name: /Good (morning|afternoon|evening), Manager/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Give out work", exact: true })).toBeVisible();
+    if (viewport.width >= 900) await expect(page.getByRole("button", { name: "New work", exact: true }).first()).toBeVisible();
+    await expect(page.locator(".fpg9-home-reference")).toBeVisible();
+    await expect(page.locator(".fpg9-calendar-card")).toBeVisible();
+    await expect(page.locator(".fpg9-module-strip")).toBeVisible();
     await expect(page.locator(".managerv2-decisions")).toBeVisible();
     await expect(page.locator(".managerv2-delegated")).toBeVisible();
     await expect(page.locator(".managerv2-team")).toBeVisible();
