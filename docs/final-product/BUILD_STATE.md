@@ -377,3 +377,27 @@ FPG10 implementation scope:
 - retain Finance-family VF6B cross-role grammar where it already carries the accepted FPG3 presentation;
 - verify Staff, Manager, Administration and Executive representative surfaces at the same exact head;
 - do not introduce a new generic design layer or fake data.
+
+
+## FPG10 — ACCEPTED
+Accepted runtime SHA: `19940a774cd7b6241201beb0fb1bfb80c072b65a`
+- CI, Migration Replay, Account Security: PASS.
+- Level B SQL/authority: PASS.
+- Browser shards 1–4: PASS.
+- Evidence merge and role/RLS closure: PASS.
+- Whole-system parity propagation reused existing Work/People/Finance families; no new generic design system was added.
+
+## FPG11 — ACCEPTED
+Runtime delta: NONE.
+- Dependency review found live dependencies across apparent duplicate authority, event, appraisal and employment families.
+- Reconciliation backup schema has no live function/view dependency but contains rollback data and is retained through release.
+- No destructive table/schema/engine cleanup was performed.
+- Protected foundations remain unchanged.
+
+## Current stage
+FPG12 — Accelerated verification / hardening: ACTIVE
+
+Planned FPG12 change is intentionally narrow:
+- revoke direct anon/authenticated table privileges from internal reference-counter tables while preserving definer-based reference generation;
+- codify security-posture assertions for protected HR and SECURITY DEFINER exposure;
+- classify platform advisories without broad RLS/RPC rewrites.
