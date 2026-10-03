@@ -467,3 +467,34 @@ Required closure sequence:
 8. record FPG14 acceptance only when the production artifact, database and authenticated role smoke all refer to the final release state.
 
 Current external constraint: branch Vercel checks are build-rate-limited. This does not block database/main preparation but may block final deployment acceptance until Vercel permits a build.
+
+
+## Post-FPG production reconciliation — 3 October 2026
+
+Protected-main state has advanced beyond the historical FPG14 checkpoint above.
+
+Verified release progression:
+- PR #93 was squash-merged to protected `main` at `a46232edff481868d764a3ece9c241e36b5282fb`;
+- the employee-roster/Payroll completeness correction in PR #94 was subsequently squash-merged to protected `main` at `17d95773a1d46af98bb71e17db23f965ce336939`;
+- exact merged main `17d95773a1d46af98bb71e17db23f965ce336939` passed CI #1922, Migration Replay #1525, Account Security #1697 and Quality Gate #1723;
+- Level B SQL/authority contracts, browser shards 1–4, evidence merge and role/RLS closure all passed on that exact main;
+- GitHub's Vercel status for that exact main reports SUCCESS / deployment completed.
+
+Production database state now includes:
+- FPG migrations 101 and 102;
+- employee-roster master migration;
+- employee-subject protected-HR migration 104;
+- employee-based Payroll population migration 105;
+- Payroll readiness migration 106.
+
+Production roster verification:
+- 18/18 supplied staff rows represented;
+- 2 confirmed linked profiles;
+- 15 roster-only employees;
+- 1 identity-review employee;
+- 0 unaccounted source rows;
+- no fabricated email/auth identity.
+
+Production Payroll readiness verifies all 18 active employees are represented. Compensation and payment details remain 0 recorded / 18 missing because authoritative values have not been supplied; the product now reports those states truthfully instead of omitting employees.
+
+FPG14 remains ACTIVE only for the final independent authenticated live-product smoke. The connected Vercel account currently has no authorized team/project access and returns 403 for the protected deployment, so an authenticated Staff/Manager/Administration/Executive smoke against the deployed Vercel artifact cannot be claimed from this session. This is now an access/evidence blocker, not a build-rate or application-code blocker.
