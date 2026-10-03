@@ -60,13 +60,14 @@ export default function People({ me, openItem }) {
   async function load() {
     setLoading(true);
     setError(null);
-    const [peopleResult, leaveResult, unitsResult] = await Promise.all([
+    const [rosterResult, peopleResult, leaveResult, unitsResult] = await Promise.all([
+      supabase.rpc("admin_employee_roster_summary"),
       supabase.rpc("admin_people_summary"),
       supabase.from("leave_settings").select("annual_days,sick_days,max_carryover,updated_by,updated_at").eq("org_id", me.org_id).maybeSingle(),
       supabase.from("units").select("id,name").eq("org_id", me.org_id).eq("active", true).order("name"),
     ]);
-    if (peopleResult.error) {
-      setError(humanError(peopleResult.error, "The People record could not load."));
+    if (rosterResult.error || peopleResult.error) {
+      setError(humanError(rosterResult.error || peopleResult.error, "The People record could not load."));
       setLoading(false);
       return;
     }
@@ -80,7 +81,56 @@ export default function People({ me, openItem }) {
       setLoading(false);
       return;
     }
-    setRows(Array.isArray(peopleResult.data) ? peopleResult.data : []);
+    const operationalByProfile = new Map((Array.isArray(peopleResult.data) ? peopleResult.data : []).map((entry) => [entry.id, entry]));
+    const rosterRows = (Array.isArray(rosterResult.data) ? rosterResult.data : []).map((employee) => {
+      const operational = employee.profile_id ? operationalByProfile.get(employee.profile_id) : null;
+      const rosterUnits = Array.isArray(employee.units) ? employee.units : [];
+      const primaryUnit = rosterUnits.find((unit) => unit.is_primary) || rosterUnits[0] || null;
+      return {
+        ...(operational || {}),
+        id: employee.id,
+        employee_id: employee.id,
+        profile_id: employee.profile_id || null,
+        full_name: employee.full_name,
+        preferred_name: employee.preferred_name || null,
+        source_display_name: employee.source_display_name || null,
+        source_department_text: employee.source_department_text || null,
+        source_position: employee.source_position || null,
+        job_title: employee.job_title || operational?.job_title || null,
+        employment_type: employee.employment_type || "not_recorded",
+        employment_status: employee.employment_status || "active",
+        identity_state: employee.identity_state,
+        responsibility_context: Array.isArray(employee.responsibility_context) ? employee.responsibility_context : [],
+        review_note: employee.review_note || null,
+        roster_units: rosterUnits,
+        email: employee.account_email || operational?.email || null,
+        account_active: employee.account_active ?? operational?.active ?? false,
+        active: employee.employment_status === "active",
+        unit_id: operational?.unit_id || primaryUnit?.unit_id || null,
+        unit_name: operational?.unit_name || primaryUnit?.unit_name || null,
+        role: operational?.role || null,
+        is_admin: employee.is_admin || operational?.is_admin || false,
+        is_exec: employee.is_exec || operational?.is_exec || false,
+        on_leave_now: operational?.on_leave_now || false,
+        quiet: operational?.quiet || false,
+        done_count: operational?.done_count || 0,
+        assigned_done_count: operational?.assigned_done_count || 0,
+        self_done_count: operational?.self_done_count || 0,
+        on_time_count: operational?.on_time_count || 0,
+        first_time_count: operational?.first_time_count || 0,
+        open_count: operational?.open_count || 0,
+        days_this_month: operational?.days_this_month || 0,
+        avg_start_minutes: operational?.avg_start_minutes ?? null,
+        annual_taken: operational?.annual_taken || 0,
+        sick_taken: operational?.sick_taken || 0,
+        carryover_from_last_year: operational?.carryover_from_last_year || 0,
+        started_on: operational?.started_on || null,
+        contract_type: operational?.contract_type || employee.employment_type || "not_recorded",
+        birthday: operational?.birthday || null,
+        phone: operational?.phone || null,
+      };
+    });
+    setRows(rosterRows);
     setLeavePolicy(leaveResult.data?.updated_by ? leaveResult.data : null);
     setUnits(unitsResult.data || []);
     setLoading(false);
@@ -90,15 +140,29 @@ export default function People({ me, openItem }) {
     setDetailLoading(true);
     setError(null);
     setDrill(null);
-    const [detailResult, employmentResult] = await Promise.all([
-      supabase.rpc("admin_person_detail", { p_profile_id: summary.id }),
-      supabase.rpc("admin_employment_detail", { p_profile_id: summary.id }),
-    ]);
+
+    const rosterDetailResult = await supabase.rpc("admin_employee_roster_detail", { p_employee_id: summary.id });
+    if (rosterDetailResult.error) {
+      setDetailLoading(false);
+      setError(humanError(rosterDetailResult.error, "That employee record could not load."));
+      return;
+    }
+
+    let detailResult = { data: { work: [], sessions: [], leave: [] }, error: null };
+    let employmentResult = { data: { current: null, history: [] }, error: null };
+    if (summary.profile_id) {
+      [detailResult, employmentResult] = await Promise.all([
+        supabase.rpc("admin_person_detail", { p_profile_id: summary.profile_id }),
+        supabase.rpc("admin_employment_detail", { p_profile_id: summary.profile_id }),
+      ]);
+    }
+
     setDetailLoading(false);
     if (detailResult.error || employmentResult.error) {
       setError(humanError(detailResult.error || employmentResult.error, "That employee record could not load."));
       return;
     }
+
     const data = detailResult.data;
     const work = Array.isArray(data?.work) ? data.work.map((item) => ({
       ...item,
@@ -107,9 +171,21 @@ export default function People({ me, openItem }) {
     const sessions = Array.isArray(data?.sessions) ? data.sessions : [];
     const leave = Array.isArray(data?.leave) ? data.leave : [];
     const done = work.filter((item) => ["completed","self_certified"].includes(item.status));
+    const rosterDetail = rosterDetailResult.data || {};
+    const rosterEmployee = rosterDetail.employee || {};
+    const rosterUnits = Array.isArray(rosterDetail.units) ? rosterDetail.units : summary.roster_units || [];
+
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     setPerson({
       ...summary,
+      ...rosterEmployee,
+      id: summary.id,
+      employee_id: summary.id,
+      profile_id: summary.profile_id || rosterEmployee.profile_id || null,
+      roster_units: rosterUnits,
+      email: rosterEmployee.account_email || summary.email || null,
+      phone: rosterEmployee.account_phone || summary.phone || null,
+      operational_data_available: Boolean(rosterDetail.operational_data_available),
       items: work,
       done,
       assigned: done.filter((item) => item.origin === "assigned"),
@@ -153,7 +229,7 @@ export default function People({ me, openItem }) {
     setSavingEmployment(true);
     setError(null);
     const { data, error: saveError } = await supabase.rpc("admin_update_employment", {
-      p_profile_id: person.id,
+      p_profile_id: person.profile_id,
       p_employment_type: employmentForm.employmentType,
       p_job_title: employmentForm.jobTitle || null,
       p_unit_id: employmentForm.unitId || null,
@@ -463,11 +539,16 @@ export default function People({ me, openItem }) {
       filter === "on_leave" ? p.on_leave_now :
       filter === "quiet" ? p.quiet :
       filter === "no_unit" ? !p.unit_id : true;
-    const matchesSearch = !cleanSearch || [p.full_name,p.email,p.job_title,p.unit_name].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanSearch));
+    const matchesSearch = !cleanSearch || [
+      p.full_name,p.source_display_name,p.email,p.job_title,p.source_position,p.source_department_text,p.unit_name,
+      ...(p.roster_units || []).map((unit) => unit.unit_name),
+      ...(p.responsibility_context || []),
+    ].filter(Boolean).some((value) => String(value).toLowerCase().includes(cleanSearch));
     return matchesFilter && matchesSearch;
   });
 
   function rank(p) {
+    if (!p.profile_id) return 4;
     if (p.is_exec) return 0;
     if (p.is_admin) return 1;
     if (p.role === "manager") return 2;
@@ -475,6 +556,7 @@ export default function People({ me, openItem }) {
     return 4;
   }
   function rankLabel(p) {
+    if (!p.profile_id) return p.source_position || "Roster employee";
     if (p.is_exec) return "Group Pastor";
     if (p.is_admin) return "Administration & HR";
     if (p.role === "manager") return "Unit head";
@@ -554,12 +636,14 @@ export default function People({ me, openItem }) {
             <span><strong>{p.full_name}</strong><small>{rankLabel(p)}{p.job_title ? ` · ${p.job_title}` : ""}</small></span>
           </span>
           <span className="fpg-people-roster-unit">{p.unit_name || "No unit assigned"}</span>
-          <span className={p.on_leave_now ? "fpg-people-roster-status is-leave" : !p.active ? "fpg-people-roster-status is-inactive" : "fpg-people-roster-status is-active"}>
-            {p.on_leave_now ? "On leave" : !p.active ? "Inactive" : "Active"}
+          <span className={p.identity_state === "needs_review" ? "fpg-people-roster-status is-leave" : !p.active ? "fpg-people-roster-status is-inactive" : "fpg-people-roster-status is-active"}>
+            {p.identity_state === "needs_review" ? "Identity review" : p.identity_state === "roster_only" ? "Roster only" : p.on_leave_now ? "On leave" : !p.active ? "Inactive" : "Active"}
           </span>
           <span className="fpg-people-roster-facts">
-            <strong>{p.quiet ? "Review context" : `${p.open_count || 0} open`}</strong>
-            <small>{p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}</small>
+            <strong>{!p.profile_id ? "No account linked" : p.quiet ? "Review context" : `${p.open_count || 0} open`}</strong>
+            <small>{!p.profile_id
+              ? `${(p.roster_units || []).length} unit membership${(p.roster_units || []).length === 1 ? "" : "s"} recorded`
+              : p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}</small>
           </span>
           <span className="fpg-people-roster-open" aria-hidden="true">›</span>
         </button>)}
