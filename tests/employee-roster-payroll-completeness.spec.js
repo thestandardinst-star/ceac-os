@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 
 const people = fs.readFileSync(new URL("../src/screens/People.jsx", import.meta.url), "utf8");
 const payroll = fs.readFileSync(new URL("../src/screens/AdminPayroll.jsx", import.meta.url), "utf8");
+const roleFixtures = fs.readFileSync(new URL("../scripts/seed-role-fixtures.mjs", import.meta.url), "utf8");
 const rosterMigration = fs.readFileSync(new URL("../supabase/migrations/20261003120215_employee_roster_master.sql", import.meta.url), "utf8");
 const protectedHrMigration = fs.readFileSync(new URL("../supabase/migrations/20261003122000_104_employee_protected_hr_subject.sql", import.meta.url), "utf8");
 const payrollMigration = fs.readFileSync(new URL("../supabase/migrations/20261003130000_105_payroll_employee_population.sql", import.meta.url), "utf8");
@@ -49,4 +50,11 @@ test("Payroll readiness exposes completeness without exposing protected values",
   expect(readinessMigration).toContain("'identity_review_count'");
   expect(payroll).toContain('supabase.rpc("payroll_readiness_summary")');
   expect(payroll).toContain("Every active employee is represented");
+});
+
+
+test("browser acceptance fixtures explicitly model employees instead of treating auth as employment", () => {
+  expect(roleFixtures).toContain('service.from("employee_roster").insert');
+  expect(roleFixtures).toContain('identity_state: "linked"');
+  expect(roleFixtures).toContain('service.from("employee_unit_memberships").insert');
 });
