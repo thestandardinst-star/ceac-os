@@ -46,6 +46,8 @@ end
 $rpc_surface$;
 
 do $auth_is_not_employment$
+declare
+  n integer;
 begin
   if exists(
     select 1
@@ -63,6 +65,9 @@ begin
   ) then
     raise exception 'Employee roster gate failure: auth profiles were automatically treated as employees.';
   end if;
+
+  select count(*) into n from public.employee_roster;
+  perform set_config('ceac.test.employee_roster_baseline',n::text,true);
 end
 $auth_is_not_employment$;
 
@@ -83,16 +88,15 @@ begin
   exception when check_violation then null;
   end;
 
-  insert into public.employee_roster(
-    org_id,profile_id,full_name,employment_type,employment_status,identity_state,
-    source_system,source_row_key
-  ) values (
-    '10000000-0000-4000-8000-000000000010',
-    '31000000-0000-4000-8000-000000000001',
-    'Linked acceptance fixture',
-    'not_recorded','active','linked',
-    'acceptance_gate','linked-fixture'
-  ) returning id into v_linked;
+  select id into v_linked
+  from public.employee_roster
+  where org_id='10000000-0000-4000-8000-000000000010'
+    and profile_id='31000000-0000-4000-8000-000000000001'
+    and identity_state='linked';
+
+  if v_linked is null then
+    raise exception 'Employee roster gate failure: explicit linked employee fixture is missing.';
+  end if;
 
   begin
     insert into public.employee_roster(
@@ -169,18 +173,19 @@ select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000003'
 do $admin_read$
 declare
   v_employee uuid:=current_setting('ceac.test.employee_roster')::uuid;
+  v_baseline integer:=current_setting('ceac.test.employee_roster_baseline')::integer;
   v_detail jsonb;
   v_summary jsonb;
   n integer;
 begin
   select count(*) into n from public.employee_roster;
-  if n<>2 then
-    raise exception 'Employee roster gate failure: Administration should see both linked and roster-only employees, found %.',n;
+  if n<>v_baseline+1 then
+    raise exception 'Employee roster gate failure: Administration roster count % did not preserve baseline % plus roster-only fixture.',n,v_baseline;
   end if;
 
   v_summary:=public.admin_employee_roster_summary();
-  if jsonb_array_length(v_summary)<>2 then
-    raise exception 'Employee roster gate failure: Administration roster summary did not return both employee states.';
+  if jsonb_array_length(v_summary)<>v_baseline+1 then
+    raise exception 'Employee roster gate failure: Administration roster summary omitted explicit employee records.';
   end if;
 
   v_detail:=public.admin_employee_roster_detail(v_employee);
