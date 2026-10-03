@@ -5,9 +5,9 @@
 .fpg9-home-hero{
   min-height:116px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 24px;
   border:1px solid #dfe7ee;border-radius:16px;overflow:hidden;
-  background:
-    radial-gradient(circle at 82% 28%,rgba(255,226,157,.72),transparent 20%),
-    linear-gradient(115deg,rgba(244,249,251,.98) 0%,rgba(219,234,239,.92) 42%,rgba(182,205,207,.88) 72%,rgba(129,156,147,.88) 100%);
+  background-color:#dfe8e8;
+  background-image:linear-gradient(90deg,rgba(241,248,250,.96) 0%,rgba(241,248,250,.72) 48%,rgba(241,248,250,.10) 100%),url("../../../docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg");
+  background-repeat:no-repeat;background-size:100% 100%,155% auto;background-position:center,center -72px;
   box-shadow:0 8px 24px rgba(33,49,70,.06)
 }
 .fpg9-home-hero-copy{min-width:0}
@@ -139,7 +139,7 @@ button.fpg9-home-row:hover{background:#f8fafb}
   .managerv2-operational-grid,.managerv2-secondary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.managerv2-pulse-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:899px){
-  .fpg9-home-hero{min-height:0;display:block;padding:16px;border-radius:0}.fpg9-home-hero h1{font-size:28px}.fpg9-home-impact{width:100%;margin-top:14px}
+  .fpg9-home-hero{min-height:0;display:block;padding:16px;border-radius:0;background-size:100% 100%,auto 920px;background-position:center,center -48px}.fpg9-home-hero h1{font-size:28px}.fpg9-home-impact{width:100%;margin-top:14px}
   .fpg9-home-reference,.fpg9-home-focus{grid-template-columns:1fr}.fpg9-calendar-card{grid-column:1;grid-row:auto}.fpg9-home-queues{grid-column:1;grid-template-columns:1fr}.fpg9-module-strip{grid-column:1}.fpg9-module-strip>div{grid-template-columns:repeat(2,minmax(0,1fr))}
   .managerv2-command-grid,.managerv2-context-grid,.managerv2-operational-grid,.managerv2-secondary-grid,.managerv2-loading{grid-template-columns:1fr}
 }
