@@ -845,6 +845,17 @@ export default function Workforce({ me }) {
 
 
   if(isAdminView){
+    const absenceDays=Array.from({length:14},(_,i)=>{
+      const d=new Date(); d.setDate(d.getDate()+i); return {date:isoDay(d),dateObject:d};
+    });
+    const absenceFor=(profileId,date)=>leave.find((row)=>
+      row.profile_id===profileId
+      && ["approved","pending","escalated"].includes(row.status)
+      && row.start_date<=date
+      && row.end_date>=date
+    )||null;
+    const calendarContextEvents=absenceDays.flatMap(({date})=>calendarEventsOn(date).map((event)=>({...event,date})));
+
     const adminLeaveRow=(l)=>{
       const rule=ruleForLeave(l);
       const route=rule?.approval_route||null;
@@ -929,32 +940,50 @@ export default function Workforce({ me }) {
             options={[{value:"",label:"All visible people"},...people.filter((row)=>!calendarUnit||row.unit_id===calendarUnit).map((row)=>({value:row.profile_id,label:row.profiles?.full_name||"Employee"}))]}
           />
         </div>
-        <div className="ev2wf-admin-calendar-week" aria-label="Seven-day workforce context">
-        {Array.from({length:7},(_,i)=>{
-          const d=new Date(); d.setDate(d.getDate()+i); const date=isoDay(d);
-          const events=calendarEventsOn(date);
-          return <WorkforceSection key={date} title={niceDay(date)} description="Configured schedule and recorded activity for the selected organisation scope." meta={calendarPeople.length+" people"}>
-            {calendarPeople.map((person)=>{
-              const ctx=contextFor(person.profile_id,date);
-              const facts=sessionFacts(person.profile_id,date);
-              const schedule=latestSchedule(person.profile_id,date);
-              const dayType=currentDayType(person.profile_id,date);
-              const time=schedule?.expected_start?String(schedule.expected_start).slice(0,5)+(schedule?.expected_end?"–"+String(schedule.expected_end).slice(0,5):""):"No clock context";
-              return <WorkforceRecordRow
-                key={person.profile_id+"-"+date}
-                icon="person"
-                eyebrow={person.units?.name||"Unit not recorded"}
-                title={person.profiles?.full_name||"Employee"}
-                meta={(dayType?.name||"Schedule not configured")+" · "+time+(facts.first?" · first recorded "+clock(facts.first.started_at):" · no session recorded")}
-                statusLabel={ctx.label}
-                statusTone={ctx.tone}
-              />;
-            })}
-            {events.map((event)=><WorkforceRecordRow key={event.id} icon="meeting" eyebrow={event.label} title={event.title} meta={clock(event.at)} />)}
-            {!calendarPeople.length&&!events.length&&<WorkforceEmpty compact title="No workforce context in this selection" description="Change the filters or choose another date."/>}
-          </WorkforceSection>;
-        })}
-        </div>
+        <section className="ev2wf-admin-calendar-week fpg-absence-board" aria-label="Planned absences">
+          <header className="fpg-absence-board-head">
+            <div><span>Employees</span><h2>Planned absences</h2></div>
+            <small>Next 14 days · approved and waiting leave only</small>
+          </header>
+          <div className="fpg-absence-scroll">
+            <div className="fpg-absence-grid" style={{"--fpg-days":absenceDays.length}}>
+              <div className="fpg-absence-corner">Employee</div>
+              {absenceDays.map(({date,dateObject})=><div className="fpg-absence-day" key={"head-"+date}>
+                <span>{dateObject.toLocaleDateString("en-GB",{weekday:"short"})}</span>
+                <b>{dateObject.getDate()}</b>
+              </div>)}
+              {calendarPeople.map((person)=><React.Fragment key={person.profile_id}>
+                <div className="fpg-absence-person">
+                  <span className="fpg-absence-avatar" aria-hidden="true">{(person.profiles?.full_name||"?").slice(0,1).toUpperCase()}</span>
+                  <span><strong>{person.profiles?.full_name||"Employee"}</strong><small>{person.profiles?.job_title||person.units?.name||"Position not recorded"}</small></span>
+                </div>
+                {absenceDays.map(({date})=>{
+                  const row=absenceFor(person.profile_id,date);
+                  if(!row) return <div className="fpg-absence-cell" key={person.profile_id+"-"+date} />;
+                  const isStart=row.start_date===date;
+                  const isEnd=row.end_date===date;
+                  return <div
+                    key={person.profile_id+"-"+date}
+                    className={"fpg-absence-cell has-leave is-"+row.status+(isStart?" is-start":"")+(isEnd?" is-end":"")}
+                    title={human(row.kind)+" leave · "+human(row.status)}
+                  >
+                    {isStart&&<span>{human(row.kind)} leave</span>}
+                  </div>;
+                })}
+              </React.Fragment>)}
+            </div>
+          </div>
+          {!calendarPeople.length&&<WorkforceEmpty compact title="No employees match this selection" description="Change the unit or person filter."/>}
+          <div className="fpg-absence-legend">
+            <span><i className="is-approved"/>Approved leave</span>
+            <span><i className="is-pending"/>Pending</span>
+            <span><i className="is-escalated"/>Escalated</span>
+          </div>
+        </section>
+        <WorkforceSection title="Shared calendar context" description="Actual CEAC meetings and ministry events in the same 14-day window; these are not leave records." meta={calendarContextEvents.length+" events"}>
+          {calendarContextEvents.slice(0,24).map((event)=><WorkforceRecordRow key={event.id+"-"+event.date} icon="meeting" eyebrow={event.label+" · "+niceDay(event.date)} title={event.title} meta={clock(event.at)} />)}
+          {!calendarContextEvents.length&&<WorkforceEmpty compact title="No shared calendar events recorded" description="Only authoritative meetings and ministry events appear here."/>}
+        </WorkforceSection>
       </>}
 
       {tab==="sessions"&&<WorkforceSection title="Recorded sessions · last 31 days" description="Session history is factual activity context. It is not a performance score and it is not used as payroll time." meta={sessions.length+" records"}>
