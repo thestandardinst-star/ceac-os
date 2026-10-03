@@ -30,6 +30,7 @@ tests=(
   experience_stage6_finance_gate.sql
   experience_stage7_work_capture_gate.sql
   experience_stage8_interface_gate.sql
+  fpg12_security_posture_gate.sql
   production_hardening_gate.sql
 )
 
