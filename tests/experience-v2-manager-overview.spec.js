@@ -66,10 +66,8 @@ test("Stage 6 Manager Overview is isolated V2 presentation on preserved manager 
   expect(css).toContain(".fpg9-calendar-card");
   expect(css).toContain(".fpg9-module-strip");
 
-  const staffCss = main.indexOf('import "./experience-v2/staff-today/staff-today.css";');
-  const managerCss = main.indexOf('import "./experience-v2/manager-overview/manager-overview.css";');
-  expect(staffCss).toBeGreaterThan(-1);
-  expect(managerCss).toBeGreaterThan(staffCss);
+  expect(view).toContain('import "./manager-overview.css";');
+  expect(main).not.toContain('import "./experience-v2/manager-overview/manager-overview.css";');
 });
 
 for (const viewport of [
