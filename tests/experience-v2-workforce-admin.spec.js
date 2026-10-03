@@ -110,34 +110,29 @@ for (const viewport of [
         fullPage: true,
       });
       await page.getByRole("tab", { name: "Calendar", exact: true }).click();
-      const calendarRail = page.locator(".ev2wf-admin-calendar-week");
+      const calendarRail = page.locator(".fpg-absence-board");
       await expect(calendarRail).toBeVisible();
-      await expect(calendarRail.locator(":scope > .ev2wf-section")).toHaveCount(7);
+      await expect(calendarRail.locator(".fpg-absence-day")).toHaveCount(14);
+      await expect(calendarRail.locator(".fpg-absence-person").first()).toBeVisible();
+      const calendarGrid = calendarRail.locator(".fpg-absence-grid");
+      const gridLayout = await calendarGrid.evaluate((node) => ({
+        display: getComputedStyle(node).display,
+        columns: getComputedStyle(node).gridTemplateColumns,
+      }));
+      expect(gridLayout.display).toBe("grid");
+      expect(gridLayout.columns.split(" ").filter(Boolean)).toHaveLength(15);
       if (viewport.name === "phone-390") {
-        const railLayout = await calendarRail.evaluate((node) => ({
-          display: getComputedStyle(node).display,
+        const scroll = calendarRail.locator(".fpg-absence-scroll");
+        const scrollLayout = await scroll.evaluate((node) => ({
+          overflowX: getComputedStyle(node).overflowX,
           scrollWidth: node.scrollWidth,
           clientWidth: node.clientWidth,
         }));
-        expect(railLayout.display).toBe("flex");
-        expect(railLayout.scrollWidth).toBeGreaterThan(railLayout.clientWidth + 20);
-        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
-          nodes.slice(0, 2).map((node) => {
-            const rect = node.getBoundingClientRect();
-            return { left: rect.left, top: rect.top, height: rect.height };
-          })
-        );
-        expect(Math.abs(dayBoxes[0].top - dayBoxes[1].top)).toBeLessThanOrEqual(2);
-        expect(dayBoxes[1].left).toBeGreaterThan(dayBoxes[0].left);
+        expect(["auto","scroll"]).toContain(scrollLayout.overflowX);
+        expect(scrollLayout.scrollWidth).toBeGreaterThan(scrollLayout.clientWidth + 20);
       }
       if (viewport.name === "laptop-1366") {
-        const railLayout = await calendarRail.evaluate((node) => ({
-          display: getComputedStyle(node).display,
-          columns: getComputedStyle(node).gridTemplateColumns,
-        }));
-        expect(railLayout.display).toBe("grid");
-        expect(railLayout.columns.split(" ").filter(Boolean)).toHaveLength(2);
-        const dayBoxes = await calendarRail.locator(":scope > .ev2wf-section").evaluateAll((nodes) =>
+        const dayBoxes = await calendarRail.locator(".fpg-absence-day").evaluateAll((nodes) =>
           nodes.slice(0, 2).map((node) => {
             const rect = node.getBoundingClientRect();
             return { left: rect.left, top: rect.top };
