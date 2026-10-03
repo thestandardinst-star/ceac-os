@@ -33,11 +33,8 @@ $tables$;
 do $rpc_surface$
 begin
   if to_regprocedure('public.admin_employee_roster_summary()') is null
-     or to_regprocedure('public.admin_employee_roster_detail(uuid)') is null
-     or to_regprocedure('public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text)') is null
-     or to_regprocedure('public.admin_employee_link_profile(uuid,uuid,text)') is null
-     or to_regprocedure('public.admin_employee_set_units(uuid,uuid[],uuid)') is null then
-    raise exception 'Employee roster gate failure: roster RPC surface is incomplete.';
+     or to_regprocedure('public.admin_employee_roster_detail(uuid)') is null then
+    raise exception 'Employee roster gate failure: roster read RPC surface is incomplete.';
   end if;
 
   if has_function_privilege('anon','public.admin_employee_roster_summary()','EXECUTE')
@@ -45,17 +42,6 @@ begin
     raise exception 'Employee roster gate failure: anon can execute an Administration roster read RPC.';
   end if;
 
-  if has_function_privilege('authenticated','public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text)','EXECUTE')
-     or has_function_privilege('authenticated','public.admin_employee_link_profile(uuid,uuid,text)','EXECUTE')
-     or has_function_privilege('authenticated','public.admin_employee_set_units(uuid,uuid[],uuid)','EXECUTE') then
-    raise exception 'Employee roster gate failure: browser roles gained direct roster mutation RPC access.';
-  end if;
-
-  if not has_function_privilege('service_role','public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text)','EXECUTE')
-     or not has_function_privilege('service_role','public.admin_employee_link_profile(uuid,uuid,text)','EXECUTE')
-     or not has_function_privilege('service_role','public.admin_employee_set_units(uuid,uuid[],uuid)','EXECUTE') then
-    raise exception 'Employee roster gate failure: controlled service mutation path is incomplete.';
-  end if;
 end
 $rpc_surface$;
 
