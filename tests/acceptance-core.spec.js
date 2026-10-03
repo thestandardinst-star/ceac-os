@@ -1,3 +1,4 @@
+// FPG7 exact-head Level B People Workforce parity checkpoint — post-budget repair.
 // FPG7 exact-head Level B People Workforce parity checkpoint — CSS budget repair.
 // FPG2/FPG3 exact-head Level B parity evidence checkpoint.
 import { test, expect } from "@playwright/test";
