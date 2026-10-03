@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../final-product/fpg7-people-workforce.css";
 import { supabase } from "../lib/supabase";
 import { dateOnly, dueLabel } from "../lib/time";
 import { statusPill, ProductNotice, LoadingState, FieldGroup, EmptyState, Avatar, ProgressMeter, Sheet } from "../components/bits";
