@@ -68,6 +68,21 @@ alter table public.employee_unit_memberships enable row level security;
 
 revoke all on public.employee_roster from public,anon,authenticated;
 revoke all on public.employee_unit_memberships from public,anon,authenticated;
+
+create policy employee_roster_admin_read
+on public.employee_roster
+for select
+to authenticated
+using (org_id=public.app_org_id() and public.app_is_admin());
+
+create policy employee_unit_memberships_admin_read
+on public.employee_unit_memberships
+for select
+to authenticated
+using (org_id=public.app_org_id() and public.app_is_admin());
+
+grant select on public.employee_roster to authenticated;
+grant select on public.employee_unit_memberships to authenticated;
 grant select,insert,update,delete on public.employee_roster to service_role;
 grant select,insert,update,delete on public.employee_unit_memberships to service_role;
 
@@ -183,8 +198,8 @@ on conflict(employee_id,unit_id) do update set
 create or replace function public.admin_employee_roster_summary()
 returns jsonb
 language plpgsql
-security definer
-set search_path=''
+security invoker
+set search_path=public
 as $$
 declare
   v_org uuid:=public.app_org_id();
@@ -241,8 +256,8 @@ grant execute on function public.admin_employee_roster_summary() to authenticate
 create or replace function public.admin_employee_roster_detail(p_employee_id uuid)
 returns jsonb
 language plpgsql
-security definer
-set search_path=''
+security invoker
+set search_path=public
 as $$
 declare
   v_org uuid:=public.app_org_id();
@@ -385,8 +400,8 @@ begin
 end;
 $$;
 
-revoke all on function public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text) from public,anon;
-grant execute on function public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text) to authenticated,service_role;
+revoke all on function public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text) from public,anon,authenticated;
+grant execute on function public.admin_employee_roster_save(uuid,text,text,text,text,text,jsonb,text,text,text) to service_role;
 
 create or replace function public.admin_employee_link_profile(
   p_employee_id uuid,
@@ -436,8 +451,8 @@ begin
 end;
 $$;
 
-revoke all on function public.admin_employee_link_profile(uuid,uuid,text) from public,anon;
-grant execute on function public.admin_employee_link_profile(uuid,uuid,text) to authenticated,service_role;
+revoke all on function public.admin_employee_link_profile(uuid,uuid,text) from public,anon,authenticated;
+grant execute on function public.admin_employee_link_profile(uuid,uuid,text) to service_role;
 
 create or replace function public.admin_employee_set_units(
   p_employee_id uuid,
@@ -487,8 +502,8 @@ begin
 end;
 $$;
 
-revoke all on function public.admin_employee_set_units(uuid,uuid[],uuid) from public,anon;
-grant execute on function public.admin_employee_set_units(uuid,uuid[],uuid) to authenticated,service_role;
+revoke all on function public.admin_employee_set_units(uuid,uuid[],uuid) from public,anon,authenticated;
+grant execute on function public.admin_employee_set_units(uuid,uuid[],uuid) to service_role;
 
 comment on table public.employee_roster is
   'Canonical employee representation independent of authentication. profile_id is optional and never fabricated.';
