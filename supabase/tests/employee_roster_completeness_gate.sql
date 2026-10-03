@@ -59,36 +59,21 @@ begin
 end
 $rpc_surface$;
 
-do $backfill$
+do $auth_is_not_employment$
 declare
-  profile_count integer;
-  linked_count integer;
+  n integer;
 begin
-  select count(*) into profile_count from public.profiles;
-  select count(*) into linked_count
-  from public.employee_roster
-  where profile_id is not null and identity_state='linked';
-
-  if linked_count<>profile_count then
-    raise exception 'Employee roster gate failure: linked employee backfill % does not equal profile count %.',
-      linked_count,profile_count;
-  end if;
-
-  if exists(
-    select profile_id
-    from public.employee_roster
-    where profile_id is not null
-    group by profile_id
-    having count(*)>1
-  ) then
-    raise exception 'Employee roster gate failure: a profile is linked to more than one employee.';
+  select count(*) into n from public.employee_roster;
+  if n<>0 then
+    raise exception 'Employee roster gate failure: auth profiles were automatically treated as employees.';
   end if;
 end
-$backfill$;
+$auth_is_not_employment$;
 
 do $model_invariant$
 declare
-  v_employee uuid;
+  v_linked uuid;
+  v_roster uuid;
   v_unit uuid;
 begin
   begin
@@ -100,6 +85,30 @@ begin
     );
     raise exception 'Employee roster gate failure: linked employee without profile was accepted.';
   exception when check_violation then null;
+  end;
+
+  insert into public.employee_roster(
+    org_id,profile_id,full_name,employment_type,employment_status,identity_state,
+    source_system,source_row_key
+  ) values (
+    '10000000-0000-4000-8000-000000000010',
+    '31000000-0000-4000-8000-000000000001',
+    'Linked acceptance fixture',
+    'not_recorded','active','linked',
+    'acceptance_gate','linked-fixture'
+  ) returning id into v_linked;
+
+  begin
+    insert into public.employee_roster(
+      org_id,profile_id,full_name,employment_type,employment_status,identity_state
+    ) values (
+      '10000000-0000-4000-8000-000000000010',
+      '31000000-0000-4000-8000-000000000001',
+      'Duplicate linked fixture',
+      'not_recorded','active','linked'
+    );
+    raise exception 'Employee roster gate failure: one profile linked to multiple employees.';
+  exception when unique_violation then null;
   end;
 
   insert into public.employee_roster(
@@ -116,7 +125,7 @@ begin
     'acceptance_gate',
     'roster-only-fixture',
     'No account required'
-  ) returning id into v_employee;
+  ) returning id into v_roster;
 
   select id into v_unit
   from public.units
@@ -129,11 +138,11 @@ begin
       org_id,employee_id,unit_id,is_primary,context_label
     ) values (
       '10000000-0000-4000-8000-000000000010',
-      v_employee,v_unit,true,'Acceptance roster membership'
+      v_roster,v_unit,false,'Acceptance roster membership'
     );
   end if;
 
-  perform set_config('ceac.test.employee_roster',v_employee::text,true);
+  perform set_config('ceac.test.employee_roster',v_roster::text,true);
 end
 $model_invariant$;
 
@@ -169,13 +178,13 @@ declare
   n integer;
 begin
   select count(*) into n from public.employee_roster;
-  if n<(select count(*) from public.profiles) then
-    raise exception 'Employee roster gate failure: Administration direct RLS read omitted linked employees.';
+  if n<>2 then
+    raise exception 'Employee roster gate failure: Administration should see both linked and roster-only employees, found %.',n;
   end if;
 
   v_summary:=public.admin_employee_roster_summary();
-  if jsonb_array_length(v_summary)<(select count(*) from public.profiles) then
-    raise exception 'Employee roster gate failure: Administration roster summary omitted linked employees.';
+  if jsonb_array_length(v_summary)<>2 then
+    raise exception 'Employee roster gate failure: Administration roster summary did not return both employee states.';
   end if;
 
   v_detail:=public.admin_employee_roster_detail(v_employee);
