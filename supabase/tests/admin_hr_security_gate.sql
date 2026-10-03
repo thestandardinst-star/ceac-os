@@ -94,7 +94,11 @@ end $$;
 -- FPG5 adds seven reviewed Payroll RPCs. They are authenticated-only,
 -- capability-gated, keep protected payroll tables outside browser access, and
 -- preserve Administration prepare / Group Pastor approval separation.
--- Reducing this surface is allowed. Any growth beyond 113 requires another
+-- ERC4 adds two reviewed employee-subject protected-HR RPCs:
+-- hr_employee_protected_summary and hr_employee_protected_record.
+-- Both remain capability-gated by hr_private.access, bind to auth.uid(),
+-- and do not expose protected tables directly.
+-- Reducing this surface is allowed. Any growth beyond 115 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -105,8 +109,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>113 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 113-function ceiling to %.',n;
+  if n>115 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 115-function ceiling to %.',n;
   end if;
 end $$;
 
