@@ -1,3 +1,4 @@
+// FPG10 exact-head Level B whole-system parity propagation checkpoint.
 // FPG9 final exact-head Level B Home shell parity checkpoint — route-lazy cascade + locked budget.
 // FPG8 exact-head Level B staff reconciliation safety checkpoint.
 // FPG7 exact-head Level B People Workforce parity checkpoint — final 12px repair.
