@@ -411,3 +411,31 @@ Narrow hardening implemented:
 - make explicit `[level-b]` acceptance requests override the documentation-only fast path.
 
 No accepted authority, RLS, protected-HR, workflow, audit, integration or Finance contract is weakened.
+
+## FPG12 — Accelerated verification / hardening: ACCEPTED
+
+Accepted application SHA: `f8e14ea1958aa728c4fade7a393499c75e0a9a24`.
+
+Accepted:
+- internal reference-counter direct client privilege hardening;
+- protected-HR deny-direct-access security posture;
+- cumulative FPG12 SQL security contract;
+- explicit `[level-b]` override for documentation-only acceptance commits.
+
+Exact-head evidence:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Level B SQL/authority PASS;
+- browser shards 1/4, 2/4, 3/4 and 4/4 PASS;
+- evidence merge PASS;
+- role/RLS closure PASS;
+- Quality Gate PASS.
+
+Migrations 101 and 102 remain intentionally unapplied to production until FPG14 two-phase closure.
+
+## Current stage
+
+FPG13 — Real-user workflow + UX acceptance: ACTIVE
+
+FPG13 introduces no parallel workflow framework. It validates the existing real CEAC journeys already exercised by the cumulative acceptance suite across Staff, Manager, Administration and Executive roles. The exact journey matrix is documented in `FPG13_REAL_USER_UX_MATRIX.md`.
