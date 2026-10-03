@@ -495,6 +495,7 @@ export default function People({ me, openItem }) {
         || String(a.started_on || "9999").localeCompare(String(b.started_on || "9999"))
         || a.full_name.localeCompare(b.full_name)),
     }));
+  const roster = groups.flatMap((group) => group.people);
 
   return <div className="body ev2-people-page ev2-people-admin">
     <PeoplePageHeader
@@ -537,23 +538,32 @@ export default function People({ me, openItem }) {
     </p>
     </div>
 
-    {groups.map((group) => <PeopleSection
-      key={group.name}
-      title={group.name}
-      meta={`${group.people.length} ${group.people.length === 1 ? "person" : "people"}`}
-    >
-      {group.people.map((p) => <PeopleAdminPersonRow
-        key={p.id}
-        name={p.full_name}
-        subtitle={`${rankLabel(p)}${p.job_title ? ` · ${p.job_title}` : ""}`}
-        context={p.unit_name || "No unit assigned"}
-        status={p.on_leave_now ? "On leave" : !p.active ? "Inactive" : undefined}
-        statusTone={p.on_leave_now ? "warning" : "neutral"}
-        primaryFact={p.quiet ? "Review context" : `${p.open_count || 0} open`}
-        secondaryFact={p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}
-        onClick={() => openPerson(p)}
-      />)}
-    </PeopleSection>)}
+    {roster.length > 0 && <section className="fpg-people-roster" aria-label="Employee roster">
+      <header className="fpg-people-roster-head">
+        <div><span>Employees</span><h2>Employee roster</h2></div>
+        <div><b>{roster.length}</b><span>{filter === "all" ? "visible" : FILTERS.find(([key]) => key === filter)?.[1]}</span></div>
+      </header>
+      <div className="fpg-people-roster-columns" aria-hidden="true">
+        <span>Employee</span><span>Unit</span><span>Status</span><span>Recorded context</span><span />
+      </div>
+      <div className="fpg-people-roster-list">
+        {roster.map((p) => <button type="button" className="fpg-people-roster-row" key={p.id} onClick={() => openPerson(p)}>
+          <span className="fpg-people-roster-person">
+            <Avatar name={p.full_name} size="md" />
+            <span><strong>{p.full_name}</strong><small>{rankLabel(p)}{p.job_title ? ` · ${p.job_title}` : ""}</small></span>
+          </span>
+          <span className="fpg-people-roster-unit">{p.unit_name || "No unit assigned"}</span>
+          <span className={p.on_leave_now ? "fpg-people-roster-status is-leave" : !p.active ? "fpg-people-roster-status is-inactive" : "fpg-people-roster-status is-active"}>
+            {p.on_leave_now ? "On leave" : !p.active ? "Inactive" : "Active"}
+          </span>
+          <span className="fpg-people-roster-facts">
+            <strong>{p.quiet ? "Review context" : `${p.open_count || 0} open`}</strong>
+            <small>{p.quiet ? "No submission recorded in 14 days" : `${p.done_count || 0} finished on record`}</small>
+          </span>
+          <span className="fpg-people-roster-open" aria-hidden="true">›</span>
+        </button>)}
+      </div>
+    </section>}
 
     {shown.length === 0 && <div style={{ marginTop: "var(--ev2-space-5)" }}>
       <PeopleEmpty title="Nobody matches" description="Try a different filter or search term." />
