@@ -439,3 +439,31 @@ Migrations 101 and 102 remain intentionally unapplied to production until FPG14 
 FPG13 — Real-user workflow + UX acceptance: ACTIVE
 
 FPG13 introduces no parallel workflow framework. It validates the existing real CEAC journeys already exercised by the cumulative acceptance suite across Staff, Manager, Administration and Executive roles. The exact journey matrix is documented in `FPG13_REAL_USER_UX_MATRIX.md`.
+
+
+## FPG13 — ACCEPTED
+
+Accepted application SHA: `dfaf6e0a911fc75295f2d340fcf4cd579d2e3325`.
+
+- CI, Migration Replay and Account Security PASS.
+- Level B SQL/authority PASS.
+- Browser shards 1–4 PASS.
+- Documentation contract PASS.
+- Evidence merge and role/RLS closure PASS.
+- Real Staff/Manager/Administration/Executive workflow contracts were exercised through the normal authenticated application shell.
+- No invented UX score or fake user feedback was used.
+
+## Current stage
+FPG14 — Production closure: ACTIVE
+
+Required closure sequence:
+1. apply pending production database migrations 101 and 102;
+2. verify live database/security posture;
+3. merge PR #93 to protected `main` only at the verified exact head;
+4. complete exact-main CI/Migration Replay/Account Security/Quality Gate;
+5. obtain a successful production Vercel deployment of exact merged main;
+6. run authenticated Staff / Manager / Administration / Executive smoke on the deployed product at desktop and mobile widths;
+7. perform post-deploy security/database verification;
+8. record FPG14 acceptance only when the production artifact, database and authenticated role smoke all refer to the final release state.
+
+Current external constraint: branch Vercel checks are build-rate-limited. This does not block database/main preparation but may block final deployment acceptance until Vercel permits a build.
