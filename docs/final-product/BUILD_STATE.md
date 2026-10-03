@@ -401,3 +401,13 @@ Planned FPG12 change is intentionally narrow:
 - revoke direct anon/authenticated table privileges from internal reference-counter tables while preserving definer-based reference generation;
 - codify security-posture assertions for protected HR and SECURITY DEFINER exposure;
 - classify platform advisories without broad RLS/RPC rewrites.
+
+## FPG12 — Accelerated verification / hardening: IMPLEMENTATION ACTIVE
+
+Narrow hardening implemented:
+- revoke direct `anon`/`authenticated` privileges from internal work/objective reference-counter tables while preserving SECURITY DEFINER reference generation;
+- add `fpg12_security_posture_gate.sql` to prove counter and protected-HR direct-access posture;
+- classify live security advisories without broad RPC/RLS rewrites;
+- make explicit `[level-b]` acceptance requests override the documentation-only fast path.
+
+No accepted authority, RLS, protected-HR, workflow, audit, integration or Finance contract is weakened.
