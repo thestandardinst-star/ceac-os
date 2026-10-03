@@ -344,6 +344,10 @@ export default function App() {
         isExec={isExec}
         isManager={isUnitManager}
         onUnitChange={switchUnit}
+        onMessages={() => go("messages")}
+        onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")}
+        onCreateWork={(isManager || isExec) ? () => startAssignment() : undefined}
+        onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
       />
       <div className="ev2s-workspace">
         <MobileTopBar
