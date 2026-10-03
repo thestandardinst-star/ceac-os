@@ -7,9 +7,9 @@ Reference status:
 
 | ID | Surface | Component | Reference status | Acceptance |
 |---|---|---|---|---|
-| HOME-01 | Home | shell/navigation/top command | LOCKED-REPO | pending FPG9 |
-| HOME-02 | Home | hero/greeting/imagery | LOCKED-REPO | pending FPG9 |
-| HOME-03 | Home | schedule/Needs attention/Waiting/Coming up | LOCKED-REPO | pending FPG9 |
+| HOME-01 | Home | shell/navigation/top command | LOCKED-REPO | PASS FPG9 |
+| HOME-02 | Home | hero/greeting/imagery | LOCKED-REPO | PASS FPG9 |
+| HOME-03 | Home | schedule/Needs attention/Waiting/Coming up | LOCKED-REPO | PASS FPG9 |
 | PROJECT-01 | Work | dark left project/stage tree | LOCKED-ASSET PROJECT-A | PASS FPG2 |
 | PROJECT-02 | Work | project/task header + real stage/status controls | LOCKED-ASSET PROJECT-A | PASS FPG2 |
 | PROJECT-03 | Work | board/table/calendar switch | LOCKED-ASSET PROJECT-A | PASS FPG2 · unavailable views remain truthfully disabled |
@@ -21,9 +21,9 @@ Reference status:
 | FINANCE-01 | Finance | metric card anatomy/icons | LOCKED-ASSET FINANCE-A | PASS FPG3 |
 | FINANCE-02 | Finance | chart geometry/axes/labels | LOCKED-ASSET FINANCE-A | PASS FPG3 · truthful recorded movement only |
 | FINANCE-03 | Finance | ledger/table/tabs/filters | LOCKED-ASSET FINANCE-A | PASS FPG3 |
-| PEOPLE-01 | People | employee list/cards/avatars | LOCKED-ASSET PEOPLE-A | pending FPG7 |
-| PEOPLE-02 | People | employee workspace/detail panel | LOCKED-ASSET PEOPLE-A | pending FPG7 |
-| PEOPLE-03 | Workforce | leave/workforce calendar | LOCKED-ASSET PEOPLE-A | pending FPG7 |
-| PEOPLE-04 | Workforce | schedule/absence/event/status blocks | LOCKED-ASSET PEOPLE-A | pending FPG7 |
+| PEOPLE-01 | People | employee list/cards/avatars | LOCKED-ASSET PEOPLE-A | PASS FPG7 |
+| PEOPLE-02 | People | employee workspace/detail panel | LOCKED-ASSET PEOPLE-A | PASS FPG7 |
+| PEOPLE-03 | Workforce | leave/workforce calendar | LOCKED-ASSET PEOPLE-A | PASS FPG7 |
+| PEOPLE-04 | Workforce | schedule/absence/event/status blocks | LOCKED-ASSET PEOPLE-A | PASS FPG7 |
 
 Acceptance requires FUNCTIONAL CONTRACT PRESERVED=YES; SECURITY/AUTHORITY PRESERVED=YES; REFERENCE COMPONENT PARITY=YES; RESPONSIVE ACCEPTANCE=YES.
