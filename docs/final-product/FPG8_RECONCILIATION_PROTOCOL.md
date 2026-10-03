@@ -1,6 +1,6 @@
 # FPG8 — Go-Live Organisation / Staff Reconciliation Protocol
 
-Status: ACTIVE
+Status: SAFE SUBSET APPLIED / COMPLETE FOR GO-LIVE RECONCILIATION
 Source authority: `CEAC OFFICE-STAFF STRUCTURE.xlsx` supplied privately by the product owner.
 Repository privacy rule: staff rows from that workbook must not be committed to Git.
 
@@ -103,3 +103,21 @@ FPG8 implementation is accepted only when:
 - no fake email/auth identity is created.
 
 Until the private review is approved, the apply portion of FPG8 remains blocked by design.
+
+
+## Owner-authorized safe apply — 3 October 2026
+
+The product owner explicitly authorised every FPG8 change already covered by canonical rules, required genuinely ambiguous identities to remain quarantined, prohibited fabricated identities/emails, and authorised FPG9 to proceed without waiting on unresolved individual roster rows.
+
+Applied production-safe subset:
+- three already-approved units were created: Staff Development, Staff Chaplaincy and Compliance;
+- one exact existing profile received two additional unit memberships as `staff` only; its pre-existing manager authority was preserved;
+- the second exact existing profile required no production mutation because its canonical unit/authority already matched;
+- zero capability grants were added, removed or inferred from source title wording;
+- zero auth identities or email addresses were fabricated;
+- the genuinely ambiguous identity row remains quarantined with no merge/update;
+- unmatched no-email rows remain roster-only in the private reconciliation evidence;
+- the programme-only row with no confirmed primary office unit remains roster-only and does not block FPG9;
+- production mutations were recorded in `platform_audit_events`.
+
+The repository reconciliation module intentionally remains dry-run only; this controlled apply was performed as a reviewed, explicitly scoped production operation rather than by introducing a generic bulk-import function.
