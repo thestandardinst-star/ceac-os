@@ -663,7 +663,9 @@ test("VF4B Administration People and employee workspace lock operations-console 
   expect(screen).toContain('rpc("admin_employment_detail"');
   expect(screen).toContain('rpc("admin_update_employment"');
   expect(screen).toContain("These records are not a productivity score, ranking, pay input or disciplinary conclusion.");
-  expect(screen).toContain("Stage 13 Payroll remains blocked.");
+  expect(screen).toContain('rpc("admin_employee_roster_summary")');
+  expect(screen).toContain('rpc("hr_employee_protected_summary"');
+  expect(screen).toContain("Missing data remains explicitly missing until Administration records an authoritative value.");
 
   expect(css).toContain("/* VF4B — Administration People / Employee workspace fidelity.");
   expect(css).toContain(".ev2p-admin-person-rail");
