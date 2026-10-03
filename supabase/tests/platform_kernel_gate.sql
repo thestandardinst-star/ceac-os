@@ -59,7 +59,7 @@ $definer_search_path$;
 
 -- Stage 0 semantic review identified six internal-only helpers that do not
 -- need direct authenticated execution. Migration 074 reduces the reviewed
--- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92. Stage 10 adds four reviewed asset RPCs gated by asset.manage, bringing the surface to 96. Stage 11 adds six reviewed compliance RPCs with self-bound submission/acknowledgement and compliance.manage decision authority, bringing the surface to 102. Migration 094 adds two reviewed self-service account RPCs, my_sessions() and my_account_activity(integer), bringing the reviewed surface to 104. Both are authenticated-only and bind their rows directly to auth.uid(). Migration 095 adds create_ministry_number(uuid,text,text) and record_ministry_number(uuid,date,numeric,text), bringing the reviewed surface to 106; both are authenticated-only, keep direct ministry-table writes closed, and separate scheduleless ministry-number authority from typed-work Routine authority.
+-- browser-callable SECURITY DEFINER surface from 73 to 67. Stage 1A adds two reviewed Administration-only employment RPCs, bringing the reviewed surface to 69. Stage 1B adds no browser-callable definer functions. Stage 1C adds the reviewed capability helper plus grant/revoke RPCs, bringing the surface to 72. Stage 1D adds only internal helpers. Stage 1E adds the reviewed workflow-step completion RPC, bringing the surface to 73. Stages 1F–2 add no browser-callable SECURITY DEFINER functions. Stage 3 adds two reviewed protected-HR RPCs, bringing the surface to 75. Stages 4–6 add no browser-callable SECURITY DEFINER functions. Stage 7 adds nine reviewed review/development RPCs with explicit actor/reviewer/self authority, bringing the surface to 84. Stage 8 adds two reviewed Learning RPCs (learner self-completion and capability-gated Administration correction), bringing the surface to 86. Stage 9 adds six reviewed workforce RPCs with explicit self/manager/capability authority, bringing the surface to 92. Stage 10 adds four reviewed asset RPCs gated by asset.manage, bringing the surface to 96. Stage 11 adds six reviewed compliance RPCs with self-bound submission/acknowledgement and compliance.manage decision authority, bringing the surface to 102. Migration 094 adds two reviewed self-service account RPCs, my_sessions() and my_account_activity(integer), bringing the reviewed surface to 104. Both are authenticated-only and bind their rows directly to auth.uid(). Migration 095 adds create_ministry_number(uuid,text,text) and record_ministry_number(uuid,date,numeric,text), bringing the reviewed surface to 106; both are authenticated-only, keep direct ministry-table writes closed, and separate scheduleless ministry-number authority from typed-work Routine authority. FPG5 Payroll brings the reviewed authenticated SECURITY DEFINER surface to 113. ERC4 adds two reviewed employee-subject protected-HR RPCs, bringing it to 115. ERC6 adds the reviewed Payroll readiness RPC, bringing it to 116.
 do $definer_surface$
 declare n integer;
 begin
@@ -70,8 +70,8 @@ begin
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
 
-  if n<>113 then
-    raise exception 'Platform Kernel gate failure: expected 113 authenticated SECURITY DEFINER functions after reviewed FPG5 Payroll RPCs, found %.',n;
+  if n<>116 then
+    raise exception 'Platform Kernel gate failure: expected 116 authenticated SECURITY DEFINER functions after reviewed ERC4 protected-HR and ERC6 Payroll-readiness RPCs, found %.',n;
   end if;
 
   if to_regprocedure('public.my_sessions()') is null
@@ -140,7 +140,8 @@ begin
      or to_regprocedure('public.payroll_set_line(uuid,uuid,uuid,text,text,text,bigint,text)') is null
      or to_regprocedure('public.payroll_submit_run(uuid,text)') is null
      or to_regprocedure('public.payroll_approve_run(uuid,text)') is null
-     or to_regprocedure('public.payroll_create_correction(uuid,text)') is null then
+     or to_regprocedure('public.payroll_create_correction(uuid,text)') is null
+     or to_regprocedure('public.payroll_readiness_summary()') is null then
     raise exception 'Platform Kernel gate failure: reviewed FPG5 Payroll RPC surface is incomplete.';
   end if;
 
@@ -150,7 +151,8 @@ begin
      or has_function_privilege('anon','public.payroll_set_line(uuid,uuid,uuid,text,text,text,bigint,text)','EXECUTE')
      or has_function_privilege('anon','public.payroll_submit_run(uuid,text)','EXECUTE')
      or has_function_privilege('anon','public.payroll_approve_run(uuid,text)','EXECUTE')
-     or has_function_privilege('anon','public.payroll_create_correction(uuid,text)','EXECUTE') then
+     or has_function_privilege('anon','public.payroll_create_correction(uuid,text)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_readiness_summary()','EXECUTE') then
     raise exception 'Platform Kernel gate failure: anon can execute a protected Payroll RPC.';
   end if;
 end
@@ -160,6 +162,16 @@ $definer_surface$;
 -- Protected HR is deliberately outside browser-exposed public data.
 do $hr_boundary$
 begin
+  if to_regprocedure('public.hr_employee_protected_summary(uuid)') is null
+     or to_regprocedure('public.hr_employee_protected_record(uuid,text,jsonb,uuid,text)') is null then
+    raise exception 'Platform Kernel gate failure: reviewed ERC4 employee protected-HR RPC surface is incomplete.';
+  end if;
+
+  if has_function_privilege('anon','public.hr_employee_protected_summary(uuid)','EXECUTE')
+     or has_function_privilege('anon','public.hr_employee_protected_record(uuid,text,jsonb,uuid,text)','EXECUTE') then
+    raise exception 'Platform Kernel gate failure: anon can execute an ERC4 protected-HR RPC.';
+  end if;
+
   if not exists(select 1 from pg_namespace where nspname='hr_private') then
     raise exception 'Platform Kernel gate failure: hr_private schema is missing.';
   end if;
