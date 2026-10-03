@@ -1,7 +1,7 @@
-/* CEAC OS Experience V2 — Stage 10 Family B: People / Team */
+/* CEAC OS FPG10 — PEOPLE-A propagation for Stage 10 Family B: People / Team. */
 
 .ev2-people-page {
-  width: min(100%, 72rem);
+  width: min(100%, 80rem);
   margin: 0 auto;
   padding: var(--ev2-space-5) var(--ev2-space-5) var(--ev2-space-10);
   color: var(--ev2-text);
@@ -158,7 +158,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-section-attention {
@@ -768,7 +768,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-evidence-summary-item {
@@ -905,7 +905,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-link-row {
@@ -965,7 +965,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-outcome-grid button {
@@ -1010,7 +1010,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-objective:first-child {
@@ -1075,7 +1075,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-session-row,
@@ -1411,7 +1411,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-admin-record-change {
@@ -1447,7 +1447,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-admin-history-row {
@@ -1520,7 +1520,7 @@
   border: 1px solid var(--ev2-line);
   border-radius: var(--ev2-radius-card);
   background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  box-shadow: none;
 }
 
 .ev2p-admin-leave-card .ev2p-fact-row {
