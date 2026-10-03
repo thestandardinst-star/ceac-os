@@ -89,7 +89,7 @@ async function go(page, name) {
 }
 
 async function assignTask(page, title, step = null) {
-  await page.getByRole("button", { name: "Give out work" }).click();
+  await page.getByRole("button", { name: "New work", exact: true }).first().click();
   await page.getByLabel("Work to complete").fill(title);
   await page.getByLabel("Why this matters").fill("Acceptance test purpose");
   await page.getByLabel("Finished result").fill("Acceptance test finished result");
