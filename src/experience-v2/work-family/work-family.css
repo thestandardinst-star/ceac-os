@@ -1,4 +1,4 @@
-/* CEAC OS Experience V2 — Stage 10 Family A: Work */
+/* CEAC OS FPG10 — reference-parity propagation for Work / Stage 10 Family A. */
 
 .ev2-work-page {
   width: min(100%, 72rem);
@@ -54,32 +54,18 @@
 }
 
 .ev2w-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ev2-space-2);
-  margin: var(--ev2-space-4) 0;
+  display:flex;flex-wrap:wrap;gap:0;margin:var(--ev2-space-4) 0;
+  border-bottom:1px solid var(--ev2-line);
 }
 
 .ev2w-tabs button {
-  min-height: var(--ev2-control-min);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ev2-space-2);
-  padding: 0 var(--ev2-space-4);
-  border: 1px solid var(--ev2-line);
-  border-radius: var(--ev2-radius-control);
-  background: var(--ev2-surface);
-  color: var(--ev2-text-secondary);
-  font: inherit;
-  font-size: var(--ev2-type-supporting);
-  font-weight: 650;
-  cursor: pointer;
+  min-height:var(--ev2-control-min);display:inline-flex;align-items:center;gap:var(--ev2-space-2);
+  padding:0 var(--ev2-space-4);border:0;border-bottom:2px solid transparent;border-radius:0;
+  background:transparent;color:var(--ev2-text-secondary);font:inherit;font-size:var(--ev2-type-supporting);
+  font-weight:650;cursor:pointer;
 }
 
-.ev2w-tabs button:hover {
-  border-color: var(--ev2-line-strong);
-  background: var(--ev2-surface-soft);
-}
+.ev2w-tabs button:hover {background:var(--ev2-surface-soft);color:var(--ev2-text);}
 
 .ev2w-tabs button:focus-visible,
 .ev2w-row:focus-visible {
@@ -88,9 +74,7 @@
 }
 
 .ev2w-tabs button.is-selected {
-  border-color: color-mix(in srgb, var(--ev2-action) 32%, var(--ev2-line));
-  background: var(--ev2-action-soft);
-  color: var(--ev2-action);
+  border-bottom-color:var(--ev2-action);background:transparent;color:var(--ev2-action);
 }
 
 .ev2w-tabs button b {
@@ -170,28 +154,15 @@
 }
 
 .ev2w-list {
-  overflow: hidden;
-  border: 1px solid var(--ev2-line);
-  border-radius: var(--ev2-radius-card);
-  background: var(--ev2-surface);
-  box-shadow: var(--ev2-shadow-1);
+  overflow:hidden;border:1px solid var(--ev2-line);border-radius:var(--ev2-radius-sm);
+  background:var(--ev2-surface);box-shadow:none;
 }
 
 .ev2w-row {
-  width: 100%;
-  min-height: 4.5rem;
-  display: grid;
-  grid-template-columns: 2.25rem minmax(0, 1fr) minmax(8.5rem, auto) auto;
-  gap: var(--ev2-space-3);
-  align-items: center;
-  padding: var(--ev2-space-3) var(--ev2-space-4);
-  border: 0;
-  border-bottom: 1px solid var(--ev2-line);
-  background: transparent;
-  color: var(--ev2-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+  width:100%;min-height:3.5rem;display:grid;
+  grid-template-columns:1.5rem minmax(0,1fr) minmax(8.5rem,auto) auto;
+  gap:10px;align-items:center;padding:8px 10px;border:0;border-bottom:1px solid var(--ev2-line);
+  background:transparent;color:var(--ev2-text);font:inherit;text-align:left;cursor:pointer;
 }
 
 .ev2w-row:last-child {
@@ -207,13 +178,8 @@
 }
 
 .ev2w-row-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-  display: inline-grid;
-  place-items: center;
-  border-radius: var(--ev2-radius-control);
-  background: var(--ev2-surface-muted);
-  color: var(--ev2-text-secondary);
+  width:1.5rem;height:1.5rem;display:inline-grid;place-items:center;border-radius:4px;
+  background:transparent;color:var(--ev2-text-tertiary);
 }
 
 .ev2w-review-icon {
