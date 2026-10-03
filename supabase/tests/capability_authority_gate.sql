@@ -186,24 +186,31 @@ end
 $grant_revoke$;
 
 do $payroll_separation$
-declare
-  v_grant public.capability_grants;
 begin
-  v_grant:=public.grant_capability(
-    '31000000-0000-4000-8000-000000000002',
-    'payroll.prepare',
-    null,
-    'Stage 1C payroll separation probe'
-  );
+  if not public.app_has_capability('payroll.prepare',null) then
+    raise exception 'Capability authority gate failure: Administration fixture lacks payroll.prepare.';
+  end if;
 
   begin
     perform public.grant_capability(
-      '31000000-0000-4000-8000-000000000002',
+      '31000000-0000-4000-8000-000000000003',
       'payroll.approve',
       null,
-      'Stage 1C conflicting payroll probe'
+      'FPG5 conflicting Administration payroll probe'
     );
-    raise exception 'Capability authority gate failure: payroll prepare/approve separation did not block.';
+    raise exception 'Capability authority gate failure: Administration received payroll approval authority.';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    perform public.grant_capability(
+      '31000000-0000-4000-8000-000000000004',
+      'payroll.prepare',
+      null,
+      'FPG5 conflicting Executive payroll probe'
+    );
+    raise exception 'Capability authority gate failure: Executive received payroll preparation authority.';
   exception when insufficient_privilege then
     null;
   end;
