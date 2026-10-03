@@ -358,3 +358,22 @@ Authority:
 - locked HOME-01/HOME-02/HOME-03 entries in `REFERENCE_COMPONENT_MATRIX.md`.
 
 FPG9 must correct Home/shell visible parity without changing accepted role authority, routing, RLS, truthful-data behavior or mobile accessibility.
+
+
+## FPG9 — ACCEPTED
+Accepted application SHA: `ee4c0d29e6b7f73e29406b0e790a69104e449f09`
+- Original CEAC HOME-A composition restored literally on Manager Home/shell.
+- Final touch-floor and route-loaded CSS contract repaired.
+- CI PASS; Migration Replay PASS; Account Security PASS.
+- Level B SQL/authority PASS; browser shards 1–4 PASS; evidence merge PASS; role/RLS closure PASS.
+- Vercel remains externally build-rate-limited; this is not an application-code defect and does not weaken final production-deployment requirements.
+
+## Current stage
+FPG10 — Whole-system reference-parity propagation: ACTIVE
+
+FPG10 implementation scope:
+- propagate PROJECT-A table/tab density into the shared Work family without changing work authority or semantics;
+- propagate the accepted PEOPLE-A flat factual grammar through shared People-family surfaces;
+- retain Finance-family VF6B cross-role grammar where it already carries the accepted FPG3 presentation;
+- verify Staff, Manager, Administration and Executive representative surfaces at the same exact head;
+- do not introduce a new generic design layer or fake data.
