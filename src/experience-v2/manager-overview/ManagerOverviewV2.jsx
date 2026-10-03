@@ -1,3 +1,4 @@
+import "./manager-overview.css";
 import {
   Button,
   DataPanel,
@@ -263,7 +264,7 @@ export default function ManagerOverviewV2({
           <div className="fpg9-home-context"><span>{me.unit_name}</span><time>{dateLabel}</time></div>
           <h1>{greeting}, {me.full_name.split(" ")[0]} <span aria-hidden="true">👋</span></h1>
           <p>“Small faithfulness compounds into extraordinary impact.”</p>
-          <div className="fpg9-home-hero-action"><Button size="compact" onClick={onGiveOutWork}>Give out work</Button></div>
+          <div className="fpg9-home-hero-action"><Button onClick={onGiveOutWork}>Give out work</Button></div>
         </div>
         <div className="fpg9-home-impact" aria-label="Recorded work context">
           <span>You’re making a difference</span>
