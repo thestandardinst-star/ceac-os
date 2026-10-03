@@ -1,0 +1,52 @@
+import fs from "node:fs";
+import { test, expect } from "@playwright/test";
+
+const people = fs.readFileSync(new URL("../src/screens/People.jsx", import.meta.url), "utf8");
+const payroll = fs.readFileSync(new URL("../src/screens/AdminPayroll.jsx", import.meta.url), "utf8");
+const rosterMigration = fs.readFileSync(new URL("../supabase/migrations/20261003110000_103_employee_roster_master.sql", import.meta.url), "utf8");
+const protectedHrMigration = fs.readFileSync(new URL("../supabase/migrations/20261003122000_104_employee_protected_hr_subject.sql", import.meta.url), "utf8");
+const payrollMigration = fs.readFileSync(new URL("../supabase/migrations/20261003130000_105_payroll_employee_population.sql", import.meta.url), "utf8");
+const readinessMigration = fs.readFileSync(new URL("../supabase/migrations/20261003133000_106_payroll_readiness_summary.sql", import.meta.url), "utf8");
+
+test("employee roster is independent from auth profiles", () => {
+  expect(rosterMigration).toContain("create table if not exists public.employee_roster");
+  expect(rosterMigration).toContain("profile_id uuid unique references public.profiles(id)");
+  expect(rosterMigration).toContain("identity_state text not null");
+  expect(rosterMigration).toContain("'roster_only'");
+  expect(rosterMigration).toContain("'needs_review'");
+  expect(rosterMigration).toContain("Profiles are intentionally NOT auto-backfilled into the employee roster");
+});
+
+test("Administration People is driven by the employee roster and keeps operational data optional", () => {
+  expect(people).toContain('supabase.rpc("admin_employee_roster_summary")');
+  expect(people).toContain('supabase.rpc("admin_employee_roster_detail"');
+  expect(people).toContain("operationalByProfile");
+  expect(people).toContain("No linked operational account");
+  expect(people).toContain("Roster only · no account linked");
+  expect(people).toContain("Not inferred from workbook title");
+});
+
+test("protected HR supports roster-only employee subjects", () => {
+  expect(protectedHrMigration).toContain("add column if not exists employee_id uuid references public.employee_roster(id)");
+  expect(protectedHrMigration).toContain("hr_employee_protected_summary");
+  expect(protectedHrMigration).toContain("hr_employee_protected_record");
+  expect(people).toContain('supabase.rpc("hr_employee_protected_summary"');
+  expect(people).toContain('supabase.rpc("hr_employee_protected_record"');
+});
+
+test("Payroll snapshots employees rather than auth profiles", () => {
+  expect(payrollMigration).toContain("from public.employee_roster er");
+  expect(payrollMigration).toContain("alter column employee_id set not null");
+  expect(payrollMigration).toContain("unique(run_id,employee_id)");
+  expect(payrollMigration).toContain("'employee_id',e.employee_id");
+  expect(payroll).toContain("entry.employee_id || entry.profile_id");
+});
+
+test("Payroll readiness exposes completeness without exposing protected values", () => {
+  expect(readinessMigration).toContain("payroll_readiness_summary");
+  expect(readinessMigration).toContain("'compensation_missing_count'");
+  expect(readinessMigration).toContain("'payment_missing_count'");
+  expect(readinessMigration).toContain("'identity_review_count'");
+  expect(payroll).toContain('supabase.rpc("payroll_readiness_summary")');
+  expect(payroll).toContain("Every active employee is represented");
+});
