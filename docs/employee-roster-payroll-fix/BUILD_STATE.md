@@ -20,8 +20,31 @@ Baseline protected main: `a46232edff481868d764a3ece9c241e36b5282fb`
 
 Root cause: authenticated profiles are being used as the effective employee master in Administration People and Payroll population logic. Employees without linked accounts therefore disappear from operational surfaces.
 
+## ERC0 — ACCEPTED
+
+- corrective branch created from exact protected main;
+- staged implementation sequence committed;
+- completeness invariant locked at 18 source staff rows and 0 unaccounted rows;
+- no-fabrication and no-authority-inference rules locked.
+
 ## Current stage
 
-ERC1 — Employee master roster independent of auth: ACTIVE
+ERC1 — Employee master roster independent of auth: IMPLEMENTED / GATES PENDING
 
-Next: add employee roster and organisational membership schema, backfill linked employees, add Administration roster RPCs, add contract tests, and verify the gates before importing the workbook rows.
+Implemented:
+- `public.employee_roster` with optional linked `profile_id`;
+- explicit identity states: `linked`, `roster_only`, `needs_review`;
+- `public.employee_unit_memberships` independent of capability authority;
+- RLS + no direct browser table access;
+- backfill of existing profiles as linked employee records;
+- backfill of existing organisational memberships;
+- Administration roster summary/detail/save/link/unit RPCs;
+- platform audit triggers;
+- SQL security/completeness gate wired into the cumulative contract suite.
+
+Pending:
+1. open the corrective PR;
+2. pass CI, Migration Replay, Account Security and Quality Gate;
+3. only then advance to ERC2 private workbook reconciliation.
+
+No workbook employee rows are committed to Git.
