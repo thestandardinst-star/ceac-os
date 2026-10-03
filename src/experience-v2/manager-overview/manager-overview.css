@@ -7,14 +7,14 @@
   border:1px solid #dfe7ee;border-radius:16px;overflow:hidden;
   background-image:linear-gradient(90deg,rgba(241,248,250,.96) 0%,rgba(241,248,250,.72) 48%,rgba(241,248,250,.10) 100%),url("../../../docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg");
 background-size:100% 100%,155% auto;background-position:center,center -72px;
-  box-shadow:0 8px 24px rgba(33,49,70,.06)
 }
 .fpg9-home-hero-copy{min-width:0}
 .fpg9-home-context{display:flex;gap:12px;margin-bottom:7px;color:#5f7180;font-weight:650}
 .fpg9-home-context span{color:#2e756d}
 .fpg9-home-hero h1{margin:0;color:#111923;font-size:32px;line-height:1.06;letter-spacing:-.04em}
 .fpg9-home-hero h1 span{font-size:.82em}
-.fpg9-home-hero p{margin:7px 0 0;color:#354652;}\n.fpg9-home-hero-action{margin-top:12px}
+.fpg9-home-hero p{margin:7px 0 0;color:#354652;}
+.fpg9-home-hero-action{margin-top:12px}
 .fpg9-home-impact{
   width:min(325px,38%);flex:none;padding:12px 14px;border:1px solid rgba(255,255,255,.5);
   border-radius:13px;background:rgba(22,45,44,.22);backdrop-filter:blur(10px);color:#fff
