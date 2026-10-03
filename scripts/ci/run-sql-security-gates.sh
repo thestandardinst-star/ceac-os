@@ -16,6 +16,7 @@ tests=(
   integration_gateway_gate.sql
   employee_lifecycle_gate.sql
   protected_hr_stage3_gate.sql
+  payroll_stage13_gate.sql
   goals_strategy_stage4_gate.sql
   work_management_stage5_gate.sql
   resource_workload_stage6_gate.sql
@@ -29,6 +30,7 @@ tests=(
   experience_stage6_finance_gate.sql
   experience_stage7_work_capture_gate.sql
   experience_stage8_interface_gate.sql
+  fpg12_security_posture_gate.sql
   production_hardening_gate.sql
 )
 

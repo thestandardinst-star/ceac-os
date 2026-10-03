@@ -69,7 +69,7 @@
   height: 100vh;
   height: 100dvh;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   padding: var(--ev2-space-3) var(--ev2-space-3);
   border-right: 1px solid rgba(255, 255, 255, .07);
   background: linear-gradient(180deg, var(--ev2-shell-raised) 0%, var(--ev2-shell) 42%, #0b1420 100%);
@@ -312,7 +312,7 @@
   min-width: 0;
   min-height: var(--ev2s-topbar-height);
   display: grid;
-  grid-template-columns: minmax(15rem, 1fr) auto minmax(13rem, .82fr);
+  grid-template-columns: minmax(20rem, 1fr) auto;
   align-items: center;
   gap: var(--ev2-space-4);
   padding: var(--ev2-space-2) clamp(1.125rem, 2vw, var(--ev2-desktop-gutter));
@@ -324,7 +324,7 @@
 
 .ev2s-destination-search {
   position: relative;
-  width: min(100%, 30rem);
+  width: min(100%, 43rem);
   min-width: 0;
   min-height: 2.25rem;
   display: grid;
@@ -846,4 +846,36 @@
 .ev2-route-transition {
   min-width: 0;
   width: 100%;
+}
+
+
+/* FPG9 — literal original CEAC shell parity.
+   Grouping authority remains semantic in navigation.js; the visible rail follows HOME-A. */
+.ev2s-sidebar-nav{gap:.2rem;padding-top:.2rem}
+.ev2s-sidebar-group{gap:.15rem}
+.ev2s-sidebar-group+.ev2s-sidebar-group{padding-top:0;border-top:0}
+.ev2s-sidebar-group-label{display:none}
+.fpg9-sidebar-quick{
+  margin:.55rem .25rem 0;padding:.65rem .5rem;border-radius:var(--ev2-radius-control)
+}
+.fpg9-sidebar-quick>span{
+  display:block;margin:0 .25rem .45rem;color:#8ea0b5;font-size:var(--ev2-type-label);
+  font-weight:700;letter-spacing:.03em
+}
+.fpg9-sidebar-quick>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem}
+.fpg9-sidebar-quick button{
+  min-width:0;min-height:2.35rem;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;
+  gap:.4rem;padding:.4rem .5rem;border:1px solid rgba(255,255,255,.07);border-radius:.55rem;
+  background:rgba(255,255,255,.045);color:#c7d2df;text-align:left
+}
+.fpg9-sidebar-quick button:hover{background:rgba(255,255,255,.08);color:#fff}
+.fpg9-sidebar-quick button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ev2-type-label);font-weight:600}
+.ev2s-topbar-context{display:none}
+.fpg9-topbar-message{
+  width:2.5rem;height:2.5rem;display:grid;place-items:center;border:1px solid transparent;
+  border-radius:var(--ev2-radius-control);background:transparent;color:var(--ev2-text-secondary)
+}
+.fpg9-topbar-message:hover{border-color:var(--ev2-line);background:var(--ev2-surface);color:var(--ev2-text)}
+@media (min-width:1200px) and (max-width:1399px){
+  .ev2s-topbar{grid-template-columns:minmax(18rem,1fr) auto}
 }

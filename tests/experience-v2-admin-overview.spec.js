@@ -54,10 +54,11 @@ test("Stage 7 Administration Overview is isolated V2 presentation on preserved A
   expect(css).not.toContain(".premium-");
   expect(css).not.toContain(".admin-home-section");
 
-  const managerCss = main.indexOf('import "./experience-v2/manager-overview/manager-overview.css";');
+  const managerView = fs.readFileSync("src/experience-v2/manager-overview/ManagerOverviewV2.jsx", "utf8");
   const adminCss = main.indexOf('import "./experience-v2/admin-overview/admin-overview.css";');
-  expect(managerCss).toBeGreaterThan(-1);
-  expect(adminCss).toBeGreaterThan(managerCss);
+  expect(managerView).toContain('import "./manager-overview.css";');
+  expect(main).not.toContain('import "./experience-v2/manager-overview/manager-overview.css";');
+  expect(adminCss).toBeGreaterThan(-1);
 });
 
 for (const viewport of [

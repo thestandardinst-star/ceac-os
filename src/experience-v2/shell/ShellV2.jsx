@@ -61,10 +61,20 @@ export function SideNav({
   isExec = false,
   isManager = false,
   onUnitChange,
+  onCreateWork,
+  onCreateMeeting,
+  onMessages,
+  onComposeMessage,
 }) {
   const context = navigationContext({ me, isAdmin, isExec, isManager });
   const navigation = getShellNavigation(context);
   const role = getRoleName(context);
+  const quickItems = getShellQuickActions(context, {
+    onCreateWork,
+    onCreateMeeting,
+    onMessages,
+    onComposeMessage,
+  });
 
   return (
     <aside className="ev2s-sidebar" aria-label="CEAC workspace navigation">
@@ -103,6 +113,20 @@ export function SideNav({
           </section>
         ))}
       </nav>
+
+      {quickItems.length ? <div className="fpg9-sidebar-quick" aria-label="Quick create">
+        <span>Quick create</span>
+        <div>
+          {quickItems.map((item) => <button
+            key={item.id}
+            type="button"
+            onClick={item.onSelect}
+          >
+            <CeacIcon name={item.icon} size="row" decorative />
+            <span>{item.label}</span>
+          </button>)}
+        </div>
+      </div> : null}
 
       <button
         type="button"
@@ -261,6 +285,10 @@ export function AppTopBar({
             align="end"
           />
         ) : null}
+
+        {onMessages ? <button type="button" className="fpg9-topbar-message" onClick={onMessages} aria-label="Open messages">
+          <CeacIcon name="messages" size="row" decorative />
+        </button> : null}
 
         <div className="ev2s-accra-time" aria-label="Current date and time in Accra">
           <strong>{ACCRA_DATE.format(clock)}</strong>

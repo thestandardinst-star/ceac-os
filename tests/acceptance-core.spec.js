@@ -1,3 +1,9 @@
+// FPG10 exact-head Level B whole-system parity propagation checkpoint.
+// FPG9 final exact-head Level B Home shell parity checkpoint — route-lazy cascade + locked budget.
+// FPG8 exact-head Level B staff reconciliation safety checkpoint.
+// FPG7 exact-head Level B People Workforce parity checkpoint — final 12px repair.
+// FPG7 exact-head Level B People Workforce parity checkpoint — CSS budget repair.
+// FPG2/FPG3 exact-head Level B parity evidence checkpoint.
 import { test, expect } from "@playwright/test";
 
 const rolePassword = process.env.ROLE_FIXTURE_PASSWORD;
@@ -54,7 +60,7 @@ const routeByLabel = {
   Workforce:"attendance", "Time & Leave":"attendance",
   People:"people", "Employee lifecycle":"lifecycle", "Protected HR":"protected-hr",
   Units:"units", Projects:"admin-projects", Calendar:"admin-calendar",
-  Reports:"reporting", Cost:"cost", Finance:"finance",
+  Reports:"reporting", Cost:"cost", Finance:"finance", Payroll:"payroll",
   Audit:"audit", Events:"events", Workflows:"workflows", Checks:"workflows", Authority:"authority",
   "System rules":"policies", Integrations:"integrations", "Connected Apps":"integrations", "Control Center":"settings", Settings:"settings",
   Announcements:"announcements"
@@ -84,7 +90,7 @@ async function go(page, name) {
 }
 
 async function assignTask(page, title, step = null) {
-  await page.getByRole("button", { name: "Give out work" }).click();
+  await page.getByRole("button", { name: "New work", exact: true }).first().click();
   await page.getByLabel("Work to complete").fill(title);
   await page.getByLabel("Why this matters").fill("Acceptance test purpose");
   await page.getByLabel("Finished result").fill("Acceptance test finished result");
@@ -899,6 +905,16 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
     const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Projects");
     await page.getByRole("button", { name: new RegExp(projectName) }).first().click();
+    await page.getByRole("tab", { name: /^Work/ }).click();
+    await expect(page.locator(".fpg-work-table")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg2-project-task-gold-desktop.png", fullPage: true });
+    const firstProjectWork = page.locator(".fpg-work-table tbody tr").first();
+    if (await firstProjectWork.count()) {
+      await firstProjectWork.click();
+      await expect(page.locator(".fpg-work-drawer")).toBeVisible();
+      await page.screenshot({ path: "test-artifacts/fpg2-project-task-drawer-desktop.png", fullPage: true });
+      await page.getByRole("button", { name: "Close work preview" }).click();
+    }
     await page.getByRole("tab", { name: /^Register/ }).click();
     await expect(page.getByRole("heading", { name: "People, payments and custody", exact: true })).toBeVisible();
 
@@ -967,6 +983,8 @@ test("Experience Stage 5 project register enforces payment, custody, slots and t
   {
     const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
     await go(page, "Finance");
+    await expect(page.locator(".fpg-finance-dashboard")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg3-finance-gold-desktop.png", fullPage: true });
     await page.getByRole("button", { name: "Between departments", exact: true }).click();
     const transferRow = page.locator(".row").filter({ hasText: /Stage 4 Browser Project register remittance/ }).first();
     await expect(transferRow).toBeVisible();
@@ -2308,6 +2326,143 @@ test("Role shells stay within the phone viewport", async ({ browser }) => {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${email} / ${destination} overflowed the phone viewport`).toBeLessThanOrEqual(1);
     }
+    await context.close();
+  }
+});
+
+
+test("FPG6 Payroll gives Administration preparation and Executive protected review surfaces", async ({ browser }) => {
+  test.setTimeout(120000);
+  const payrollLabel = "FPG6 July 2026 Payroll";
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "Payroll");
+    await expect(page.getByRole("heading", { name: "Payroll", exact: true })).toBeVisible();
+    await expect(page.getByText("Administration prepares", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Create payroll run", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Period label").fill(payrollLabel);
+    await dialog.getByLabel("Period start").fill("2026-07-01");
+    await dialog.getByLabel("Period end").fill("2026-07-31");
+    await dialog.getByLabel("Currency").selectOption("GHS");
+    await dialog.getByLabel("Preparation note").fill("FPG6 visual acceptance fixture");
+    await dialog.getByRole("button", { name: "Create draft Payroll", exact: true }).click();
+
+    await expect(page.getByText("Draft payroll run created from protected employee records.", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: payrollLabel, exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-payroll-table")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg6-payroll-admin-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "exec@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "Payroll");
+    await expect(page.getByRole("heading", { name: "Payroll", exact: true })).toBeVisible();
+    await expect(page.getByText("Group Pastor approves", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: payrollLabel, exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Create payroll run", exact: true })).toHaveCount(0);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg6-payroll-executive-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
+
+
+test("FPG7 People and Workforce follow the locked employee-management reference without invented HR data", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 1280, height: 900 });
+    await go(page, "People");
+    await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-people-roster")).toBeVisible();
+    await expect(page.locator(".fpg-people-roster-row").first()).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg7-people-roster-desktop.png", fullPage: true });
+
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Planned absences", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg-absence-board")).toBeVisible();
+    await expect(page.getByLabel("Workforce calendar unit filter")).toBeVisible();
+    await expect(page.getByLabel("Workforce calendar person filter")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg7-workforce-absence-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "admin@ceac.local.test", { width: 390, height: 844 });
+    await go(page, "People");
+    await expect(page.locator(".fpg-people-roster")).toBeVisible();
+    let overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+
+    await go(page, "Workforce");
+    await page.getByRole("tab", { name: "Calendar", exact: true }).click();
+    await expect(page.locator(".fpg-absence-scroll")).toBeVisible();
+    overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg7-people-workforce-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
+
+
+test("FPG9 Manager Home and shell follow the locked original CEAC reference", async ({ browser }) => {
+  test.setTimeout(120000);
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 1440, height: 900 });
+    await expect(page.locator(".ev2s-sidebar")).toBeVisible();
+    await expect(page.locator(".fpg9-sidebar-quick")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Open messages", exact: true })).toBeVisible();
+    await expect(page.locator(".fpg9-home-hero")).toBeVisible();
+    await expect(page.locator(".fpg9-next-card")).toBeVisible();
+    await expect(page.locator(".fpg9-schedule-card")).toBeVisible();
+    await expect(page.locator(".fpg9-calendar-card")).toBeVisible();
+    await expect(page.locator(".fpg9-attention-card")).toBeVisible();
+    await expect(page.locator(".fpg9-waiting-card")).toBeVisible();
+    await expect(page.locator(".fpg9-coming-card")).toBeVisible();
+    await expect(page.locator(".fpg9-module-strip")).toBeVisible();
+    await page.screenshot({ path: "test-artifacts/fpg9-manager-home-shell-desktop.png", fullPage: true });
+    await context.close();
+  }
+
+  {
+    const { context, page } = await openAs(browser, "manager@ceac.local.test", { width: 390, height: 844 });
+    await expect(page.locator(".ev2s-sidebar")).toBeHidden();
+    await expect(page.locator(".fpg9-home-hero")).toBeVisible();
+    await expect(page.locator(".fpg9-home-reference")).toBeVisible();
+    await expect(page.locator(".ev2s-mobile-nav")).toBeVisible();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: "test-artifacts/fpg9-manager-home-shell-mobile.png", fullPage: true });
+    await context.close();
+  }
+});
+
+
+test("FPG10 propagates the accepted Work, Finance and People reference grammar across roles", async ({ browser }) => {
+  test.setTimeout(180000);
+  const checks = [
+    ["staff@ceac.local.test", [["Work", ".ev2-work-page"]]],
+    ["manager@ceac.local.test", [["Work", ".ev2-work-page"], ["Team", ".ev2-people-page"], ["Finance", ".ev2-finance-page"]]],
+    ["admin@ceac.local.test", [["Work", ".ev2-work-page"], ["People", ".fpg-people-roster"], ["Finance", ".fpg-finance-dashboard"]]],
+    ["exec@ceac.local.test", [["Work", ".ev2-work-page"], ["Finance", ".ev2-finance-page"]]],
+  ];
+  for (const [email, surfaces] of checks) {
+    const { context, page } = await openAs(browser, email, { width: 1366, height: 768 });
+    for (const [route, selector] of surfaces) {
+      await go(page, route);
+      await expect(page.locator(selector).first()).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    }
+    const role = email.split("@")[0];
+    await page.screenshot({ path: `test-artifacts/fpg10-${role}-propagation.png`, fullPage: true });
     await context.close();
   }
 });

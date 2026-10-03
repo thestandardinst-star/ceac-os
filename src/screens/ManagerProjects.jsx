@@ -14,6 +14,8 @@ import {
   ProjectSectionHeader,
   ProjectTabs,
   ProjectWorkspaceHeader,
+  ProjectIssueTable,
+  ProjectWorkDrawer,
 } from "../experience-v2/project-family/ProjectFamilyV2";
 
 const OBJECTIVE_STATUSES = [
@@ -94,6 +96,9 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
   const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState(null);
   const [area, setArea] = useState("overview");
+  const [selectedWorkId, setSelectedWorkId] = useState(null);
+  const [workFilter, setWorkFilter] = useState("all");
+  const [phaseFilter, setPhaseFilter] = useState("all");
 
   useEffect(() => { loadList(); loadProposals(); }, [me.id, me.unit_id]);
   useEffect(() => { setSelectedId(initialProjectId); }, [initialProjectId]);
@@ -106,6 +111,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     if (selectedId) sessionStorage.setItem(`ceac-project-area:${me.id}:${selectedId}`, area);
   }, [selectedId, me.id, area]);
   useEffect(() => { if (selectedId) loadDetail(selectedId); else setDetail(null); }, [selectedId, me.unit_id]);
+  useEffect(() => { setSelectedWorkId(null); setWorkFilter("all"); setPhaseFilter("all"); }, [selectedId]);
 
   async function loadProposals() {
     const result = await supabase.from("project_proposals")
@@ -198,7 +204,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
           .select("id, project_id, unit_id, phase_id, ref, name, statement, measure, status, target_value, target_unit, achieved_value, closed_note, units!objectives_unit_id_fkey(name)")
           .eq("project_id", projectId).order("ref"),
         supabase.from("work_items")
-          .select("id, ref, title, kind, status, due_at, objective_id, phase_id, unit_id, assignee_id, profiles!work_items_assignee_id_fkey(full_name), submissions(id, submitted_at, submission_files(id, url))")
+          .select("id, ref, title, kind, status, due_at, purpose, instructions, expected_outcome, objective_id, phase_id, unit_id, assignee_id, profiles!work_items_assignee_id_fkey(full_name), checklist_items(id,label,position), submissions(id, submitted_at, note, submission_files(id, url))")
           .eq("project_id", projectId).neq("visibility", "private").order("due_at", { ascending: true, nullsFirst: false }),
         supabase.from("budgets").select("id, currency, amount_minor, year, note")
           .eq("project_id", projectId).eq("unit_id", me.unit_id),
@@ -275,7 +281,31 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
     if (!detail) return <div className="body manager-projects ev2-project-page ev2-project-workspace"><button className="back" onClick={() => initialProjectId && back ? back() : setSelectedId(null)}>← Projects</button>{error ? <ProductNotice tone="error" title="Could not open project">{error}</ProductNotice> : <LoadingState label="Loading project…" />}</div>;
     const team = [...new Set(detail.work.map((item) => item.profiles?.full_name).filter(Boolean))];
     const unattached = detail.work.filter((item) => !item.objective_id);
-    return <div className="body manager-projects ev2-project-page ev2-project-workspace">
+    const selectedWork = detail.work.find((item) => item.id === selectedWorkId) || null;
+    const visibleWork = detail.work.filter((item) => {
+      if (phaseFilter !== "all" && item.phase_id !== phaseFilter) return false;
+      if (workFilter === "finished") return ["completed","self_certified"].includes(item.status);
+      if (workFilter === "active") return !["completed","self_certified","cancelled"].includes(item.status);
+      return true;
+    });
+    const objectiveById = new Map(detail.objectives.map((objective) => [objective.id, objective]));
+    const phaseById = new Map(detail.phases.map((phase) => [phase.id, phase]));
+    const selectedDescription = selectedWork?.purpose || selectedWork?.instructions || selectedWork?.expected_outcome || null;
+    return <div className="manager-projects ev2-project-page ev2-project-workspace fpg-project-gold">
+      <aside className="fpg-project-tree" aria-label="Projects and stages">
+        <div className="fpg-project-tree-brand"><span>Projects</span><b>{projects.length}</b></div>
+        <div className="fpg-project-tree-list">
+          {projects.map((project) => <button key={project.id} type="button" className={project.id === detail.id ? "is-selected" : ""} onClick={() => setSelectedId(project.id)}>
+            <span className="fpg-tree-dot" aria-hidden="true" />
+            <span><strong>{project.name}</strong><small>{project.status || "Open"}</small></span>
+          </button>)}
+        </div>
+        <div className="fpg-project-tree-stages">
+          <span>Project stages</span>
+          {detail.phases.length ? detail.phases.map((phase) => <button key={phase.id} type="button" onClick={() => setArea("overview")}><i aria-hidden="true" /><span>{phase.name}</span></button>) : <p>No project stages recorded.</p>}
+        </div>
+      </aside>
+      <main className="fpg-project-main">
       <ProjectWorkspaceHeader
         kind={detail.kind}
         status={detail.status}
@@ -284,6 +314,23 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         context={detail.units?.name || "Lead unit not recorded"}
         onBack={() => initialProjectId && back ? back() : setSelectedId(null)}
       />
+      <section className="fpg-project-facts" aria-label="Project facts">
+        <div><span>Lead unit</span><strong>{detail.units?.name || "Not recorded"}</strong></div>
+        <div><span>Start date</span><strong>{detail.starts_on ? dateOnly(`${detail.starts_on}T00:00:00`) : "Not recorded"}</strong></div>
+        <div><span>Issues</span><strong>{detail.work.length}</strong></div>
+        <div><span>Assignees</span><strong>{team.length}</strong></div>
+        <label className="fpg-project-stage">
+          <span>Project stage</span>
+          <select value={phaseFilter} onChange={(event) => { setPhaseFilter(event.target.value); setArea("work"); }}>
+            <option value="all">{detail.phases.length ? "All stages" : "No stage recorded"}</option>
+            {detail.phases.map((phase) => <option key={phase.id} value={phase.id}>{phase.name}</option>)}
+          </select>
+        </label>
+        <div className="fpg-project-assignees" aria-label="Assigned people">
+          {team.slice(0,6).map((name) => <span key={name} title={name}>{name.slice(0,1).toUpperCase()}</span>)}
+          {team.length > 6 && <b>+{team.length - 6}</b>}
+        </div>
+      </section>
       {error && <ProductNotice tone="error" title="Could not complete that">{error}</ProductNotice>}
 
       <ProjectTabs
@@ -326,15 +373,43 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
         <div style={{ marginTop: 8 }}><CostSummary rows={detail.costs} /></div>
       </section>}
 
-      {area === "work" && <section className="project-workspace-area">
-        <div className="project-area-head">
-          <div><span className="eyebrow">Execution</span><h2>Project work</h2></div>
-          {detail.canManageObjectives && <button className="btn btn-sm" onClick={() => goAssign({ projectId: detail.id })}>Add project work</button>}
+      {area === "work" && <section className="project-workspace-area fpg-project-work">
+        <div className="fpg-project-work-head">
+          <div><span className="eyebrow">Execution</span><h2>Project work</h2><p>Non-private work across participating units. Select a row for context or open the full record for complete evidence and review history.</p></div>
+          {detail.canManageObjectives && <button className="btn btn-sm" onClick={() => goAssign({ projectId: detail.id })}>+ Add task</button>}
         </div>
-        <p className="screen-note">Non-private project work across participating units. Open any item for its full evidence and review history.</p>
-        {detail.work.map((item) => <WorkRow key={item.id} item={item} openItem={openItem} />)}
-        {detail.work.length === 0 && <div className="card small">No project work has been recorded yet.</div>}
-        {unattached.length > 0 && <p className="context-note">{unattached.length} item{unattached.length === 1 ? "" : "s"} are not attached to an objective. Attach work where an objective relationship is meaningful; do not force a link for administrative work.</p>}
+        <div className="fpg-viewbar" aria-label="Project work views">
+          <div className="fpg-view-switch">
+            <button type="button" disabled title="Board view is not connected to authoritative CEAC project behavior yet">Board view</button>
+            <button type="button" className="is-active" aria-pressed="true">Table view</button>
+            <button type="button" disabled title="Calendar view is not connected to authoritative CEAC project behavior yet">Calendar view</button>
+          </div>
+          <div className="fpg-work-filters" aria-label="Work filters">
+            <button type="button" className={workFilter === "all" ? "is-active" : ""} onClick={() => setWorkFilter("all")}>All</button>
+            <button type="button" className={workFilter === "active" ? "is-active" : ""} onClick={() => setWorkFilter("active")}>In progress</button>
+            <button type="button" className={workFilter === "finished" ? "is-active" : ""} onClick={() => setWorkFilter("finished")}>Finished</button>
+          </div>
+        </div>
+        <ProjectIssueTable
+          items={visibleWork}
+          selectedId={selectedWorkId}
+          objectiveById={objectiveById}
+          phaseById={phaseById}
+          onSelect={setSelectedWorkId}
+          formatDue={dueLabel}
+          renderStatus={statusPill}
+        />
+        {unattached.length > 0 && <p className="context-note">{unattached.length} item{unattached.length === 1 ? "" : "s"} are not attached to an objective. CEAC does not force a false objective relationship for administrative work.</p>}
+        <ProjectWorkDrawer
+          item={selectedWork}
+          projectName={detail.name}
+          description={selectedDescription}
+          onClose={() => setSelectedWorkId(null)}
+          onOpen={openItem}
+          formatDue={dueLabel}
+          formatDate={dateOnly}
+          renderStatus={statusPill}
+        />
       </section>}
 
       {area === "objectives" && <section className="project-workspace-area">
@@ -399,6 +474,7 @@ export default function ManagerProjects({ me, initialProjectId = null, openItem,
       {sheet?.type === "objective" && <ObjectiveSheet value={sheet.value} busy={busy} onClose={() => setSheet(null)} onSave={saveObjective} />}
       {sheet?.type === "objective-saved" && <Sheet onClose={() => setSheet(null)}><div className="h2">Objective saved</div><p className="screen-note">The next step is to assign work through the existing work flow.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => goAssign({ projectId: sheet.projectId, objectiveId: sheet.objectiveId })}>Add work under this objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
       {sheet?.type === "created" && <Sheet onClose={() => setSheet(null)}><div className="eyebrow">Step 2 of 3</div><div className="h2">Add objectives</div><p className="screen-note">The project basics are saved. Add objectives next, then assign work under them.</p><button className="btn" style={{ marginTop: 14 }} onClick={() => setSheet({ type: "objective", value: null })}>Add first objective</button><button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setSheet(null)}>Not now</button></Sheet>}
+      </main>
     </div>;
   }
 

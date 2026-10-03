@@ -91,7 +91,10 @@ end $$;
 -- record_ministry_number(uuid,date,numeric,text). They keep both ministry
 -- tables directly read-only in the browser. Definition is Unit Head/Admin;
 -- recording is unit member, Unit Head, or Admin and is append-only.
--- Reducing this surface is allowed. Any growth beyond 106 requires another
+-- FPG5 adds seven reviewed Payroll RPCs. They are authenticated-only,
+-- capability-gated, keep protected payroll tables outside browser access, and
+-- preserve Administration prepare / Group Pastor approval separation.
+-- Reducing this surface is allowed. Any growth beyond 113 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -102,8 +105,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>106 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 106-function ceiling to %.',n;
+  if n>113 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 113-function ceiling to %.',n;
   end if;
 end $$;
 

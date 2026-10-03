@@ -71,7 +71,7 @@ const roles = [
       isAdmin: true,
       isExec: false,
       isManager: false,
-      me: { capabilities: ["people.manage"] },
+      me: { capabilities: ["people.manage", "payroll.prepare"] },
     },
     destinations: [
       ["home", "Overview"],
@@ -79,6 +79,7 @@ const roles = [
       ["work", "Work"],
       ["attendance", "Time & Leave"],
       ["finance", "Finance"],
+      ["payroll", "Payroll"],
       ["reporting", "Reports"],
       ["settings", "Control Center"],
       ["messages", "Messages"],
@@ -93,6 +94,7 @@ const roles = [
     ],
     secondary: [
       ["work", "Work"],
+      ["payroll", "Payroll"],
       ["reporting", "Reports"],
       ["settings", "Control Center"],
       ["messages", "Messages"],
@@ -104,7 +106,7 @@ const roles = [
     key: "executive",
     email: "exec@ceac.local.test",
     app: ".executive-app",
-    context: { isAdmin: false, isExec: true, isManager: false, me: { capabilities: [] } },
+    context: { isAdmin: false, isExec: true, isManager: false, me: { capabilities: ["payroll.approve"] } },
     destinations: [
       ["home", "Overview"],
       ["work", "Work"],
@@ -112,6 +114,7 @@ const roles = [
       ["delivery", "Portfolio"],
       ["exec-organisation", "Organisation"],
       ["exec-finance", "Finance"],
+      ["payroll", "Payroll"],
       ["exec-reports", "Reports"],
       ["messages", "Messages"],
       ["me", "My Hub"],
@@ -126,6 +129,7 @@ const roles = [
     secondary: [
       ["exec-organisation", "Organisation"],
       ["exec-finance", "Finance"],
+      ["payroll", "Payroll"],
       ["exec-reports", "Reports"],
       ["messages", "Messages"],
       ["me", "My Hub"],

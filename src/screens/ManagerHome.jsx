@@ -460,6 +460,7 @@ export default function ManagerHome({ me, openItem, openProject, openMeeting, sc
       onBlockerAcknowledge={(blocker) => answerBlocker(blocker, "acknowledged")}
       onResolveBlocker={resolveBlocker}
       onOpenFinance={() => go?.("manager-finance")}
+      onNavigate={go}
       onDrill={setDrill}
     />
 

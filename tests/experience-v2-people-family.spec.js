@@ -396,7 +396,7 @@ for (const viewport of [
       expect(box?.height || 0).toBeGreaterThanOrEqual(44);
     }
 
-    const personRows = page.locator(".ev2p-admin-person-row:visible");
+    const personRows = page.locator(".fpg-people-roster-row:visible");
     if (await personRows.count()) {
       const box = await personRows.first().boundingBox();
       expect(box?.height || 0).toBeGreaterThanOrEqual(44);
@@ -413,7 +413,7 @@ for (const viewport of [
 
 async function openAdminEmployee(browser, viewport) {
   const { context, page } = await openAdminPeople(browser, viewport);
-  const row = page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first();
+  const row = page.locator(".fpg-people-roster-row").filter({ hasText: "Staff Fixture" }).first();
   await expect(row).toBeVisible();
   await row.click();
   await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible({ timeout: 15000 });
@@ -579,7 +579,7 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: "People", exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 
-    const row = page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first();
+    const row = page.locator(".fpg-people-roster-row").filter({ hasText: "Staff Fixture" }).first();
     await expect(row).toBeVisible();
     await row.click();
     await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible();
@@ -602,9 +602,9 @@ test("Stage 10 Family B5C Administration People states stay factual and usable",
   await search.fill("No such CEAC person");
   await expect(page.getByText("Nobody matches", { exact: true })).toBeVisible();
   await search.fill("");
-  await expect(page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first()).toBeVisible();
+  await expect(page.locator(".fpg-people-roster-row").filter({ hasText: "Staff Fixture" }).first()).toBeVisible();
 
-  await page.locator(".ev2p-admin-person-row").filter({ hasText: "Staff Fixture" }).first().click();
+  await page.locator(".fpg-people-roster-row").filter({ hasText: "Staff Fixture" }).first().click();
   await expect(page.locator(".ev2-admin-person-workspace")).toBeVisible();
   await page.getByRole("button", { name: "Record change", exact: true }).click();
 

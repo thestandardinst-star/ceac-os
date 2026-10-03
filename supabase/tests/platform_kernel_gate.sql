@@ -70,8 +70,8 @@ begin
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
 
-  if n<>106 then
-    raise exception 'Platform Kernel gate failure: expected 106 authenticated SECURITY DEFINER functions after reviewed migration 095 ministry RPCs, found %.',n;
+  if n<>113 then
+    raise exception 'Platform Kernel gate failure: expected 113 authenticated SECURITY DEFINER functions after reviewed FPG5 Payroll RPCs, found %.',n;
   end if;
 
   if to_regprocedure('public.my_sessions()') is null
@@ -133,8 +133,29 @@ begin
      or has_function_privilege('authenticated','public.submit_report(uuid,jsonb)','EXECUTE') then
     raise exception 'Platform Kernel gate failure: an internal-only privileged helper remains directly executable by authenticated.';
   end if;
+
+  if to_regprocedure('public.payroll_list_runs()') is null
+     or to_regprocedure('public.payroll_run_detail(uuid)') is null
+     or to_regprocedure('public.payroll_create_run(text,date,date,text,date,text)') is null
+     or to_regprocedure('public.payroll_set_line(uuid,uuid,uuid,text,text,text,bigint,text)') is null
+     or to_regprocedure('public.payroll_submit_run(uuid,text)') is null
+     or to_regprocedure('public.payroll_approve_run(uuid,text)') is null
+     or to_regprocedure('public.payroll_create_correction(uuid,text)') is null then
+    raise exception 'Platform Kernel gate failure: reviewed FPG5 Payroll RPC surface is incomplete.';
+  end if;
+
+  if has_function_privilege('anon','public.payroll_list_runs()','EXECUTE')
+     or has_function_privilege('anon','public.payroll_run_detail(uuid)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_create_run(text,date,date,text,date,text)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_set_line(uuid,uuid,uuid,text,text,text,bigint,text)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_submit_run(uuid,text)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_approve_run(uuid,text)','EXECUTE')
+     or has_function_privilege('anon','public.payroll_create_correction(uuid,text)','EXECUTE') then
+    raise exception 'Platform Kernel gate failure: anon can execute a protected Payroll RPC.';
+  end if;
 end
 $definer_surface$;
+
 
 -- Protected HR is deliberately outside browser-exposed public data.
 do $hr_boundary$

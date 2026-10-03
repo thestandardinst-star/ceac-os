@@ -45,6 +45,7 @@ const AdminPolicies = lazy(() => import("./screens/AdminPolicies"));
 const AdminIntegrations = lazy(() => import("./screens/AdminIntegrations"));
 const AdminLifecycle = lazy(() => import("./screens/AdminLifecycle"));
 const AdminProtectedHR = lazy(() => import("./screens/AdminProtectedHR"));
+const AdminPayroll = lazy(() => import("./screens/AdminPayroll"));
 const Goals = lazy(() => import("./screens/Goals"));
 const Strategy = lazy(() => import("./screens/Strategy"));
 const Delivery = lazy(() => import("./screens/Delivery"));
@@ -236,6 +237,7 @@ export default function App() {
   const canUseWorkflows = canViewAudit || canManagePeople || canManageAuthority;
   const canManageIntegrations = hasCapability("integration.manage");
   const canAccessProtectedHR = hasCapability("hr_private.access");
+  const canUsePayroll = hasCapability("payroll.prepare") || hasCapability("payroll.approve");
   const canUseDelivery = isAdmin || isExec || isUnitManager || hasCapability("delivery.manage");
   const canUseWorkload = isUnitManager || hasCapability("resource.manage");
   const canUsePerformance = !isExec && (isStaff || isUnitManager || hasOrgCapability("performance.admin"));
@@ -297,6 +299,7 @@ export default function App() {
     if (tab === "people" && canManagePeople) return <People me={me} openItem={openItem} />;
     if (tab === "lifecycle" && canManagePeople) return <AdminLifecycle me={me} />;
     if (tab === "protected-hr" && canAccessProtectedHR) return <AdminProtectedHR me={me} />;
+    if (tab === "payroll" && canUsePayroll) return <AdminPayroll me={me} />;
     if (tab === "units" && isAdmin) return <Units me={me} openItem={openItem} />;
     if (tab === "admin-projects" && isAdmin) return <AdminProjects me={me} scheduleMeeting={startMeeting} />;
     if (tab === "admin-calendar" && isAdmin) return <AdminCalendar me={me} openMeeting={openMeeting} scheduleMeeting={startMeeting} />;
@@ -341,6 +344,10 @@ export default function App() {
         isExec={isExec}
         isManager={isUnitManager}
         onUnitChange={switchUnit}
+        onMessages={() => go("messages")}
+        onComposeMessage={() => me.unit_id ? openRoom({ kind:"unit", unitId:me.unit_id }) : go("messages")}
+        onCreateWork={(isManager || isExec) ? () => startAssignment() : undefined}
+        onCreateMeeting={() => startMeeting(isAdmin || isExec ? { scope:"organisation", organisation:true } : { scope:"unit", unitId:me.unit_id, unitName:me.unit_name })}
       />
       <div className="ev2s-workspace">
         <MobileTopBar

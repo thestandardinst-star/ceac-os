@@ -53,11 +53,11 @@ const databaseOrSecurityChanged = files.some(
 );
 const levelBRequested = /\[level-b\]/i.test(subject);
 const levelB =
-  !documentationOnly &&
-  (eventName === "workflow_dispatch" ||
-    levelBRequested ||
-    workflowOrHarnessChanged ||
-    databaseOrSecurityChanged);
+  levelBRequested ||
+  (!documentationOnly &&
+    (eventName === "workflow_dispatch" ||
+      workflowOrHarnessChanged ||
+      databaseOrSecurityChanged));
 
 const scopeRules = [
   ["vf9b", /visual-fidelity-css-cascade-closure\.spec\.js$/i],
