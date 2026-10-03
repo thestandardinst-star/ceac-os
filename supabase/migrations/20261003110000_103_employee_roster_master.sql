@@ -72,12 +72,14 @@ alter table public.employee_unit_memberships enable row level security;
 revoke all on public.employee_roster from public,anon,authenticated;
 revoke all on public.employee_unit_memberships from public,anon,authenticated;
 
+drop policy if exists employee_roster_admin_read on public.employee_roster;
 create policy employee_roster_admin_read
 on public.employee_roster
 for select
 to authenticated
 using (org_id=public.app_org_id() and public.app_is_admin());
 
+drop policy if exists employee_unit_memberships_admin_read on public.employee_unit_memberships;
 create policy employee_unit_memberships_admin_read
 on public.employee_unit_memberships
 for select
