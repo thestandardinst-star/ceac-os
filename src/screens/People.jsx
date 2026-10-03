@@ -633,8 +633,8 @@ export default function People({ me, openItem }) {
         <FieldGroup label="Manager">
           <select className="field" aria-label="Manager" value={employmentForm.managerId} onChange={(event) => setEmploymentForm({ ...employmentForm, managerId: event.target.value })}>
             <option value="">No manager recorded</option>
-            {rows.filter((entry) => entry.id !== person.id && entry.active && entry.unit_id === employmentForm.unitId)
-              .map((entry) => <option key={entry.id} value={entry.id}>{entry.full_name}</option>)}
+            {rows.filter((entry) => entry.profile_id && entry.profile_id !== person.profile_id && entry.active && entry.unit_id === employmentForm.unitId)
+              .map((entry) => <option key={entry.employee_id || entry.id} value={entry.profile_id}>{entry.full_name}</option>)}
           </select>
         </FieldGroup>
         <FieldGroup label="Working pattern">
