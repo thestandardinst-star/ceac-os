@@ -331,3 +331,30 @@ FPG8 is NOT accepted yet because the programme requires a reviewed apply step. T
 - explicit production apply scope.
 
 Until those decisions are reviewed, production mutation remains prohibited. FPG9 read-only preparation is permitted, but the canonical write sequence does not cross the FPG8 → FPG9 boundary.
+
+
+## FPG8 — Go-live organisation/staff reconciliation: ACCEPTED
+
+Accepted production reconciliation date: 3 October 2026.
+
+Owner-authorized safe subset applied:
+- Staff Development, Staff Chaplaincy and Compliance created as active units;
+- one exact existing profile received two additional `staff` memberships with its existing manager authority preserved;
+- the second exact existing profile required no mutation;
+- zero capability changes;
+- zero fabricated auth identities or emails;
+- genuinely ambiguous identity record quarantined;
+- unmatched/no-email and unresolved-primary-unit rows retained roster-only in private evidence;
+- platform audit events recorded for all applied unit/membership mutations.
+
+The unresolved roster-only rows do not block the canonical FPG sequence.
+
+## Current stage
+
+FPG9 — Original CEAC Home/shell exact-parity correction: ACTIVE
+
+Authority:
+- `docs/visual-fidelity/references/CEAC_original_premium_mockup_reference.jpg`;
+- locked HOME-01/HOME-02/HOME-03 entries in `REFERENCE_COMPONENT_MATRIX.md`.
+
+FPG9 must correct Home/shell visible parity without changing accepted role authority, routing, RLS, truthful-data behavior or mobile accessibility.
