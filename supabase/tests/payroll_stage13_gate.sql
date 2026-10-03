@@ -85,6 +85,18 @@ begin
 end
 $capability_guard$;
 
+insert into public.employee_roster(
+  org_id,profile_id,full_name,source_display_name,job_title,employment_type,
+  employment_status,identity_state,source_system,source_row_key
+)
+select
+  p.org_id,p.id,p.full_name,p.full_name,p.job_title,'not_recorded',
+  case when p.active then 'active' else 'inactive' end,
+  'linked','payroll_acceptance_fixture',p.id::text
+from public.profiles p
+where p.org_id='10000000-0000-4000-8000-000000000010'
+on conflict(profile_id) do nothing;
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000001',true);
 
@@ -127,15 +139,26 @@ begin
     raise exception 'Payroll gate failure: draft run did not snapshot active employees.';
   end if;
 
+  if jsonb_array_length(v_detail->'entries')<>(
+    select count(*) from public.employee_roster
+    where org_id=public.app_org_id() and employment_status='active'
+  ) then
+    raise exception 'Payroll gate failure: draft run did not include the complete active employee roster.';
+  end if;
+
   for v_entry in select value from jsonb_array_elements(v_detail->'entries')
   loop
+    if nullif(v_entry->>'employee_id','') is null then
+      raise exception 'Payroll gate failure: payroll entry lacks canonical employee_id.';
+    end if;
+
     if not exists(
       select 1 from jsonb_array_elements(v_entry->'lines') line
       where line->>'category'='base_salary'
     ) then
       perform public.payroll_set_line(
         v_run,
-        (v_entry->>'profile_id')::uuid,
+        (v_entry->>'employee_id')::uuid,
         null,
         'base_salary','addition','Base salary',
         100000,
