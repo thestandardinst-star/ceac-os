@@ -242,3 +242,63 @@ Primary target components:
 - truthful colored approved/pending leave blocks;
 - lower contextual cards only where authoritative CEAC records exist.
 Do not invent onboarding tasks, future events, AI assistant content or HR scoring to imitate reference-only material.
+
+
+## FPG7 — People / HR / Workforce exact-reference implementation: ACCEPTED
+
+Accepted application SHA: `a268125b22f0badad7a04cddbac4ff12769c7862`.
+
+Implemented and verified:
+- literal PEOPLE-A employee-row hierarchy implemented on Administration People;
+- literal PEOPLE-A employee-by-date planned-absence treatment implemented on Workforce Calendar;
+- compact unit/person controls use authoritative CEAC records;
+- approved/pending/Administration-review leave treatment remains truthful to CEAC state;
+- reference-only onboarding, future-event and AI-assistant material was not invented;
+- 12px operational typography floor restored after exact-head visual inventory found the cascade regression;
+- aggregate CSS stayed within the locked performance budget without raising the budget.
+
+Exact-head evidence:
+- CI PASS;
+- Migration Replay PASS;
+- Account Security PASS;
+- Level B SQL and authority contracts PASS;
+- browser shards 1/4, 2/4, 3/4 and 4/4 PASS;
+- exact-head evidence merge PASS;
+- role-and-RLS closure PASS;
+- Quality Gate PASS.
+
+Deployment note:
+- Vercel is externally rate-limited on this SHA; no application-code failure is indicated. Production deployment verification remains part of FPG14 closure.
+
+FUNCTIONAL CONTRACT PRESERVED: YES
+SECURITY/AUTHORITY PRESERVED: YES
+REFERENCE COMPONENT PARITY: YES
+RESPONSIVE ACCEPTANCE: YES
+
+## Current stage
+
+FPG8 — Go-live organisation/staff reconciliation: ACTIVE
+
+Controlled source:
+- the supplied CEAC OFFICE-STAFF STRUCTURE workbook is the source input;
+- private staff rows must not be committed to Git;
+- job-title wording must not grant system authority;
+- existing accounts are reconciled, never duplicated;
+- employees without a real work email remain roster-only and no auth identity is fabricated;
+- multiple department relationships use unit memberships rather than compound departments;
+- Staff Development, Staff Chaplaincy and Compliance are approved unit classifications;
+- Leadership Academy and Healing Streams remain programmes, not departments;
+- Model Church and Wonder Church remain branch responsibilities;
+- OFGP Action Manager remains a role/responsibility under the appropriate secretariat context.
+
+Dry-run preparation completed outside Git:
+- 18 source staff rows;
+- 2 exact production profile matches;
+- 1 possible duplicate requiring identity review;
+- 15 rows without an exact production profile match;
+- 0 source email addresses;
+- 3 approved new units not yet present in production;
+- 1 source row has programme context only and therefore lacks a confirmed primary office unit;
+- 0 new auth accounts proposed before reviewed input.
+
+Production mutation remains prohibited until the reviewed apply step resolves identity, real-email, unit-membership and primary-unit decisions. Safe read-only preparation may continue meanwhile.
