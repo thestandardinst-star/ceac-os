@@ -107,6 +107,12 @@ begin
     raise exception 'Payroll gate failure: Staff listed payroll runs.';
   exception when insufficient_privilege then null;
   end;
+
+  begin
+    perform public.payroll_readiness_summary();
+    raise exception 'Payroll gate failure: Staff viewed Payroll readiness.';
+  exception when insufficient_privilege then null;
+  end;
 end
 $staff_denied$;
 
@@ -119,12 +125,21 @@ declare
   v_run uuid;
   v_entry jsonb;
   v_detail jsonb;
+  v_readiness jsonb;
 begin
   if not public.app_has_capability('payroll.prepare',null) then
     raise exception 'Payroll gate failure: Administration fixture lacks payroll.prepare.';
   end if;
   if public.app_has_capability('payroll.approve',null) then
     raise exception 'Payroll gate failure: Administration fixture also has payroll.approve.';
+  end if;
+
+  v_readiness:=public.payroll_readiness_summary();
+  if (v_readiness->>'employee_count')::int<>(
+    select count(*) from public.employee_roster
+    where org_id=public.app_org_id() and employment_status='active'
+  ) then
+    raise exception 'Payroll gate failure: readiness summary does not match the active employee roster.';
   end if;
 
   v_run:=public.payroll_create_run(
