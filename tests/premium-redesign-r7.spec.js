@@ -30,7 +30,9 @@ test.describe("Premium redesign R7 closure", () => {
       await expect(page.locator(".ev2s-sidebar")).toBeVisible();
       await expect(page.locator(".ev2s-topbar")).toBeVisible();
       await expect(page.locator(".ev2s-sidebar-nav")).toBeVisible();
+      await expect(page.locator(".fpg9-sidebar-quick")).toBeVisible();
       await expect(page.getByRole("button", { name: "Create", exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Open messages", exact: true })).toBeVisible();
 
       if (label === "Staff") {
         await expect(page.locator(".staffv2")).toBeVisible();
@@ -42,9 +44,12 @@ test.describe("Premium redesign R7 closure", () => {
       } else if (label === "Manager") {
         await expect(page.locator(".managerv2")).toBeVisible();
         await expect(page.locator(".managerv2-main")).toBeVisible({ timeout: 15000 });
+        await expect(page.locator(".fpg9-home-hero")).toBeVisible();
+        await expect(page.locator(".fpg9-home-reference")).toBeVisible();
+        await expect(page.locator(".fpg9-calendar-card")).toBeVisible();
+        await expect(page.locator(".fpg9-home-queues")).toBeVisible();
+        await expect(page.locator(".fpg9-module-strip")).toBeVisible();
         await expect(page.locator(".managerv2-decisions")).toBeVisible();
-        await expect(page.locator(".reference-module-strip")).toHaveCount(0);
-        await expect(page.locator(".manager-command-surface")).toHaveCount(0);
       } else if (label === "Administration") {
         await expect(page.locator(".adminv2")).toBeVisible();
         await expect(page.locator(".adminv2-main")).toBeVisible({ timeout: 15000 });
