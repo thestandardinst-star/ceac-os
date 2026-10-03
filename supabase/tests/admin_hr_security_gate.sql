@@ -98,7 +98,9 @@ end $$;
 -- hr_employee_protected_summary and hr_employee_protected_record.
 -- Both remain capability-gated by hr_private.access, bind to auth.uid(),
 -- and do not expose protected tables directly.
--- Reducing this surface is allowed. Any growth beyond 115 requires another
+-- ERC6 adds one reviewed Payroll readiness RPC. It returns configuration
+-- completeness only, exposes no salary/bank values, and is payroll-capability-gated.
+-- Reducing this surface is allowed. Any growth beyond 116 requires another
 -- explicit security-gate review in the same PR.
 do $$
 declare n integer;
@@ -109,8 +111,8 @@ begin
   where ns.nspname='public'
     and p.prosecdef
     and has_function_privilege('authenticated',p.oid,'EXECUTE');
-  if n>115 then
-    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 115-function ceiling to %.',n;
+  if n>116 then
+    raise exception 'Security gate failure: authenticated SECURITY DEFINER surface grew beyond the reviewed 116-function ceiling to %.',n;
   end if;
 end $$;
 
